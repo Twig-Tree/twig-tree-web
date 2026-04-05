@@ -10,6 +10,9 @@ importers:
       "@xyflow/react":
         specifier: ^12.10.2
         version: 12.10.2(@types/react@19.2.14)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
+      elkjs:
+        specifier: ^0.11.1
+        version: 0.11.1
       next:
         specifier: 16.2.2
         version: 16.2.2(@babel/core@7.29.0)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
@@ -1591,6 +1594,12 @@ packages:
     resolution:
       {
         integrity: sha512-IbxXrsTlD3hRodkLnbxAPP4OuJYdWCeM3IOdT+CpcMoIwIoDfCmRpEtSPfwBXxVkg9xmBeY7Lz2Eo2TDn/HC3Q==,
+      }
+
+  elkjs@0.11.1:
+    resolution:
+      {
+        integrity: sha512-zxxR9k+rx5ktMwT/FwyLdPCrq7xN6e4VGGHH8hA01vVYKjTFik7nHOxBnAYtrgYUB1RpAiLvA1/U2YraWxyKKg==,
       }
 
   emoji-regex@9.2.2:
@@ -4292,6 +4301,8 @@ snapshots:
       gopd: 1.2.0
 
   electron-to-chromium@1.5.331: {}
+
+  elkjs@0.11.1: {}
 
   emoji-regex@9.2.2: {}
 
