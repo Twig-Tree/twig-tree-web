@@ -6,7 +6,7 @@ export const initialNodes: CustomNodeType[] = [
   {
     id: "1",
     type: "custom",
-    data: { label: "node 1" },
+    data: { label: "node 1", isRoot: true },
     position,
   },
   {
@@ -48,7 +48,7 @@ export const initialNodes: CustomNodeType[] = [
   {
     id: "4",
     type: "custom",
-    data: { label: "node 4" },
+    data: { label: "node 4", isRoot: true },
     position,
   },
   {
