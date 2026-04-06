@@ -1,51 +1,20 @@
 "use client";
-import { useState, useCallback } from "react";
+import { useCallback, useLayoutEffect } from "react";
 import {
   ReactFlow,
   addEdge,
-  applyNodeChanges,
-  applyEdgeChanges,
-  type FitViewOptions,
   type OnConnect,
-  type OnNodesChange,
-  type OnEdgesChange,
-  type OnNodeDrag,
-  type DefaultEdgeOptions,
+  useNodesState,
+  useEdgesState,
+  Position,
+  useReactFlow,
+  ReactFlowProvider,
 } from "@xyflow/react";
 import { CustomNode } from "@/src/components/CustomNode";
 import { CustomEdgeType, CustomNodeType } from "@/src/types/custom-node";
 import { CustomEdge } from "@/src/components/CustomEdge";
-
-const initialNodes: CustomNodeType[] = [
-  {
-    id: "n1",
-    type: "custom",
-    data: { label: "Node 1" },
-    position: { x: 5, y: 5 },
-  },
-  {
-    id: "n2",
-    type: "custom",
-    data: { label: "Node 2" },
-    position: { x: 200, y: 5 },
-  },
-];
-
-const initialEdges: CustomEdgeType[] = [
-  { id: "e1", type: "custom", source: "n1", target: "n2" },
-];
-
-const fitViewOptions: FitViewOptions = {
-  padding: 0.2,
-};
-
-const defaultEdgeOptions: DefaultEdgeOptions = {
-  animated: true,
-};
-
-const onNodeDrag: OnNodeDrag<CustomNodeType> = (_, node) => {
-  console.log("drag event", node.data);
-};
+import { initialNodes, initialEdges } from "./initialElements";
+import ELK from "elkjs/lib/elk.bundled.js";
 
 const nodeTypes = {
   custom: CustomNode,
@@ -55,38 +24,111 @@ const edgeTypes = {
   custom: CustomEdge,
 };
 
-export default function Home() {
-  const [nodes, setNodes] = useState<CustomNodeType[]>(initialNodes);
-  const [edges, setEdges] = useState<CustomEdgeType[]>(initialEdges);
+type direction = "RIGHT" | "DOWN";
 
-  const onNodesChange: OnNodesChange<CustomNodeType> = useCallback(
-    (changes) => setNodes((nds) => applyNodeChanges(changes, nds)),
-    [setNodes],
-  );
-  const onEdgesChange: OnEdgesChange<CustomEdgeType> = useCallback(
-    (changes) => setEdges((eds) => applyEdgeChanges(changes, eds)),
-    [setEdges],
-  );
+const elk = new ELK();
+
+const elkOptions = {
+  "elk.algorithm": "layered", // 노드들을 층(layer)별로 나누어 배치하는 알고리즘
+  "elk.layered.spacing.nodeNodeBetweenLayers": "100", // 층 사이의 간격
+  "elk.spacing.nodeNode": "80", // 노드 간의 간격
+};
+
+const getLayoutedElements = async (
+  nodes: CustomNodeType[],
+  edges: CustomEdgeType[],
+  options: Record<string, string> = {},
+): Promise<{ nodes: CustomNodeType[]; edges: CustomEdgeType[] }> => {
+  const isHorizontal = options?.["elk.direction"] === "RIGHT";
+  const graph = {
+    id: "root",
+    layoutOptions: options,
+    children: nodes.map((node: CustomNodeType) => ({
+      ...node,
+      targetPosition: isHorizontal ? Position.Left : Position.Top,
+      sourcePosition: isHorizontal ? Position.Right : Position.Bottom,
+      width: 150,
+      height: 50,
+    })),
+    edges: edges.map((edge) => ({
+      ...edge,
+      sources: [edge.source],
+      targets: [edge.target],
+    })),
+  };
+
+  return elk
+    .layout(graph)
+    .then((layoutedGraph) => ({
+      nodes: (layoutedGraph.children ?? []).map((node) => ({
+        ...node,
+        position: { x: node.x ?? 0, y: node.y ?? 0 },
+      })),
+      edges: layoutedGraph.edges,
+    }))
+    .catch((err) => {
+      console.error(err);
+      return { nodes, edges };
+    });
+};
+
+function LayoutFlow() {
+  const [nodes, setNodes, onNodesChange] = useNodesState<CustomNodeType>([]);
+  const [edges, setEdges, onEdgesChange] = useEdgesState<CustomEdgeType>([]);
+  const { fitView } = useReactFlow();
+
   const onConnect: OnConnect = useCallback(
     (connection) => setEdges((eds) => addEdge(connection, eds)),
     [setEdges],
   );
+  const onLayout = useCallback(
+    ({
+      direction,
+      useInitialNodes = false,
+    }: {
+      direction: direction;
+      useInitialNodes?: boolean;
+    }) => {
+      const opts = { "elk.direction": direction, ...elkOptions };
+      const ns = useInitialNodes ? initialNodes : nodes;
+      const es = useInitialNodes ? initialEdges : edges;
+
+      getLayoutedElements(ns, es, opts).then(
+        ({ nodes: layoutedNodes, edges: layoutedEdges }) => {
+          setNodes(layoutedNodes);
+          setEdges(layoutedEdges);
+          fitView();
+        },
+      );
+    },
+    [nodes, edges, setNodes, setEdges, fitView],
+  );
+
+  useLayoutEffect(() => {
+    onLayout({ direction: "RIGHT", useInitialNodes: true });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
+    <ReactFlow
+      nodes={nodes}
+      edges={edges}
+      nodeTypes={nodeTypes}
+      edgeTypes={edgeTypes}
+      onNodesChange={onNodesChange}
+      onEdgesChange={onEdgesChange}
+      onConnect={onConnect}
+      fitView
+    />
+  );
+}
+
+export default function Home() {
+  return (
     <div className="w-full h-screen">
-      <ReactFlow
-        nodes={nodes}
-        edges={edges}
-        nodeTypes={nodeTypes}
-        edgeTypes={edgeTypes}
-        onNodesChange={onNodesChange}
-        onEdgesChange={onEdgesChange}
-        onConnect={onConnect}
-        onNodeDrag={onNodeDrag}
-        fitView
-        fitViewOptions={fitViewOptions}
-        defaultEdgeOptions={defaultEdgeOptions}
-      />
+      <ReactFlowProvider>
+        <LayoutFlow />
+      </ReactFlowProvider>
     </div>
   );
 }
