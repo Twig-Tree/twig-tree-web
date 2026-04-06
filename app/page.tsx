@@ -4,11 +4,13 @@ import {
   ReactFlow,
   addEdge,
   type OnConnect,
+  type OnReconnect,
   useNodesState,
   useEdgesState,
   Position,
   useReactFlow,
   ReactFlowProvider,
+  reconnectEdge,
 } from "@xyflow/react";
 import { CustomNode } from "@/src/components/CustomNode";
 import { CustomEdgeType, CustomNodeType } from "@/src/types/custom-node";
@@ -77,6 +79,11 @@ function LayoutFlow() {
   const [edges, setEdges, onEdgesChange] = useEdgesState<CustomEdgeType>([]);
   const { fitView } = useReactFlow();
 
+  const onReconnect: OnReconnect<CustomEdgeType> = useCallback(
+    (oldEdge, newConnection) =>
+      setEdges((eds) => reconnectEdge(oldEdge, newConnection, eds)),
+    [setEdges],
+  );
   const onConnect: OnConnect = useCallback(
     (connection) => setEdges((eds) => addEdge(connection, eds)),
     [setEdges],
@@ -117,6 +124,7 @@ function LayoutFlow() {
       edgeTypes={edgeTypes}
       onNodesChange={onNodesChange}
       onEdgesChange={onEdgesChange}
+      onReconnect={onReconnect}
       onConnect={onConnect}
       fitView
     />
