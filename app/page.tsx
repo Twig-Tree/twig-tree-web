@@ -11,6 +11,7 @@ import {
   useReactFlow,
   ReactFlowProvider,
   reconnectEdge,
+  Panel,
 } from "@xyflow/react";
 import { CustomNode } from "@/src/components/CustomNode";
 import { CustomEdgeType, CustomNodeType } from "@/src/types/custom-node";
@@ -79,6 +80,10 @@ function LayoutFlow() {
   const [edges, setEdges, onEdgesChange] = useEdgesState<CustomEdgeType>([]);
   const { fitView } = useReactFlow();
 
+  const selectedNode = nodes.find((node) => node.selected);
+  const isButtonDisabled = !selectedNode;
+  const getNodeId = () => `randomnode_${+new Date()}`;
+
   const onReconnect: OnReconnect<CustomEdgeType> = useCallback(
     (oldEdge, newConnection) =>
       setEdges((eds) => reconnectEdge(oldEdge, newConnection, eds)),
@@ -88,6 +93,47 @@ function LayoutFlow() {
     (connection) => setEdges((eds) => addEdge(connection, eds)),
     [setEdges],
   );
+  const onAdd = useCallback(() => {
+    if (!selectedNode) return;
+
+    const newNodeId = getNodeId();
+    const newNode = {
+      id: newNodeId,
+      type: "custom",
+      data: { label: "Added node", isLeaf: true },
+      // 부모 노드 근처에 생성 (이후 ELK 레이아웃 동작)
+      position: {
+        x: selectedNode.position.x + 150,
+        y: selectedNode.position.y,
+      },
+    };
+
+    const newEdge: CustomEdgeType = {
+      id: `e-${selectedNode.id}-${newNodeId}`,
+      type: "custom",
+      source: selectedNode.id,
+      target: newNodeId,
+    };
+
+    setNodes((nds) =>
+      nds
+        .map((node) =>
+          node.id === selectedNode.id
+            ? {
+                ...node,
+                data: {
+                  ...node.data,
+                  label: node.data.label ?? "",
+                  isLeaf: false,
+                },
+              }
+            : node,
+        )
+        .concat(newNode),
+    );
+    setEdges((eds) => eds.concat(newEdge));
+  }, [selectedNode, setNodes, setEdges]);
+
   const onLayout = useCallback(
     ({
       direction,
@@ -112,9 +158,9 @@ function LayoutFlow() {
   );
 
   useLayoutEffect(() => {
-    onLayout({ direction: "RIGHT", useInitialNodes: true });
+    onLayout({ direction: "RIGHT", useInitialNodes: nodes.length === 0 });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [nodes.length, edges.length]);
 
   return (
     <ReactFlow
@@ -127,7 +173,17 @@ function LayoutFlow() {
       onReconnect={onReconnect}
       onConnect={onConnect}
       fitView
-    />
+    >
+      <Panel position="top-right">
+        <button
+          className="xy-theme__button"
+          onClick={onAdd}
+          disabled={isButtonDisabled}
+        >
+          add node
+        </button>
+      </Panel>
+    </ReactFlow>
   );
 }
 

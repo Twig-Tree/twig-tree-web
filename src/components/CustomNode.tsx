@@ -15,21 +15,19 @@ export function CustomNode({
 
   return (
     <div className="custom-node">
-      {!isRoot && (
-        <Handle
-          type="target"
-          position={targetPosition ?? Position.Top}
-          id="input"
-        />
-      )}
+      <Handle
+        type="target"
+        position={targetPosition ?? Position.Top}
+        id="input"
+        style={{ visibility: isRoot ? "hidden" : "visible" }}
+      />
       <label htmlFor="text">{data.label}</label>
-      {!isLeaf && (
-        <Handle
-          type="source"
-          position={sourcePosition ?? Position.Bottom}
-          id="output"
-        />
-      )}
+      <Handle
+        type="source"
+        position={sourcePosition ?? Position.Bottom}
+        id="output"
+        style={{ visibility: isLeaf ? "hidden" : "visible" }}
+      />
     </div>
   );
 }
