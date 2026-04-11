@@ -1,6 +1,9 @@
 import { Handle, Node, NodeProps, Position } from "@xyflow/react";
 
-export type CustomNode = Node<{ label: string; isRoot?: boolean }, "custom">;
+export type CustomNode = Node<
+  { label: string; isRoot?: boolean; isLeaf?: boolean },
+  "custom"
+>;
 
 export function CustomNode({
   data,
@@ -8,6 +11,8 @@ export function CustomNode({
   sourcePosition,
 }: NodeProps<CustomNode>) {
   const isRoot = data.isRoot ?? false;
+  const isLeaf = data.isLeaf ?? false;
+
   return (
     <div className="custom-node">
       {!isRoot && (
@@ -18,11 +23,13 @@ export function CustomNode({
         />
       )}
       <label htmlFor="text">{data.label}</label>
-      <Handle
-        type="source"
-        position={sourcePosition ?? Position.Bottom}
-        id="output"
-      />
+      {!isLeaf && (
+        <Handle
+          type="source"
+          position={sourcePosition ?? Position.Bottom}
+          id="output"
+        />
+      )}
     </div>
   );
 }
