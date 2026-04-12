@@ -1,6 +1,7 @@
 import { useCallback, Dispatch, SetStateAction } from "react";
 import { addEdge, OnConnect, OnReconnect, reconnectEdge } from "@xyflow/react";
 import { CustomEdgeType, CustomNodeType } from "@/src/domains/tree/types";
+import { isDuplicateEdge } from "../utils/edge";
 
 export function useTreeActions(
   nodes: CustomNodeType[],
@@ -13,13 +14,23 @@ export function useTreeActions(
   const getNodeId = () => `randomnode_${+new Date()}`;
 
   const onConnect: OnConnect = useCallback(
-    (connection) => setEdges((eds) => addEdge(connection, eds)),
-    [setEdges],
+    (connection) => {
+      if (isDuplicateEdge(edges, connection.source, connection.target)) {
+        alert("이미 연결된 노드입니다.");
+        return;
+      }
+      setEdges((eds) => addEdge(connection, eds))},
+    [edges, setEdges],
   );
 
   const onReconnect: OnReconnect<CustomEdgeType> = useCallback(
-    (oldEdge, newConnection) => setEdges((eds) => reconnectEdge(oldEdge, newConnection, eds)),
-    [setEdges],
+    (oldEdge, newConnection) => {
+      if (isDuplicateEdge(edges, newConnection.source, newConnection.target, oldEdge.id)) {
+        alert("이미 연결된 노드입니다.");
+        return;
+      }
+      setEdges((eds) => reconnectEdge(oldEdge, newConnection, eds))},
+    [edges, setEdges],
   );
 
   const onAdd = useCallback(() => {
