@@ -89,10 +89,6 @@ function LayoutFlow() {
       setEdges((eds) => reconnectEdge(oldEdge, newConnection, eds)),
     [setEdges],
   );
-  const onConnect: OnConnect = useCallback(
-    (connection) => setEdges((eds) => addEdge(connection, eds)),
-    [setEdges],
-  );
   const onAdd = useCallback(() => {
     if (!selectedNode) return;
 
@@ -171,7 +167,6 @@ function LayoutFlow() {
       onNodesChange={onNodesChange}
       onEdgesChange={onEdgesChange}
       onReconnect={onReconnect}
-      onConnect={onConnect}
       fitView
     >
       <Panel position="top-right">
