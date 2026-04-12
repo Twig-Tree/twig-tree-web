@@ -1,7 +1,7 @@
 import { Handle, Node, NodeProps, Position } from "@xyflow/react";
 
 export type CustomNode = Node<
-  { label: string; isRoot?: boolean; isLeaf?: boolean },
+  { label: string; isRoot?: boolean; },
   "custom"
 >;
 
@@ -11,7 +11,6 @@ export function CustomNode({
   sourcePosition,
 }: NodeProps<CustomNode>) {
   const isRoot = data.isRoot ?? false;
-  const isLeaf = data.isLeaf ?? false;
 
   return (
     <div className="custom-node">
@@ -26,7 +25,6 @@ export function CustomNode({
         type="source"
         position={sourcePosition ?? Position.Bottom}
         id="output"
-        style={{ visibility: isLeaf ? "hidden" : "visible" }}
       />
     </div>
   );

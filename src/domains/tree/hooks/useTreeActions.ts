@@ -12,56 +12,14 @@ export function useTreeActions(
   const isButtonDisabled = !selectedNode;
   const getNodeId = () => `randomnode_${+new Date()}`;
 
-  const onReconnect: OnReconnect<CustomEdgeType> = useCallback(
-    (oldEdge, newConnection) => {
-      setEdges((eds) => reconnectEdge(oldEdge, newConnection, eds) as CustomEdgeType[]);
-
-      // 이전 부모 노드가 isLeaf가 되는지 확인
-      const oldNodeId = oldEdge.source;
-      const newNodeId = newConnection.source;
-
-      if (oldNodeId === newNodeId) return;
-
-      setNodes((nds) =>
-        nds.map((node) => {
-          // 새로운 부모 노드 isLeaf 해제
-          if (node.id === newNodeId) {
-            return {
-              ...node,
-              data: {
-                ...node.data,
-                label: node.data.label ?? "",
-                isLeaf: false,
-              },
-            };
-          }
-
-          // 이전 부모 노드 isLeaf 설정
-          if (node.id === oldNodeId) {
-            const hasOtherChildren = edges.some(
-              (e) => e.source === oldNodeId && e.id !== oldEdge.id,
-            );
   const onConnect: OnConnect = useCallback(
     (connection) => setEdges((eds) => addEdge(connection, eds)),
     [setEdges],
   );
 
-            if (!hasOtherChildren) {
-              return {
-                ...node,
-                data: {
-                  ...node.data,
-                  label: node.data.label ?? "",
-                  isLeaf: true,
-                },
-              };
-            }
-          }
-          return node;
-        }),
-      );
-    },
-    [edges, setEdges, setNodes],
+  const onReconnect: OnReconnect<CustomEdgeType> = useCallback(
+    (oldEdge, newConnection) => setEdges((eds) => reconnectEdge(oldEdge, newConnection, eds)),
+    [setEdges],
   );
 
   const onAdd = useCallback(() => {

@@ -18,13 +18,13 @@ export const initialNodes: CustomNodeType[] = [
   {
     id: "2a",
     type: "custom",
-    data: { label: "node 2a", isLeaf: true },
+    data: { label: "node 2a" },
     position,
   },
   {
     id: "2b",
     type: "custom",
-    data: { label: "node 2b", isLeaf: true },
+    data: { label: "node 2b" },
     position,
   },
   {
@@ -36,13 +36,13 @@ export const initialNodes: CustomNodeType[] = [
   {
     id: "2d",
     type: "custom",
-    data: { label: "node 2d", isLeaf: true },
+    data: { label: "node 2d" },
     position,
   },
   {
     id: "3",
     type: "custom",
-    data: { label: "node 3", isLeaf: true },
+    data: { label: "node 3" },
     position,
   },
   {
@@ -60,13 +60,13 @@ export const initialNodes: CustomNodeType[] = [
   {
     id: "6",
     type: "custom",
-    data: { label: "output", isLeaf: true },
+    data: { label: "output" },
     position,
   },
   {
     id: "7",
     type: "custom",
-    data: { label: "output", isLeaf: true },
+    data: { label: "output" },
     position,
   },
 ];
