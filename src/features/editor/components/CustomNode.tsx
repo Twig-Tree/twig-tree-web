@@ -1,9 +1,6 @@
 import { Handle, Node, NodeProps, Position } from "@xyflow/react";
 
-export type CustomNode = Node<
-  { label: string; isRoot?: boolean; },
-  "custom"
->;
+export type CustomNode = Node<{ label: string; isRoot?: boolean }, "custom">;
 
 export function CustomNode({
   data,

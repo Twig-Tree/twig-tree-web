@@ -1,7 +1,10 @@
 import { useCallback, useLayoutEffect, Dispatch, SetStateAction } from "react";
 import { useReactFlow } from "@xyflow/react";
 import { CustomEdgeType, CustomNodeType } from "@/src/domains/tree/types";
-import { getLayoutedElements, elkOptions } from "@/src/domains/tree/utils/layout";
+import {
+  getLayoutedElements,
+  elkOptions,
+} from "@/src/domains/tree/utils/layout";
 import { initialNodes, initialEdges } from "@/src/domains/tree/constants";
 import { Direction } from "@/src/features/editor/constants/flowConfig";
 
@@ -9,7 +12,7 @@ export function useEditorLayout(
   nodes: CustomNodeType[],
   edges: CustomEdgeType[],
   setNodes: Dispatch<SetStateAction<CustomNodeType[]>>,
-  setEdges: Dispatch<SetStateAction<CustomEdgeType[]>>
+  setEdges: Dispatch<SetStateAction<CustomEdgeType[]>>,
 ) {
   const { fitView } = useReactFlow();
 

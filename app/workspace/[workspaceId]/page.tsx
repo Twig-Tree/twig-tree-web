@@ -7,7 +7,10 @@ import {
   Panel,
 } from "@xyflow/react";
 import { CustomEdgeType, CustomNodeType } from "@/src/domains/tree/types";
-import { nodeTypes, edgeTypes } from "@/src/features/editor/constants/flowConfig";
+import {
+  nodeTypes,
+  edgeTypes,
+} from "@/src/features/editor/constants/flowConfig";
 import { useTreeActions } from "@/src/domains/tree/hooks/useTreeActions";
 import { useEditorLayout } from "@/src/features/editor/hooks/useEditorLayout";
 
@@ -19,7 +22,7 @@ function LayoutFlow() {
     nodes,
     edges,
     setNodes,
-    setEdges
+    setEdges,
   );
 
   useEditorLayout(nodes, edges, setNodes, setEdges);

@@ -7,7 +7,7 @@ export function useTreeActions(
   nodes: CustomNodeType[],
   edges: CustomEdgeType[],
   setNodes: Dispatch<SetStateAction<CustomNodeType[]>>,
-  setEdges: Dispatch<SetStateAction<CustomEdgeType[]>>
+  setEdges: Dispatch<SetStateAction<CustomEdgeType[]>>,
 ) {
   const selectedNode = nodes.find((node) => node.selected);
   const isButtonDisabled = !selectedNode;
@@ -19,17 +19,26 @@ export function useTreeActions(
         alert("이미 연결된 노드입니다.");
         return;
       }
-      setEdges((eds) => addEdge(connection, eds))},
+      setEdges((eds) => addEdge(connection, eds));
+    },
     [edges, setEdges],
   );
 
   const onReconnect: OnReconnect<CustomEdgeType> = useCallback(
     (oldEdge, newConnection) => {
-      if (isDuplicateEdge(edges, newConnection.source, newConnection.target, oldEdge.id)) {
+      if (
+        isDuplicateEdge(
+          edges,
+          newConnection.source,
+          newConnection.target,
+          oldEdge.id,
+        )
+      ) {
         alert("이미 연결된 노드입니다.");
         return;
       }
-      setEdges((eds) => reconnectEdge(oldEdge, newConnection, eds))},
+      setEdges((eds) => reconnectEdge(oldEdge, newConnection, eds));
+    },
     [edges, setEdges],
   );
 

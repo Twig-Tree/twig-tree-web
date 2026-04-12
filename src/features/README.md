@@ -4,10 +4,12 @@
 `views` 또는 `modules`의 역할을 하며, 특정 페이지나 영역의 핵심 기능을 담당합니다.
 
 ## 폴더 구조 가이드 (각 기능 내부)
+
 - `components/`: 기능에 종속적인 UI 컴포넌트
 - `store/`: 해당 기능 내에서만 사용되는 상태 (Zustand, Context API 등)
 - `utils/`, `hooks/`: 기능 특화 유틸 및 훅
 
 ## 주요 기능 (예시)
+
 - `editor/`: React Flow를 기반으로 트리를 보여주고 편집하는 메인 편집 영역 (Tree, Node 도메인 결합)
 - `inspector/`: 노드 클릭 시 나타나는 사이드바/상세 정보 창 (Node 도메인의 상세 정보를 표시하고 수정하는 기능)

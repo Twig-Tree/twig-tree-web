@@ -4,10 +4,10 @@ export const isDuplicateEdge = (
   edges: CustomEdgeType[],
   source: string,
   target: string,
-  excludeId?: string
+  excludeId?: string,
 ) => {
   return edges.some(
     (edge) =>
-      edge.id !== excludeId && edge.source === source && edge.target === target
+      edge.id !== excludeId && edge.source === source && edge.target === target,
   );
 };
