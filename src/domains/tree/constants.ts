@@ -1,4 +1,4 @@
-import { CustomEdgeType, type CustomNodeType } from "@/src/types/custom-node";
+import { CustomEdgeType, type CustomNodeType } from "./types";
 
 const position = { x: 0, y: 0 };
 
