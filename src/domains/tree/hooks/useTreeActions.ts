@@ -1,5 +1,5 @@
 import { useCallback, Dispatch, SetStateAction } from "react";
-import { OnReconnect, reconnectEdge } from "@xyflow/react";
+import { addEdge, OnConnect, OnReconnect, reconnectEdge } from "@xyflow/react";
 import { CustomEdgeType, CustomNodeType } from "@/src/domains/tree/types";
 
 export function useTreeActions(
@@ -41,6 +41,10 @@ export function useTreeActions(
             const hasOtherChildren = edges.some(
               (e) => e.source === oldNodeId && e.id !== oldEdge.id,
             );
+  const onConnect: OnConnect = useCallback(
+    (connection) => setEdges((eds) => addEdge(connection, eds)),
+    [setEdges],
+  );
 
             if (!hasOtherChildren) {
               return {
@@ -101,5 +105,5 @@ export function useTreeActions(
     setEdges((eds) => eds.concat(newEdge as unknown as CustomEdgeType));
   }, [selectedNode, setNodes, setEdges]);
 
-  return { onReconnect, onAdd, isButtonDisabled };
+  return { onConnect, onReconnect, onAdd, isButtonDisabled };
 }

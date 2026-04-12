@@ -15,7 +15,7 @@ function LayoutFlow() {
   const [nodes, setNodes, onNodesChange] = useNodesState<CustomNodeType>([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState<CustomEdgeType>([]);
 
-  const { onReconnect, onAdd, isButtonDisabled } = useTreeActions(
+  const { onConnect, onReconnect, onAdd, isButtonDisabled } = useTreeActions(
     nodes,
     edges,
     setNodes,
@@ -32,6 +32,7 @@ function LayoutFlow() {
       edgeTypes={edgeTypes}
       onNodesChange={onNodesChange}
       onEdgesChange={onEdgesChange}
+      onConnect={onConnect}
       onReconnect={onReconnect}
       fitView
     >
