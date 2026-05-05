@@ -1,10 +1,19 @@
-import type { BuiltInEdge, BuiltInNode } from "@xyflow/react";
+// 순수 비즈니스 로직 데이터
+export type TreeNodeData = {
+  label: string;
+  isRoot?: boolean;
+  order_index: number;
+};
 
-// Custom nodes
-import { type CustomNode } from "@/src/features/editor/components/CustomNode";
+// 도메인 로직(ELK 등)이 요구하는 노드 구조
+export interface BaseTreeNode {
+  id: string;
+  position?: { x: number; y: number };
+  data: TreeNodeData;
+}
 
-// Custom edges
-import { type CustomEdge } from "@/src/features/editor/components/CustomEdge";
-
-export type CustomNodeType = BuiltInNode | CustomNode;
-export type CustomEdgeType = BuiltInEdge | CustomEdge;
+export interface BaseTreeEdge {
+  id: string;
+  source: string;
+  target: string;
+}

@@ -1,11 +1,5 @@
-import {
-  getStraightPath,
-  BaseEdge,
-  type EdgeProps,
-  type Edge,
-} from "@xyflow/react";
-
-export type CustomEdge = Edge<{ value: number }, "custom">;
+import { CustomEditorEdge } from "@/src/features/editor/types";
+import { getStraightPath, BaseEdge, type EdgeProps } from "@xyflow/react";
 
 export function CustomEdge({
   id,
@@ -13,7 +7,7 @@ export function CustomEdge({
   sourceY,
   targetX,
   targetY,
-}: EdgeProps<CustomEdge>) {
+}: EdgeProps<CustomEditorEdge>) {
   const [edgePath] = getStraightPath({ sourceX, sourceY, targetX, targetY });
 
   return <BaseEdge id={id} path={edgePath} />;

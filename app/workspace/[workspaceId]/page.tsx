@@ -11,7 +11,7 @@ import {
   nodeTypes,
   edgeTypes,
 } from "@/src/features/editor/constants/flowConfig";
-import { useTreeActions } from "@/src/domains/tree/hooks/useTreeActions";
+import { useTreeActions } from "@/src/features/editor/hooks/useTreeActions";
 import { useEditorLayout } from "@/src/features/editor/hooks/useEditorLayout";
 
 function LayoutFlow() {
