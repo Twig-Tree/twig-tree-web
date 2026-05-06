@@ -3,8 +3,8 @@ import { addEdge, OnConnect, OnReconnect, reconnectEdge } from "@xyflow/react";
 import {
   CustomEditorEdge,
   CustomEditorNode,
-} from "@/src/features/editor/types";
-import { isDuplicateEdge } from "@/src/domains/tree/utils/edge";
+} from "@/src/features/tree-editor/model/types";
+import { isDuplicateEdge } from "@/src/features/tree-editor/lib/edge";
 
 export function useTreeActions(
   nodes: CustomEditorNode[],

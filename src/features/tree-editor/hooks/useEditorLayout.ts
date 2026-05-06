@@ -3,16 +3,18 @@ import { useReactFlow } from "@xyflow/react";
 import {
   CustomEditorNode,
   CustomEditorEdge,
-} from "@/src/features/editor/types";
+} from "@/src/features/tree-editor/model/types";
 import {
   getLayoutedElements,
   elkOptions,
-} from "@/src/domains/tree/utils/layout";
+} from "@/src/features/tree-editor/lib/layout";
+import { RAW_TREE_DATA } from "@/src/entities/tree/api/mocks";
+import { Direction } from "@/src/features/tree-editor/constants/flowConfig";
 import {
-  RAW_TREE_NODE_DATA,
-  RAW_TREE_EDGE_DATA,
-} from "@/src/domains/tree/constants";
-import { Direction } from "@/src/features/editor/constants/flowConfig";
+  mapToVisualEdges,
+  mapToVisualNodes,
+} from "@/src/features/tree-editor/lib/mappers";
+import { mapNodesDtoToDomain } from "@/src/entities/tree/lib/mappers";
 
 // ELK 레이아웃을 언제 정렬할지 결정하고, 실제로 화면에 적용하는 커스텀 훅
 export function useEditorLayout(
@@ -32,8 +34,12 @@ export function useEditorLayout(
       useInitialNodes?: boolean;
     }) => {
       const opts = { "elk.direction": direction, ...elkOptions };
-      const ns = useInitialNodes ? RAW_TREE_NODE_DATA : nodes;
-      const es = useInitialNodes ? RAW_TREE_EDGE_DATA : edges;
+      const ns = useInitialNodes
+        ? mapToVisualNodes(mapNodesDtoToDomain(RAW_TREE_DATA))
+        : nodes;
+      const es = useInitialNodes
+        ? mapToVisualEdges(mapNodesDtoToDomain(RAW_TREE_DATA))
+        : edges;
 
       // ELK 레이아웃 계산 후 노드와 엣지의 위치를 업데이트하고, 화면에 맞게 뷰를 조정
       getLayoutedElements(ns, es, opts).then(

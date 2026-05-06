@@ -1,4 +1,8 @@
-import { BaseTreeNode, BaseTreeEdge } from "@/src/domains/tree/types";
+import {
+  CustomEditorEdge,
+  CustomEditorNode,
+} from "@/src/features/tree-editor/model/types";
+import { Position } from "@xyflow/react";
 import ELK from "elkjs/lib/elk.bundled.js";
 
 const elk = new ELK();
@@ -11,18 +15,18 @@ export const elkOptions = {
 
 // ELK 레이아웃을 적용하여 노드와 엣지의 위치를 계산하는 함수
 export const getLayoutedElements = async (
-  nodes: BaseTreeNode[],
-  edges: BaseTreeEdge[],
+  nodes: CustomEditorNode[],
+  edges: CustomEditorEdge[],
   options: Record<string, string> = {},
-): Promise<{ nodes: BaseTreeNode[]; edges: BaseTreeEdge[] }> => {
+): Promise<{ nodes: CustomEditorNode[]; edges: CustomEditorEdge[] }> => {
   const isHorizontal = options?.["elk.direction"] === "RIGHT";
   const graph = {
     id: "root",
     layoutOptions: options,
-    children: nodes.map((node: BaseTreeNode) => ({
+    children: nodes.map((node: CustomEditorNode) => ({
       ...node,
-      targetPosition: isHorizontal ? "left" : "top",
-      sourcePosition: isHorizontal ? "right" : "bottom",
+      targetPosition: isHorizontal ? Position.Left : Position.Top,
+      sourcePosition: isHorizontal ? Position.Right : Position.Bottom,
       width: 150,
       height: 50,
     })),

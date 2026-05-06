@@ -1,4 +1,4 @@
-import { CustomEditorEdge } from "@/src/features/editor/types";
+import { CustomEditorEdge } from "@/src/features/tree-editor/model/types";
 import { getStraightPath, BaseEdge, type EdgeProps } from "@xyflow/react";
 
 export function CustomEdge({

@@ -1,12 +1,13 @@
 import { Handle, NodeProps, Position } from "@xyflow/react";
-import { CustomEditorNode } from "@/src/features/editor/types";
+import { CustomEditorNode } from "@/src/features/tree-editor/model/types";
 
 export function CustomNode({
   data,
+  parentId,
   targetPosition,
   sourcePosition,
 }: NodeProps<CustomEditorNode>) {
-  const isRoot = data.isRoot ?? false;
+  const isRoot = parentId === null;
 
   return (
     <div className="custom-node">
