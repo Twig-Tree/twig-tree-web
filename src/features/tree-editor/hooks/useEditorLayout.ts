@@ -9,7 +9,7 @@ import {
   elkOptions,
 } from "@/src/features/tree-editor/lib/layout";
 import { RAW_TREE_DATA } from "@/src/entities/tree/api/mocks";
-import { Direction } from "@/src/features/tree-editor/constants/flowConfig";
+import { Direction } from "@/src/features/tree-editor/model/types";
 import {
   mapToVisualEdges,
   mapToVisualNodes,

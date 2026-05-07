@@ -8,5 +8,3 @@ export const nodeTypes = {
 export const edgeTypes = {
   custom: CustomEdge,
 };
-
-export type Direction = "RIGHT" | "DOWN";
