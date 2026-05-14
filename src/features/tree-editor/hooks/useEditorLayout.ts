@@ -8,7 +8,7 @@ import {
   getLayoutedElements,
   elkOptions,
 } from "@/src/features/tree-editor/lib/layout";
-import { RAW_TREE_DATA } from "@/src/entities/tree/api/mocks";
+import { RAW_TREE_DATA } from "@/src/tests/mocks/data";
 import { Direction } from "@/src/features/tree-editor/model/types";
 import {
   mapToVisualEdges,
