@@ -1,13 +1,13 @@
-import { Handle, Node, NodeProps, Position } from "@xyflow/react";
-
-export type CustomNode = Node<{ label: string; isRoot?: boolean }, "custom">;
+import { Handle, NodeProps, Position } from "@xyflow/react";
+import { CustomEditorNode } from "@/src/features/tree-editor/model/types";
 
 export function CustomNode({
   data,
+  parentId,
   targetPosition,
   sourcePosition,
-}: NodeProps<CustomNode>) {
-  const isRoot = data.isRoot ?? false;
+}: NodeProps<CustomEditorNode>) {
+  const isRoot = parentId === null;
 
   return (
     <div className="custom-node">

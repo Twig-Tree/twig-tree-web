@@ -1,5 +1,8 @@
+import {
+  CustomEditorEdge,
+  CustomEditorNode,
+} from "@/src/features/tree-editor/model/types";
 import { Position } from "@xyflow/react";
-import { CustomEdgeType, CustomNodeType } from "@/src/domains/tree/types";
 import ELK from "elkjs/lib/elk.bundled.js";
 
 const elk = new ELK();
@@ -10,16 +13,17 @@ export const elkOptions = {
   "elk.spacing.nodeNode": "80", // 노드 간의 간격
 };
 
+// ELK 레이아웃을 적용하여 노드와 엣지의 위치를 계산하는 함수
 export const getLayoutedElements = async (
-  nodes: CustomNodeType[],
-  edges: CustomEdgeType[],
+  nodes: CustomEditorNode[],
+  edges: CustomEditorEdge[],
   options: Record<string, string> = {},
-): Promise<{ nodes: CustomNodeType[]; edges: CustomEdgeType[] }> => {
+): Promise<{ nodes: CustomEditorNode[]; edges: CustomEditorEdge[] }> => {
   const isHorizontal = options?.["elk.direction"] === "RIGHT";
-  const graph: any = {
+  const graph = {
     id: "root",
     layoutOptions: options,
-    children: nodes.map((node: CustomNodeType) => ({
+    children: nodes.map((node: CustomEditorNode) => ({
       ...node,
       targetPosition: isHorizontal ? Position.Left : Position.Top,
       sourcePosition: isHorizontal ? Position.Right : Position.Bottom,
@@ -36,7 +40,8 @@ export const getLayoutedElements = async (
   return elk
     .layout(graph)
     .then((layoutedGraph) => ({
-      nodes: (layoutedGraph.children ?? []).map((node: any) => ({
+      nodes: (layoutedGraph.children ?? []).map((node) => ({
+        // ELK에서 반환한 node의 x, y 좌표 직접 참조
         ...node,
         position: { x: node.x ?? 0, y: node.y ?? 0 },
       })),

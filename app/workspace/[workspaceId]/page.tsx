@@ -6,17 +6,20 @@ import {
   ReactFlowProvider,
   Panel,
 } from "@xyflow/react";
-import { CustomEdgeType, CustomNodeType } from "@/src/domains/tree/types";
 import {
   nodeTypes,
   edgeTypes,
-} from "@/src/features/editor/constants/flowConfig";
-import { useTreeActions } from "@/src/domains/tree/hooks/useTreeActions";
-import { useEditorLayout } from "@/src/features/editor/hooks/useEditorLayout";
+} from "@/src/features/tree-editor/constants/flowConfig";
+import { useTreeActions } from "@/src/features/tree-editor/hooks/useTreeActions";
+import { useEditorLayout } from "@/src/features/tree-editor/hooks/useEditorLayout";
+import {
+  CustomEditorEdge,
+  CustomEditorNode,
+} from "@/src/features/tree-editor/model/types";
 
 function LayoutFlow() {
-  const [nodes, setNodes, onNodesChange] = useNodesState<CustomNodeType>([]);
-  const [edges, setEdges, onEdgesChange] = useEdgesState<CustomEdgeType>([]);
+  const [nodes, setNodes, onNodesChange] = useNodesState<CustomEditorNode>([]);
+  const [edges, setEdges, onEdgesChange] = useEdgesState<CustomEditorEdge>([]);
 
   const { onConnect, onReconnect, onAdd, isButtonDisabled } = useTreeActions(
     nodes,

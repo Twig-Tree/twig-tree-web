@@ -1,13 +1,16 @@
 import { useCallback, Dispatch, SetStateAction } from "react";
 import { addEdge, OnConnect, OnReconnect, reconnectEdge } from "@xyflow/react";
-import { CustomEdgeType, CustomNodeType } from "@/src/domains/tree/types";
-import { isDuplicateEdge } from "../utils/edge";
+import {
+  CustomEditorEdge,
+  CustomEditorNode,
+} from "@/src/features/tree-editor/model/types";
+import { isDuplicateEdge } from "@/src/features/tree-editor/lib/edge";
 
 export function useTreeActions(
-  nodes: CustomNodeType[],
-  edges: CustomEdgeType[],
-  setNodes: Dispatch<SetStateAction<CustomNodeType[]>>,
-  setEdges: Dispatch<SetStateAction<CustomEdgeType[]>>,
+  nodes: CustomEditorNode[],
+  edges: CustomEditorEdge[],
+  setNodes: Dispatch<SetStateAction<CustomEditorNode[]>>,
+  setEdges: Dispatch<SetStateAction<CustomEditorEdge[]>>,
 ) {
   const selectedNode = nodes.find((node) => node.selected);
   const isButtonDisabled = !selectedNode;
@@ -24,7 +27,7 @@ export function useTreeActions(
     [edges, setEdges],
   );
 
-  const onReconnect: OnReconnect<CustomEdgeType> = useCallback(
+  const onReconnect: OnReconnect<CustomEditorEdge> = useCallback(
     (oldEdge, newConnection) => {
       if (
         isDuplicateEdge(
@@ -73,14 +76,13 @@ export function useTreeActions(
                 data: {
                   ...node.data,
                   label: node.data.label ?? "",
-                  isLeaf: false,
                 },
               }
             : node,
         )
-        .concat(newNode as unknown as CustomNodeType),
+        .concat(newNode as unknown as CustomEditorNode),
     );
-    setEdges((eds) => eds.concat(newEdge as unknown as CustomEdgeType));
+    setEdges((eds) => eds.concat(newEdge as unknown as CustomEditorEdge));
   }, [selectedNode, setNodes, setEdges]);
 
   return { onConnect, onReconnect, onAdd, isButtonDisabled };

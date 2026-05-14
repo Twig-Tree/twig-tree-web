@@ -1,7 +1,7 @@
-import { CustomEdgeType } from "../types";
+import { CustomEditorEdge } from "@/src/features/tree-editor/model/types";
 
 export const isDuplicateEdge = (
-  edges: CustomEdgeType[],
+  edges: CustomEditorEdge[],
   source: string,
   target: string,
   excludeId?: string,
