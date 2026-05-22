@@ -21,12 +21,8 @@ function LayoutFlow() {
   const [nodes, setNodes, onNodesChange] = useNodesState<CustomEditorNode>([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState<CustomEditorEdge>([]);
 
-  const { onConnect, onReconnect, onAdd, isButtonDisabled } = useTreeActions(
-    nodes,
-    edges,
-    setNodes,
-    setEdges,
-  );
+  const { onConnect, onReconnect, onAdd, onDelete, isButtonDisabled } =
+    useTreeActions(nodes, edges, setNodes, setEdges);
 
   useEditorLayout(nodes, edges, setNodes, setEdges);
 
@@ -49,6 +45,13 @@ function LayoutFlow() {
           disabled={isButtonDisabled}
         >
           add node
+        </button>
+        <button
+          className="xy-theme__button"
+          onClick={onDelete}
+          disabled={isButtonDisabled}
+        >
+          delete node
         </button>
       </Panel>
     </ReactFlow>

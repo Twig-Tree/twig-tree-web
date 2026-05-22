@@ -115,5 +115,36 @@ export function useTreeActions(
     setEdges((eds) => eds.concat(newEdge as unknown as CustomEditorEdge));
   }, [selectedNode, setNodes, setEdges, nodes, edges]);
 
-  return { onConnect, onReconnect, onAdd, isButtonDisabled };
+  const onDelete = useCallback(() => {
+    if (!selectedNode) return;
+
+    // 1. 지울 대상을 모아둘 블랙리스트(Set)와 탐색용 바구니(Queue) 초기화
+    const idsToDelete = new Set<string>([selectedNode.id]);
+    const queue = [selectedNode.id];
+
+    // 2. 평면 엣지 데이터를 기반으로 트리 아래 방향(BFS)으로 순회하며 자식 ID 수집
+    while (queue.length > 0) {
+      const currentId = queue.shift()!;
+
+      edges.forEach((edge) => {
+        // 현재 노드가 출발지(source)라면 목적지(target)는 자식 노드
+        if (edge.source === currentId) {
+          idsToDelete.add(edge.target);
+          queue.push(edge.target);
+        }
+      });
+    }
+
+    // 3. 상태 일괄 업데이트: 블랙리스트에 걸린 노드와 엣지 필터링
+    // 살아남은 다른 부모/형제 노드들은 객체 불변성이 유지되어 메모리 주소 보존
+    setNodes((nds) => nds.filter((node) => !idsToDelete.has(node.id)));
+    setEdges((eds) =>
+      eds.filter(
+        (edge) =>
+          !idsToDelete.has(edge.source) && !idsToDelete.has(edge.target),
+      ),
+    );
+  }, [selectedNode, edges, setNodes, setEdges]);
+
+  return { onConnect, onReconnect, onAdd, onDelete, isButtonDisabled };
 }
