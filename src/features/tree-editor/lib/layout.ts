@@ -11,6 +11,7 @@ export const elkOptions = {
   "elk.algorithm": "layered", // 노드들을 층(layer)별로 나누어 배치하는 알고리즘
   "elk.layered.spacing.nodeNodeBetweenLayers": "100", // 층 사이의 간격
   "elk.spacing.nodeNode": "80", // 노드 간의 간격
+  "elk.layered.considerModelOrder.strategy": "NODES_AND_EDGES", // 모델 데이터의 인덱스 순서 유지
 };
 
 // ELK 레이아웃을 적용하여 노드와 엣지의 위치를 계산하는 함수
