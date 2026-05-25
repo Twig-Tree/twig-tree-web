@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { hasCycle } from "../lib/checkCycle";
+import { hasCycle } from "./checkCycle";
 import { NodeDTO } from "@/src/entities/tree/api/types";
 import { mapNodesDtoToDomain } from "@/src/entities/tree/lib/mappers";
 import { transformToFlowElements } from "@/src/features/tree-editor/lib/mappers";
