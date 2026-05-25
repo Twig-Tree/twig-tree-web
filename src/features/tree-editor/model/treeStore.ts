@@ -11,7 +11,7 @@ import {
 } from "@xyflow/react";
 import { CustomEditorNode, CustomEditorEdge } from "./types";
 import { hasCycle } from "../lib/checkCycle";
-import { isDuplicateEdge } from "../lib/edge";
+import { hasAlreadyParent, isDuplicateEdge } from "../lib/edge";
 import { getNextOrderIndex } from "@/src/features/tree-editor/lib/node";
 
 interface TreeState {
@@ -40,6 +40,12 @@ export const useTreeStore = create<TreeState>()(
 
       onConnect: (connection) => {
         const { nodes, edges } = get();
+
+        // 이미 부모가 있는 노드인지 검사
+        if (connection.target && hasAlreadyParent(edges, connection.target)) {
+          return alert("트리 구조에서는 하나의 부모 노드만 가질 수 있습니다.");
+        }
+
         const potentialEdges = [
           ...edges,
           {
@@ -58,8 +64,19 @@ export const useTreeStore = create<TreeState>()(
 
       onReconnect: (oldEdge, newConnection) => {
         const { nodes, edges } = get();
+
+        // Reconnect할 때는 기존 자기 자신의 연결(oldEdge)은 제외하고 다른 부모가 있는지 검사
+        const remainingEdges = edges.filter((e) => e.id !== oldEdge.id);
+
+        if (
+          newConnection.target &&
+          hasAlreadyParent(remainingEdges, newConnection.target)
+        ) {
+          return alert("트리 구조에서는 하나의 부모 노드만 가질 수 있습니다.");
+        }
+
         const potentialEdges = [
-          ...edges.filter((e) => e.id !== oldEdge.id),
+          ...remainingEdges,
           { ...newConnection, id: oldEdge.id },
         ];
 
