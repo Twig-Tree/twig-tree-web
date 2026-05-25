@@ -13,6 +13,7 @@ import {
   useTreeHistory,
   useTreeStore,
 } from "@/src/features/tree-editor/model/treeStore";
+import { useEffect } from "react";
 
 function LayoutFlow() {
   // Zustand 스토어에서 상태(State) 구독
@@ -27,7 +28,18 @@ function LayoutFlow() {
   const onAdd = useTreeStore((state) => state.onAdd);
   const onDelete = useTreeStore((state) => state.onDelete);
 
-  const { undo, redo } = useTreeHistory();
+  const { undo, redo, clear, pause, resume } = useTreeHistory();
+
+  // 1. 컴포넌트 마운트 시 일단 기록 중지 (트리 레이아웃 정렬 전 히스토리 기록 방지)
+  useEffect(() => {
+    pause();
+  }, [pause]);
+
+  // 2. React Flow가 초기 노드들의 뷰포트 정렬(fitView)까지 마쳤을 때 히스토리 기록 재개
+  const handleInit = () => {
+    clear();
+    resume();
+  };
 
   // UI 제어 파생 상태 계산 (스토어 내부의 최신 nodes 기준)
   const selectedNode = nodes.find((node) => node.selected);
@@ -58,6 +70,7 @@ function LayoutFlow() {
     <ReactFlow
       nodes={nodes}
       edges={edges}
+      onInit={handleInit}
       nodeTypes={nodeTypes}
       edgeTypes={edgeTypes}
       onNodesChange={onNodesChange}

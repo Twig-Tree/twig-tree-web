@@ -168,11 +168,12 @@ export const useTreeStore = create<TreeState>()(
             nextState.edges?.length !== currentStore.edges.length;
 
           // 조건 2: 노드 내부 데이터 중 orderIndex(순서 값)가 실제로 변했을 때 (이동)
-          const isOrderChanged = nextState.nodes?.some((node, idx) => {
-            return (
-              node.data?.orderIndex !==
-              currentStore.nodes[idx]?.data?.orderIndex
+          const isOrderChanged = nextState.nodes?.some((nextNode) => {
+            const currentNode = currentStore.nodes.find(
+              (n) => n.id === nextNode.id,
             );
+            if (!currentNode) return false; // 새로 추가된 노드는 countsChanged에서 걸러짐
+            return nextNode.data?.orderIndex !== currentNode.data?.orderIndex;
           });
 
           // 의미 있는 비즈니스 변화일 때만 히스토리 기록
@@ -186,6 +187,6 @@ export const useTreeStore = create<TreeState>()(
 );
 
 export const useTreeHistory = () => {
-  const { undo, redo, clear } = useTreeStore.temporal.getState();
-  return { undo, redo, clear };
+  const { undo, redo, clear, pause, resume } = useTreeStore.temporal.getState();
+  return { undo, redo, clear, pause, resume };
 };
