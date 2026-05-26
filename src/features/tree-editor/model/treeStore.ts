@@ -183,16 +183,18 @@ export const useTreeStore = create<TreeState>()(
           const currentStore = useTreeStore.getState();
 
           // state가 함수형 업데이터인지, 순수 객체인지 판별하여 최종 넥스트 상태를 안전하게 추출
-          const nextState =
-            typeof state === "function" ? state(currentStore) : state;
+          const partialNextState =
+            (typeof state === "function" ? state(currentStore) : state) ?? {};
+          const nextNodes = partialNextState.nodes ?? currentStore.nodes;
+          const nextEdges = partialNextState.edges ?? currentStore.edges;
 
           // 조건 1: 노드나 엣지의 개수가 달라졌을 때 (추가 / 삭제)
           const isCountChanged =
-            nextState.nodes?.length !== currentStore.nodes.length ||
-            nextState.edges?.length !== currentStore.edges.length;
+            nextNodes.length !== currentStore.nodes.length ||
+            nextEdges.length !== currentStore.edges.length;
 
           // 조건 2: 노드 내부 데이터 중 orderIndex(순서 값)가 실제로 변했을 때 (이동)
-          const isOrderChanged = nextState.nodes?.some((nextNode) => {
+          const isOrderChanged = nextNodes.some((nextNode) => {
             const currentNode = currentStore.nodes.find(
               (n) => n.id === nextNode.id,
             );
