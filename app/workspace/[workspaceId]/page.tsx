@@ -28,7 +28,8 @@ function LayoutFlow() {
   const onAdd = useTreeStore((state) => state.onAdd);
   const onDelete = useTreeStore((state) => state.onDelete);
 
-  const { undo, redo, clear, pause, resume } = useTreeHistory();
+  const { undo, redo, clear, pause, resume, canUndo, canRedo } =
+    useTreeHistory();
 
   // 1. 컴포넌트 마운트 시 일단 기록 중지 (트리 레이아웃 정렬 전 히스토리 기록 방지)
   useEffect(() => {
@@ -80,10 +81,18 @@ function LayoutFlow() {
       fitView
     >
       <Panel position="top-right">
-        <button className="xy-theme__button" onClick={() => undo()}>
+        <button
+          className="xy-theme__button"
+          onClick={() => undo()}
+          disabled={!canUndo}
+        >
           Undo
         </button>
-        <button className="xy-theme__button" onClick={() => redo()}>
+        <button
+          className="xy-theme__button"
+          onClick={() => redo()}
+          disabled={!canRedo}
+        >
           Redo
         </button>
         <button

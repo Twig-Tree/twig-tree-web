@@ -204,6 +204,11 @@ export const useTreeStore = create<TreeState>()(
 );
 
 export const useTreeHistory = () => {
-  const { undo, redo, clear, pause, resume } = useTreeStore.temporal.getState();
-  return { undo, redo, clear, pause, resume };
+  const { undo, redo, clear, pause, resume, pastStates, futureStates } =
+    useTreeStore.temporal.getState();
+
+  const canUndo = pastStates.length > 0;
+  const canRedo = futureStates.length > 0;
+
+  return { undo, redo, clear, pause, resume, canUndo, canRedo };
 };
