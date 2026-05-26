@@ -81,7 +81,14 @@ export const useTreeStore = create<TreeState>()(
         ];
 
         if (hasCycle(nodes, potentialEdges)) return alert("순환 참조 불가");
-        if (isDuplicateEdge(edges, newConnection.source, newConnection.target))
+        if (
+          isDuplicateEdge(
+            edges,
+            newConnection.source,
+            newConnection.target,
+            oldEdge.id,
+          )
+        )
           return alert("중복 연결 불가");
 
         set({ edges: reconnectEdge(oldEdge, newConnection, edges) });
