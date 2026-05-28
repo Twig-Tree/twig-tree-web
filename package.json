@@ -10,6 +10,7 @@
     "test": "vitest"
   },
   "dependencies": {
+    "@tanstack/react-query": "^5.100.14",
     "@xyflow/react": "^12.10.2",
     "axios": "^1.16.1",
     "elkjs": "^0.11.1",
