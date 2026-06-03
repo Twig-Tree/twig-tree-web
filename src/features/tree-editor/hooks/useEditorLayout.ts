@@ -8,13 +8,7 @@ import {
   getLayoutedElements,
   elkOptions,
 } from "@/src/features/tree-editor/lib/layout";
-import { RAW_TREE_DATA } from "@/src/tests/mocks/data";
 import { Direction } from "@/src/features/tree-editor/model/types";
-import {
-  mapToVisualEdges,
-  mapToVisualNodes,
-} from "@/src/features/tree-editor/lib/mappers";
-import { mapNodesDtoToDomain } from "@/src/entities/tree/lib/mappers";
 
 // ELK 레이아웃을 언제 정렬할지 결정하고, 실제로 화면에 적용하는 커스텀 훅
 export function useEditorLayout(
@@ -26,23 +20,11 @@ export function useEditorLayout(
   const { fitView } = useReactFlow();
 
   const onLayout = useCallback(
-    ({
-      direction,
-      useInitialNodes = false,
-    }: {
-      direction: Direction;
-      useInitialNodes?: boolean;
-    }) => {
+    ({ direction }: { direction: Direction }) => {
       const opts = { "elk.direction": direction, ...elkOptions };
-      const ns = useInitialNodes
-        ? mapToVisualNodes(mapNodesDtoToDomain(RAW_TREE_DATA))
-        : nodes;
-      const es = useInitialNodes
-        ? mapToVisualEdges(mapNodesDtoToDomain(RAW_TREE_DATA))
-        : edges;
 
       // ELK 레이아웃 계산 후 노드와 엣지의 위치를 업데이트하고, 화면에 맞게 뷰를 조정
-      getLayoutedElements(ns, es, opts).then(
+      getLayoutedElements(nodes, edges, opts).then(
         ({ nodes: layoutedNodes, edges: layoutedEdges }) => {
           setNodes(
             layoutedNodes.map((node) => ({
@@ -52,7 +34,10 @@ export function useEditorLayout(
             })),
           );
           setEdges(layoutedEdges);
-          window.requestAnimationFrame(() => fitView());
+
+          window.requestAnimationFrame(() => {
+            fitView();
+          });
         },
       );
     },
@@ -61,7 +46,7 @@ export function useEditorLayout(
 
   // 레이아웃 정렬 시점 결정
   useLayoutEffect(() => {
-    onLayout({ direction: "RIGHT", useInitialNodes: nodes.length === 0 });
+    onLayout({ direction: "RIGHT" });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [nodes.length, edges.length]);
 
