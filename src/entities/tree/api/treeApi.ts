@@ -1,13 +1,27 @@
 import { axiosInstance } from "@/src/shared/api/axiosInstance";
-import { CreateNodeRequest, TreeResponse } from "./types";
+import {
+  CreateNodeRequest,
+  TreeDTO,
+  NodeDTO,
+  GetTreeResponse,
+  CreateTreeResponse,
+} from "./types";
 import { ApiResponse } from "@/src/shared/api/types";
 
 export const treeApi = {
-  getTree: async (treeId: string): Promise<TreeResponse> => {
-    const res = await axiosInstance.get<ApiResponse<TreeResponse>>(
-      `/trees/${treeId}/nodes`,
+  createTree: async (): Promise<TreeDTO> => {
+    // todo: tree 생성 시 필요한 파라미터 추가
+    const res = await axiosInstance.post<CreateTreeResponse>(
+      `/tree-request?scenario=small`,
     );
     return res.data.data;
+  },
+
+  getTree: async (treeId: number): Promise<NodeDTO[]> => {
+    const res = await axiosInstance.get<GetTreeResponse>(
+      `/trees/${treeId}/nodes`,
+    );
+    return res.data.data.nodes;
   },
 
   createNode: async (
