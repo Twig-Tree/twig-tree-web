@@ -17,13 +17,23 @@ export interface NodeDTO {
 export interface TreeDTO {
   treeId: number;
   nodes: NodeDTO[];
-}>;
+}
+
+/*
+트리 생성 응답 type
+*/
+export type CreateTreeResponse = ApiResponse<TreeDTO>;
+
+/*
+트리 조회 응답 type
+*/
+export type GetTreeResponse = ApiResponse<{ nodes: NodeDTO[] }>;
 
 /*
 트리 노드 추가 요청 body type
 */
 export interface CreateNodeRequest {
-  title: string;
-  parent_id: number;
-  order_id: number;
+  name: string;
+  parentId: number;
+  orderId: number;
 }
