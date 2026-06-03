@@ -1,9 +1,5 @@
 import { treeApi } from "@/src/entities/tree/api/treeApi";
-import {
-  CreateNodeRequest,
-  NodeDTO,
-  TreeDTO,
-} from "@/src/entities/tree/api/types";
+import { CreateNodeRequest, NodeDTO } from "@/src/entities/tree/api/types";
 import { treeQueryKeys } from "@/src/entities/tree/model/queryKeys";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
@@ -33,17 +29,17 @@ export const useAddNodeMutation = () => {
         queryKey: treeQueryKeys.detail(treeId),
       });
 
-      const previousTree = queryClient.getQueryData<TreeDTO>(
+      const previousNodes = queryClient.getQueryData<NodeDTO[]>(
         treeQueryKeys.detail(treeId),
       );
 
       /*
       기존 트리 캐시에 임시 노드를 추가하여 화면에 먼저 반영한다.
       */
-      queryClient.setQueryData<TreeDTO>(
+      queryClient.setQueryData<NodeDTO[]>(
         treeQueryKeys.detail(treeId),
-        (oldTree) => {
-          if (!oldTree) return oldTree;
+        (oldNodes) => {
+          if (!oldNodes) return oldNodes;
 
           const optimisticNode: NodeDTO = {
             nodeId: Date.now(), // 임시 ID를 생성한다.
@@ -53,14 +49,11 @@ export const useAddNodeMutation = () => {
             memo: null,
           };
 
-          return {
-            ...oldTree,
-            nodes: [...oldTree.nodes, optimisticNode],
-          };
+          return [...oldNodes, optimisticNode];
         },
       );
 
-      return { previousTree };
+      return { previousNodes };
     },
 
     /*
@@ -69,7 +62,7 @@ export const useAddNodeMutation = () => {
     onError: (_error, variables, context) => {
       queryClient.setQueryData(
         treeQueryKeys.detail(variables.treeId),
-        context?.previousTree,
+        context?.previousNodes,
       );
     },
 
