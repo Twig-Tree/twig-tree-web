@@ -15,8 +15,18 @@ import { hasAlreadyParent, isDuplicateEdge } from "../lib/edge";
 import { getNextOrderIndex } from "@/src/features/tree-editor/lib/node";
 
 interface TreeState {
+  treeId: string | null;
   nodes: CustomEditorNode[];
   edges: CustomEditorEdge[];
+
+  initializeTree: (params: {
+    treeId: string;
+    nodes: CustomEditorNode[];
+    edges: CustomEditorEdge[];
+  }) => void;
+
+  resetTree: () => void;
+
   onNodesChange: OnNodesChange<CustomEditorNode>;
   onEdgesChange: OnEdgesChange;
 
@@ -29,8 +39,26 @@ interface TreeState {
 export const useTreeStore = create<TreeState>()(
   temporal(
     (set, get) => ({
+      treeId: null,
       nodes: [],
       edges: [],
+
+      initializeTree: ({ treeId, nodes, edges }) => {
+        set({
+          treeId,
+          nodes,
+          edges,
+        });
+      },
+
+      resetTree: () => {
+        set({
+          treeId: null,
+          nodes: [],
+          edges: [],
+        });
+      },
+
       onNodesChange: (changes) => {
         set({ nodes: applyNodeChanges(changes, get().nodes) });
       },
