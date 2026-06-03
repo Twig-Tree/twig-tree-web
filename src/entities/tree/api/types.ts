@@ -4,18 +4,18 @@ import { ApiResponse } from "@/src/shared/api/types";
 트리 내부 노드 DTO type
 */
 export interface NodeDTO {
-  node_id: number;
-  title: string;
-  parent_id: number | null;
-  order_id: number;
+  nodeId: number;
+  name: string;
+  parentId: number | null;
+  orderId: number;
   memo: string | null;
 }
 
 /*
-트리 조회 응답 type
+트리 DTO type
 */
-export type TreeResponse = ApiResponse<{
-  treeName: string;
+export interface TreeDTO {
+  treeId: number;
   nodes: NodeDTO[];
 }>;
 
