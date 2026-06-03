@@ -14,13 +14,24 @@ import {
   useTreeStore,
 } from "@/src/features/tree-editor/model/treeStore";
 import { useEffect } from "react";
+import { useGetTreeQuery } from "@/src/entities/tree/model/queries";
+import {
+  mapToVisualNodes,
+  mapToVisualEdges,
+} from "@/src/features/tree-editor/lib/mappers";
+import { mapNodesDtoToDomain } from "@/src/entities/tree/lib/mappers";
 
 function LayoutFlow() {
+  // todo: treeId 동적 처리
+  // todo: React Server Component 사용
+  const { data: treeData, isLoading, isError } = useGetTreeQuery("1");
+
   // Zustand 스토어에서 상태(State) 구독
   const nodes = useTreeStore((state) => state.nodes);
   const edges = useTreeStore((state) => state.edges);
 
   // Zustand 스토어에서 액션(Actions) 구독
+  const initializeTree = useTreeStore((state) => state.initializeTree);
   const onNodesChange = useTreeStore((state) => state.onNodesChange);
   const onEdgesChange = useTreeStore((state) => state.onEdgesChange);
   const onConnect = useTreeStore((state) => state.onConnect);
@@ -35,6 +46,22 @@ function LayoutFlow() {
   useEffect(() => {
     pause();
   }, [pause]);
+
+  useEffect(() => {
+    if (!treeData) return;
+
+    const domainNodes = mapNodesDtoToDomain(treeData);
+    const visualNodes = mapToVisualNodes(domainNodes);
+    const visualEdges = mapToVisualEdges(domainNodes);
+
+    initializeTree({
+      treeId: "1", // todo: treeId 동적 처리
+      nodes: visualNodes,
+      edges: visualEdges,
+    });
+
+    clear();
+  }, [treeData, initializeTree, clear]);
 
   // 2. React Flow가 초기 노드들의 뷰포트 정렬(fitView)까지 마쳤을 때 히스토리 기록 재개
   const handleInit = () => {
@@ -67,7 +94,11 @@ function LayoutFlow() {
     });
   useEditorLayout(nodes, edges, setNodes, setEdges);
 
-  return (
+  return isLoading ? (
+    <div>Loading...</div> // todo: 로딩 처리
+  ) : isError ? (
+    <div>Error loading tree data.</div> // todo: 에러 처리
+  ) : (
     <ReactFlow
       nodes={nodes}
       edges={edges}

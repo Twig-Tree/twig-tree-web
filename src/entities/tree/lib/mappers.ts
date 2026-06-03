@@ -7,11 +7,11 @@ import { TreeNode } from "../model/types";
 export const mapNodesDtoToDomain = (dtos: NodeDTO[]): TreeNode[] => {
   return dtos
     .map((dto) => ({
-      id: String(dto.node_id), // number -> string
-      parentId: dto.parent_id !== null ? String(dto.parent_id) : null, // parent_id 변환
+      id: String(dto.nodeId), // number -> string
+      parentId: dto.parentId !== null ? String(dto.parentId) : null, // parentId 변환
       data: {
-        label: dto.title, // 백엔드 title을 label로 매핑
-        orderIndex: dto.order_id ?? 0, // order_id를 orderIndex로 매핑
+        label: dto.name, // 백엔드 name을 label로 매핑
+        orderIndex: dto.orderId ?? 0, // orderId를 orderIndex로 매핑
         memo: dto.memo ?? "", // 메모가 없을 경우 빈 문자열 처리[cite: 1]
       },
     }))
