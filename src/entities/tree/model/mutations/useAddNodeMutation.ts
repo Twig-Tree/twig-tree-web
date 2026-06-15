@@ -56,10 +56,15 @@ export const useAddNodeMutation = () => {
       return { previousNodes };
     },
 
+    onSuccess: () => {
+      // todo: 서버에서 반환된 실제 노드 ID로 캐시를 업데이트하는 로직 추가, 추가할 시 onSettled의 invalidateQueries 제거
+    },
+
     /*
     노드 추가 요청이 실패하면 onMutate에서 백업한 이전 트리 데이터로 캐시를 복구한다.
     */
     onError: (_error, variables, context) => {
+      alert("노드 추가에 실패했습니다.");
       queryClient.setQueryData(
         treeQueryKeys.detail(variables.treeId),
         context?.previousNodes,
