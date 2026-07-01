@@ -20,6 +20,7 @@ import {
   mapToVisualEdges,
 } from "@/src/features/tree-editor/lib/mappers";
 import { mapNodesDtoToDomain } from "@/src/entities/tree/lib/mappers";
+import { useReactFlowStoreSetters } from "@/src/features/tree-editor/hooks/useReactFlowStoreSetters";
 
 function LayoutFlow() {
   // todo: treeId 동적 처리
@@ -41,6 +42,8 @@ function LayoutFlow() {
 
   const { undo, redo, clear, pause, resume, canUndo, canRedo } =
     useTreeHistory();
+
+  const { setNodes, setEdges } = useReactFlowStoreSetters();
 
   // 1. 컴포넌트 마운트 시 일단 기록 중지 (트리 레이아웃 정렬 전 히스토리 기록 방지)
   useEffect(() => {
@@ -73,25 +76,6 @@ function LayoutFlow() {
   const selectedNode = nodes.find((node) => node.selected);
   const isButtonDisabled = !selectedNode;
 
-  // ELK 레이아웃 엔진 훅 연동
-  const setNodes = (
-    nds:
-      | CustomEditorNode[]
-      | ((prev: CustomEditorNode[]) => CustomEditorNode[]),
-  ) =>
-    useTreeStore.setState({
-      nodes:
-        typeof nds === "function" ? nds(useTreeStore.getState().nodes) : nds,
-    });
-  const setEdges = (
-    eds:
-      | CustomEditorEdge[]
-      | ((prev: CustomEditorEdge[]) => CustomEditorEdge[]),
-  ) =>
-    useTreeStore.setState({
-      edges:
-        typeof eds === "function" ? eds(useTreeStore.getState().edges) : eds,
-    });
   useEditorLayout(nodes, edges, setNodes, setEdges);
 
   return isLoading ? (
