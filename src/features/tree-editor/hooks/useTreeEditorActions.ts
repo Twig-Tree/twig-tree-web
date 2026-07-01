@@ -15,7 +15,7 @@ export const useTreeEditorActions = ({
   const edges = useTreeStore((state) => state.edges);
 
   const addNodeToStore = useTreeStore((state) => state.onAdd);
-  const removeNodeFromStore = useTreeStore((state) => state.onDelete);
+  const rollbackAdd = useTreeStore((state) => state.rollbackAdd);
   const onDelete = useTreeStore((state) => state.onDelete);
 
   const {
@@ -45,6 +45,8 @@ export const useTreeEditorActions = ({
       sourceNodeId: selectedNode.id,
       targetNodeId: newNodeId,
     });
+
+    const wasDirtyBeforeAdd = useTreeStore.getState().isDirty;
 
     addNodeToStore(newNode, newEdge);
 
@@ -85,7 +87,7 @@ export const useTreeEditorActions = ({
           }));
         },
         onError: () => {
-          removeNodeFromStore(newNode);
+          rollbackAdd(newNodeId, wasDirtyBeforeAdd);
           alert("노드 추가에 실패했습니다.");
         },
       },

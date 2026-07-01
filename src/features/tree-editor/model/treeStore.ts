@@ -34,6 +34,8 @@ interface TreeState {
   onReconnect: (oldEdge: CustomEditorEdge, newConnection: Connection) => void;
   onAdd: (newNode: CustomEditorNode, newEdge: CustomEditorEdge) => void;
   onDelete: (node: CustomEditorNode) => void;
+
+  rollbackAdd: (nodeId: string, previousIsDirty: boolean) => void;
 }
 
 export const useTreeStore = create<TreeState>()(
@@ -183,6 +185,18 @@ export const useTreeStore = create<TreeState>()(
               !idsToDelete.has(edge.source) && !idsToDelete.has(edge.target),
           ),
           isDirty: true,
+        });
+      },
+
+      rollbackAdd: (nodeId, previousIsDirty) => {
+        const { nodes, edges } = get();
+
+        set({
+          nodes: nodes.filter((node) => node.id !== nodeId),
+          edges: edges.filter(
+            (edge) => edge.source !== nodeId && edge.target !== nodeId,
+          ),
+          isDirty: previousIsDirty,
         });
       },
     }),
