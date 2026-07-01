@@ -5,6 +5,7 @@ import {
   NodeDTO,
   GetTreeResponse,
   CreateTreeResponse,
+  CreateNodeResponse,
 } from "./types";
 import { ApiResponse } from "@/src/shared/api/types";
 
@@ -27,8 +28,12 @@ export const treeApi = {
   createNode: async (
     treeId: string,
     body: CreateNodeRequest,
-  ): Promise<void> => {
-    await axiosInstance.post<ApiResponse<void>>(`/trees/${treeId}/nodes`, body);
+  ): Promise<NodeDTO> => {
+    const res = await axiosInstance.post<CreateNodeResponse>(
+      `/trees/${treeId}/nodes`,
+      body,
+    );
+    return res.data.data;
   },
 
   deleteNode: async (treeId: string, nodeId: string): Promise<void> => {
