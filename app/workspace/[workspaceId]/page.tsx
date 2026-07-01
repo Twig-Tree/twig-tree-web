@@ -6,15 +6,12 @@ import {
 } from "@/src/features/tree-editor/constants/flowConfig";
 import { useEditorLayout } from "@/src/features/tree-editor/hooks/useEditorLayout";
 import {
-  CustomEditorEdge,
-  CustomEditorNode,
-} from "@/src/features/tree-editor/model/types";
-import {
   useTreeHistory,
   useTreeStore,
 } from "@/src/features/tree-editor/model/treeStore";
 import { useEffect } from "react";
 import { useGetTreeQuery } from "@/src/entities/tree/model/queries";
+import { useTreeEditorActions } from "@/src/features/tree-editor/hooks/useTreeEditorActions";
 import { useReactFlowStoreSetters } from "@/src/features/tree-editor/hooks/useReactFlowStoreSetters";
 import { useInitializeTree } from "@/src/features/tree-editor/hooks/useInitializeTree";
 
@@ -36,13 +33,14 @@ function LayoutFlow() {
   const onEdgesChange = useTreeStore((state) => state.onEdgesChange);
   const onConnect = useTreeStore((state) => state.onConnect);
   const onReconnect = useTreeStore((state) => state.onReconnect);
-  const onAdd = useTreeStore((state) => state.onAdd);
-  const onDelete = useTreeStore((state) => state.onDelete);
 
   const { undo, redo, clear, pause, resume, canUndo, canRedo } =
     useTreeHistory();
 
   const { setNodes, setEdges } = useReactFlowStoreSetters();
+
+  const { selectedNode, isAddingNode, handleAddNode, handleDeleteNode } =
+    useTreeEditorActions({ treeId });
 
   // 1. 컴포넌트 마운트 시 일단 기록 중지 (트리 레이아웃 정렬 전 히스토리 기록 방지)
   useEffect(() => {
@@ -62,9 +60,7 @@ function LayoutFlow() {
     resume();
   };
 
-  // UI 제어 파생 상태 계산 (스토어 내부의 최신 nodes 기준)
-  const selectedNode = nodes.find((node) => node.selected);
-  const isButtonDisabled = !selectedNode;
+  const isButtonDisabled = !selectedNode || isAddingNode;
 
   useEditorLayout(nodes, edges, setNodes, setEdges);
 
@@ -102,14 +98,14 @@ function LayoutFlow() {
         </button>
         <button
           className="xy-theme__button"
-          onClick={onAdd}
+          onClick={handleAddNode}
           disabled={isButtonDisabled}
         >
           add node
         </button>
         <button
           className="xy-theme__button"
-          onClick={onDelete}
+          onClick={handleDeleteNode}
           disabled={isButtonDisabled}
         >
           delete node
