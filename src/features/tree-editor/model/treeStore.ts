@@ -62,10 +62,25 @@ export const useTreeStore = create<TreeState>()(
       },
 
       onNodesChange: (changes) => {
-        set({ nodes: applyNodeChanges(changes, get().nodes), isDirty: true });
+        const shouldMarkDirty = changes.some(
+          (change) => change.type !== "select",
+        );
+
+        set({
+          nodes: applyNodeChanges(changes, get().nodes),
+          isDirty: shouldMarkDirty ? true : get().isDirty,
+        });
       },
+
       onEdgesChange: (changes) => {
-        set({ edges: applyEdgeChanges(changes, get().edges), isDirty: true });
+        const shouldMarkDirty = changes.some(
+          (change) => change.type !== "select",
+        );
+
+        set({
+          edges: applyEdgeChanges(changes, get().edges),
+          isDirty: shouldMarkDirty ? true : get().isDirty,
+        });
       },
 
       onConnect: (connection) => {

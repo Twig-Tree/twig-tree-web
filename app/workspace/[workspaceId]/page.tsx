@@ -111,7 +111,7 @@ function LayoutFlow() {
 
         <button
           className="xy-theme__button"
-          onClick={handleDeleteNode}
+          onClick={() => handleDeleteNode(selectedNode!)}
           disabled={isButtonDisabled}
         >
           delete node
