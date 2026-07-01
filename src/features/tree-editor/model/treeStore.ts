@@ -33,7 +33,7 @@ interface TreeState {
   onConnect: (connection: Connection) => void;
   onReconnect: (oldEdge: CustomEditorEdge, newConnection: Connection) => void;
   onAdd: (newNode: CustomEditorNode, newEdge: CustomEditorEdge) => void;
-  onDelete: () => void;
+  onDelete: (node: CustomEditorNode) => void;
 }
 
 export const useTreeStore = create<TreeState>()(
@@ -137,15 +137,14 @@ export const useTreeStore = create<TreeState>()(
         });
       },
 
-      // todo: 삭제할 treeId를 인자로 받아 삭제하기
-      onDelete: () => {
+      onDelete: (node: CustomEditorNode) => {
         const { nodes, edges } = get();
-        const selectedNode = nodes.find((n) => n.selected);
-        if (!selectedNode) return;
+
+        if (!node) return;
 
         // 1. 지울 대상을 모아둘 블랙리스트(Set)와 탐색용 바구니(Queue) 초기화
-        const idsToDelete = new Set<string>([selectedNode.id]);
-        const queue = [selectedNode.id];
+        const idsToDelete = new Set<string>([node.id]);
+        const queue = [node.id];
 
         // 2. 평면 엣지 데이터를 기반으로 트리 아래 방향(BFS)으로 순회하며 자식 ID 수집
         while (queue.length > 0) {

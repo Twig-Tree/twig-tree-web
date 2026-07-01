@@ -58,8 +58,34 @@ export const useTreeEditorActions = ({
         },
       },
       {
+        onSuccess: (createdNode) => {
+          const realNodeId = String(createdNode.nodeId);
+
+          useTreeStore.setState((state) => ({
+            nodes: state.nodes.map((node) =>
+              node.id === newNodeId
+                ? {
+                    ...node,
+                    id: realNodeId,
+                    data: {
+                      ...node.data,
+                    },
+                  }
+                : node,
+            ),
+            edges: state.edges.map((edge) =>
+              edge.target === newNodeId
+                ? {
+                    ...edge,
+                    id: `e-${edge.source}-${realNodeId}`,
+                    target: realNodeId,
+                  }
+                : edge,
+            ),
+          }));
+        },
         onError: () => {
-          // todo: removeNodeFromStore?.(newNodeId);
+          removeNodeFromStore(newNode);
           alert("노드 추가에 실패했습니다.");
         },
       },
