@@ -6,62 +6,54 @@ import {
 } from "@/src/features/tree-editor/constants/flowConfig";
 import { useEditorLayout } from "@/src/features/tree-editor/hooks/useEditorLayout";
 import {
-  CustomEditorEdge,
-  CustomEditorNode,
-} from "@/src/features/tree-editor/model/types";
-import {
   useTreeHistory,
   useTreeStore,
 } from "@/src/features/tree-editor/model/treeStore";
 import { useEffect } from "react";
 import { useGetTreeQuery } from "@/src/entities/tree/model/queries";
-import {
-  mapToVisualNodes,
-  mapToVisualEdges,
-} from "@/src/features/tree-editor/lib/mappers";
-import { mapNodesDtoToDomain } from "@/src/entities/tree/lib/mappers";
+import { useTreeEditorActions } from "@/src/features/tree-editor/hooks/useTreeEditorActions";
+import { useReactFlowStoreSetters } from "@/src/features/tree-editor/hooks/useReactFlowStoreSetters";
+import { useInitializeTree } from "@/src/features/tree-editor/hooks/useInitializeTree";
 
 function LayoutFlow() {
-  // todo: treeId 동적 처리
+  const treeId = "1"; // todo: treeId 동적 처리
   // todo: React Server Component 사용
-  const { data: treeData, isLoading, isError } = useGetTreeQuery("1");
+  const {
+    data: treeData,
+    isLoading,
+    isError: isGetTreeError,
+  } = useGetTreeQuery(treeId);
 
   // Zustand 스토어에서 상태(State) 구독
   const nodes = useTreeStore((state) => state.nodes);
   const edges = useTreeStore((state) => state.edges);
 
   // Zustand 스토어에서 액션(Actions) 구독
-  const initializeTree = useTreeStore((state) => state.initializeTree);
   const onNodesChange = useTreeStore((state) => state.onNodesChange);
   const onEdgesChange = useTreeStore((state) => state.onEdgesChange);
   const onConnect = useTreeStore((state) => state.onConnect);
   const onReconnect = useTreeStore((state) => state.onReconnect);
-  const onAdd = useTreeStore((state) => state.onAdd);
-  const onDelete = useTreeStore((state) => state.onDelete);
 
   const { undo, redo, clear, pause, resume, canUndo, canRedo } =
     useTreeHistory();
+
+  const { setNodes, setEdges } = useReactFlowStoreSetters();
+
+  const { selectedNode, isAddingNode, handleAddNode, handleDeleteNode } =
+    useTreeEditorActions({ treeId });
 
   // 1. 컴포넌트 마운트 시 일단 기록 중지 (트리 레이아웃 정렬 전 히스토리 기록 방지)
   useEffect(() => {
     pause();
   }, [pause]);
 
-  useEffect(() => {
-    if (!treeData) return;
+  useInitializeTree({
+    treeId,
+    treeData,
+    clear,
+  });
 
-    const domainNodes = mapNodesDtoToDomain(treeData);
-    const visualNodes = mapToVisualNodes(domainNodes);
-    const visualEdges = mapToVisualEdges(domainNodes);
-
-    initializeTree({
-      treeId: "1", // todo: treeId 동적 처리
-      nodes: visualNodes,
-      edges: visualEdges,
-    });
-
-    clear();
-  }, [treeData, initializeTree, clear]);
+  useEditorLayout(nodes, edges, setNodes, setEdges);
 
   // 2. React Flow가 초기 노드들의 뷰포트 정렬(fitView)까지 마쳤을 때 히스토리 기록 재개
   const handleInit = () => {
@@ -69,36 +61,17 @@ function LayoutFlow() {
     resume();
   };
 
-  // UI 제어 파생 상태 계산 (스토어 내부의 최신 nodes 기준)
-  const selectedNode = nodes.find((node) => node.selected);
-  const isButtonDisabled = !selectedNode;
+  const isButtonDisabled = !selectedNode || isAddingNode;
 
-  // ELK 레이아웃 엔진 훅 연동
-  const setNodes = (
-    nds:
-      | CustomEditorNode[]
-      | ((prev: CustomEditorNode[]) => CustomEditorNode[]),
-  ) =>
-    useTreeStore.setState({
-      nodes:
-        typeof nds === "function" ? nds(useTreeStore.getState().nodes) : nds,
-    });
-  const setEdges = (
-    eds:
-      | CustomEditorEdge[]
-      | ((prev: CustomEditorEdge[]) => CustomEditorEdge[]),
-  ) =>
-    useTreeStore.setState({
-      edges:
-        typeof eds === "function" ? eds(useTreeStore.getState().edges) : eds,
-    });
-  useEditorLayout(nodes, edges, setNodes, setEdges);
+  if (isLoading) {
+    return <div>Loading...</div>;
+  }
 
-  return isLoading ? (
-    <div>Loading...</div> // todo: 로딩 처리
-  ) : isError ? (
-    <div>Error loading tree data.</div> // todo: 에러 처리
-  ) : (
+  if (isGetTreeError) {
+    return <div>Error loading tree data.</div>;
+  }
+
+  return (
     <ReactFlow
       nodes={nodes}
       edges={edges}
@@ -119,6 +92,7 @@ function LayoutFlow() {
         >
           Undo
         </button>
+
         <button
           className="xy-theme__button"
           onClick={() => redo()}
@@ -126,16 +100,18 @@ function LayoutFlow() {
         >
           Redo
         </button>
+
         <button
           className="xy-theme__button"
-          onClick={onAdd}
+          onClick={handleAddNode}
           disabled={isButtonDisabled}
         >
           add node
         </button>
+
         <button
           className="xy-theme__button"
-          onClick={onDelete}
+          onClick={() => handleDeleteNode(selectedNode!)}
           disabled={isButtonDisabled}
         >
           delete node

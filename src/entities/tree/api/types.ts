@@ -37,3 +37,8 @@ export interface CreateNodeRequest {
   parentId: number;
   orderId: number;
 }
+
+/*
+트리 노드 추가 응답 type
+*/
+export type CreateNodeResponse = ApiResponse<NodeDTO>;

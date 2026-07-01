@@ -12,12 +12,12 @@ import {
 import { CustomEditorNode, CustomEditorEdge } from "./types";
 import { hasCycle } from "../lib/checkCycle";
 import { hasAlreadyParent, isDuplicateEdge } from "../lib/edge";
-import { getNextOrderIndex } from "@/src/features/tree-editor/lib/node";
 
 interface TreeState {
   treeId: string | null;
   nodes: CustomEditorNode[];
   edges: CustomEditorEdge[];
+  isDirty: boolean;
 
   initializeTree: (params: {
     treeId: string;
@@ -32,8 +32,10 @@ interface TreeState {
 
   onConnect: (connection: Connection) => void;
   onReconnect: (oldEdge: CustomEditorEdge, newConnection: Connection) => void;
-  onAdd: () => void;
-  onDelete: () => void;
+  onAdd: (newNode: CustomEditorNode, newEdge: CustomEditorEdge) => void;
+  onDelete: (node: CustomEditorNode) => void;
+
+  rollbackAdd: (nodeId: string, previousIsDirty: boolean) => void;
 }
 
 export const useTreeStore = create<TreeState>()(
@@ -42,12 +44,13 @@ export const useTreeStore = create<TreeState>()(
       treeId: null,
       nodes: [],
       edges: [],
-
+      isDirty: false,
       initializeTree: ({ treeId, nodes, edges }) => {
         set({
           treeId,
           nodes,
           edges,
+          isDirty: false,
         });
       },
 
@@ -56,14 +59,30 @@ export const useTreeStore = create<TreeState>()(
           treeId: null,
           nodes: [],
           edges: [],
+          isDirty: false,
         });
       },
 
       onNodesChange: (changes) => {
-        set({ nodes: applyNodeChanges(changes, get().nodes) });
+        const shouldMarkDirty = changes.some(
+          (change) => change.type !== "select",
+        );
+
+        set({
+          nodes: applyNodeChanges(changes, get().nodes),
+          isDirty: shouldMarkDirty ? true : get().isDirty,
+        });
       },
+
       onEdgesChange: (changes) => {
-        set({ edges: applyEdgeChanges(changes, get().edges) });
+        const shouldMarkDirty = changes.some(
+          (change) => change.type !== "select",
+        );
+
+        set({
+          edges: applyEdgeChanges(changes, get().edges),
+          isDirty: shouldMarkDirty ? true : get().isDirty,
+        });
       },
 
       onConnect: (connection) => {
@@ -87,7 +106,7 @@ export const useTreeStore = create<TreeState>()(
         if (isDuplicateEdge(edges, connection.source, connection.target))
           return alert("중복 연결 불가");
 
-        set({ edges: addEdge(connection, edges) });
+        set({ edges: addEdge(connection, edges), isDirty: true });
       },
 
       onReconnect: (oldEdge, newConnection) => {
@@ -119,64 +138,30 @@ export const useTreeStore = create<TreeState>()(
         )
           return alert("중복 연결 불가");
 
-        set({ edges: reconnectEdge(oldEdge, newConnection, edges) });
-      },
-
-      onAdd: () => {
-        const { nodes, edges } = get();
-        const selectedNode = nodes.find((n) => n.selected);
-        if (!selectedNode) return;
-
-        const nextOrderIndex = getNextOrderIndex(selectedNode.id, nodes, edges);
-        const newNodeId = `node_${Date.now()}`;
-
-        const newNode = {
-          id: newNodeId,
-          type: "custom",
-          data: {
-            label: `Added node ${nextOrderIndex}`,
-            orderIndex: nextOrderIndex,
-          },
-          // 부모 노드 근처에 생성 (이후 ELK 레이아웃 동작)
-          position: {
-            x: selectedNode.position.x + 150,
-            y: selectedNode.position.y,
-          },
-        };
-
-        const newEdge = {
-          id: `e-${selectedNode.id}-${newNodeId}`,
-          type: "smoothstep",
-          source: selectedNode.id,
-          target: newNodeId,
-        };
-
         set({
-          nodes: nodes
-            .map((node) =>
-              node.id === selectedNode.id
-                ? {
-                    ...node,
-                    data: {
-                      ...node.data,
-                      label: node.data.label ?? "",
-                    },
-                  }
-                : node,
-            )
-            .concat(newNode as unknown as CustomEditorNode),
-          edges: edges.concat(newEdge as unknown as CustomEditorEdge),
+          edges: reconnectEdge(oldEdge, newConnection, edges),
+          isDirty: true,
         });
       },
 
-      onDelete: () => {
+      onAdd: (newNode: CustomEditorNode, newEdge: CustomEditorEdge) => {
         const { nodes, edges } = get();
-        const selectedNode = nodes.find((n) => n.selected);
-        if (!selectedNode) return;
+
+        set({
+          nodes: nodes.concat(newNode),
+          edges: edges.concat(newEdge),
+          isDirty: true,
+        });
+      },
+
+      onDelete: (node: CustomEditorNode) => {
+        const { nodes, edges } = get();
+
+        if (!node) return;
 
         // 1. 지울 대상을 모아둘 블랙리스트(Set)와 탐색용 바구니(Queue) 초기화
-        const idsToDelete = new Set<string>([selectedNode.id]);
-        const queue = [selectedNode.id];
+        const idsToDelete = new Set<string>([node.id]);
+        const queue = [node.id];
 
         // 2. 평면 엣지 데이터를 기반으로 트리 아래 방향(BFS)으로 순회하며 자식 ID 수집
         while (queue.length > 0) {
@@ -199,6 +184,19 @@ export const useTreeStore = create<TreeState>()(
             (edge) =>
               !idsToDelete.has(edge.source) && !idsToDelete.has(edge.target),
           ),
+          isDirty: true,
+        });
+      },
+
+      rollbackAdd: (nodeId, previousIsDirty) => {
+        const { nodes, edges } = get();
+
+        set({
+          nodes: nodes.filter((node) => node.id !== nodeId),
+          edges: edges.filter(
+            (edge) => edge.source !== nodeId && edge.target !== nodeId,
+          ),
+          isDirty: previousIsDirty,
         });
       },
     }),

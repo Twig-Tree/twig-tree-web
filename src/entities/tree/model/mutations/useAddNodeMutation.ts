@@ -33,6 +33,8 @@ export const useAddNodeMutation = () => {
         treeQueryKeys.detail(treeId),
       );
 
+      const optimisticNodeId = Date.now();
+
       /*
       기존 트리 캐시에 임시 노드를 추가하여 화면에 먼저 반영한다.
       */
@@ -42,7 +44,7 @@ export const useAddNodeMutation = () => {
           if (!oldNodes) return oldNodes;
 
           const optimisticNode: NodeDTO = {
-            nodeId: Date.now(), // 임시 ID를 생성한다.
+            nodeId: optimisticNodeId, // 임시 ID를 생성한다.
             name: node.name,
             parentId: node.parentId,
             orderId: node.orderId,
@@ -53,7 +55,23 @@ export const useAddNodeMutation = () => {
         },
       );
 
-      return { previousNodes };
+      return { previousNodes, optimisticNodeId };
+    },
+
+    /*
+    서버 응답을 받았을 때, 임시 노드를 실제 노드로 교체한다.
+    */
+    onSuccess: (createdNode, variables, context) => {
+      queryClient.setQueryData<NodeDTO[]>(
+        treeQueryKeys.detail(variables.treeId),
+        (oldNodes) => {
+          if (!oldNodes) return oldNodes;
+
+          return oldNodes.map((node) =>
+            node.nodeId === context.optimisticNodeId ? createdNode : node,
+          );
+        },
+      );
     },
 
     /*
@@ -64,15 +82,6 @@ export const useAddNodeMutation = () => {
         treeQueryKeys.detail(variables.treeId),
         context?.previousNodes,
       );
-    },
-
-    /*
-    노드 추가 요청이 성공하거나 실패한 뒤 서버의 최신 트리 데이터를 다시 조회한다.
-    */
-    onSettled: (_data, _error, variables) => {
-      queryClient.invalidateQueries({
-        queryKey: treeQueryKeys.detail(variables.treeId),
-      });
     },
   });
 };
