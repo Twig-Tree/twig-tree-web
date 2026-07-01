@@ -53,6 +53,7 @@ function LayoutFlow() {
     clear,
   });
 
+  useEditorLayout(nodes, edges, setNodes, setEdges);
 
   // 2. React Flow가 초기 노드들의 뷰포트 정렬(fitView)까지 마쳤을 때 히스토리 기록 재개
   const handleInit = () => {
@@ -62,13 +63,15 @@ function LayoutFlow() {
 
   const isButtonDisabled = !selectedNode || isAddingNode;
 
-  useEditorLayout(nodes, edges, setNodes, setEdges);
+  if (isLoading) {
+    return <div>Loading...</div>;
+  }
 
-  return isLoading ? (
-    <div>Loading...</div> // todo: 로딩 처리
-  ) : isError ? (
-    <div>Error loading tree data.</div> // todo: 에러 처리
-  ) : (
+  if (isGetTreeError) {
+    return <div>Error loading tree data.</div>;
+  }
+
+  return (
     <ReactFlow
       nodes={nodes}
       edges={edges}
@@ -89,6 +92,7 @@ function LayoutFlow() {
         >
           Undo
         </button>
+
         <button
           className="xy-theme__button"
           onClick={() => redo()}
@@ -96,6 +100,7 @@ function LayoutFlow() {
         >
           Redo
         </button>
+
         <button
           className="xy-theme__button"
           onClick={handleAddNode}
@@ -103,6 +108,7 @@ function LayoutFlow() {
         >
           add node
         </button>
+
         <button
           className="xy-theme__button"
           onClick={handleDeleteNode}
