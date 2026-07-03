@@ -28,7 +28,10 @@ export const useAddNodeAction = ({
   } = useAddNodeMutation();
 
   const handleAddNode = () => {
-    if (!selectedNode) return;
+    if (!selectedNode || isAddingNode) return;
+
+    const parentId = Number(selectedNode.id);
+    if (Number.isNaN(parentId)) return;
 
     const nextOrderIndex = getNextOrderIndex(selectedNode.id, nodes, edges);
     const newNodeId = `temp_${crypto.randomUUID()}`;
@@ -55,7 +58,7 @@ export const useAddNodeAction = ({
       {
         treeId,
         node: {
-          parentId: Number(selectedNode.id),
+          parentId: parentId,
           orderId: nextOrderIndex,
           name: label,
         },
