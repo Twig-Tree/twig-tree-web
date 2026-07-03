@@ -32,10 +32,13 @@ interface TreeState {
 
   onConnect: (connection: Connection) => void;
   onReconnect: (oldEdge: CustomEditorEdge, newConnection: Connection) => void;
-  onAdd: (newNode: CustomEditorNode, newEdge: CustomEditorEdge) => void;
-  onDelete: (node: CustomEditorNode) => void;
+  addNodeToStore: (
+    newNode: CustomEditorNode,
+    newEdge: CustomEditorEdge,
+  ) => void;
+  deleteNodeFromStore: (node: CustomEditorNode) => void;
 
-  rollbackAdd: (nodeId: string, previousIsDirty: boolean) => void;
+  rollbackAddNode: (nodeId: string, previousIsDirty: boolean) => void;
 }
 
 export const useTreeStore = create<TreeState>()(
@@ -144,7 +147,10 @@ export const useTreeStore = create<TreeState>()(
         });
       },
 
-      onAdd: (newNode: CustomEditorNode, newEdge: CustomEditorEdge) => {
+      addNodeToStore: (
+        newNode: CustomEditorNode,
+        newEdge: CustomEditorEdge,
+      ) => {
         const { nodes, edges } = get();
 
         set({
@@ -154,7 +160,7 @@ export const useTreeStore = create<TreeState>()(
         });
       },
 
-      onDelete: (node: CustomEditorNode) => {
+      deleteNodeFromStore: (node: CustomEditorNode) => {
         const { nodes, edges } = get();
 
         if (!node) return;
@@ -188,7 +194,7 @@ export const useTreeStore = create<TreeState>()(
         });
       },
 
-      rollbackAdd: (nodeId, previousIsDirty) => {
+      rollbackAddNode: (nodeId, previousIsDirty) => {
         const { nodes, edges } = get();
 
         set({
