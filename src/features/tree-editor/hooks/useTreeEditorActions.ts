@@ -10,7 +10,9 @@ export const useTreeEditorActions = ({
 }: UseTreeEditorActionsParams) => {
   const nodes = useTreeStore((state) => state.nodes);
   const edges = useTreeStore((state) => state.edges);
-  const onDelete = useTreeStore((state) => state.onDelete);
+  const deleteNodeFromStore = useTreeStore(
+    (state) => state.deleteNodeFromStore,
+  );
 
   const selectedNode = nodes.find((node) => node.selected);
   const { handleAddNode, isAddingNode, isAddNodeError } = useAddNodeAction({
@@ -25,6 +27,6 @@ export const useTreeEditorActions = ({
     isAddingNode,
     isAddNodeError,
     handleAddNode,
-    handleDeleteNode: onDelete,
+    handleDeleteNode: deleteNodeFromStore,
   };
 };

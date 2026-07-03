@@ -18,8 +18,8 @@ export const useAddNodeAction = ({
   nodes,
   edges,
 }: UseAddNodeActionParams) => {
-  const addNodeToStore = useTreeStore((state) => state.onAdd);
-  const rollbackAdd = useTreeStore((state) => state.rollbackAdd);
+  const addNodeToStore = useTreeStore((state) => state.addNodeToStore);
+  const rollbackAddNode = useTreeStore((state) => state.rollbackAddNode);
 
   const {
     mutate: addNodeOnServer,
@@ -88,7 +88,7 @@ export const useAddNodeAction = ({
           }));
         },
         onError: () => {
-          rollbackAdd(newNodeId, wasDirtyBeforeAdd);
+          rollbackAddNode(newNodeId, wasDirtyBeforeAdd);
           alert("노드 추가에 실패했습니다.");
         },
       },
