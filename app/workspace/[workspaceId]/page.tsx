@@ -66,7 +66,7 @@ function LayoutFlow() {
     resume();
   };
 
-  const isButtonDisabled = !selectedNode || isAddingNode || isDeletingNode;
+  const isMutating = isAddingNode || isDeletingNode;
 
   if (isLoading) {
     return <div>Loading...</div>;
@@ -87,13 +87,18 @@ function LayoutFlow() {
       onEdgesChange={onEdgesChange}
       onConnect={onConnect}
       onReconnect={onReconnect}
+      disableKeyboardA11y={isMutating}
+      nodesDraggable={!isMutating}
+      nodesConnectable={!isMutating}
+      edgesReconnectable={!isMutating}
+      elementsSelectable={!isMutating}
       fitView
     >
       <Panel position="top-right">
         <button
           className="xy-theme__button"
           onClick={() => undo()}
-          disabled={!canUndo}
+          disabled={!canUndo || isMutating}
         >
           Undo
         </button>
@@ -101,7 +106,7 @@ function LayoutFlow() {
         <button
           className="xy-theme__button"
           onClick={() => redo()}
-          disabled={!canRedo}
+          disabled={!canRedo || isMutating}
         >
           Redo
         </button>
@@ -109,7 +114,7 @@ function LayoutFlow() {
         <button
           className="xy-theme__button"
           onClick={handleAddNode}
-          disabled={isButtonDisabled}
+          disabled={!selectedNode || isMutating}
         >
           add node
         </button>
@@ -117,7 +122,7 @@ function LayoutFlow() {
         <button
           className="xy-theme__button"
           onClick={handleDeleteNode}
-          disabled={isButtonDisabled}
+          disabled={!selectedNode || isMutating}
         >
           delete node
         </button>

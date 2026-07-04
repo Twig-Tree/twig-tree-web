@@ -37,13 +37,6 @@ interface TreeState {
     newEdge: CustomEditorEdge,
   ) => void;
   deleteNodeFromStore: (nodeIdsToDelete: string[]) => void;
-
-  rollbackAddNode: (nodeId: string, previousIsDirty: boolean) => void;
-  rollbackDeleteNode: (params: {
-    previousNodes: CustomEditorNode[];
-    previousEdges: CustomEditorEdge[];
-    previousIsDirty: boolean;
-  }) => void;
 }
 
 export const useTreeStore = create<TreeState>()(
@@ -178,34 +171,14 @@ export const useTreeStore = create<TreeState>()(
           isDirty: true,
         });
       },
-
-      rollbackAddNode: (nodeId, previousIsDirty) => {
-        const { nodes, edges } = get();
-
-        set({
-          nodes: nodes.filter((node) => node.id !== nodeId),
-          edges: edges.filter(
-            (edge) => edge.source !== nodeId && edge.target !== nodeId,
-          ),
-          isDirty: previousIsDirty,
-        });
-      },
-
-      rollbackDeleteNode: ({
-        previousNodes,
-        previousEdges,
-        previousIsDirty,
-      }) => {
-        set({
-          nodes: previousNodes,
-          edges: previousEdges,
-          isDirty: previousIsDirty,
-        });
-      },
     }),
     {
       // zundo 옵션: 액션 함수들은 히스토리 스택에 쌓이지 않도록 state만 저장
-      partialize: (state) => ({ nodes: state.nodes, edges: state.edges }),
+      partialize: (state) => ({
+        nodes: state.nodes,
+        edges: state.edges,
+        isDirty: state.isDirty,
+      }),
       // 히스토리 기록 조건 설정
       handleSet: (handleSetAction) => {
         return (state) => {

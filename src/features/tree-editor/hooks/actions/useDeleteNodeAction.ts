@@ -20,8 +20,6 @@ export const useDeleteNodeAction = ({
   const deleteNodeFromStore = useTreeStore(
     (state) => state.deleteNodeFromStore,
   );
-  const rollbackDeleteNode = useTreeStore((state) => state.rollbackDeleteNode);
-
   const {
     mutate: deleteNodeOnServer,
     isPending: isDeletingNode,
@@ -40,16 +38,9 @@ export const useDeleteNodeAction = ({
       return;
     }
 
-    /*
-    삭제 실패 시 editor store를 복구하기 위해 삭제 전 상태를 저장한다.
-    */
-    const {
-      nodes: prevNodes,
-      edges: prevEdges,
-      isDirty: wasDirtyBeforeDelete,
-    } = useTreeStore.getState();
+    const edges = useTreeStore.getState().edges;
 
-    const hasParent = prevEdges.some((edge) => edge.target === selectedNode.id); // 부모 엣지가 없으면 루트 노드로 판단한다.
+    const hasParent = edges.some((edge) => edge.target === selectedNode.id); // 부모 엣지가 없으면 루트 노드로 판단한다.
 
     if (!hasParent) {
       alert("루트 노드는 삭제할 수 없습니다.");
@@ -68,7 +59,7 @@ export const useDeleteNodeAction = ({
     while (queue.length > 0) {
       const currentId = queue.shift()!;
 
-      prevEdges.forEach((edge) => {
+      edges.forEach((edge) => {
         if (edge.source === currentId) {
           idsToDelete.add(edge.target);
           queue.push(edge.target);
@@ -91,14 +82,10 @@ export const useDeleteNodeAction = ({
       },
       {
         /*
-        서버 요청이 실패하면 삭제 전에 저장한 editor store 상태를 복구한다.
+        서버 요청이 실패하면 삭제 전의 editor store 상태로 복구한다.
         */
         onError: () => {
-          rollbackDeleteNode({
-            previousNodes: prevNodes,
-            previousEdges: prevEdges,
-            previousIsDirty: wasDirtyBeforeDelete,
-          });
+          useTreeStore.temporal.getState().undo();
           alert("노드 삭제에 실패했습니다.");
         },
       },

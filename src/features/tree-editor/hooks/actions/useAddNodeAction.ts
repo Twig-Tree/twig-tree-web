@@ -25,7 +25,6 @@ export const useAddNodeAction = ({
   edges,
 }: UseAddNodeActionParams) => {
   const addNodeToStore = useTreeStore((state) => state.addNodeToStore);
-  const rollbackAddNode = useTreeStore((state) => state.rollbackAddNode);
 
   const {
     mutate: addNodeOnServer,
@@ -67,8 +66,6 @@ export const useAddNodeAction = ({
       sourceNodeId: selectedNode.id,
       targetNodeId: newNodeId,
     });
-
-    const wasDirtyBeforeAdd = useTreeStore.getState().isDirty; // 실패 시 이전 dirty 상태로 복구하기 위해 저장한다.
 
     /*
     서버 응답을 기다리기 전에 editor store에 임시 노드와 엣지를 추가한다.
@@ -118,10 +115,10 @@ export const useAddNodeAction = ({
           }));
         },
         /*
-        서버 요청이 실패하면 editor store에 추가했던 임시 노드와 엣지를 제거하고 이전 dirty 상태를 복구한다.
+        서버 요청이 실패하면 추가 전의 editor store 상태로 복구한다.
         */
         onError: () => {
-          rollbackAddNode(newNodeId, wasDirtyBeforeAdd);
+          useTreeStore.temporal.getState().undo();
           alert("노드 추가에 실패했습니다.");
         },
       },
