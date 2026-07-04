@@ -71,5 +71,14 @@ export const useDeleteNodeMutation = () => {
         context?.previousNodes,
       );
     },
+
+    /*
+    노드 삭제 요청이 성공하거나 실패한 후, 트리 조회 쿼리를 무효화하여 최신 데이터를 가져오도록 한다.
+    */
+    onSettled: (_data, _error, variables) => {
+      queryClient.invalidateQueries({
+        queryKey: treeQueryKeys.detail(variables.treeId),
+      });
+    },
   });
 };
