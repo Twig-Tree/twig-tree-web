@@ -39,8 +39,13 @@ function LayoutFlow() {
 
   const { setNodes, setEdges } = useReactFlowStoreSetters();
 
-  const { selectedNode, isAddingNode, handleAddNode, handleDeleteNode } =
-    useTreeEditorActions({ treeId });
+  const {
+    selectedNode,
+    isAddingNode,
+    handleAddNode,
+    isDeletingNode,
+    handleDeleteNode,
+  } = useTreeEditorActions({ treeId });
 
   // 1. 컴포넌트 마운트 시 일단 기록 중지 (트리 레이아웃 정렬 전 히스토리 기록 방지)
   useEffect(() => {
@@ -61,7 +66,7 @@ function LayoutFlow() {
     resume();
   };
 
-  const isButtonDisabled = !selectedNode || isAddingNode;
+  const isButtonDisabled = !selectedNode || isAddingNode || isDeletingNode;
 
   if (isLoading) {
     return <div>Loading...</div>;
@@ -111,7 +116,7 @@ function LayoutFlow() {
 
         <button
           className="xy-theme__button"
-          onClick={() => handleDeleteNode(selectedNode!)}
+          onClick={handleDeleteNode}
           disabled={isButtonDisabled}
         >
           delete node
