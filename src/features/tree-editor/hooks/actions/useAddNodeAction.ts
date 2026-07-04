@@ -5,12 +5,12 @@ import { getNextOrderIndex } from "../../lib/node";
 import { useTreeStore } from "../../model/treeStore";
 import { CustomEditorEdge, CustomEditorNode } from "../../model/types";
 
-type UseAddNodeActionParams = {
+interface UseAddNodeActionParams {
   treeId: string; // 노드를 추가할 트리 ID
   selectedNode: CustomEditorNode | undefined; // 자식 노드를 추가할 기준 노드
   nodes: CustomEditorNode[]; // 현재 editor store의 노드 목록
   edges: CustomEditorEdge[]; // 현재 editor store의 엣지 목록
-};
+}
 
 /*
 함수 이름 : useAddNodeAction
