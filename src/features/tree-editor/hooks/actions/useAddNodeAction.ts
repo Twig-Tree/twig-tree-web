@@ -40,7 +40,10 @@ export const useAddNodeAction = ({
     if (!selectedNode || isAddingNode) return;
 
     const parentId = Number(selectedNode.id); // 서버 요청에 사용할 부모 노드 ID를 숫자로 변환한다.
-    if (Number.isNaN(parentId)) return;
+    if (Number.isNaN(parentId)) {
+      alert("아직 서버에 저장되지 않은 노드입니다. 잠시 후 다시 시도해주세요.");
+      return;
+    }
 
     /*
     선택된 노드의 기존 자식 노드 정보를 기준으로 새 노드의 순서, 임시 ID, 라벨을 만든다.

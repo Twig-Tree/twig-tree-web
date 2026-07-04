@@ -35,7 +35,10 @@ export const useDeleteNodeAction = ({
     if (!selectedNode || isDeletingNode) return;
 
     const serverNodeId = Number(selectedNode.id); // 서버 요청에 사용할 삭제 대상 노드 ID를 숫자로 검증한다.
-    if (Number.isNaN(serverNodeId)) return;
+    if (Number.isNaN(serverNodeId)) {
+      alert("아직 서버에 저장되지 않은 노드입니다. 잠시 후 다시 시도해주세요.");
+      return;
+    }
 
     /*
     삭제 실패 시 editor store를 복구하기 위해 삭제 전 상태를 저장한다.
