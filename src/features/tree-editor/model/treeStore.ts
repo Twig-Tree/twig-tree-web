@@ -36,9 +36,7 @@ interface TreeState {
     newNode: CustomEditorNode,
     newEdge: CustomEditorEdge,
   ) => void;
-  deleteNodeFromStore: (node: CustomEditorNode) => void;
-
-  rollbackAddNode: (nodeId: string, previousIsDirty: boolean) => void;
+  deleteNodeFromStore: (nodeIdsToDelete: string[]) => void;
 }
 
 export const useTreeStore = create<TreeState>()(
@@ -160,30 +158,10 @@ export const useTreeStore = create<TreeState>()(
         });
       },
 
-      deleteNodeFromStore: (node: CustomEditorNode) => {
+      deleteNodeFromStore: (nodeIdsToDelete: string[]) => {
         const { nodes, edges } = get();
+        const idsToDelete = new Set(nodeIdsToDelete);
 
-        if (!node) return;
-
-        // 1. 지울 대상을 모아둘 블랙리스트(Set)와 탐색용 바구니(Queue) 초기화
-        const idsToDelete = new Set<string>([node.id]);
-        const queue = [node.id];
-
-        // 2. 평면 엣지 데이터를 기반으로 트리 아래 방향(BFS)으로 순회하며 자식 ID 수집
-        while (queue.length > 0) {
-          const currentId = queue.shift()!;
-
-          edges.forEach((edge) => {
-            // 현재 노드가 출발지(source)라면 목적지(target)는 자식 노드이므로 삭제 대상으로 추가
-            if (edge.source === currentId) {
-              idsToDelete.add(edge.target);
-              queue.push(edge.target);
-            }
-          });
-        }
-
-        // 3. 상태 일괄 업데이트: 블랙리스트에 걸린 노드와 엣지 필터링
-        // 다른 부모/형제 노드들은 객체 불변성이 유지되어 메모리 주소 보존
         set({
           nodes: nodes.filter((node) => !idsToDelete.has(node.id)),
           edges: edges.filter(
@@ -193,22 +171,14 @@ export const useTreeStore = create<TreeState>()(
           isDirty: true,
         });
       },
-
-      rollbackAddNode: (nodeId, previousIsDirty) => {
-        const { nodes, edges } = get();
-
-        set({
-          nodes: nodes.filter((node) => node.id !== nodeId),
-          edges: edges.filter(
-            (edge) => edge.source !== nodeId && edge.target !== nodeId,
-          ),
-          isDirty: previousIsDirty,
-        });
-      },
     }),
     {
       // zundo 옵션: 액션 함수들은 히스토리 스택에 쌓이지 않도록 state만 저장
-      partialize: (state) => ({ nodes: state.nodes, edges: state.edges }),
+      partialize: (state) => ({
+        nodes: state.nodes,
+        edges: state.edges,
+        isDirty: state.isDirty,
+      }),
       // 히스토리 기록 조건 설정
       handleSet: (handleSetAction) => {
         return (state) => {
