@@ -133,7 +133,7 @@ function LayoutFlow() {
 
 export default function WorkspacePage() {
   return (
-    <div className="w-full h-screen">
+    <div className="h-full w-full">
       <ReactFlowProvider>
         <LayoutFlow />
       </ReactFlowProvider>
