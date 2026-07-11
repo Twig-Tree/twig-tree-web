@@ -5,17 +5,19 @@ import {
   edgeTypes,
 } from "@/src/features/tree-editor/constants/flowConfig";
 import { useEditorLayout } from "@/src/features/tree-editor/hooks/useEditorLayout";
+import { MemoSidePanel } from "@/src/features/memo/ui/MemoSidePanel";
 import {
   useTreeHistory,
   useTreeStore,
 } from "@/src/features/tree-editor/model/treeStore";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useGetTreeQuery } from "@/src/entities/tree/model/queries";
 import { useTreeEditorActions } from "@/src/features/tree-editor/hooks/useTreeEditorActions";
 import { useReactFlowStoreSetters } from "@/src/features/tree-editor/hooks/useReactFlowStoreSetters";
 import { useInitializeTree } from "@/src/features/tree-editor/hooks/useInitializeTree";
 
 function LayoutFlow() {
+  const [isMemoPanelOpen, setIsMemoPanelOpen] = useState(false);
   const treeId = "1"; // todo: treeId 동적 처리
   // todo: React Server Component 사용
   const {
@@ -77,63 +79,82 @@ function LayoutFlow() {
   }
 
   return (
-    <ReactFlow
-      nodes={nodes}
-      edges={edges}
-      onInit={handleInit}
-      nodeTypes={nodeTypes}
-      edgeTypes={edgeTypes}
-      onNodesChange={onNodesChange}
-      onEdgesChange={onEdgesChange}
-      onConnect={onConnect}
-      onReconnect={onReconnect}
-      disableKeyboardA11y={isMutating}
-      nodesDraggable={!isMutating}
-      nodesConnectable={!isMutating}
-      edgesReconnectable={!isMutating}
-      elementsSelectable={!isMutating}
-      fitView
-    >
-      <Panel position="top-right">
-        <button
-          className="xy-theme__button"
-          onClick={() => undo()}
-          disabled={!canUndo || isMutating}
+    <div className="flex h-full min-h-0 w-full">
+      <div className="min-h-0 min-w-0 flex-1">
+        <ReactFlow
+          nodes={nodes}
+          edges={edges}
+          onInit={handleInit}
+          nodeTypes={nodeTypes}
+          edgeTypes={edgeTypes}
+          onNodesChange={onNodesChange}
+          onEdgesChange={onEdgesChange}
+          onConnect={onConnect}
+          onReconnect={onReconnect}
+          disableKeyboardA11y={isMutating}
+          nodesDraggable={!isMutating}
+          nodesConnectable={!isMutating}
+          edgesReconnectable={!isMutating}
+          elementsSelectable={!isMutating}
+          fitView
         >
-          Undo
-        </button>
+          <Panel position="top-right">
+            <button
+              className="xy-theme__button"
+              onClick={() => undo()}
+              disabled={!canUndo || isMutating}
+            >
+              Undo
+            </button>
 
-        <button
-          className="xy-theme__button"
-          onClick={() => redo()}
-          disabled={!canRedo || isMutating}
-        >
-          Redo
-        </button>
+            <button
+              className="xy-theme__button"
+              onClick={() => redo()}
+              disabled={!canRedo || isMutating}
+            >
+              Redo
+            </button>
 
-        <button
-          className="xy-theme__button"
-          onClick={handleAddNode}
-          disabled={!selectedNode || isMutating}
-        >
-          add node
-        </button>
+            <button
+              className="xy-theme__button"
+              onClick={handleAddNode}
+              disabled={!selectedNode || isMutating}
+            >
+              Add Node
+            </button>
 
-        <button
-          className="xy-theme__button"
-          onClick={handleDeleteNode}
-          disabled={!selectedNode || isMutating}
-        >
-          delete node
-        </button>
-      </Panel>
-    </ReactFlow>
+            <button
+              className="xy-theme__button"
+              onClick={handleDeleteNode}
+              disabled={!selectedNode || isMutating}
+            >
+              Delete Node
+            </button>
+
+            <button
+              className="xy-theme__button"
+              onClick={() => setIsMemoPanelOpen(true)}
+              disabled={!selectedNode || isMutating}
+            >
+              Add Memo
+            </button>
+          </Panel>
+        </ReactFlow>
+      </div>
+
+      {isMemoPanelOpen ? (
+        <MemoSidePanel
+          selectedNode={selectedNode}
+          onClose={() => setIsMemoPanelOpen(false)}
+        />
+      ) : null}
+    </div>
   );
 }
 
 export default function WorkspacePage() {
   return (
-    <div className="w-full h-screen">
+    <div className="h-full w-full">
       <ReactFlowProvider>
         <LayoutFlow />
       </ReactFlowProvider>
