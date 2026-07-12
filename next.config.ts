@@ -1,7 +1,21 @@
-import type { NextConfig } from "next";
+const isDevelopment = process.env.NODE_ENV === "development";
 
-const nextConfig: NextConfig = {
-  /* config options here */
+const nextConfig = {
+  async headers() {
+    return [
+      {
+        source: "/:path*",
+        headers: [
+          {
+            key: "Referrer-Policy",
+            value: isDevelopment
+              ? "no-referrer-when-downgrade"
+              : "strict-origin-when-cross-origin",
+          },
+        ],
+      },
+    ];
+  },
 };
 
 export default nextConfig;
