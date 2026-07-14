@@ -1,5 +1,4 @@
 import "./globals.css";
-import { Sidebar } from "@/src/widgets/sidebar";
 import { QueryProvider } from "@/src/shared/lib/react-query/QueryProvider";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 
@@ -25,15 +24,7 @@ export default function RootLayout({
               />
             </header>
 
-            <div className="flex min-h-0 flex-1">
-              {/* Sidebar */}
-              <Sidebar />
-
-              {/* Main */}
-              <main className="min-h-0 min-w-0 flex-1 bg-white">
-                {children}
-              </main>
-            </div>
+            <div className="min-h-0 flex-1">{children}</div>
           </div>
           <ReactQueryDevtools initialIsOpen={false} />
         </QueryProvider>
