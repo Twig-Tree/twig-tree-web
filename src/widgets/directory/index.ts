@@ -1,2 +1,2 @@
-export { DirectoryGrid } from "./ui/DirectoryGrid";
+export { DirectoryContentsGrid } from "./ui/DirectoryContentsGrid";
 export { DirectoryHeader } from "./ui/DirectoryHeader";
