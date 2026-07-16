@@ -1,8 +1,8 @@
 export const routes = {
   login: "/login",
   dashboard: "/dashboard",
-  directoryDefault: "/directory",
-  directory: (directoryId: string) => `/directory/${directoryId}`,
+  directoryRoot: "/directory",
+  directory: (folderId: string) => `/directory/${folderId}`,
   recent: "/recent",
   workspaceDefault: "/workspace/default",
   workspaceRoot: "/workspace",

@@ -5,8 +5,8 @@ export const sidebarItems: SidebarItem[] = [
   { label: "Dashboard", href: routes.dashboard },
   {
     label: "Directory",
-    href: routes.directoryDefault,
-    activePrefix: routes.directoryDefault,
+    href: routes.directoryRoot,
+    activePrefix: routes.directoryRoot,
   },
   { label: "Recent", href: routes.recent },
   {
