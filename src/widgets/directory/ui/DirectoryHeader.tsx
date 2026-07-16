@@ -1,6 +1,6 @@
+import { NewFolderButton } from "@/src/features/folder/create-folder";
 import { NewWorkspaceButton } from "@/src/features/workspace/create-workspace";
 import { Breadcrumb, type BreadcrumbItem } from "@/src/shared/ui/breadcrumb";
-import { Button } from "@/src/shared/ui/button";
 
 export interface DirectoryHeaderProps {
   title: string;
@@ -18,13 +18,7 @@ export function DirectoryHeader({ title, breadcrumbs }: DirectoryHeaderProps) {
       </div>
 
       <div className="flex flex-wrap gap-3">
-        <Button variant="secondary">
-          <span
-            className="h-3.5 w-4 rounded-sm border-2 border-current"
-            aria-hidden="true"
-          />
-          New Folder
-        </Button>
+        <NewFolderButton />
         <NewWorkspaceButton />
       </div>
     </header>
