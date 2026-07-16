@@ -1,10 +1,10 @@
 import { NewWorkspaceButton } from "@/src/features/workspace/create-workspace";
-import { Breadcrumb } from "@/src/shared/ui/breadcrumb";
+import { Breadcrumb, type BreadcrumbItem } from "@/src/shared/ui/breadcrumb";
 import { Button } from "@/src/shared/ui/button";
 
-interface DirectoryHeaderProps {
+export interface DirectoryHeaderProps {
   title: string;
-  breadcrumbs: string[];
+  breadcrumbs: BreadcrumbItem[];
 }
 
 export function DirectoryHeader({ title, breadcrumbs }: DirectoryHeaderProps) {
