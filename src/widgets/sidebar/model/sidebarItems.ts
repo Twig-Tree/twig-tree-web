@@ -3,7 +3,11 @@ import type { SidebarItem } from "./types";
 
 export const sidebarItems: SidebarItem[] = [
   { label: "Dashboard", href: routes.dashboard },
-  { label: "Directory", href: routes.directory },
+  {
+    label: "Directory",
+    href: routes.directoryRoot,
+    activePrefix: routes.directoryRoot,
+  },
   { label: "Recent", href: routes.recent },
   {
     label: "Workspace",
