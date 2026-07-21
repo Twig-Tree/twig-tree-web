@@ -23,7 +23,7 @@ export const folderApi = {
   ): Promise<FolderItem[]> => {
     const response = await axiosInstance.get("/folders", {
       params: {
-        folderParentId: Number(folderParentId),
+        folderParentId: folderParentId === null ? undefined : folderParentId,
       },
     });
     return mapFolderListDtoToDomain(response.data.data);
