@@ -5,7 +5,7 @@ import { ApiResponse } from "@/src/shared/api/types";
  */
 export interface CreateFolderRequest {
   name: string;
-  folderParentId: number;
+  folderParentId: number | null;
 }
 
 /**
@@ -14,7 +14,7 @@ export interface CreateFolderRequest {
 export interface FolderDTO {
   folderId: number;
   name: string;
-  folderParentId: number;
+  folderParentId: number | null;
 }
 
 /**
