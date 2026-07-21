@@ -17,7 +17,7 @@ export const useAddNodeMutation = () => {
     서버에 노드 추가 요청을 보낸다.
     */
     mutationFn: (params: { treeId: string; node: CreateNodeRequest }) => {
-      return treeApi.createNode(params.treeId, params.node);
+      return treeApi.createNode(Number(params.treeId), params.node);
     },
 
     /*

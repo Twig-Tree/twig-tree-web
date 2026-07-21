@@ -17,7 +17,7 @@ export const useDeleteNodeMutation = () => {
     서버에 노드 삭제 요청을 보낸다.
     */
     mutationFn: (params: { treeId: string; nodeId: string }) => {
-      return treeApi.deleteNode(params.treeId, params.nodeId);
+      return treeApi.deleteNode(Number(params.treeId), Number(params.nodeId));
     },
 
     /*
