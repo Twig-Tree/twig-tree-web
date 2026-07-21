@@ -2,21 +2,21 @@ import { useDeleteNodeMutation } from "@/src/entities/tree/model/mutations/useDe
 import { useTreeStore } from "@/src/features/tree-editor/model/treeStore";
 import { CustomEditorNode } from "@/src/features/tree-editor/model/types";
 
-interface UseDeleteNodeActionParams {
+interface UseDeleteNodeParams {
   treeId: string; // 노드를 삭제할 트리 ID
   selectedNode: CustomEditorNode | undefined; // 삭제 기준이 되는 선택 노드
 }
 
 /*
-함수 이름 : useDeleteNodeAction
+함수 이름 : useDeleteNode
 기능 : 선택된 노드를 루트로 하는 서브트리를 optimistic update로 editor store에서 삭제하고, 서버 요청 실패 시 삭제 전 상태로 rollback한다.
-인자 : UseDeleteNodeActionParams
+인자 : UseDeleteNodeParams
 반환값 : 노드 삭제 핸들러와 노드 삭제 mutation 상태
 */
-export const useDeleteNodeAction = ({
+export const useDeleteNode = ({
   treeId,
   selectedNode,
-}: UseDeleteNodeActionParams) => {
+}: UseDeleteNodeParams) => {
   const deleteNodeFromStore = useTreeStore(
     (state) => state.deleteNodeFromStore,
   );

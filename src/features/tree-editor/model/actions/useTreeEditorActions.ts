@@ -1,6 +1,6 @@
-import { useDeleteNodeAction } from "@/src/features/tree-editor/hooks/actions/useDeleteNodeAction";
-import { useTreeStore } from "../model/treeStore";
-import { useAddNodeAction } from "./actions/useAddNodeAction";
+import { useTreeStore } from "../treeStore";
+import { useAddNode } from "./add-node/useAddNode";
+import { useDeleteNode } from "./delete-node/useDeleteNode";
 
 type UseTreeEditorActionsParams = {
   treeId: string;
@@ -13,17 +13,18 @@ export const useTreeEditorActions = ({
   const edges = useTreeStore((state) => state.edges);
 
   const selectedNode = nodes.find((node) => node.selected);
-  const { handleAddNode, isAddingNode, isAddNodeError } = useAddNodeAction({
+  const { handleAddNode, isAddingNode, isAddNodeError } = useAddNode({
     treeId,
     selectedNode,
     nodes,
     edges,
   });
-  const { handleDeleteNode, isDeletingNode, isDeleteNodeError } =
-    useDeleteNodeAction({
+  const { handleDeleteNode, isDeletingNode, isDeleteNodeError } = useDeleteNode(
+    {
       treeId,
       selectedNode,
-    });
+    },
+  );
 
   return {
     selectedNode,
