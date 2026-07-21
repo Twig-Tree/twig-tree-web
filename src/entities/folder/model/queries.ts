@@ -5,6 +5,9 @@ import { folderQueryKeys } from "./queryKeys";
 export function useGetFolderListQuery(folderParentId: string | null) {
   return useQuery({
     queryKey: folderQueryKeys.childrenByParent(folderParentId),
-    queryFn: () => folderApi.getFolderList(Number(folderParentId)),
+    queryFn: () =>
+      folderApi.getFolderList(
+        folderParentId === null ? null : Number(folderParentId),
+      ),
   });
 }

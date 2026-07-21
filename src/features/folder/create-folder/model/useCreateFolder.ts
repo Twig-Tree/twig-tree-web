@@ -17,10 +17,12 @@ export function useCreateFolder({
   folderParentId,
 }: UseCreateFolderParams) {
   const { mutateAsync, isPending } = useCreateFolderMutation();
+  const apiFolderParentId =
+    folderParentId === null ? null : Number(folderParentId);
 
   const isValidFolderParentId =
-    folderParentId === null ||
-    (Number.isSafeInteger(folderParentId) && Number(folderParentId) > 0);
+    apiFolderParentId === null ||
+    (Number.isSafeInteger(apiFolderParentId) && apiFolderParentId > 0);
 
   const isCreateFolderDisabled =
     isPending || !isValidFolderParentId || folders === undefined;
@@ -31,13 +33,13 @@ export function useCreateFolder({
     try {
       await mutateAsync({
         name: getAvailableFolderName(folders),
-        folderParentId: Number(folderParentId),
+        folderParentId: apiFolderParentId,
       });
     } catch (error) {
       alert("폴더 생성에 실패했습니다. 다시 시도해 주세요.");
       console.error("Failed to create folder", error);
     }
-  }, [folders, folderParentId, isCreateFolderDisabled, mutateAsync]);
+  }, [apiFolderParentId, folders, isCreateFolderDisabled, mutateAsync]);
 
   return {
     createFolder,
