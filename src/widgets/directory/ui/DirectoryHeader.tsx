@@ -5,9 +5,16 @@ import { Breadcrumb, type BreadcrumbItem } from "@/src/shared/ui/breadcrumb";
 export interface DirectoryHeaderProps {
   title: string;
   breadcrumbs: BreadcrumbItem[];
+  onCreateFolder?: () => void;
+  isCreateFolderDisabled?: boolean;
 }
 
-export function DirectoryHeader({ title, breadcrumbs }: DirectoryHeaderProps) {
+export function DirectoryHeader({
+  title,
+  breadcrumbs,
+  onCreateFolder,
+  isCreateFolderDisabled = false,
+}: DirectoryHeaderProps) {
   return (
     <header className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
       <div>
@@ -18,7 +25,10 @@ export function DirectoryHeader({ title, breadcrumbs }: DirectoryHeaderProps) {
       </div>
 
       <div className="flex flex-wrap gap-3">
-        <NewFolderButton />
+        <NewFolderButton
+          onClick={onCreateFolder}
+          disabled={isCreateFolderDisabled}
+        />
         <NewWorkspaceButton />
       </div>
     </header>
