@@ -3,7 +3,10 @@ import {
   CreateFolderRequest,
   CreateFolderResponse,
 } from "@/src/entities/folder/api/types";
-import { mapFolderDtoToDomain } from "@/src/entities/folder/lib/mappers";
+import {
+  mapFolderDtoToDomain,
+  mapFolderListDtoToDomain,
+} from "@/src/entities/folder/lib/mappers";
 import { FolderItem } from "@/src/entities/folder/model/types";
 
 export const folderApi = {
@@ -13,5 +16,16 @@ export const folderApi = {
       body,
     );
     return mapFolderDtoToDomain(response.data.data);
+  },
+
+  getFolderList: async (
+    folderParentId: string | null,
+  ): Promise<FolderItem[]> => {
+    const response = await axiosInstance.get("/folders", {
+      params: {
+        folderParentId: Number(folderParentId),
+      },
+    });
+    return mapFolderListDtoToDomain(response.data.data);
   },
 };
