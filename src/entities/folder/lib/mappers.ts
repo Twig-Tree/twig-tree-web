@@ -7,3 +7,7 @@ export const mapFolderDtoToDomain = (dto: FolderDTO): FolderItem => {
     name: dto.name,
   };
 };
+
+export const mapFolderListDtoToDomain = (dtos: FolderDTO[]): FolderItem[] => {
+  return dtos.map((dto) => mapFolderDtoToDomain(dto));
+};
