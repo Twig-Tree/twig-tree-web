@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback } from "react";
 import {
   type FolderItem,
   useCreateFolderMutation,
@@ -8,33 +8,31 @@ import {
 import { getAvailableFolderName } from "../lib/getAvailableFolderName";
 
 interface UseCreateFolderParams {
-  initialFolders: FolderItem[];
-  folderParentId: number | null;
+  folders: FolderItem[] | undefined;
+  folderParentId: string | null;
 }
 
 export function useCreateFolder({
-  initialFolders,
+  folders,
   folderParentId,
 }: UseCreateFolderParams) {
-  const [folders, setFolders] = useState(initialFolders);
   const { mutateAsync, isPending } = useCreateFolderMutation();
 
   const isValidFolderParentId =
     folderParentId === null ||
     (Number.isSafeInteger(folderParentId) && folderParentId > 0);
 
-  const isCreateFolderDisabled = isPending || !isValidFolderParentId;
+  const isCreateFolderDisabled =
+    isPending || !isValidFolderParentId || folders === undefined;
 
   const createFolder = useCallback(async () => {
-    if (isCreateFolderDisabled) return;
+    if (isCreateFolderDisabled || !folders) return;
 
     try {
-      const folder = await mutateAsync({
+      await mutateAsync({
         name: getAvailableFolderName(folders),
         folderParentId,
       });
-
-      setFolders((currentFolders) => [...currentFolders, folder]);
     } catch (error) {
       alert("폴더 생성에 실패했습니다. 다시 시도해 주세요.");
       console.error("Failed to create folder", error);
@@ -42,7 +40,6 @@ export function useCreateFolder({
   }, [folders, folderParentId, isCreateFolderDisabled, mutateAsync]);
 
   return {
-    folders,
     createFolder,
     isCreateFolderDisabled,
   };
