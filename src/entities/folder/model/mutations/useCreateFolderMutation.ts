@@ -6,11 +6,16 @@ export function useCreateFolderMutation() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationKey: folderQueryKeys.lists(),
     mutationFn: folderApi.createFolder,
-    onSuccess: () =>
-      queryClient.invalidateQueries({
-        queryKey: folderQueryKeys.lists(),
-      }),
+    onSuccess: (_createdFolder, variables) => {
+      const parentId =
+        variables.folderParentId === null
+          ? null
+          : String(variables.folderParentId);
+
+      return queryClient.invalidateQueries({
+        queryKey: folderQueryKeys.childrenByParent(parentId),
+      });
+    },
   });
 }
