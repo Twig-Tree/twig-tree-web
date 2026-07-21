@@ -2,6 +2,7 @@ import { axiosInstance } from "@/src/shared/api/axiosInstance";
 import {
   CreateFolderRequest,
   CreateFolderResponse,
+  GetFolderListResponse,
 } from "@/src/entities/folder/api/types";
 import {
   mapFolderDtoToDomain,
@@ -21,11 +22,14 @@ export const folderApi = {
   getFolderList: async (
     folderParentId: number | null,
   ): Promise<FolderItem[]> => {
-    const response = await axiosInstance.get("/folders", {
-      params: {
-        folderParentId: folderParentId === null ? undefined : folderParentId,
+    const response = await axiosInstance.get<GetFolderListResponse>(
+      "/folders",
+      {
+        params: {
+          folderParentId: folderParentId === null ? undefined : folderParentId,
+        },
       },
-    });
+    );
     return mapFolderListDtoToDomain(response.data.data);
   },
 };
