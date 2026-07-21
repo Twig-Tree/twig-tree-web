@@ -2,8 +2,12 @@ import { axiosInstance } from "@/src/shared/api/axiosInstance";
 import {
   CreateFolderRequest,
   CreateFolderResponse,
+  GetFolderListResponse,
 } from "@/src/entities/folder/api/types";
-import { mapFolderDtoToDomain } from "@/src/entities/folder/lib/mappers";
+import {
+  mapFolderDtoToDomain,
+  mapFolderListDtoToDomain,
+} from "@/src/entities/folder/lib/mappers";
 import { FolderItem } from "@/src/entities/folder/model/types";
 
 export const folderApi = {
@@ -13,5 +17,19 @@ export const folderApi = {
       body,
     );
     return mapFolderDtoToDomain(response.data.data);
+  },
+
+  getFolderList: async (
+    folderParentId: number | null,
+  ): Promise<FolderItem[]> => {
+    const response = await axiosInstance.get<GetFolderListResponse>(
+      "/folders",
+      {
+        params: {
+          folderParentId: folderParentId === null ? undefined : folderParentId,
+        },
+      },
+    );
+    return mapFolderListDtoToDomain(response.data.data);
   },
 };

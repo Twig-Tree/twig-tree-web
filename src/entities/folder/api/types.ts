@@ -21,3 +21,8 @@ export interface FolderDTO {
  * 폴더 생성 응답 type
  */
 export type CreateFolderResponse = ApiResponse<FolderDTO>;
+
+/**
+ * 폴더 목록 조회 응답 type
+ */
+export type GetFolderListResponse = ApiResponse<FolderDTO[]>;

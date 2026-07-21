@@ -1,8 +1,13 @@
 export const folderQueryKeys = {
   all: ["folder"] as const,
 
-  lists: () => [...folderQueryKeys.all, "list"] as const,
+  children: () => [...folderQueryKeys.all, "children"] as const,
+
+  childrenByParent: (folderParentId: string | null) =>
+    [...folderQueryKeys.children(), folderParentId] as const,
+
+  details: () => [...folderQueryKeys.all, "detail"] as const,
 
   detail: (folderId: string) =>
-    [...folderQueryKeys.all, "detail", folderId] as const,
+    [...folderQueryKeys.details(), folderId] as const,
 };

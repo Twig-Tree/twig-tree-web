@@ -26,7 +26,7 @@ export const treeApi = {
   },
 
   createNode: async (
-    treeId: string,
+    treeId: number,
     body: CreateNodeRequest,
   ): Promise<NodeDTO> => {
     const res = await axiosInstance.post<CreateNodeResponse>(
@@ -36,7 +36,7 @@ export const treeApi = {
     return res.data.data;
   },
 
-  deleteNode: async (treeId: string, nodeId: string): Promise<void> => {
+  deleteNode: async (treeId: number, nodeId: number): Promise<void> => {
     await axiosInstance.delete<ApiResponse<void>>(
       `/trees/${treeId}/nodes/${nodeId}`,
     );
