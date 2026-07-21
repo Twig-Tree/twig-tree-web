@@ -20,7 +20,7 @@ export function useCreateFolder({
 
   const isValidFolderParentId =
     folderParentId === null ||
-    (Number.isSafeInteger(folderParentId) && folderParentId > 0);
+    (Number.isSafeInteger(folderParentId) && Number(folderParentId) > 0);
 
   const isCreateFolderDisabled =
     isPending || !isValidFolderParentId || folders === undefined;
@@ -31,7 +31,7 @@ export function useCreateFolder({
     try {
       await mutateAsync({
         name: getAvailableFolderName(folders),
-        folderParentId,
+        folderParentId: Number(folderParentId),
       });
     } catch (error) {
       alert("폴더 생성에 실패했습니다. 다시 시도해 주세요.");

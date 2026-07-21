@@ -19,7 +19,7 @@ export const folderApi = {
   },
 
   getFolderList: async (
-    folderParentId: string | null,
+    folderParentId: number | null,
   ): Promise<FolderItem[]> => {
     const response = await axiosInstance.get("/folders", {
       params: {
