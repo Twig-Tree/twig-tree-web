@@ -1,5 +1,6 @@
 "use client";
 
+import { useGetFolderListQuery } from "@/src/entities/folder";
 import { useCreateFolder } from "@/src/features/folder/create-folder";
 import {
   DirectoryContentsGrid,
@@ -9,8 +10,9 @@ import { getRootDirectoryPageData } from "./_data/mockDirectoryData";
 
 export default function DirectoryRootPage() {
   const directory = getRootDirectoryPageData();
-  const { folders, createFolder, isCreateFolderDisabled } = useCreateFolder({
-    initialFolders: directory.folders,
+  const folderListQuery = useGetFolderListQuery(null);
+  const { createFolder, isCreateFolderDisabled } = useCreateFolder({
+    folders: folderListQuery.data,
     folderParentId: null,
   });
 
@@ -24,9 +26,14 @@ export default function DirectoryRootPage() {
           isCreateFolderDisabled={isCreateFolderDisabled}
         />
         <DirectoryContentsGrid
-          folders={folders}
+          folders={folderListQuery.data ?? []}
           workspaces={directory.workspaces}
         />
+        {folderListQuery.isError ? (
+          <p role="alert" className="text-sm font-medium text-red-600">
+            폴더 목록을 불러오지 못했습니다.
+          </p>
+        ) : null}
       </div>
     </div>
   );

@@ -1,6 +1,7 @@
 "use client";
 
 import { use } from "react";
+import { useGetFolderListQuery } from "@/src/entities/folder";
 import { useCreateFolder } from "@/src/features/folder/create-folder";
 import {
   DirectoryContentsGrid,
@@ -21,21 +22,20 @@ export default function DirectoryPage({ params }: DirectoryPageProps) {
     notFound();
   }
 
-  const folderParentId = Number(folderId);
   return (
     // App Router의 클라이언트 내비게이션에서는 컴포넌트 상태가 보존될 수 있다.
     // folderId를 key로 사용해 경로가 바뀔 때 아래의 폴더별 로컬 상태를 초기화한다.
     <DirectoryPageContent
       key={folderId}
       directory={directory}
-      folderParentId={folderParentId}
+      folderParentId={folderId}
     />
   );
 }
 
 interface DirectoryPageContentProps {
   directory: NonNullable<ReturnType<typeof getDirectoryPageData>>;
-  folderParentId: number;
+  folderParentId: string;
 }
 
 // key로 재마운트할 수 있도록 별도 컴포넌트에서 관리한다.
@@ -43,8 +43,9 @@ function DirectoryPageContent({
   directory,
   folderParentId,
 }: DirectoryPageContentProps) {
-  const { folders, createFolder, isCreateFolderDisabled } = useCreateFolder({
-    initialFolders: directory.folders,
+  const folderListQuery = useGetFolderListQuery(folderParentId);
+  const { createFolder, isCreateFolderDisabled } = useCreateFolder({
+    folders: folderListQuery.data,
     folderParentId,
   });
 
@@ -58,9 +59,14 @@ function DirectoryPageContent({
           isCreateFolderDisabled={isCreateFolderDisabled}
         />
         <DirectoryContentsGrid
-          folders={folders}
+          folders={folderListQuery.data ?? []}
           workspaces={directory.workspaces}
         />
+        {folderListQuery.isError ? (
+          <p role="alert" className="text-sm font-medium text-red-600">
+            폴더 목록을 불러오지 못했습니다.
+          </p>
+        ) : null}
       </div>
     </div>
   );
