@@ -19,17 +19,17 @@ object parameter를 받는 함수는 `인자` 항목에 각 필드를 모두 나
 
 ```ts
 /*
-함수 이름 : useAddNodeAction
+함수 이름 : useAddNode
 기능 : 선택된 노드의 자식 노드를 optimistic update로 editor store에 추가하고, 서버 요청 결과에 따라 store 상태를 보정하거나 rollback한다.
-인자 : UseAddNodeActionParams
+인자 : UseAddNodeParams
 반환값 : 노드 추가 핸들러와 노드 추가 mutation 상태
 */
-export const useAddNodeAction = ({
+export const useAddNode = ({
   treeId,
   selectedNode,
   nodes,
   edges,
-}: UseAddNodeActionParams) => {
+}: UseAddNodeParams) => {
   // ...
 };
 ```
@@ -59,7 +59,7 @@ export const getNextOrderIndex = (
 object parameter의 필드는 type 또는 interface 선언부에서 문장 끝 주석으로 설명한다.
 
 ```ts
-type UseAddNodeActionParams = {
+type UseAddNodeParams = {
   treeId: string; // 노드를 추가할 트리 ID
   selectedNode: CustomEditorNode | undefined; // 자식 노드를 추가할 기준 노드
   nodes: CustomEditorNode[]; // 현재 editor store의 노드 목록
@@ -153,7 +153,7 @@ const label = `Added node ${nextOrderIndex}`; // label 변수를 만든다.
 ## 적용 예시
 
 ```ts
-type UseAddNodeActionParams = {
+type UseAddNodeParams = {
   treeId: string; // 노드를 추가할 트리 ID
   selectedNode: CustomEditorNode | undefined; // 자식 노드를 추가할 기준 노드
   nodes: CustomEditorNode[]; // 현재 editor store의 노드 목록
@@ -161,17 +161,17 @@ type UseAddNodeActionParams = {
 };
 
 /*
-함수 이름 : useAddNodeAction
+함수 이름 : useAddNode
 기능 : 선택된 노드의 자식 노드를 optimistic update로 editor store에 추가하고, 서버 요청 결과에 따라 store 상태를 보정하거나 rollback한다.
-인자 : UseAddNodeActionParams
+인자 : UseAddNodeParams
 반환값 : 노드 추가 핸들러와 노드 추가 mutation 상태
 */
-export const useAddNodeAction = ({
+export const useAddNode = ({
   treeId,
   selectedNode,
   nodes,
   edges,
-}: UseAddNodeActionParams) => {
+}: UseAddNodeParams) => {
   /*
   선택된 노드를 기준으로 새 자식 노드를 생성하고 서버에 노드 추가 요청을 보낸다.
   */

@@ -90,7 +90,7 @@ Feature에 작성하는 항목은 다음과 같다.
 
 ```text
 src/features/folder/create-folder/
-├─ hooks/
+├─ model/
 │  └─ useCreateFolder.ts
 ├─ lib/
 │  └─ getAvailableFolderName.ts
@@ -143,6 +143,35 @@ export function useCreateFolder({
 - 버튼 비활성화 상태
 
 ID를 실제 API 요청 타입으로 변환하는 작업은 entity mutation이 담당한다. Feature는 검증을 위해 숫자로 해석할 수 있지만 mutation에는 프론트엔드 ID를 전달한다.
+
+### 복합 Feature의 model 구성
+
+Tree editor처럼 하나의 feature 안에 여러 사용자 action과 화면 생명주기 로직이 함께 있으면 `model` 내부를 역할별로 나눈다.
+
+```text
+src/features/tree-editor/
+├─ model/
+│  ├─ treeStore.ts
+│  ├─ types.ts
+│  ├─ actions/
+│  │  ├─ add-node/
+│  │  │  └─ useAddNode.ts
+│  │  ├─ delete-node/
+│  │  │  └─ useDeleteNode.ts
+│  │  └─ useTreeEditorActions.ts
+│  ├─ initialization/
+│  │  └─ useInitializeTree.ts
+│  ├─ layout/
+│  │  └─ useEditorLayout.ts
+│  └─ react-flow/
+│     └─ useReactFlowStoreSetters.ts
+├─ lib/
+└─ ui/
+```
+
+- `actions`: mutation, store, 검증을 조합하는 사용자 action과 facade
+- `initialization`: query 데이터를 feature 상태로 초기화하는 생명주기 로직
+- `layout`: 에디터 배치 계산을 실행하고 외부 UI 라이브러리 상태와 연결하는 hook
 
 ## Widget과 Page 계층
 

@@ -1,20 +1,18 @@
 "use client";
 import { ReactFlow, ReactFlowProvider, Panel } from "@xyflow/react";
 import {
-  nodeTypes,
   edgeTypes,
-} from "@/src/features/tree-editor/constants/flowConfig";
-import { useEditorLayout } from "@/src/features/tree-editor/hooks/useEditorLayout";
-import { MemoSidePanel } from "@/src/features/memo/ui/MemoSidePanel";
-import {
+  nodeTypes,
+  useEditorLayout,
+  useInitializeTree,
+  useReactFlowStoreSetters,
+  useTreeEditorActions,
   useTreeHistory,
   useTreeStore,
-} from "@/src/features/tree-editor/model/treeStore";
+} from "@/src/features/tree-editor";
+import { MemoSidePanel } from "@/src/features/memo/ui/MemoSidePanel";
 import { useEffect, useState } from "react";
 import { useGetTreeQuery } from "@/src/entities/tree/model/queries";
-import { useTreeEditorActions } from "@/src/features/tree-editor/hooks/useTreeEditorActions";
-import { useReactFlowStoreSetters } from "@/src/features/tree-editor/hooks/useReactFlowStoreSetters";
-import { useInitializeTree } from "@/src/features/tree-editor/hooks/useInitializeTree";
 
 function LayoutFlow() {
   const [isMemoPanelOpen, setIsMemoPanelOpen] = useState(false);
