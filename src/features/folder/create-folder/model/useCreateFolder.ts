@@ -33,13 +33,13 @@ export function useCreateFolder({
     try {
       await mutateAsync({
         name: getAvailableFolderName(folders),
-        folderParentId: apiFolderParentId,
+        folderParentId,
       });
     } catch (error) {
       alert("폴더 생성에 실패했습니다. 다시 시도해 주세요.");
       console.error("Failed to create folder", error);
     }
-  }, [apiFolderParentId, folders, isCreateFolderDisabled, mutateAsync]);
+  }, [folderParentId, folders, isCreateFolderDisabled, mutateAsync]);
 
   return {
     createFolder,

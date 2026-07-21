@@ -3,6 +3,15 @@ import { CreateNodeRequest, NodeDTO } from "@/src/entities/tree/api/types";
 import { treeQueryKeys } from "@/src/entities/tree/model/queryKeys";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
+interface AddNodeVariables {
+  treeId: string;
+  node: {
+    name: string;
+    parentId: string;
+    orderId: number;
+  };
+}
+
 /*
 함수 이름 : useAddNodeMutation
 기능 : 노드 추가 API 요청을 수행하고, 요청이 완료되기 전에 React Query 캐시에 임시 노드를 추가하여 낙관적 업데이트를 처리한다.
@@ -16,8 +25,13 @@ export const useAddNodeMutation = () => {
     /*
     서버에 노드 추가 요청을 보낸다.
     */
-    mutationFn: (params: { treeId: string; node: CreateNodeRequest }) => {
-      return treeApi.createNode(Number(params.treeId), params.node);
+    mutationFn: ({ treeId, node }: AddNodeVariables) => {
+      const request: CreateNodeRequest = {
+        ...node,
+        parentId: Number(node.parentId),
+      };
+
+      return treeApi.createNode(Number(treeId), request);
     },
 
     /*
@@ -46,7 +60,7 @@ export const useAddNodeMutation = () => {
           const optimisticNode: NodeDTO = {
             nodeId: optimisticNodeId, // 임시 ID를 생성한다.
             name: node.name,
-            parentId: node.parentId,
+            parentId: Number(node.parentId),
             orderId: node.orderId,
             memo: null,
           };

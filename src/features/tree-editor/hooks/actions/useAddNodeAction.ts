@@ -38,8 +38,8 @@ export const useAddNodeAction = ({
   const handleAddNode = () => {
     if (!selectedNode || isAddingNode) return;
 
-    const parentId = Number(selectedNode.id); // 서버 요청에 사용할 부모 노드 ID를 숫자로 변환한다.
-    if (Number.isNaN(parentId)) {
+    const numericParentId = Number(selectedNode.id); // 부모 노드 ID가 서버 ID로 변환 가능한지 검증한다.
+    if (Number.isNaN(numericParentId)) {
       alert("아직 서버에 저장되지 않은 노드입니다. 잠시 후 다시 시도해주세요.");
       return;
     }
@@ -79,7 +79,7 @@ export const useAddNodeAction = ({
       {
         treeId,
         node: {
-          parentId: parentId,
+          parentId: selectedNode.id,
           orderId: nextOrderIndex,
           name: label,
         },
