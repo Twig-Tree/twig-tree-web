@@ -1,4 +1,4 @@
 export type FolderItem = {
-  id: string;
+  id: string | null;
   name: string;
 };
