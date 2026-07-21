@@ -23,6 +23,8 @@ export default function DirectoryPage({ params }: DirectoryPageProps) {
 
   const folderParentId = Number(folderId);
   return (
+    // App Router의 클라이언트 내비게이션에서는 컴포넌트 상태가 보존될 수 있다.
+    // folderId를 key로 사용해 경로가 바뀔 때 아래의 폴더별 로컬 상태를 초기화한다.
     <DirectoryPageContent
       key={folderId}
       directory={directory}
@@ -36,6 +38,7 @@ interface DirectoryPageContentProps {
   folderParentId: number;
 }
 
+// key로 재마운트할 수 있도록 별도 컴포넌트에서 관리한다.
 function DirectoryPageContent({
   directory,
   folderParentId,
