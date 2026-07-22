@@ -90,7 +90,7 @@ Feature에 작성하는 항목은 다음과 같다.
 
 ```text
 src/features/folder/create-folder/
-├─ hooks/
+├─ model/
 │  └─ useCreateFolder.ts
 ├─ lib/
 │  └─ getAvailableFolderName.ts
@@ -143,6 +143,10 @@ export function useCreateFolder({
 - 버튼 비활성화 상태
 
 ID를 실제 API 요청 타입으로 변환하는 작업은 entity mutation이 담당한다. Feature는 검증을 위해 숫자로 해석할 수 있지만 mutation에는 프론트엔드 ID를 전달한다.
+
+### 복합 Feature의 model 구성
+
+하나의 Feature 안에 여러 사용자 행동과 화면 생명주기 로직이 함께 있다면 `model` 내부를 책임별 하위 디렉터리로 나눌 수 있다. 구체적인 디렉터리 이름과 경계는 해당 Feature의 복잡도와 도메인에 따라 결정하고, 선택한 구조와 이유는 Feature 내부 README에 기록한다.
 
 ## Widget과 Page 계층
 
