@@ -7,11 +7,9 @@ import {
   DirectoryContentsGrid,
   DirectoryHeader,
 } from "@/src/widgets/directory";
-import { getRootDirectoryPageData } from "./_data/mockDirectoryData";
 
 export default function DirectoryRootPage() {
   const [editingFolderId, setEditingFolderId] = useState<string | null>(null);
-  const directory = getRootDirectoryPageData();
   const folderListQuery = useGetFolderListQuery(null);
   const { createFolder, isCreateFolderDisabled } = useCreateFolder({
     folders: folderListQuery.data,
@@ -31,8 +29,8 @@ export default function DirectoryRootPage() {
     <div className="h-full overflow-y-auto bg-slate-50/70 px-6 py-8 lg:px-8">
       <div className="mx-auto flex w-full max-w-7xl flex-col gap-8">
         <DirectoryHeader
-          title={directory.title}
-          breadcrumbs={directory.breadcrumbs}
+          title="Root"
+          breadcrumbs={[{ label: "Root" }]}
           onCreateFolder={() => void handleCreateFolder()}
           isCreateFolderDisabled={isCreateFolderDisabled}
         />
@@ -41,7 +39,7 @@ export default function DirectoryRootPage() {
           folderParentId={null}
           folders={folderListQuery.data ?? []}
           onEditingEnd={() => setEditingFolderId(null)}
-          workspaces={directory.workspaces}
+          workspaces={[]}
         />
         {folderListQuery.isError ? (
           <p role="alert" className="text-sm font-medium text-red-600">
