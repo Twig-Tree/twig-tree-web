@@ -3,6 +3,8 @@ import {
   CreateFolderRequest,
   CreateFolderResponse,
   GetFolderListResponse,
+  UpdateFolderRequest,
+  UpdateFolderResponse,
 } from "@/src/entities/folder/api/types";
 import {
   mapFolderDtoToDomain,
@@ -14,6 +16,17 @@ export const folderApi = {
   createFolder: async (body: CreateFolderRequest): Promise<FolderItem> => {
     const response = await axiosInstance.post<CreateFolderResponse>(
       "/folders",
+      body,
+    );
+    return mapFolderDtoToDomain(response.data.data);
+  },
+
+  updateFolder: async (
+    folderId: number,
+    body: UpdateFolderRequest,
+  ): Promise<FolderItem> => {
+    const response = await axiosInstance.patch<UpdateFolderResponse>(
+      `/folders/${folderId}`,
       body,
     );
     return mapFolderDtoToDomain(response.data.data);
