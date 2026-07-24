@@ -27,17 +27,20 @@ export function useCreateFolder({
   const isCreateFolderDisabled =
     isPending || !isValidFolderParentId || folders === undefined;
 
-  const createFolder = useCallback(async () => {
-    if (isCreateFolderDisabled || !folders) return;
+  const createFolder = useCallback(async (): Promise<FolderItem> => {
+    if (isCreateFolderDisabled || !folders) {
+      throw new Error("Folder creation is currently disabled.");
+    }
 
     try {
-      await mutateAsync({
+      return await mutateAsync({
         name: getAvailableFolderName(folders),
         folderParentId,
       });
     } catch (error) {
       alert("폴더 생성에 실패했습니다. 다시 시도해 주세요.");
       console.error("Failed to create folder", error);
+      throw error;
     }
   }, [folderParentId, folders, isCreateFolderDisabled, mutateAsync]);
 
