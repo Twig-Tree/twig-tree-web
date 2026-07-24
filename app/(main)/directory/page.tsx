@@ -38,6 +38,7 @@ export default function DirectoryRootPage() {
           editingFolderId={editingFolderId}
           folderParentId={null}
           folders={folderListQuery.data ?? []}
+          onEditingStart={setEditingFolderId}
           onEditingEnd={() => setEditingFolderId(null)}
           workspaces={[]}
         />

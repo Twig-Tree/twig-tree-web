@@ -6,6 +6,7 @@ interface DirectoryContentsGridProps {
   editingFolderId: string | null;
   folderParentId: string | null;
   folders: FolderItem[];
+  onEditingStart: (folderId: string) => void;
   onEditingEnd: () => void;
   workspaces: WorkspaceItem[];
 }
@@ -14,6 +15,7 @@ export function DirectoryContentsGrid({
   editingFolderId,
   folderParentId,
   folders,
+  onEditingStart,
   onEditingEnd,
   workspaces,
 }: DirectoryContentsGridProps) {
@@ -32,7 +34,15 @@ export function DirectoryContentsGrid({
             onEditingEnd={onEditingEnd}
           />
         ) : (
-          <FolderCard key={folder.id} folder={folder} />
+          <FolderCard
+            key={folder.id}
+            folder={folder}
+            onRename={() => {
+              if (folder.id !== null) {
+                onEditingStart(folder.id);
+              }
+            }}
+          />
         ),
       )}
       {workspaces.map((workspace) => (
