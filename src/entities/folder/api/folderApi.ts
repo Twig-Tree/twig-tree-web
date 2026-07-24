@@ -2,6 +2,7 @@ import { axiosInstance } from "@/src/shared/api/axiosInstance";
 import {
   CreateFolderRequest,
   CreateFolderResponse,
+  GetFolderResponse,
   GetFolderListResponse,
   UpdateFolderRequest,
   UpdateFolderResponse,
@@ -28,6 +29,13 @@ export const folderApi = {
     const response = await axiosInstance.patch<UpdateFolderResponse>(
       `/folders/${folderId}`,
       body,
+    );
+    return mapFolderDtoToDomain(response.data.data);
+  },
+
+  getFolder: async (folderId: number): Promise<FolderItem> => {
+    const response = await axiosInstance.get<GetFolderResponse>(
+      `/folders/${folderId}`,
     );
     return mapFolderDtoToDomain(response.data.data);
   },
