@@ -22,10 +22,7 @@ export default function DirectoryPage({ params }: DirectoryPageProps) {
   return (
     // App Router의 클라이언트 내비게이션에서는 컴포넌트 상태가 보존될 수 있다.
     // folderId를 key로 사용해 경로가 바뀔 때 아래의 폴더별 로컬 상태를 초기화한다.
-    <DirectoryPageContent
-      key={folderId}
-      folderParentId={folderId}
-    />
+    <DirectoryPageContent key={folderId} folderParentId={folderId} />
   );
 }
 
@@ -34,9 +31,7 @@ interface DirectoryPageContentProps {
 }
 
 // key로 재마운트할 수 있도록 별도 컴포넌트에서 관리한다.
-function DirectoryPageContent({
-  folderParentId,
-}: DirectoryPageContentProps) {
+function DirectoryPageContent({ folderParentId }: DirectoryPageContentProps) {
   const [editingFolderId, setEditingFolderId] = useState<string | null>(null);
   const folderQuery = useGetFolderQuery(folderParentId);
   const folderListQuery = useGetFolderListQuery(folderParentId);
@@ -70,6 +65,7 @@ function DirectoryPageContent({
           editingFolderId={editingFolderId}
           folderParentId={folderParentId}
           folders={folderListQuery.data ?? []}
+          onEditingStart={setEditingFolderId}
           onEditingEnd={() => setEditingFolderId(null)}
           workspaces={[]}
         />
