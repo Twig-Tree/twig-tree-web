@@ -1,4 +1,7 @@
 import axios from "axios";
+import { isAuthRequired } from "@/src/shared/config/auth";
+import { routes } from "@/src/shared/config/routes";
+import { authSession } from "@/src/shared/lib/auth/authSession";
 
 const baseURL = process.env.NEXT_PUBLIC_API_BASE_URL;
 
@@ -16,3 +19,44 @@ export const axiosInstance = axios.create({
     "Content-Type": "application/json",
   },
 });
+
+const isLoginRequest = (url: string | undefined): boolean => {
+  return url === "/auth/google";
+};
+
+axiosInstance.interceptors.request.use((config) => {
+  const accessToken = authSession.getAccessToken();
+
+  if (accessToken) {
+    config.headers.Authorization = `Bearer ${accessToken}`;
+    return config;
+  }
+
+  if (isAuthRequired && !isLoginRequest(config.url)) {
+    return Promise.reject(
+      new Error("인증이 필요한 요청이지만 access token이 없습니다."),
+    );
+  }
+
+  return config;
+});
+
+axiosInstance.interceptors.response.use(
+  (response) => response,
+  (error: unknown) => {
+    // todo: 액세스 토큰 재발급
+    if (axios.isAxiosError(error) && error.response?.status === 401) {
+      authSession.clearAccessToken();
+
+      if (
+        isAuthRequired &&
+        typeof window !== "undefined" &&
+        window.location.pathname !== routes.login
+      ) {
+        window.location.replace(routes.login);
+      }
+    }
+
+    return Promise.reject(error);
+  },
+);

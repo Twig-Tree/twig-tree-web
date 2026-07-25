@@ -1,17 +1,17 @@
 import { axiosInstance } from "@/src/shared/api/axiosInstance";
 import type {
   GoogleLoginRequest,
+  GoogleLoginData,
   GoogleLoginResponse,
-  MemberDTO,
 } from "./types";
 
 export const authApi = {
-  googleLogin: async (idToken: string): Promise<MemberDTO> => {
+  googleLogin: async (idToken: string): Promise<GoogleLoginData> => {
     const body: GoogleLoginRequest = { idToken };
     const response = await axiosInstance.post<GoogleLoginResponse>(
       "/auth/google",
       body,
     );
-    return response.data.data.member;
+    return response.data.data;
   },
 };

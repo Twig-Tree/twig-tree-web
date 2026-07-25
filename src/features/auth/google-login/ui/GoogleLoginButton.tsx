@@ -1,10 +1,14 @@
 "use client";
 
 import { useGoogleLoginMutation } from "@/src/entities/auth/model/mutations/useGoogleLoginMutation";
+import { routes } from "@/src/shared/config/routes";
+import { authSession } from "@/src/shared/lib/auth/authSession";
 import { GoogleLogin } from "@react-oauth/google";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 export const GoogleLoginButton = () => {
+  const router = useRouter();
   const [googleLoginError, setGoogleLoginError] = useState(false);
   const googleLoginMutation = useGoogleLoginMutation();
 
@@ -26,7 +30,12 @@ export const GoogleLoginButton = () => {
           }
 
           setGoogleLoginError(false);
-          googleLoginMutation.mutate(idToken);
+          googleLoginMutation.mutate(idToken, {
+            onSuccess: ({ accessToken }) => {
+              authSession.setAccessToken(accessToken);
+              router.replace(routes.dashboard);
+            },
+          });
         }}
         onError={() => {
           setGoogleLoginError(true);
@@ -51,8 +60,8 @@ export const GoogleLoginButton = () => {
           role="status"
         >
           <p className="font-medium">로그인 API 연결에 성공했습니다.</p>
-          <p className="mt-1">{googleLoginMutation.data.name}</p>
-          <p>{googleLoginMutation.data.email}</p>
+          <p className="mt-1">{googleLoginMutation.data.member.name}</p>
+          <p>{googleLoginMutation.data.member.email}</p>
         </div>
       )}
 
