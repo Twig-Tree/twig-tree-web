@@ -2,6 +2,7 @@ import { axiosInstance } from "@/src/shared/api/axiosInstance";
 import {
   CreateFolderRequest,
   CreateFolderResponse,
+  DeleteFolderResponse,
   GetFolderResponse,
   GetFolderListResponse,
   UpdateFolderRequest,
@@ -31,6 +32,10 @@ export const folderApi = {
       body,
     );
     return mapFolderDtoToDomain(response.data.data);
+  },
+
+  deleteFolder: async (folderId: number): Promise<void> => {
+    await axiosInstance.delete<DeleteFolderResponse>(`/folders/${folderId}`);
   },
 
   getFolder: async (folderId: number): Promise<FolderItem> => {

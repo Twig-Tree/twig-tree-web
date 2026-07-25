@@ -1,4 +1,7 @@
+"use client";
+
 import { FolderCard, type FolderItem } from "@/src/entities/folder";
+import { useDeleteFolder } from "@/src/features/folder/delete-folder";
 import { EditableFolderCard } from "@/src/features/folder/update-folder";
 import { WorkspaceCard, type WorkspaceItem } from "@/src/entities/workspace";
 
@@ -19,6 +22,10 @@ export function DirectoryContentsGrid({
   onEditingEnd,
   workspaces,
 }: DirectoryContentsGridProps) {
+  const { deleteFolder, isDeletingFolder } = useDeleteFolder({
+    folderParentId,
+  });
+
   return (
     <section
       className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4"
@@ -37,6 +44,16 @@ export function DirectoryContentsGrid({
           <FolderCard
             key={folder.id}
             folder={folder}
+            onDelete={
+              folder.id === null || isDeletingFolder
+                ? undefined
+                : () => {
+                    void deleteFolder({
+                      folderId: folder.id as string,
+                      name: folder.name,
+                    });
+                  }
+            }
             onRename={() => {
               if (folder.id !== null) {
                 onEditingStart(folder.id);
