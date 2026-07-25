@@ -1,4 +1,6 @@
 import axios from "axios";
+import { isAuthRequired } from "@/src/shared/config/auth";
+import { authSession } from "@/src/shared/lib/auth/authSession";
 
 const baseURL = process.env.NEXT_PUBLIC_API_BASE_URL;
 
@@ -15,4 +17,25 @@ export const axiosInstance = axios.create({
   headers: {
     "Content-Type": "application/json",
   },
+});
+
+const isLoginRequest = (url: string | undefined): boolean => {
+  return url === "/auth/google";
+};
+
+axiosInstance.interceptors.request.use((config) => {
+  const accessToken = authSession.getAccessToken();
+
+  if (accessToken) {
+    config.headers.Authorization = `Bearer ${accessToken}`;
+    return config;
+  }
+
+  if (isAuthRequired && !isLoginRequest(config.url)) {
+    return Promise.reject(
+      new Error("인증이 필요한 요청이지만 access token이 없습니다."),
+    );
+  }
+
+  return config;
 });
