@@ -1,5 +1,6 @@
 import axios from "axios";
 import { isAuthRequired } from "@/src/shared/config/auth";
+import { routes } from "@/src/shared/config/routes";
 import { authSession } from "@/src/shared/lib/auth/authSession";
 
 const baseURL = process.env.NEXT_PUBLIC_API_BASE_URL;
@@ -39,3 +40,23 @@ axiosInstance.interceptors.request.use((config) => {
 
   return config;
 });
+
+axiosInstance.interceptors.response.use(
+  (response) => response,
+  (error: unknown) => {
+    // todo: 액세스 토큰 재발급
+    if (axios.isAxiosError(error) && error.response?.status === 401) {
+      authSession.clearAccessToken();
+
+      if (
+        isAuthRequired &&
+        typeof window !== "undefined" &&
+        window.location.pathname !== routes.login
+      ) {
+        window.location.replace(routes.login);
+      }
+    }
+
+    return Promise.reject(error);
+  },
+);
