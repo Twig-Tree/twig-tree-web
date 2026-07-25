@@ -35,6 +35,11 @@ export type CreateFolderResponse = ApiResponse<FolderDTO>;
 export type UpdateFolderResponse = ApiResponse<FolderDTO>;
 
 /**
+ * 폴더 삭제 응답 type
+ */
+export type DeleteFolderResponse = ApiResponse<void>;
+
+/**
  * 폴더 조회 응답 type
  */
 export type GetFolderResponse = ApiResponse<FolderDTO>;
