@@ -42,3 +42,6 @@ next-env.d.ts
 
 # pnpm
 .pnpm-store/
+
+# claude local todo (personal, not shared with the team)
+.claude/todo.md
