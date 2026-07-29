@@ -16,7 +16,7 @@ description: Draft and (after user confirmation) create a GitHub issue using thi
 
 ## 중복 확인
 
-초안을 쓰기 전에 `gh issue list --search "<키워드>"`로 같은 작업을 다루는 기존 이슈가 있는지 먼저 확인한다. 이미 있으면 새로 만들지 말고 기존 이슈를 보여주며 어떻게 할지 물어본다 (댓글 추가, 서브 이슈로 재구성 등).
+초안을 쓰기 전에 핵심 키워드로 `gh issue list --state all --search "<검색어>" --limit 30`을 실행해 같은 작업을 다루는 기존 이슈가 있는지 먼저 확인한다. `--state all`과 검색어를 반드시 명시한다 — 기본값(open만, 30개 제한)에 의존하면 이미 닫힌 이슈나 오래된 이슈를 놓친다. 이미 있으면 새로 만들지 말고 기존 이슈를 보여주며 어떻게 할지 물어본다 (댓글 추가, 서브 이슈로 재구성 등).
 
 ## 언제 시작하는가
 
@@ -47,7 +47,7 @@ description: Draft and (after user confirmation) create a GitHub issue using thi
 
 작업 범위가 크거나 사용자가 명시하면, 새 이슈를 특정 부모 이슈의 서브 이슈로 만들지 물어본다.
 
-- 부모 이슈 번호를 모르면 `gh issue list`로 후보를 찾아 사용자에게 확인받는다.
+- 부모 이슈 번호를 모르면 `gh issue list --state all --search "<검색어>" --limit 30`으로 후보를 찾아 사용자에게 확인받는다.
 - 서브 이슈로 만들기로 하면, 이슈 본문에도 `상위 이슈: #<parent_number>` 같은 참조를 한 줄 추가해 GitHub sub-issue 링크가 실패해도 맥락이 남게 한다.
 
 ## 확인 요청
@@ -56,14 +56,24 @@ description: Draft and (after user confirmation) create a GitHub issue using thi
 
 ## 실제 생성 (승인 후에만)
 
-1. 본문을 임시 파일에 써서 `gh issue create --title "<title>" --body-file <tmpfile>` 로 생성한다 (따옴표/이모지 깨짐 방지를 위해 인라인 `--body`보다 `--body-file`을 우선한다). 라벨이 있으면 `--label`을 추가한다.
-2. 서브 이슈로 만들기로 했다면, 부모/자식 이슈의 내부 id를 조회해 GitHub sub-issues API로 연결한다.
+1. 본문을 임시 파일에 써서 실제 제목과 파일 경로 값을 채운 뒤 생성한다 (따옴표/이모지 깨짐 방지를 위해 인라인 `--body`보다 `--body-file`을 우선한다). 아래처럼 꺾쇠괄호 placeholder를 그대로 실행하지 않는다 — 특히 `<tmpfile>` 같은 형태는 셸이 입력 리다이렉션으로 해석해 실패한다.
 
    ```bash
-   gh issue view <parent_number> --json id --jq .id
-   gh issue view <child_number> --json id --jq .id
-   gh api --method POST repos/{owner}/{repo}/issues/<parent_number>/sub_issues -F sub_issue_id=<child_internal_id>
+   gh issue create --title "실제 이슈 제목" --body-file "실제/임시파일/경로"
    ```
+
+   라벨이 있으면 `--label`을 추가한다.
+2. 서브 이슈로 만들기로 했다면, 부모/자식 이슈의 **REST 내부 id**(정수)를 조회해 GitHub sub-issues API로 연결한다.
+
+   ```bash
+   parent_number=33   # 실제 부모 이슈 번호로 치환
+   child_number=34    # 실제 자식 이슈 번호로 치환
+   parent_id=$(gh api repos/{owner}/{repo}/issues/$parent_number --jq .id)
+   child_id=$(gh api repos/{owner}/{repo}/issues/$child_number --jq .id)
+   gh api --method POST repos/{owner}/{repo}/issues/$parent_number/sub_issues -F sub_issue_id="$child_id"
+   ```
+
+   id는 반드시 `gh api repos/{owner}/{repo}/issues/<number> --jq .id`로 조회한다. `gh issue view <number> --json id --jq .id`는 GraphQL node id(`I_kwDO...` 형태의 문자열)를 반환하므로 여기서 쓸 수 없다 — sub-issues REST API의 `sub_issue_id`는 정수 id만 받는다.
 
    `sub_issue_id`는 반드시 `-F`(타입 추론)로 보낸다. `-f`로 보내면 문자열로 직렬화되어 GitHub API가 `integer` 타입이 아니라고 거부한다.
 

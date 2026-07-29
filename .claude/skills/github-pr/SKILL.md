@@ -33,6 +33,6 @@ PR 제목과 본문 전체(위 템플릿 채운 결과)를 사용자에게 보�
 
 ## 실제 생성 (승인 후에만)
 
-1. 브랜치가 원격에 없거나 뒤처져 있으면 push한다 (`git push -u origin <branch>`) — 이 역시 승인 범위 안의 행동이므로 별도로 다시 묻지 않는다.
+1. 원격 브랜치가 없으면 push한다 (`git push -u origin <branch>`). 원격 브랜치가 있으면 `git fetch` 후 로컬이 원격보다 앞선 경우에만 push한다 — 이 경우 push는 승인 범위 안의 행동이므로 별도로 다시 묻지 않는다. 뒤처졌거나 분기된 경우에는 강제로 push하지 않고 merge/rebase 중 어떤 방법으로 동기화할지 사용자에게 먼저 확인한다.
 2. 본문을 임시 파일에 써서 `gh pr create --title "<title>" --body-file <tmpfile>` 로 생성한다.
 3. 생성된 PR URL을 사용자에게 보여준다.

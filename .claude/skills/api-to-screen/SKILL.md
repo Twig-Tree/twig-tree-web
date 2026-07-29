@@ -27,8 +27,8 @@ description: Guides adding a new backend-API-backed feature end to end — entit
 
 ### 1. Entity 계층 (`src/entities/<domain>/`)
 
-- `api/types.ts`: 백엔드 요청·응답 DTO. ID는 `number | null`.
-- `model/types.ts`: 프론트 도메인 모델. ID는 `string | null`.
+- `api/types.ts`: 백엔드 요청 DTO와 응답 DTO를 분리해서 정의한다. 응답 DTO의 ID는 API가 보장하는 대로 정의한다(부모 없는 리소스는 `number | null`, 그 외엔 `number`). 생성·수정 요청 DTO는 엔드포인트 스펙에 없는 ID 필드를 넣지 않는다 — 응답 타입을 그대로 재사용해 불필요한 ID를 요구하지 않는다.
+- `model/types.ts`: 프론트 도메인 모델. ID는 대응하는 응답 DTO의 nullability를 그대로 따라 `string` 또는 `string | null`로 정의한다.
 - `lib/mappers.ts`: DTO → 도메인 모델 mapper.
 - `api/<domain>Api.ts`: API 함수. 인자는 이미 변환된 백엔드 타입만 받는다. URL 문자열 ID를 함수 내부에서 변환하지 않는다.
 - `model/queryKeys.ts`: query key. 프론트 ID 타입 유지.

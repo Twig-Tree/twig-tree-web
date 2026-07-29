@@ -19,7 +19,11 @@ description: Save or list the user's next-task todo list, persisted at .claude/t
 
 - [ ] #<issue_number> 이슈 제목 요약 (added: YYYY-MM-DD)
 - [x] #<issue_number> 이슈 제목 요약 (added: YYYY-MM-DD, done: YYYY-MM-DD)
+- [ ] 이슈 없는 작업 요약 (added: YYYY-MM-DD)
+- [x] 이슈 없는 작업 요약 (added: YYYY-MM-DD, done: YYYY-MM-DD)
 ```
+
+이슈 번호가 없는 항목은 `#<issue_number>` 부분을 그냥 생략한다 — 저장·조회·완료 처리 모두 이슈 유무와 상관없이 같은 규칙을 따른다.
 
 - 날짜는 시스템 컨텍스트의 현재 날짜를 사용한다.
 - 항목은 추가된 순서대로 아래에 append한다.
@@ -29,9 +33,9 @@ description: Save or list the user's next-task todo list, persisted at .claude/t
 
 사용자가 할 일을 저장해달라고 하면:
 
-1. 해당 작업에 대응하는 GitHub 이슈가 이미 있는지 `gh issue list --search`로 확인한다.
+1. 해당 작업의 핵심 키워드로 `gh issue list --state all --search "<검색어>" --limit 30`을 실행해 대응하는 GitHub 이슈가 이미 있는지 확인한다. `--state all`과 검색어를 반드시 명시한다 — 기본값에 의존하면 이미 닫힌 이슈를 놓친다.
    - 있으면 그 이슈 번호를 항목에 붙여 저장한다.
-   - 없으면 사용자에게 `github-issue` skill로 먼저 이슈를 만들지 물어본다. 이슈 없이 todo에만 적고 싶다고 명확히 하면 이슈 번호 없이 저장한다.
+   - 없으면 사용자에게 `github-issue` skill로 먼저 이슈를 만들지 물어본다. 이슈 없이 저장하기로 하면 무이슈 형식(위 파일 형식 참고)으로 저장한다.
 2. 이슈 번호가 있다면 `gh issue view <number>`로 본문 첫 줄의 **상태** 줄을 확인한다.
    - `대기 — ...` 상태인 이슈를 todo로 올리려 하면, 무엇 때문에 대기 중인지 알려주고 그래도 다음 순번으로 올릴지 확인한다 (예: 방식 결정 자체를 다음 작업으로 삼으려는 경우일 수 있다).
    - 사용자가 여러 후보 중 뭘 다음으로 할지 물어보면(우선순위를 못 정했다면), `착수 가능` 상태인 이슈를 먼저 추천하고 `대기` 상태인 이슈는 왜 뒤로 미루는 게 나은지 이유와 함께 보여준다.
