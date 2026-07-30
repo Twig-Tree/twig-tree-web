@@ -31,7 +31,7 @@ description: Bring the local backend server up to date and running via docker co
 
 1. 백엔드 저장소에 커밋되지 않은 변경이 있는지 `git status`로 확인한다. 있으면 checkout으로 덮어쓰지 않고 사용자에게 먼저 알린다.
 2. `git checkout <branch>` 후 `git pull`한다.
-3. `docker compose up --build`를 백그라운드로 실행한다. 빌드에 몇 분 걸릴 수 있다.
+3. `docker compose up --build -d`를 실행한다. `-d`로 컨테이너를 detach시켜야 다음 단계(스펙 확인)로 바로 진행할 수 있다. 빌드에 몇 분 걸릴 수 있다.
 4. `http://localhost:8080/v3/api-docs`가 응답할 때까지 확인한다. 응답이 없으면 docker compose 로그에서 실패 원인을 찾아 사용자에게 알린다.
 5. 어떤 브랜치로 띄웠는지, 서버가 정상인지 사용자에게 알려준다.
 
