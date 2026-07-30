@@ -142,6 +142,7 @@ function LayoutFlow() {
 
       {isMemoPanelOpen ? (
         <MemoSidePanel
+          treeId={treeId}
           selectedNode={selectedNode}
           onClose={() => setIsMemoPanelOpen(false)}
         />

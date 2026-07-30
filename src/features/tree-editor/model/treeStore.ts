@@ -37,6 +37,7 @@ interface TreeState {
     newEdge: CustomEditorEdge,
   ) => void;
   deleteNodeFromStore: (nodeIdsToDelete: string[]) => void;
+  updateNodeMemoInStore: (nodeId: string, memo: string) => void;
 }
 
 export const useTreeStore = create<TreeState>()(
@@ -167,6 +168,19 @@ export const useTreeStore = create<TreeState>()(
           edges: edges.filter(
             (edge) =>
               !idsToDelete.has(edge.source) && !idsToDelete.has(edge.target),
+          ),
+          isDirty: true,
+        });
+      },
+
+      updateNodeMemoInStore: (nodeId: string, memo: string) => {
+        const { nodes } = get();
+
+        set({
+          nodes: nodes.map((node) =>
+            node.id === nodeId
+              ? { ...node, data: { ...node.data, memo } }
+              : node,
           ),
           isDirty: true,
         });
