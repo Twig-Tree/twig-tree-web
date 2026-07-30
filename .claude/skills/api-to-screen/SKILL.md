@@ -11,12 +11,16 @@ description: Guides adding a new backend-API-backed feature end to end — entit
 
 이 skill은 위 컨벤션 문서를 그대로 따라 새 API 기능을 entity부터 화면까지 계층별로 만든다. 템플릿을 그대로 찍어내지 말고, 매번 실제 도메인과 화면 요구사항에 맞게 코드를 작성한다.
 
+## 백엔드 준비
+
+엔드포인트 스펙을 확인하기 전에, 로컬 백엔드가 이 작업에 맞는 최신 코드로 떠 있어야 한다. 브랜치 선택부터 docker 실행, 스펙 조회까지는 [[local-backend]] skill의 절차를 따른다.
+
 ## 진행 전 확인할 것
 
 시작하기 전에 아래가 불명확하면 사용자에게 먼저 물어본다.
 
 - 어떤 도메인(entity)에 속하는 API인가? 기존 entity(`src/entities/*`)에 추가하는 건지, 새 entity를 만드는 건지.
-- 엔드포인트 스펙(method, URL, request/response 필드, ID 타입)은 무엇인가?
+- 엔드포인트 스펙(method, URL, request/response 필드, ID 타입)은 무엇인가? `local-backend` skill로 서버를 띄운 뒤 실제 스펙을 확인한다. 그래도 확인할 수 없으면, 스펙을 추측해서 만들지 말고 사용자에게 직접 알려달라고 요청한다.
 - 조회(query)인가 변경(mutation)인가?
 - 어떤 화면(widget/page)에 연결하는가? 기존 화면에 붙이는 건지, 새 화면인지.
 - 사용자 입력 검증이나 화면 전용 상태(버튼 비활성화 조건 등)가 필요한 feature 계층까지 필요한가, entity만으로 충분한가?
