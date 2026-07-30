@@ -1,15 +1,26 @@
 import { MemoEditor } from "@/src/features/memo/ui/MemoEditor";
+import { useSaveMemo } from "@/src/features/memo/model/useSaveMemo";
 import type { CustomEditorNode } from "@/src/features/tree-editor/model/types";
 
 type MemoSidePanelProps = {
+  treeId: string;
   selectedNode: CustomEditorNode | undefined;
   onClose: () => void;
 };
 
 export const MemoSidePanel = ({
+  treeId,
   selectedNode,
   onClose,
 }: MemoSidePanelProps) => {
+  const initialMemo = selectedNode?.data.memo ?? "";
+
+  const { saveMemo, isSaving } = useSaveMemo({
+    treeId,
+    nodeId: selectedNode?.id,
+    initialMemo,
+  });
+
   return (
     <aside className="flex h-full w-[360px] shrink-0 flex-col border-l border-slate-200 bg-white shadow-sm">
       <header className="flex h-16 shrink-0 items-center justify-between border-b border-slate-200 px-5">
@@ -34,7 +45,9 @@ export const MemoSidePanel = ({
       {selectedNode ? (
         <MemoEditor
           key={selectedNode.id}
-          initialMemo={selectedNode.data.memo ?? ""}
+          initialMemo={initialMemo}
+          onSave={(content) => void saveMemo(content)}
+          isSaving={isSaving}
         />
       ) : (
         <>
