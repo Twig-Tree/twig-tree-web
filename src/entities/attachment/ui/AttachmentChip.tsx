@@ -27,7 +27,7 @@ interface AttachmentChipProps {
 목록에서 항목을 실제로 제거하는 책임은 갖지 않는다. 클릭 사실만 onRemove로 알린다.
 */
 export function AttachmentChip({ attachment, onRemove }: AttachmentChipProps) {
-  const kind = getFileKind(attachment.mimeType, attachment.name);
+  const kind = getFileKind(attachment.name);
 
   return (
     <div className="flex items-center gap-3 rounded-xl border border-slate-200 bg-white px-3 py-2 shadow-sm">

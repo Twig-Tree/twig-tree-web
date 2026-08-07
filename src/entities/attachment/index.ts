@@ -1,5 +1,5 @@
 export { formatFileSize } from "./lib/formatFileSize";
-export { getFileKind } from "./lib/getFileKind";
+export { getFileKind, isAcceptedFileName } from "./lib/getFileKind";
 export {
   ACCEPTED_FILE_EXTENSIONS,
   FILE_INPUT_ACCEPT,

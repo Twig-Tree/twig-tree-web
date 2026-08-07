@@ -1,14 +1,19 @@
+import type { FileKind } from "./types";
+
 /*
-첨부할 수 있는 파일 확장자. 파일 선택 창의 필터와 첨부 단계의 검증이 같은 목록을 사용한다.
+첨부할 수 있는 확장자와 그 확장자의 표시 분류를 함께 정의한다.
+첨부 허용 여부와 파일 종류 표시가 같은 목록을 보도록 이 맵을 단일 출처로 사용한다.
 */
-export const ACCEPTED_FILE_EXTENSIONS = [
-  "txt",
-  "md",
-  "pdf",
-  "docx",
-  "hwp",
-  "hwpx",
-] as const;
+export const FILE_KIND_BY_EXTENSION: Record<string, FileKind> = {
+  txt: "text",
+  md: "text",
+  pdf: "pdf",
+  docx: "word",
+  hwp: "hwp",
+  hwpx: "hwp",
+};
+
+export const ACCEPTED_FILE_EXTENSIONS = Object.keys(FILE_KIND_BY_EXTENSION);
 
 /*
 input[type=file]의 accept 속성 값. 파일 선택 창에서 허용 확장자만 보이게 한다.
