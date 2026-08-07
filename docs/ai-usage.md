@@ -73,3 +73,73 @@ AI가 무엇을 만들어 주었는지가 아니라, **어떤 의문을 제기�
 
 부수적으로, controlled 방식이라 Enter 키를 직접 가로채게 되면서 한글 입력 문제가 드러났다.
 조합 중인 글자를 확정하는 Enter까지 전송으로 처리되기 때문에, `event.nativeEvent.isComposing`으로 조합 중 여부를 확인하는 처리를 함께 넣었다.
+
+---
+
+## 사례 2. 확장자 검사 로직 이중화 — 단일 출처로 통합
+
+**대상 파일**: `src/entities/attachment/model/constants.ts`, `src/entities/attachment/lib/getFileKind.ts`, `src/features/prompt/compose-prompt/lib/splitAcceptedFiles.ts`
+
+### 상황
+
+첨부 파일 기능에 확장자를 다루는 함수가 두 개 만들어졌다.
+
+- `getFileKind(mimeType, fileName)` — 파일 종류를 판단해 아이콘과 라벨을 결정한다.
+- `splitAcceptedFiles(files)` — 첨부 가능한 파일과 아닌 파일을 나눈다.
+
+AI는 두 함수가 "표시"와 "검증"이라는 서로 다른 책임을 가지므로 분리하는 것이 맞다고 설명했다.
+`splitAcceptedFiles`에는 "`getFileKind`는 mimeType으로 넘어가므로 검증에 사용하면 안 된다"는 경고 주석까지 달려 있었다.
+
+### 제기한 의문
+
+- `splitAcceptedFiles`가 있는데 `getFileKind`가 왜 따로 필요한가?
+- 두 함수가 모두 파일 이름에서 확장자를 잘라 비교하고 있는데, 이것을 중복이 아니라고 볼 수 있는가?
+
+책임이 다르다는 설명은 그럴듯했지만, 실제 코드에서는 같은 일(확장자 파싱과 목록 비교)을 두 번 하고 있었다.
+
+### 확인한 내용
+
+질문을 통해 다음 사실이 드러났다.
+
+1. 첨부 목록에는 검증을 통과한 파일만 들어간다. 즉 `getFileKind`가 보는 파일은 항상 허용 확장자 6종 중 하나다.
+2. 따라서 `getFileKind`의 mimeType 폴백 경로와 `unknown` 분기는 실행될 일이 없었다.
+3. 그 폴백은 잘못된 답을 낼 수 있는 함수였다. `fake.png`처럼 허용하지 않는 확장자라도 mimeType이 `text/plain`이면 `text`로 분류된다.
+
+다만 이것이 당시 동작하던 버그는 아니었다. 검증은 `splitAcceptedFiles`가 확장자만 보고 먼저 수행했으므로, 그런 파일은 `getFileKind`에 도달하기 전에 걸러졌다.
+문제는 **앞으로 뚫릴 수 있는 함정**이었다는 점이다. 나중에 누군가 검증을 `getFileKind`로 바꾸면 그 순간 통과하게 된다.
+
+경고 주석이 붙어 있었다는 사실 자체가 신호였다. 주석으로 "이 함수를 검증에 쓰지 마라"라고 막아야 하는 상황이라면, 애초에 잘못된 답을 낼 수 없게 만드는 편이 낫다.
+
+### 결정과 근거
+
+확장자 목록과 표시 분류를 **하나의 맵으로 합치고, 나머지를 모두 파생**시키기로 했다.
+
+```ts
+const FILE_KIND_BY_EXTENSION = {
+  txt: "text", md: "text", pdf: "pdf",
+  docx: "word", hwp: "hwp", hwpx: "hwp",
+};
+
+ACCEPTED_FILE_EXTENSIONS = Object.keys(FILE_KIND_BY_EXTENSION);
+FILE_INPUT_ACCEPT        = ".txt,.md,.pdf,.docx,.hwp,.hwpx";
+getFileKind(fileName);        // 확장자만 본다
+isAcceptedFileName(fileName); // getFileKind가 unknown이 아닌지 확인한다
+```
+
+`getFileKind`에서 mimeType 인자를 제거했다. 허용 형식이 문서 6종으로 한정되어 있어 확장자가 mimeType보다 신뢰할 수 있고, hwp와 hwpx는 브라우저가 mimeType을 비우거나 `application/octet-stream`으로 넘기는 경우가 많기 때문이다.
+
+`splitAcceptedFiles`는 없애지 않았다. 여러 파일을 통과와 거부로 나누고 거부된 이름을 모아 안내하는 것은 화면의 유스케이스에 속하므로 feature 계층에 남겨두는 것이 맞다고 판단했다. 다만 확장자 판단은 하지 않고 `isAcceptedFileName`을 호출하기만 한다.
+
+한편 이 통합은 "첨부 허용 확장자"와 "표시할 수 있는 확장자"를 같은 것으로 묶는다. 두 개념이 갈라지는 요구사항(예: 첨부는 막지만 기존 파일은 표시)이 생기면 다시 분리해야 한다는 점을 확인하고, 현재 계획에 없으므로 통합하기로 결정했다.
+
+### 반영 결과
+
+확장자 목록이 코드에 한 번만 등장하게 되었고, 확장자를 파싱하는 코드도 한 곳으로 줄었다. 검증에 쓰지 말라는 경고 주석도 필요 없어졌다.
+
+브라우저에서 9개 파일을 한 번에 첨부해 확인한 결과, mimeType을 `text/plain`으로 위장한 `fake.png`가 거부되었다.
+이는 통합으로 새로 고쳐진 동작이 아니라 이전과 동일한 결과다. 통합이 바꾼 것은 **잘못 쓸 수 있는 여지를 없앤 것**이다.
+
+이 사례에서 얻은 것은 두 가지다.
+
+- AI의 "책임이 다르니 분리한다"는 설명은 개념적으로 옳았지만, 실제 데이터 흐름에서 한쪽 경로가 도달 불가능하다는 점은 확인되지 않은 상태였다. 설명의 타당성과 코드의 실제 동작은 따로 확인해야 한다.
+- 개선 효과를 설명할 때도 검증이 필요했다. AI는 처음에 이 변경을 "구멍을 막았다"고 설명했지만, 검증 순서를 되짚어 보면 그 경로는 이미 막혀 있었다. 실제로 얻은 것은 버그 수정이 아니라 향후 실수 방지였다.
