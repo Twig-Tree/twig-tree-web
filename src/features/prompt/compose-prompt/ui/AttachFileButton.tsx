@@ -6,6 +6,7 @@ import { FILE_INPUT_ACCEPT } from "@/src/entities/attachment";
 import { IconButton } from "@/src/shared/ui/icon-button";
 
 interface AttachFileButtonProps {
+  disabled?: boolean; // 첨부 개수 제한에 도달했을 때 버튼을 잠근다
   onSelect: (files: File[]) => void; // 선택한 파일을 상위로 전달한다
 }
 
@@ -16,8 +17,12 @@ interface AttachFileButtonProps {
 반환값 : 클립 아이콘 첨부 버튼
 
 accept는 파일 선택 창의 편의를 위한 필터일 뿐이므로, 허용 여부 검증은 상위에서 다시 수행한다.
+파일 입력에 multiple을 두지 않아 한 번에 하나만 고를 수 있고, 개수 제약은 상위에서 다시 확인한다.
 */
-export function AttachFileButton({ onSelect }: AttachFileButtonProps) {
+export function AttachFileButton({
+  disabled = false,
+  onSelect,
+}: AttachFileButtonProps) {
   const inputRef = useRef<HTMLInputElement>(null);
 
   return (
@@ -25,6 +30,7 @@ export function AttachFileButton({ onSelect }: AttachFileButtonProps) {
       <IconButton
         aria-label="파일 첨부"
         size="sm"
+        disabled={disabled}
         onClick={() => inputRef.current?.click()}
       >
         <Paperclip />
@@ -33,7 +39,6 @@ export function AttachFileButton({ onSelect }: AttachFileButtonProps) {
       <input
         ref={inputRef}
         type="file"
-        multiple
         accept={FILE_INPUT_ACCEPT}
         className="hidden"
         onChange={(event) => {

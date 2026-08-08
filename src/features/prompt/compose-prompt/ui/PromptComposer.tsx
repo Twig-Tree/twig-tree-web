@@ -30,6 +30,7 @@ export function PromptComposer({
     addFiles,
     attachments,
     dismissRejection,
+    isAttachDisabled,
     isSubmitDisabled,
     rejectedFileNames,
     removeAttachment,
@@ -64,7 +65,9 @@ export function PromptComposer({
         onSubmit={submitPrompt}
         placeholder={placeholder}
         isSubmitDisabled={isSubmitDisabled}
-        actions={<AttachFileButton onSelect={addFiles} />}
+        actions={
+          <AttachFileButton onSelect={addFiles} disabled={isAttachDisabled} />
+        }
       />
     </div>
   );

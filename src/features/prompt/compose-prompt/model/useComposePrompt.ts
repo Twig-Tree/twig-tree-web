@@ -6,6 +6,11 @@ import { createAttachmentFromFile } from "../lib/createAttachmentFromFile";
 import { splitAcceptedFiles } from "../lib/splitAcceptedFiles";
 import type { PromptDraft } from "./types";
 
+/*
+백엔드가 요청 하나당 파일 하나만 받는다. 제약이 풀리면 이 값만 올리면 된다.
+*/
+const MAX_ATTACHMENT_COUNT = 1;
+
 interface UseComposePromptParams {
   isSubmitting: boolean; // 상위 요청이 진행 중인 동안 전송을 잠근다
   onSubmit: (draft: PromptDraft) => void; // 작성이 끝난 입력을 상위로 전달한다
@@ -28,6 +33,7 @@ export function useComposePrompt({
   const [rejectedFileNames, setRejectedFileNames] = useState<string[]>([]);
 
   const isSubmitDisabled = isSubmitting || text.trim().length === 0;
+  const isAttachDisabled = attachments.length >= MAX_ATTACHMENT_COUNT;
 
   /*
   파일을 새로 선택할 때마다 이전 안내를 지운다. 방금 선택한 파일에 대한 안내만 남기기 위해서다.
@@ -40,10 +46,17 @@ export function useComposePrompt({
 
     if (acceptedFiles.length === 0) return;
 
-    setAttachments((current) => [
-      ...current,
-      ...acceptedFiles.map(createAttachmentFromFile),
-    ]);
+    /*
+    요청 하나에 파일 하나만 보낼 수 있으므로 개수를 넘기지 않도록 자른다.
+    첨부가 이미 있으면 첨부 버튼이 잠기기 때문에 화면에서는 여기까지 오지 않지만,
+    드래그 앤 드롭처럼 다른 경로가 생겨도 개수 제약이 깨지지 않도록 남겨 둔다.
+    */
+    setAttachments((current) =>
+      [...current, ...acceptedFiles.map(createAttachmentFromFile)].slice(
+        0,
+        MAX_ATTACHMENT_COUNT,
+      ),
+    );
   }, []);
 
   const removeAttachment = useCallback((attachmentId: string) => {
@@ -72,6 +85,7 @@ export function useComposePrompt({
     addFiles,
     attachments,
     dismissRejection,
+    isAttachDisabled,
     isSubmitDisabled,
     rejectedFileNames,
     removeAttachment,
