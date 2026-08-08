@@ -3,10 +3,7 @@
 import type { WorkspaceItem } from "@/src/entities/workspace";
 import { PromptComposer } from "@/src/features/prompt/compose-prompt";
 import { routes } from "@/src/shared/config/routes";
-import {
-  DashboardHero,
-  RecentWorkspaceSection,
-} from "@/src/widgets/dashboard";
+import { DashboardHero, RecentWorkspaceSection } from "@/src/widgets/dashboard";
 
 /*
 최근 워크스페이스 조회 API를 연동하기 전까지 사용하는 임시 목록.
@@ -20,13 +17,13 @@ const recentWorkspaces: WorkspaceItem[] = [
 
 export default function DashboardPage() {
   return (
-    <div className="mx-auto flex h-full max-w-3xl flex-col gap-12 px-8 py-12">
+    <div className="mx-auto flex h-full max-w-3xl flex-col gap-12 overflow-y-auto px-8 py-12">
       <div className="flex flex-1 flex-col justify-center gap-12">
         <DashboardHero />
 
         <RecentWorkspaceSection
           workspaces={recentWorkspaces}
-          viewAllHref={routes.workspaceRoot}
+          viewAllHref={routes.recent}
         />
       </div>
 
