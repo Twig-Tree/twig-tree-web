@@ -229,6 +229,39 @@ import {
 import { useCreateFolder } from "@/src/features/folder/create-folder";
 ```
 
+## Entity와 Feature는 서로 다른 축으로 나눈다
+
+한 도메인이 여러 슬라이스로 갈릴 때, entity와 feature는 각각 다른 기준으로 위치를 정한다.
+
+| 계층    | 분리 축                       |
+| ------- | ----------------------------- |
+| entity  | 누가 데이터를 소유하는가      |
+| feature | 어떤 상태 맥락에서 동작하는가 |
+
+트리와 노드가 이 경우에 해당한다. 기획상 트리는 노드 간 구조와 계층을, 노드는 개별 노드의 속성과 내용을 담당한다.
+
+- `entities/tree`: 트리 조회, 노드 생성·삭제 — 구조를 바꾼다
+- `entities/node`: 노드 제목 수정 — 노드의 속성을 바꾼다
+
+메모도 이 기준으로는 노드 도메인이지만 현재는 `entities/memo`로 분리되어 있다. 구조를 기준에 맞추는 작업이 남아 있는 상태다.
+
+반면 노드 제목 편집의 유스케이스 코드는 `features/tree-editor`에 둔다. 이 코드가 하는 일이 editor store의 label과 `isDirty`를 조작하는 것이기 때문이다. 노드 속성이라서가 아니라 트리 편집기 안에서 일어나는 편집이라 필요한 로직이다.
+
+`features/node/...`로 분리하면 그 feature가 `features/tree-editor`의 store를 참조해야 해서 같은 계층 간 의존이 생긴다. Feature를 나눌 때는 "이 로직이 어느 store와 화면 흐름에 묶여 있는가"를 먼저 본다.
+
+## 서버 응답을 여러 슬라이스가 나눠 쓸 때
+
+백엔드가 여러 도메인의 데이터를 한 응답에 담아 주면, 프론트엔드에서 도메인을 나눠도 캐시는 하나로 남는다.
+
+```text
+GET /trees/{treeId}/nodes  →  { nodeId, parentId, orderId, name, memo }
+                                └─ 구조 ─┘   └── 속성 ──┘
+```
+
+이때 캐시는 그 응답을 조회하는 슬라이스가 소유한다. 다른 슬라이스의 mutation이 같은 캐시를 갱신해야 한다면 의존 방향을 **한쪽으로만** 유지한다. 양쪽이 서로를 참조하지 않도록, 제거할 수 없는 의존을 기준으로 방향을 맞춘다.
+
+예를 들어 노드 속성 mutation은 트리 조회 캐시를 갱신해야 하므로 `entities/node → entities/tree` 의존을 없앨 수 없다. 따라서 응답 DTO도 `entities/tree`에 두어 반대 방향 화살표가 생기지 않게 한다.
+
 ## 판단 기준
 
 코드 위치가 불분명할 때 다음 질문을 사용한다.
