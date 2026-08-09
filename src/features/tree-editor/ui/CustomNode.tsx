@@ -8,7 +8,6 @@ import {
 } from "react";
 import { Handle, NodeProps, Position } from "@xyflow/react";
 import { CustomEditorNode } from "@/src/features/tree-editor/model/types";
-import { MAX_NODE_NAME_LENGTH } from "@/src/features/tree-editor/lib/update-node-name/validateNodeName";
 import { useUpdateNodeName } from "@/src/features/tree-editor/model/actions/update-node-name/useUpdateNodeName";
 import { useTreeStore } from "@/src/features/tree-editor/model/treeStore";
 
@@ -147,7 +146,6 @@ export function CustomNode({
             aria-describedby={
               errorMessage ? `node-name-error-${id}` : undefined
             }
-            maxLength={MAX_NODE_NAME_LENGTH}
             disabled={isUpdatingNodeName}
             onBlur={handleBlur}
             onChange={handleChange}
