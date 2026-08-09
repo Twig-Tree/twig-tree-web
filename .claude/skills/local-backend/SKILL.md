@@ -63,7 +63,13 @@ for (const [path, methods] of Object.entries(d.paths)) {
 unable to get image 'postgres:16': error during connect: ... open //./pipe/dockerDesktopLinuxEngine: The system cannot find the file specified.
 ```
 
-`C:\Program Files\Docker\Docker\Docker Desktop.exe`를 실행한 뒤 `docker info`가 성공할 때까지 기다린다.
+`C:\Program Files\Docker\Docker\Docker Desktop.exe`를 실행한 뒤 데몬이 준비될 때까지 기다린다.
+
+대기는 PowerShell의 `Start-Sleep` 반복 대신 Bash 도구의 until 루프를 background로 돌린다. PowerShell 도구는 sleep 체이닝을 차단한다.
+
+```bash
+until docker info >/dev/null 2>&1; do sleep 3; done; echo "docker daemon ready"
+```
 
 ### Docker Desktop이 stale 소켓 때문에 기동하지 못할 때
 
@@ -77,26 +83,56 @@ remove ...\dockerInference: The file cannot be accessed by the system.
 
 원인은 이전에 Docker가 비정상 종료되면서 남은 **AF_UNIX 소켓 파일**이다. 0바이트 reparse point 형태로 남는데, 파일시스템이 이 파일을 열 수 없는 상태가 되어 Docker가 지우고 새로 만들지 못한다.
 
-메시지에 나오는 소켓 이름은 매번 다를 수 있다. 지금까지 확인된 위치는 다음과 같다.
+원인은 이전에 Docker가 비정상 종료되면서 남은 **AF_UNIX 소켓 파일**이다. 0바이트 reparse point 형태로 남는데, 파일시스템이 이 파일을 열 수 없는 상태가 되어 Docker가 지우고 새로 만들지 못한다.
+
+**해결: 파일이 아니라 상위 디렉터리를 rename해서 비켜둔다.** 파일 자체는 지울 수 없지만 디렉터리 rename은 성공하며, Docker는 시작할 때 디렉터리와 소켓을 새로 만든다.
+
+#### 반드시 한 번에 전부 치운다
+
+Docker는 소켓을 **하나씩 순차적으로** 초기화하고 첫 실패에서 멈춘다. 그래서 대화상자에 나온 디렉터리만 치우면 다음 실행에서 그다음 소켓이 걸린다. 매번 재시작하면 그 사이의 강제 종료가 새 orphan을 만들어 문제가 재생산된다.
+
+**대화상자에 뭐가 나왔든 알려진 디렉터리를 모두 rename하고 재시작은 한 번만 한다.**
+
+```powershell
+Get-Process -Name "Docker Desktop","com.docker.backend","docker" -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue
+Start-Sleep -Seconds 4
+
+$stamp = Get-Date -Format yyyyMMddHHmmss
+$targets = @(
+  "$env:LOCALAPPDATA\Docker\run",
+  "$env:LOCALAPPDATA\docker-secrets-engine"
+)
+foreach ($t in $targets) {
+  if (-not (Test-Path $t)) { continue }
+  $leaf = Split-Path $t -Leaf
+  try { Rename-Item -Path $t -NewName "$leaf.stale-$stamp" -ErrorAction Stop; "renamed $leaf" }
+  catch { "rename 실패 [$leaf]: " + $_.Exception.Message }
+}
+
+Start-Process "C:\Program Files\Docker\Docker\Docker Desktop.exe"
+```
+
+그다음 데몬이 준비될 때까지 기다린다(위 "Docker 데몬이 죽어 있을 때"의 until 루프).
+
+#### 재시작한 뒤에는 죽이지 않는다
+
+**이것이 이 문제에서 가장 중요한 규칙이다.** `Stop-Process -Force`로 Docker를 죽이면 그 실행에서 만든 소켓이 또 orphan으로 남아 다음 시작을 막는다. 위 스크립트를 실행한 뒤에는 기다리기만 하고, 조급하게 종료 후 재시도하지 않는다.
+
+평소에도 오류 대화상자의 `Quit` 버튼이나 트레이 메뉴로 정상 종료하는 편이 낫다.
+
+#### 그래도 다른 소켓이 걸리면
+
+위 목록에 없는 경로가 대화상자에 나오면 그 상위 디렉터리를 같은 방식으로 rename한다. 그리고 **이 문서의 `$targets` 목록에 추가**해 다음부터는 한 번에 처리되게 한다.
+
+지금까지 확인된 소켓은 다음과 같다.
 
 - `%LOCALAPPDATA%\Docker\run\dockerInference`
 - `%LOCALAPPDATA%\Docker\run\userAnalyticsOtlpHttp.sock`
 - `%LOCALAPPDATA%\docker-secrets-engine\engine.sock`
 
-**해결: 파일이 아니라 상위 디렉터리를 rename해서 비켜둔다.** 파일 자체는 지울 수 없지만 디렉터리 rename은 성공하며, Docker는 시작할 때 디렉터리와 소켓을 새로 만든다.
+#### 시도하지 않을 방법
 
-```powershell
-Get-Process -Name "Docker Desktop","com.docker.backend","docker" -ErrorAction SilentlyContinue | Stop-Process -Force
-Start-Sleep -Seconds 4
-Rename-Item "$env:LOCALAPPDATA\Docker\run" "run.stale-$(Get-Date -Format yyyyMMddHHmmss)"
-Start-Process "C:\Program Files\Docker\Docker\Docker Desktop.exe"
-```
-
-주의할 점은 다음과 같다.
-
-- **오류는 소켓 하나씩 순차적으로 드러난다.** `dockerInference`를 해결하면 다음 실행에서 `docker-secrets-engine\engine.sock`이 걸리는 식이다. 대화상자에 나온 경로의 상위 디렉터리를 같은 방식으로 rename하고 재시작하는 것을 오류가 사라질 때까지 반복한다.
-- **`Stop-Process -Force`로 Docker를 죽이면 그 실행에서 만든 소켓이 또 orphan으로 남는다.** 평소에는 오류 대화상자의 `Quit` 버튼이나 트레이 메뉴로 정상 종료하는 편이 낫다.
-- 아래 방법은 **모두 실패**하므로 시도하지 않는다: `Remove-Item -Force`, `rd /s /q`, `[System.IO.File]::Delete`, `\\?\` 확장 경로, `fsutil reparsepoint delete`, `robocopy /MIR`. 전부 `The file cannot be accessed by the system` (Win32 error 1920)으로 끝난다.
+파일을 직접 지우려는 시도는 **모두 실패**한다: `Remove-Item -Force`, `rd /s /q`, `[System.IO.File]::Delete`, `\\?\` 확장 경로, `fsutil reparsepoint delete`, `robocopy /MIR`, 파일 `Rename-Item`. 전부 `The file cannot be accessed by the system` (Win32 error 1920)으로 끝난다. 디렉터리 rename만 통한다.
 
 ### rename해둔 stale 디렉터리 정리
 
