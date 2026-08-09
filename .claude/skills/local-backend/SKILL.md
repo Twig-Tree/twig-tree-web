@@ -53,6 +53,91 @@ for (const [path, methods] of Object.entries(d.paths)) {
 
 요청·응답 스키마는 `d.components.schemas`에서 확인한다.
 
+## 문제 해결
+
+### Docker 데몬이 죽어 있을 때
+
+`docker compose`가 아래처럼 실패하면 Docker Desktop이 실행되어 있지 않은 것이다.
+
+```text
+unable to get image 'postgres:16': error during connect: ... open //./pipe/dockerDesktopLinuxEngine: The system cannot find the file specified.
+```
+
+`C:\Program Files\Docker\Docker\Docker Desktop.exe`를 실행한 뒤 `docker info`가 성공할 때까지 기다린다.
+
+### Docker Desktop이 stale 소켓 때문에 기동하지 못할 때
+
+Docker Desktop 시작 직후 아래와 같은 오류 대화상자가 뜨면서 종료되는 경우가 있다.
+
+```text
+starting services: initializing Inference manager: listening on
+unix://C:\Users\<user>\AppData\Local\Docker\run\dockerInference:
+remove ...\dockerInference: The file cannot be accessed by the system.
+```
+
+원인은 이전에 Docker가 비정상 종료되면서 남은 **AF_UNIX 소켓 파일**이다. 0바이트 reparse point 형태로 남는데, 파일시스템이 이 파일을 열 수 없는 상태가 되어 Docker가 지우고 새로 만들지 못한다.
+
+메시지에 나오는 소켓 이름은 매번 다를 수 있다. 지금까지 확인된 위치는 다음과 같다.
+
+- `%LOCALAPPDATA%\Docker\run\dockerInference`
+- `%LOCALAPPDATA%\Docker\run\userAnalyticsOtlpHttp.sock`
+- `%LOCALAPPDATA%\docker-secrets-engine\engine.sock`
+
+**해결: 파일이 아니라 상위 디렉터리를 rename해서 비켜둔다.** 파일 자체는 지울 수 없지만 디렉터리 rename은 성공하며, Docker는 시작할 때 디렉터리와 소켓을 새로 만든다.
+
+```powershell
+Get-Process -Name "Docker Desktop","com.docker.backend","docker" -ErrorAction SilentlyContinue | Stop-Process -Force
+Start-Sleep -Seconds 4
+Rename-Item "$env:LOCALAPPDATA\Docker\run" "run.stale-$(Get-Date -Format yyyyMMddHHmmss)"
+Start-Process "C:\Program Files\Docker\Docker\Docker Desktop.exe"
+```
+
+주의할 점은 다음과 같다.
+
+- **오류는 소켓 하나씩 순차적으로 드러난다.** `dockerInference`를 해결하면 다음 실행에서 `docker-secrets-engine\engine.sock`이 걸리는 식이다. 대화상자에 나온 경로의 상위 디렉터리를 같은 방식으로 rename하고 재시작하는 것을 오류가 사라질 때까지 반복한다.
+- **`Stop-Process -Force`로 Docker를 죽이면 그 실행에서 만든 소켓이 또 orphan으로 남는다.** 평소에는 오류 대화상자의 `Quit` 버튼이나 트레이 메뉴로 정상 종료하는 편이 낫다.
+- 아래 방법은 **모두 실패**하므로 시도하지 않는다: `Remove-Item -Force`, `rd /s /q`, `[System.IO.File]::Delete`, `\\?\` 확장 경로, `fsutil reparsepoint delete`, `robocopy /MIR`. 전부 `The file cannot be accessed by the system` (Win32 error 1920)으로 끝난다.
+
+### rename해둔 stale 디렉터리 정리
+
+rename으로 비켜둔 `run.stale-*`, `docker-secrets-engine.stale-*` 디렉터리는 안에 든 소켓 파일을 지울 수 없어 그대로 남는다. **0바이트라 용량을 차지하지 않고 Docker 동작에도 지장이 없으므로 그냥 두어도 된다.** Docker를 종료할 때마다 하나씩 늘어나는 게 거슬릴 때만 아래 절차로 정리한다.
+
+파일시스템 수준의 복구가 필요해 관리자 권한과 재부팅이 따른다. 사용자가 직접 판단해서 실행할 일이므로 **에이전트는 이 명령을 대신 실행하지 않고 안내만 한다.**
+
+#### 1. 관리자 PowerShell 열기
+
+시작 메뉴에서 `PowerShell` 검색 → 우클릭 → `관리자 권한으로 실행`.
+
+#### 2. 파일시스템 검사 예약
+
+```powershell
+chkdsk C: /f
+```
+
+C:는 사용 중인 볼륨이라 즉시 검사할 수 없다는 안내와 함께 다음에 재부팅할 때 검사할지 묻는다. `Y`를 입력하고 Enter를 누른다.
+
+#### 3. 재부팅
+
+재부팅 시 파란 화면에서 검사가 자동으로 진행된다. 볼륨 크기에 따라 몇 분에서 수십 분이 걸린다.
+
+#### 4. 재부팅 후 삭제
+
+검사가 끝나면 소켓 파일이 삭제 가능한 상태가 된다. 일반 PowerShell에서 실행해도 된다.
+
+```powershell
+Get-ChildItem "$env:LOCALAPPDATA\Docker" -Directory -Filter "run.stale-*" | Remove-Item -Recurse -Force
+Get-ChildItem $env:LOCALAPPDATA -Directory -Filter "docker-secrets-engine.stale-*" | Remove-Item -Recurse -Force
+```
+
+남은 폴더가 있는지 확인한다.
+
+```powershell
+Get-ChildItem "$env:LOCALAPPDATA\Docker" -Directory -Filter "*.stale-*"
+Get-ChildItem $env:LOCALAPPDATA -Directory -Filter "*docker*stale*"
+```
+
+아무것도 출력되지 않으면 정리가 끝난 것이다. 여전히 `The file cannot be accessed by the system`이 나면 검사가 해당 항목을 고치지 못한 경우이므로, 폴더를 그대로 두고 넘어간다.
+
 ## 주의
 
 - 백엔드 코드는 이미지에 빌드되어 들어가므로, 브랜치만 바꾸고 컨테이너를 재시작하지 않으면 변경이 반영되지 않는다. 브랜치를 바꿨으면 반드시 `--build`로 다시 올린다.
