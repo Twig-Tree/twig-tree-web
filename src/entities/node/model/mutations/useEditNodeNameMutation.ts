@@ -1,9 +1,5 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import {
-  NodeDTO,
-  treeQueryKeys,
-  updateNodeInTreeCache,
-} from "@/src/entities/tree";
+import { NodeDTO, treeQueryKeys } from "@/src/entities/tree";
 import { nodeApi } from "@/src/entities/node/api/nodeApi";
 
 interface EditNodeNameVariables {
@@ -14,7 +10,7 @@ interface EditNodeNameVariables {
 
 /*
 함수 이름 : useEditNodeNameMutation
-기능 : 노드 제목 수정 API 요청을 수행하고, 요청이 완료되기 전에 트리 조회 캐시의 노드 이름을 낙관적으로 교체한다. 요청이 실패하면 이전 캐시로 되돌린다.
+기능 : 노드 제목 수정 API 요청을 수행하고, 요청이 완료되기 전에 트리 조회 캐시의 노드 이름을 낙관적으로 교체한다. 요청이 실패하면 이전 캐시로 되돌린다. 노드 이름은 별도 캐시를 두지 않고 트리 조회 캐시에 얹혀 있는 값을 갱신한다.
 인자 : 없음
 반환값 : 노드 제목 수정 mutation 객체
 */
@@ -38,7 +34,13 @@ export const useEditNodeNameMutation = () => {
         treeQueryKeys.detail(treeId),
       );
 
-      updateNodeInTreeCache(queryClient, treeId, nodeId, { name });
+      queryClient.setQueryData<NodeDTO[]>(
+        treeQueryKeys.detail(treeId),
+        (oldNodes) =>
+          oldNodes?.map((node) =>
+            node.nodeId === Number(nodeId) ? { ...node, name } : node,
+          ),
+      );
 
       return { previousNodes };
     },
@@ -46,10 +48,14 @@ export const useEditNodeNameMutation = () => {
     /*
     서버가 이름을 보정할 수 있으므로 응답으로 받은 값을 캐시에 다시 반영한다.
     */
-    onSuccess: (updatedNode, { treeId, nodeId }) => {
-      updateNodeInTreeCache(queryClient, treeId, nodeId, {
-        name: updatedNode.name,
-      });
+    onSuccess: (updatedNode, { treeId }) => {
+      queryClient.setQueryData<NodeDTO[]>(
+        treeQueryKeys.detail(treeId),
+        (oldNodes) =>
+          oldNodes?.map((node) =>
+            node.nodeId === updatedNode.nodeId ? updatedNode : node,
+          ),
+      );
     },
 
     /*
