@@ -126,6 +126,21 @@ export function CustomNode({
     [commitName, data.label, endEditing],
   );
 
+  /*
+  더블클릭 외에 키보드로도 편집을 시작할 수 있게 한다.
+  Enter와 Space는 React Flow의 노드 선택 단축키와 겹치므로 전파를 막는다.
+  */
+  const handleTitleKeyDown = useCallback(
+    (event: KeyboardEvent<HTMLButtonElement>) => {
+      if (event.key !== "Enter" && event.key !== " ") return;
+
+      event.preventDefault();
+      event.stopPropagation();
+      startEditing();
+    },
+    [startEditing],
+  );
+
   return (
     <div className="custom-node">
       <Handle
@@ -163,9 +178,15 @@ export function CustomNode({
           ) : null}
         </div>
       ) : (
-        <label htmlFor="text" onDoubleClick={startEditing}>
+        <button
+          type="button"
+          aria-label={`노드 제목 ${data.label} 편집`}
+          onDoubleClick={startEditing}
+          onKeyDown={handleTitleKeyDown}
+          className="nodrag cursor-text"
+        >
           {data.label}
-        </label>
+        </button>
       )}
 
       <Handle
