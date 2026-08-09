@@ -101,7 +101,16 @@ try {
 }
 ```
 
-history에 남지 않으므로 pending 중 편집 잠금 전제도 필요 없다. 페이지의 `isMutating`에 이 action의 pending을 합치지 않고, 편집 중인 입력만 비활성화한다.
+history에 남지 않으므로 **`undo()`가 엉뚱한 항목을 되돌리지 않게 하려는 목적의** 편집 잠금은 필요 없다. 페이지의 `isMutating`에 이 action의 pending을 합치지 않고, 편집 중인 입력만 비활성화한다.
+
+이는 요청이 겹쳐도 안전하다는 뜻이 아니다. 현재 rollback은 요청 시작 시점의 query cache 전체와 전역 `isDirty`를 복원하므로, 다음 상황에서 나중 편집의 결과를 덮어쓸 수 있다.
+
+```text
+노드 A 편집 → blur로 A 요청 발신 → 노드 B 편집 → B 요청 발신 → A 실패
+                                                              → A 시작 전 스냅샷 복원 (B의 변경 소실)
+```
+
+요청이 겹치려면 A가 B 저장 시점까지 pending이어야 해서 실제 발생 조건은 좁지만, 구조적 한계로 남아 있다. 노드 추가·삭제 mutation도 같은 전체 스냅샷 방식이므로, 작업별 범위로 좁히는 정리는 네 mutation을 함께 다룰 때 한다.
 
 새 action을 추가할 때는 그 변경이 `handleSet`의 기록 조건에 걸리는지 먼저 확인하고, 걸리지 않으면 `undo()` 대신 직접 복구를 쓴다.
 
@@ -237,12 +246,14 @@ Mutation 호출부의 callback은 action-specific editor store 동작을 담당�
 
 성공 시:
 
-- Editor store는 optimistic label을 유지한다.
 - Query cache는 서버가 반환한 `NodeDTO`로 해당 노드를 교체한다.
+- Editor store도 서버가 반환한 `name`으로 label을 다시 맞춘다. 서버가 제목을 보정하면 optimistic label을 그대로 두었을 때 cache와 화면이 갈리기 때문이다.
 
 실패 시:
 
 - Query cache는 이전 `NodeDTO[]`로 복구한다.
 - Editor store는 보관해 둔 이전 label과 `isDirty`를 직접 되돌린다. `undo()`를 쓰지 않는다(위 "예외: history에 기록되지 않는 action" 참고).
+
+이 복구는 단일 요청을 전제로 한다. 요청이 겹칠 때의 한계는 위 "예외" 절에 적어 두었다.
 
 이 action은 노드마다 다른 대상에 적용되므로 `useTreeEditorActions` facade에 넣지 않고 `CustomNode`가 직접 호출한다. 검증 메시지와 저장 실패 메시지도 alert이 아니라 노드 안의 문구로 보여주므로, action hook은 성공 여부만 반환하고 메시지 표시는 UI가 결정한다.
