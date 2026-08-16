@@ -2,6 +2,7 @@ import axios, { type InternalAxiosRequestConfig } from "axios";
 import { apiBaseUrl } from "@/src/shared/config/api";
 import { isAuthRequired } from "@/src/shared/config/auth";
 import { routes } from "@/src/shared/config/routes";
+import { createSingleFlight } from "@/src/shared/lib/async/createSingleFlight";
 import {
   authSession,
   type AuthTokens,
@@ -46,30 +47,20 @@ axiosInstance.interceptors.request.use((config) => {
 });
 
 /*
-진행 중인 재발급 요청. 여러 요청이 동시에 만료를 받아도 재발급은 한 번만 보낸다.
+여러 요청이 동시에 만료를 받아도 재발급은 한 번만 보낸다.
 서버는 재발급마다 refresh token을 회전시키므로, 두 번 보내면 두 번째가 이미 폐기된
 토큰을 사용한 것이 되어 탈취로 판정되고 해당 회원의 모든 세션이 끊긴다.
-*/
-let reissuePromise: Promise<AuthTokens> | null = null;
 
-/*
-함수 이름 : reissueOnce
-기능 : 재발급 요청이 진행 중이면 그 결과를 함께 기다리고, 없으면 새로 보낸다. 성공하면 새 토큰쌍을 저장한다.
-인자 : string refreshToken -> 재발급에 사용할 refresh token. 동시 호출자는 같은 값을 넘기므로 먼저 시작한 요청의 값이 쓰인다.
-반환값 : 새로 발급된 토큰쌍
+동시 호출자는 모두 같은 refresh token을 넘기므로 인자가 하나로 좁혀져도 문제가 없다.
 */
-const reissueOnce = (refreshToken: string): Promise<AuthTokens> => {
-  reissuePromise ??= requestReissue(refreshToken)
-    .then((tokens) => {
-      authSession.setTokens(tokens);
-      return tokens;
-    })
-    .finally(() => {
-      reissuePromise = null;
-    });
+const reissueOnce = createSingleFlight(
+  async (refreshToken: string): Promise<AuthTokens> => {
+    const tokens = await requestReissue(refreshToken);
+    authSession.setTokens(tokens);
 
-  return reissuePromise;
-};
+    return tokens;
+  },
+);
 
 /*
 함수 이름 : endSession
