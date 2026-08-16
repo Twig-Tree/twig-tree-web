@@ -46,7 +46,7 @@ axiosInstance.interceptors.response.use(
   (error: unknown) => {
     // todo: 액세스 토큰 재발급
     if (axios.isAxiosError(error) && error.response?.status === 401) {
-      authSession.clearAccessToken();
+      authSession.clearSession();
 
       if (
         isAuthRequired &&

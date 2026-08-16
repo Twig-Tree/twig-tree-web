@@ -31,8 +31,8 @@ export const GoogleLoginButton = () => {
 
           setGoogleLoginError(false);
           googleLoginMutation.mutate(idToken, {
-            onSuccess: ({ accessToken }) => {
-              authSession.setAccessToken(accessToken);
+            onSuccess: ({ accessToken, refreshToken }) => {
+              authSession.setTokens({ accessToken, refreshToken });
               router.replace(routes.dashboard);
             },
           });
