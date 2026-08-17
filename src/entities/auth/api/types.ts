@@ -18,3 +18,9 @@ export interface GoogleLoginData {
 }
 
 export type GoogleLoginResponse = ApiResponse<GoogleLoginData>;
+
+export interface LogoutRequest {
+  refreshToken: string;
+}
+
+export type LogoutResponse = ApiResponse<null>;
