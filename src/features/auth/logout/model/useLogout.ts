@@ -3,7 +3,7 @@
 import { useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
-import { useLogoutMutation } from "@/src/entities/auth/model/mutations/useLogoutMutation";
+import { useLogoutMutation } from "@/src/entities/auth";
 import { routes } from "@/src/shared/config/routes";
 import { authSession } from "@/src/shared/lib/auth/authSession";
 

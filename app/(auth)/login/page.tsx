@@ -1,4 +1,4 @@
-import { GoogleLoginButton } from "@/src/features/auth/google-login/ui/GoogleLoginButton";
+import { GoogleLoginButton } from "@/src/features/auth/google-login";
 
 export default function LoginPage() {
   return (
