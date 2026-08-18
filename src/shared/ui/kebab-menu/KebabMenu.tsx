@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 
 export interface KebabMenuItem {
   disabled?: boolean; // 선택할 수 없는 항목인지 여부
@@ -13,7 +13,20 @@ export interface KebabMenuItem {
 interface KebabMenuProps {
   ariaLabel?: string;
   items: KebabMenuItem[];
+  trigger?: ReactNode; // 트리거 버튼 안에 표시할 내용. 생략하면 점 3개를 표시한다
+  triggerClassName?: string; // 트리거 버튼 스타일. 생략하면 아이콘 버튼 스타일을 사용한다
 }
+
+const DEFAULT_TRIGGER_CLASS_NAME =
+  "flex h-8 w-8 items-center justify-center rounded-md text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500";
+
+const DEFAULT_TRIGGER = (
+  <span className="flex flex-col gap-0.5" aria-hidden="true">
+    <span className="h-1 w-1 rounded-full bg-current" />
+    <span className="h-1 w-1 rounded-full bg-current" />
+    <span className="h-1 w-1 rounded-full bg-current" />
+  </span>
+);
 
 /*
 함수 이름 : KebabMenu
@@ -24,6 +37,8 @@ interface KebabMenuProps {
 export function KebabMenu({
   ariaLabel = "더보기",
   items,
+  trigger = DEFAULT_TRIGGER,
+  triggerClassName = DEFAULT_TRIGGER_CLASS_NAME,
 }: KebabMenuProps) {
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -72,13 +87,9 @@ export function KebabMenu({
           event.stopPropagation();
           setIsOpen((current) => !current);
         }}
-        className="flex h-8 w-8 items-center justify-center rounded-md text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+        className={triggerClassName}
       >
-        <span className="flex flex-col gap-0.5" aria-hidden="true">
-          <span className="h-1 w-1 rounded-full bg-current" />
-          <span className="h-1 w-1 rounded-full bg-current" />
-          <span className="h-1 w-1 rounded-full bg-current" />
-        </span>
+        {trigger}
       </button>
 
       {isOpen ? (

@@ -1,5 +1,6 @@
 import "./globals.css";
 import { QueryProvider } from "@/src/shared/lib/react-query/QueryProvider";
+import { ProfileMenu } from "@/src/widgets/topbar";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 
 export default function RootLayout({
@@ -17,11 +18,7 @@ export default function RootLayout({
               <div className="text-base font-semibold tracking-tight text-slate-900">
                 Twig Tree
               </div>
-              <div
-                className="h-8 w-8 rounded-full bg-slate-200 ring-1 ring-slate-300"
-                aria-label="Profile placeholder"
-                role="img"
-              />
+              <ProfileMenu />
             </header>
 
             <div className="min-h-0 flex-1">{children}</div>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useGoogleLoginMutation } from "@/src/entities/auth/model/mutations/useGoogleLoginMutation";
+import { useGoogleLoginMutation } from "@/src/entities/auth";
 import { routes } from "@/src/shared/config/routes";
 import { authSession } from "@/src/shared/lib/auth/authSession";
 import { GoogleLogin } from "@react-oauth/google";
@@ -31,8 +31,8 @@ export const GoogleLoginButton = () => {
 
           setGoogleLoginError(false);
           googleLoginMutation.mutate(idToken, {
-            onSuccess: ({ accessToken }) => {
-              authSession.setAccessToken(accessToken);
+            onSuccess: ({ accessToken, refreshToken }) => {
+              authSession.setTokens({ accessToken, refreshToken });
               router.replace(routes.dashboard);
             },
           });
