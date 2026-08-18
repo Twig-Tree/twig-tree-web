@@ -5,7 +5,7 @@
 export type TreeNodeData = {
   label: string;
   orderIndex: number;
-  memo?: string;
+  memo: string | null; // 백엔드는 빈 문자열을 주고받지 않으므로 메모 없음은 null로만 표현한다.
 };
 
 // Zustand 등에서 관리할 평면화된 노드 타입

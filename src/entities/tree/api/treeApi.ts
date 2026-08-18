@@ -2,12 +2,13 @@ import { axiosInstance } from "@/src/shared/api/axiosInstance";
 import {
   CreateNodeRequest,
   TreeDTO,
-  NodeDTO,
   GetTreeResponse,
   CreateTreeResponse,
   CreateNodeResponse,
 } from "./types";
 import { ApiResponse } from "@/src/shared/api/types";
+import { TreeNode } from "../model/types";
+import { mapNodeDtoToDomain, mapNodesDtoToDomain } from "../lib/mappers";
 
 export const treeApi = {
   createTree: async (): Promise<TreeDTO> => {
@@ -18,22 +19,22 @@ export const treeApi = {
     return res.data.data;
   },
 
-  getTree: async (treeId: number): Promise<NodeDTO[]> => {
+  getTree: async (treeId: number): Promise<TreeNode[]> => {
     const res = await axiosInstance.get<GetTreeResponse>(
       `/trees/${treeId}/nodes`,
     );
-    return res.data.data.nodes;
+    return mapNodesDtoToDomain(res.data.data.nodes);
   },
 
   createNode: async (
     treeId: number,
     body: CreateNodeRequest,
-  ): Promise<NodeDTO> => {
+  ): Promise<TreeNode> => {
     const res = await axiosInstance.post<CreateNodeResponse>(
       `/trees/${treeId}/nodes`,
       body,
     );
-    return res.data.data;
+    return mapNodeDtoToDomain(res.data.data);
   },
 
   deleteNode: async (treeId: number, nodeId: number): Promise<void> => {

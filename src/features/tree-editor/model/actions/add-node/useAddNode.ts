@@ -89,7 +89,7 @@ export const useAddNode = ({
         서버에서 실제 노드 ID를 받으면 editor store의 임시 노드 ID와 엣지 target을 실제 ID로 교체한다.
         */
         onSuccess: (createdNode) => {
-          const realNodeId = String(createdNode.nodeId);
+          const realNodeId = createdNode.id; // 도메인 모델의 ID는 이미 문자열이다.
 
           useTreeStore.setState((state) => ({
             nodes: state.nodes.map((node) =>

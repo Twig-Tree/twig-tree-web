@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { memoApi } from "@/src/entities/memo/api/memoApi";
-import { NodeDTO } from "@/src/entities/tree/api/types";
+import { TreeNode } from "@/src/entities/tree/model/types";
 import { treeQueryKeys } from "@/src/entities/tree/model/queryKeys";
 
 interface DeleteMemoVariables {
@@ -10,7 +10,7 @@ interface DeleteMemoVariables {
 
 /*
 함수 이름 : useDeleteMemoMutation
-기능 : 노드 메모 삭제 API 요청을 수행하고, 성공 시 트리 조회 캐시에서 해당 노드의 memo 필드를 null로 갱신한다.
+기능 : 노드 메모 삭제 API 요청을 수행하고, 성공 시 트리 조회 캐시에서 해당 노드의 memo를 null로 갱신한다.
 인자 : DeleteMemoVariables
 반환값 : 메모 삭제 mutation 객체
 */
@@ -21,13 +21,13 @@ export const useDeleteMemoMutation = () => {
     mutationFn: ({ nodeId }: DeleteMemoVariables) =>
       memoApi.deleteMemo(Number(nodeId)),
 
-    onSuccess: (_data, variables) => {
-      queryClient.setQueryData<NodeDTO[]>(
-        treeQueryKeys.detail(variables.treeId),
+    onSuccess: (_data, { treeId, nodeId }) => {
+      queryClient.setQueryData<TreeNode[]>(
+        treeQueryKeys.detail(treeId),
         (oldNodes) =>
           oldNodes?.map((node) =>
-            node.nodeId === Number(variables.nodeId)
-              ? { ...node, memo: null }
+            node.id === nodeId
+              ? { ...node, data: { ...node.data, memo: null } }
               : node,
           ),
       );

@@ -37,7 +37,7 @@ interface TreeState {
     newEdge: CustomEditorEdge,
   ) => void;
   deleteNodeFromStore: (nodeIdsToDelete: string[]) => void;
-  updateNodeMemoInStore: (nodeId: string, memo: string) => void;
+  updateNodeMemoInStore: (nodeId: string, memo: string | null) => void;
   updateNodeLabelInStore: (nodeId: string, label: string) => void;
 }
 
@@ -174,7 +174,7 @@ export const useTreeStore = create<TreeState>()(
         });
       },
 
-      updateNodeMemoInStore: (nodeId: string, memo: string) => {
+      updateNodeMemoInStore: (nodeId: string, memo: string | null) => {
         const { nodes } = get();
 
         set({

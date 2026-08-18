@@ -8,7 +8,7 @@ export type {
 } from "./api/types";
 export type { TreeNode, TreeNodeData } from "./model/types";
 export { treeApi } from "./api/treeApi";
-export { mapNodesDtoToDomain } from "./lib/mappers";
+export { mapNodeDtoToDomain, mapNodesDtoToDomain } from "./lib/mappers";
 export { treeQueryKeys } from "./model/queryKeys";
 export { useGetTreeQuery } from "./model/queries";
 export { useAddNodeMutation } from "./model/mutations/useAddNodeMutation";
