@@ -11,6 +11,22 @@ Tree Editor는 사용자 행동, 서버 상태 동기화, 편집기 초기화, �
 - `treeStore.ts`: 편집 중인 노드, edge 및 history를 관리한다.
 - `types.ts`: Tree Editor에서 사용하는 node와 edge 타입을 정의한다.
 
+## 배열 순서와 레이아웃
+
+`elkOptions`의 `considerModelOrder`가 `NODES_AND_EDGES`이므로 **노드와 엣지 배열의 순서가 형제 노드의 배치 순서를 결정한다.** 배열 순서는 단순 정렬 취향이 아니라 화면에 직접 드러나는 값이다.
+
+정렬은 `transformToFlowElements`에서 `orderIndex` 기준으로 한 번만 수행한다. query cache는 순서를 약속하지 않으므로 mutation이 노드를 어느 위치에 넣어도 무방하다. 화면에 넘기기 직전에만 보장하면 되기 때문이다.
+
+## 초기화 규칙
+
+editor store 초기화는 트리당 한 번만 수행한다. `useInitializeTree`는 `currentTreeId === treeId`이면 건너뛴다.
+
+재초기화는 두 가지를 무너뜨린다. `mapToVisualNodes`가 모든 `position`을 원점으로 되돌리므로 레이아웃이 다시 계산되어야 하고, 편집 중이라면 내용까지 덮어쓴다.
+
+대신 편집기를 벗어날 때 `resetTree`로 store를 비운다. 비우지 않으면 재진입해도 초기화가 일어나지 않아 그 사이의 서버 변경이 화면에 반영되지 않는다. 이 호출은 마운트·언마운트 전용 effect에 둔다. 초기화 effect의 cleanup으로 붙이면 deps가 바뀔 때마다 store가 비워진다.
+
+여러 변경을 묶어 저장하는 방식이 도입되면 언마운트가 곧 미저장 편집 폐기가 되므로 이 규칙을 재검토한다.
+
 ## 레이어 선택 배경
 
 Tree Editor는 여러 UI 요소와 편집 기능을 조합해 하나의 큰 화면 영역을 구성하므로 역할만 보면 `widgets` 레이어가 자연스럽다. 하지만 편집기 전용 상태와 노드 추가·삭제 같은 행동이 서로 긴밀하게 의존한다. 이를 Widget과 여러 Feature로 분리하면 Feature가 Widget의 상태나 로직을 참조할 수 없어 FSD의 하위 레이어 참조 규칙을 위반하거나, 규칙을 지키기 위해 상태와 인터페이스를 여러 슬라이스로 나누어 전달해야 한다.

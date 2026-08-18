@@ -7,6 +7,7 @@
 - 프론트엔드의 ID는 URL, React key, 클라이언트 상태와 일관되도록 `string`을 사용한다.
 - 백엔드 요청과 응답의 ID는 API 명세에 맞춰 `number`를 사용한다.
 - 부모가 없는 리소스의 ID는 양쪽 모두 `null`을 유지한다.
+- 백엔드가 "없음"을 `null`로 표현하면 도메인 모델에서도 `null`을 유지한다.
 - API 함수의 인자와 요청 DTO는 백엔드 타입만 사용한다.
 - query와 mutation의 공개 인자는 프론트엔드 타입을 사용한다.
 - query와 mutation은 API 호출 직전에 프론트엔드 타입을 백엔드 타입으로 변환한다.
@@ -135,14 +136,44 @@ Number(null); // 0
 folderApi.getFolderList(Number(folderParentId));
 ```
 
+## 화면 전용 타입
+
+도메인 모델과 화면 라이브러리가 요구하는 타입은 한 계층 더 갈린다. 이때 도메인 타입을 화면 타입의 데이터 슬롯에 그대로 재사용한다.
+
+```ts
+export type CustomEditorNode = Node<TreeNodeData, "custom">;
+```
+
+`position`, `selected`처럼 서버가 모르는 값은 화면 타입에만 두고 도메인 모델에 넣지 않는다. 도메인 모델은 서버가 아는 사실만 담는다.
+
+## 없음의 표현
+
+응답 mapper에서 기본값 치환으로 서버가 준 값을 바꾸지 않는다.
+
+```ts
+// 사용하지 않는다. 서버의 null과 빈 문자열을 구분할 수 없게 된다.
+memo: dto.memo ?? "";
+```
+
+```ts
+memo: dto.memo;
+```
+
+화면에 필요한 기본값은 UI 경계에서 만든다.
+
+```tsx
+<MemoEditor initialMemo={savedMemo ?? ""} />
+```
+
 ## 책임 요약
 
-| 계층              | 사용하는 ID 타입 | 책임                     |
-| ----------------- | ---------------- | ------------------------ |
-| 페이지·피처       | `string \| null` | URL 및 화면 상태 사용    |
-| Query key         | `string \| null` | 프론트 캐시 식별         |
-| Query·Mutation    | 양쪽 타입        | 검증 및 요청 직전 변환   |
-| API 함수·요청 DTO | `number \| null` | 백엔드 계약 표현         |
-| 응답 DTO          | `number \| null` | 백엔드 응답 표현         |
-| Mapper            | 양쪽 타입        | DTO를 도메인 모델로 변환 |
-| 도메인 모델       | `string \| null` | 프론트엔드에서 사용      |
+| 계층              | 사용하는 ID 타입 | 책임                           |
+| ----------------- | ---------------- | ------------------------------ |
+| 페이지·피처       | `string \| null` | URL 및 화면 상태 사용          |
+| Query key         | `string \| null` | 프론트 캐시 식별               |
+| Query·Mutation    | 양쪽 타입        | 검증 및 요청 직전 변환         |
+| API 함수·요청 DTO | `number \| null` | 백엔드 계약 표현               |
+| 응답 DTO          | `number \| null` | 백엔드 응답 표현               |
+| Mapper            | 양쪽 타입        | DTO를 도메인 모델로 변환       |
+| 도메인 모델       | `string \| null` | 프론트엔드에서 사용            |
+| 화면 전용 타입    | `string \| null` | 도메인 데이터에 화면 상태 결합 |

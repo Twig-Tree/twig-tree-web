@@ -6,10 +6,10 @@ Tree editor action hook은 사용자 이벤트를 기준으로 React Query cache
 
 Tree editor에는 두 가지 상태 계층이 있다.
 
-- React Query cache: 서버 응답 형태의 `NodeDTO` 데이터를 관리한다.
-- Zustand editor store: React Flow에서 사용하는 `CustomEditorNode`, `CustomEditorEdge` 데이터를 관리한다.
+- React Query cache: 서버가 확정한 도메인 데이터 `TreeNode`를 관리한다. 서버 응답으로만 갱신한다.
+- Zustand editor store: React Flow에서 사용하는 `CustomEditorNode`, `CustomEditorEdge` 데이터를 관리한다. 화면이 그리는 것은 이쪽이다.
 
-두 계층은 데이터 모델과 책임이 다르므로, optimistic update와 실패 복구도 각 계층에 맞는 방식으로 처리한다.
+화면이 store에서만 그려지므로 optimistic update도 store에서만 한다. cache가 화면에 도달하는 경로는 `useInitializeTree` 하나뿐이고 그마저 트리당 한 번만 실행되므로, cache를 추측으로 미리 바꿀 이유가 없다.
 
 ## Action Handler의 책임
 
@@ -28,9 +28,9 @@ Mutation hook은 서버 상태와 React Query cache를 관리한다.
 
 예를 들어 `useAddNodeMutation`은 다음을 담당한다.
 
-- `onMutate`: query cache에 임시 `NodeDTO`를 추가한다.
-- `onSuccess`: query cache의 임시 노드를 서버가 반환한 노드로 교체한다.
-- `onError`: query cache를 이전 상태로 복구한다.
+- `onSuccess`: 서버가 반환한 `TreeNode`를 query cache에 반영한다.
+
+`onMutate`와 `onError`는 두지 않는다. cache를 추측으로 미리 바꾸지 않으므로 되돌릴 것도 없다.
 
 Action hook은 editor store 상태와 UI action별 동작을 관리한다.
 
@@ -46,12 +46,12 @@ Action hook은 editor store 상태와 UI action별 동작을 관리한다.
 
 ## Optimistic Update 규칙
 
-Optimistic update는 각 상태 계층에 맞는 데이터 형태로 적용한다.
+Optimistic update는 editor store에서만 한다.
 
-- Query cache에는 optimistic `NodeDTO`를 넣는다.
 - Editor store에는 optimistic `CustomEditorNode`, `CustomEditorEdge`를 넣는다.
+- Query cache에는 넣지 않는다. 서버 응답을 받은 뒤에만 갱신한다.
 
-서버가 생성된 노드를 반환하면 query cache는 임시 DTO 전체를 서버 DTO로 교체해도 된다. 반면 editor store는 서버가 실제로 보정한 값만 반영한다.
+서버 응답이 도착하면 editor store는 서버가 실제로 보정한 값만 반영한다.
 
 예를 들어 노드 추가 성공 시 editor store에서는 임시 id를 실제 id로 교체하되, React Flow layout 정보는 유지한다.
 
@@ -85,11 +85,10 @@ onError: () => {
 
 따라서 노드 제목 수정처럼 `data`의 다른 필드만 바꾸는 action은 history에 남지 않는다. 이때 `undo()`를 호출하면 방금 실패한 변경이 아니라 그 앞의 추가·삭제가 되돌려지므로 **써서는 안 된다.**
 
-이런 action은 handler가 변경 전 값을 보관했다가 직접 되돌린다. `isDirty`도 함께 복원해야 한다. store action이 `isDirty: true`를 세우기 때문에, 값만 되돌리면 실패한 편집이 트리를 dirty로 남긴다.
+이런 action은 handler가 변경 전 값을 보관했다가 직접 되돌린다.
 
 ```ts
 const previousLabel = /* 변경 전 label */;
-const wasDirtyBeforeUpdate = useTreeStore.getState().isDirty;
 
 updateNodeLabelInStore(nodeId, nextLabel);
 
@@ -97,43 +96,33 @@ try {
   await editNodeNameOnServer(...);
 } catch {
   updateNodeLabelInStore(nodeId, previousLabel);
-  useTreeStore.setState({ isDirty: wasDirtyBeforeUpdate });
 }
 ```
 
 history에 남지 않으므로 **`undo()`가 엉뚱한 항목을 되돌리지 않게 하려는 목적의** 편집 잠금은 필요 없다. 페이지의 `isMutating`에 이 action의 pending을 합치지 않고, 편집 중인 입력만 비활성화한다.
 
-이는 요청이 겹쳐도 안전하다는 뜻이 아니다. 현재 rollback은 요청 시작 시점의 query cache 전체와 전역 `isDirty`를 복원하므로, 다음 상황에서 나중 편집의 결과를 덮어쓸 수 있다.
+직접 복구는 그 action이 바꾼 값만 되돌리고 전역 상태는 함께 되돌리지 않는다. 요청 시작 시점의 전역 상태를 복원하면 요청이 겹칠 때 나중 편집의 결과를 덮어쓰기 때문이다.
 
 ```text
 노드 A 편집 → blur로 A 요청 발신 → 노드 B 편집 → B 요청 발신 → A 실패
-                                                              → A 시작 전 스냅샷 복원 (B의 변경 소실)
+                                                              → A 시작 전 전역 상태 복원 (B의 변경 소실)
 ```
 
-요청이 겹치려면 A가 B 저장 시점까지 pending이어야 해서 실제 발생 조건은 좁지만, 구조적 한계로 남아 있다. 노드 추가·삭제 mutation도 같은 전체 스냅샷 방식이므로, 작업별 범위로 좁히는 정리는 네 mutation을 함께 다룰 때 한다.
+노드 추가·삭제의 `undo()` 복구는 성격이 다르다. zundo history의 직전 스냅샷으로 `nodes`와 `edges`를 통째로 되돌리므로 값 단위가 아니다. 이쪽이 안전한 근거는 범위가 좁아서가 아니라 위 "실패 복구 규칙"의 전제, 즉 pending 중 다른 편집이 끼어들지 못하게 막는 데 있다.
 
 새 action을 추가할 때는 그 변경이 `handleSet`의 기록 조건에 걸리는지 먼저 확인하고, 걸리지 않으면 `undo()` 대신 직접 복구를 쓴다.
 
-## History와 isDirty 규칙
+## History와 초기화 가드
 
-`isDirty`는 단순한 미저장 변경 플래그가 아니라, `useInitializeTree`가 같은 tree를 다시 초기화하지 않도록 막아 editor layout을 보호하는 가드 역할도 한다.
+`useInitializeTree`는 `currentTreeId === treeId`이면 초기화를 건너뛴다. 초기화는 트리당 한 번만 일어난다. 재초기화는 모든 `position`을 원점으로 되돌리고 편집 내용까지 덮어쓰기 때문이다.
 
 따라서 다음 규칙을 지킨다.
 
-- 서버 요청이 성공했다는 이유만으로 `isDirty`를 `false`로 바꾸지 않는다.
-- 임시 editor id를 서버 id로 교체할 때는 `isDirty`를 유지한다.
-- 실패한 optimistic update를 `undo()`로 복구할 때 `isDirty`도 함께 복구되어야 한다.
-- React Flow의 selection-only change는 dirty로 보지 않는다.
+- cache가 갱신되어도 store를 다시 채우지 않는다. 서버 응답 반영은 cache에서 끝난다.
+- 편집기를 벗어날 때만 `resetTree`로 store를 비운다. 그래야 재진입 시 초기화가 다시 일어나 그 사이의 서버 변경이 반영된다.
+- zundo `partialize`에는 `nodes`와 `edges`만 담는다. 되돌릴 대상은 노드와 엣지뿐이다.
 
-`undo()`로 실패 복구를 단순화하려면 zundo history에 `nodes`, `edges`와 함께 `isDirty`도 포함하는 것이 좋다.
-
-```ts
-partialize: (state) => ({
-  nodes: state.nodes,
-  edges: state.edges,
-  isDirty: state.isDirty,
-}),
-```
+미저장 변경을 나타내는 플래그는 두지 않는다. 모든 action이 즉시 서버로 가므로 "저장 안 됨" 상태가 존재하지 않는다. 여러 변경을 묶어 저장하는 방식이 도입되면 그때 이탈 가드와 함께 다시 설계한다.
 
 ## Pending 중 편집 잠금
 
@@ -180,7 +169,9 @@ Mutation hook은 서버 상태와 React Query cache를 관리한다.
 
 Action hook은 editor store 상태와 UI interaction state를 관리한다.
 
-두 계층에 같은 논리 변경이 필요하더라도, 한쪽 데이터 모델을 다른 쪽에 억지로 재사용하지 않는다. 각 계층에 맞는 형태로 각각 업데이트한다.
+store의 node `data`는 cache와 같은 `TreeNodeData`를 그대로 재사용한다. 다만 `position`, `selected`처럼 서버가 모르는 값은 store에만 두고 cache로 올리지 않는다.
+
+한쪽을 바꿨다고 다른 쪽을 따라 바꾸지 않는다. store는 사용자 입력으로, cache는 서버 응답으로 각각 갱신된다.
 
 ## onSuccess와 onError 위치
 
@@ -190,12 +181,13 @@ Mutation 호출부의 callback은 action-specific editor store 동작을 담당�
 
 노드 추가 기준 책임은 다음과 같다.
 
-- `useAddNodeMutation.onSuccess`: query cache를 업데이트한다.
-- `useAddNodeMutation.onError`: query cache를 복구한다.
+- `useAddNodeMutation.onSuccess`: 서버가 반환한 노드를 query cache에 반영한다.
 - `useAddNode`의 call-site `onSuccess`: editor store의 node id와 edge를 업데이트한다.
 - `useAddNode`의 call-site `onError`: editor store를 undo로 복구한다.
 
-노드 삭제처럼 서버 응답만으로 최종 cache 상태를 확정하기 어렵다면 `onSettled`에서 `invalidateQueries`로 서버 상태와 다시 동기화한다.
+mutation 선언부에는 `onError`를 두지 않는다. cache를 미리 바꾸지 않았으므로 복구할 것이 없다.
+
+노드 삭제처럼 응답 본문이 없어 cache를 직접 확정할 수 없다면 `invalidateQueries`로 다시 조회한다. 이때 `onSettled`가 아니라 `onSuccess`에 둔다. 실패한 경우에는 cache를 건드린 적이 없어 재조회할 이유가 없다.
 
 ## 새 Action Hook 추가 체크리스트
 
@@ -205,7 +197,7 @@ Mutation 호출부의 callback은 action-specific editor store 동작을 담당�
 - 이 action이 Zustand editor store를 변경하는가?
 - Optimistic update가 필요한가?
 - 실패 시 `undo()` 복구가 안전하도록 pending 중 다른 편집이 막혀 있는가?
-- `isDirty`를 변경해야 하는가, 유지해야 하는가, 복구해야 하는가?
+- 실패 복구가 `undo()`인가 직접 복구인가? 직접 복구라면 되돌릴 값을 그 action이 바꾼 범위로 한정했는가?
 - 사용자-facing 에러를 어디에서 보여줄 것인가?
 - 서버 성공 후 cache를 직접 보정할 수 있는가, 아니면 invalidate가 필요한가?
 
@@ -217,13 +209,13 @@ Mutation 호출부의 callback은 action-specific editor store 동작을 담당�
 
 성공 시:
 
-- Query cache는 임시 DTO를 서버 DTO로 교체한다.
+- Query cache는 서버가 반환한 `TreeNode`를 배열 끝에 덧붙인다.
 - Editor store는 임시 node id와 연결된 edge target을 서버 id로 교체한다.
-- Editor layout과 `isDirty`는 유지한다.
+- Editor layout은 유지한다.
 
 실패 시:
 
-- Query cache는 이전 `NodeDTO[]`로 복구한다.
+- Query cache는 그대로 둔다. 추가된 적이 없다.
 - Editor store는 `undo()`로 optimistic add를 되돌린다.
 
 ## 예시: Delete Node
@@ -233,11 +225,11 @@ Mutation 호출부의 callback은 action-specific editor store 동작을 담당�
 성공 시:
 
 - Editor store는 optimistic delete 상태를 유지한다.
-- Query cache는 필요하면 `invalidateQueries`로 서버 상태와 다시 맞춘다.
+- Query cache는 `invalidateQueries`로 서버 상태와 다시 맞춘다. 지워진 서브트리 범위를 cache에서 다시 계산하지 않기 위해서다.
 
 실패 시:
 
-- Query cache는 이전 `NodeDTO[]`로 복구한다.
+- Query cache는 그대로 둔다. 지운 적이 없다.
 - Editor store는 `undo()`로 optimistic delete를 되돌린다.
 
 ## 예시: Update Node Name
@@ -246,14 +238,12 @@ Mutation 호출부의 callback은 action-specific editor store 동작을 담당�
 
 성공 시:
 
-- Query cache는 서버가 반환한 `NodeDTO`로 해당 노드를 교체한다.
-- Editor store도 서버가 반환한 `name`으로 label을 다시 맞춘다. 서버가 제목을 보정하면 optimistic label을 그대로 두었을 때 cache와 화면이 갈리기 때문이다.
+- Query cache는 서버가 반환한 `TreeNode`로 해당 노드를 교체한다.
+- Editor store도 서버가 반환한 `data.label`로 label을 다시 맞춘다. 서버가 제목을 보정하면 optimistic label을 그대로 두었을 때 cache와 화면이 갈리기 때문이다.
 
 실패 시:
 
-- Query cache는 이전 `NodeDTO[]`로 복구한다.
-- Editor store는 보관해 둔 이전 label과 `isDirty`를 직접 되돌린다. `undo()`를 쓰지 않는다(위 "예외: history에 기록되지 않는 action" 참고).
-
-이 복구는 단일 요청을 전제로 한다. 요청이 겹칠 때의 한계는 위 "예외" 절에 적어 두었다.
+- Query cache는 그대로 둔다. 바꾼 적이 없다.
+- Editor store는 보관해 둔 이전 label만 직접 되돌린다. `undo()`를 쓰지 않는다(위 "예외: history에 기록되지 않는 action" 참고).
 
 이 action은 노드마다 다른 대상에 적용되므로 `useTreeEditorActions` facade에 넣지 않고 `CustomNode`가 직접 호출한다. 검증 메시지와 저장 실패 메시지도 alert이 아니라 노드 안의 문구로 보여주므로, action hook은 성공 여부만 반환하고 메시지 표시는 UI가 결정한다.

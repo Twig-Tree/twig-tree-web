@@ -206,6 +206,21 @@ Query와 mutation은 다음 서버 상태 및 메타데이터를 관리한다.
 - 오류 상태
 - 재조회와 무효화
 
+화면을 store가 그리는 경우, query cache에는 낙관적 업데이트를 하지 않는다.
+
+즉시 반영은 store가 담당하고 cache는 서버 응답으로만 갱신한다. cache가 화면에 도달하지 않는 구조에서 cache를 낙관적으로 조작하면 화면에 기여하지 않는 정합성 유지 비용만 남는다. 임시 ID 대응, rollback, 요청 취소와 백업이 모두 여기서 생긴다.
+
+```ts
+// 사용하지 않는다. 화면은 store에서 그려지므로 cache의 임시 값은 보이지 않는다.
+onMutate: async (variables) => {
+  const previous = queryClient.getQueryData(queryKey);
+  queryClient.setQueryData(queryKey, /* 추측한 결과 */);
+  return { previous };
+},
+```
+
+응답 본문이 없어 cache를 확정할 수 없는 작업은 `onSuccess`에서 무효화한다. 실패한 경우에는 cache를 건드린 적이 없으므로 `onSettled`에 두지 않는다.
+
 ## 순수 함수 위치
 
 React와 서버 요청에 의존하지 않는 유스케이스 규칙은 feature의 `lib`에 둔다.
@@ -245,7 +260,7 @@ import { useCreateFolder } from "@/src/features/folder/create-folder";
 
 메모도 이 기준으로는 노드 도메인이지만 현재는 `entities/memo`로 분리되어 있다. 구조를 기준에 맞추는 작업이 남아 있는 상태다.
 
-반면 노드 제목 편집의 유스케이스 코드는 `features/tree-editor`에 둔다. 이 코드가 하는 일이 editor store의 label과 `isDirty`를 조작하는 것이기 때문이다. 노드 속성이라서가 아니라 트리 편집기 안에서 일어나는 편집이라 필요한 로직이다.
+반면 노드 제목 편집의 유스케이스 코드는 `features/tree-editor`에 둔다. 이 코드가 하는 일이 editor store의 label을 조작하고 실패 시 되돌리는 것이기 때문이다. 노드 속성이라서가 아니라 트리 편집기 안에서 일어나는 편집이라 필요한 로직이다.
 
 `features/node/...`로 분리하면 그 feature가 `features/tree-editor`의 store를 참조해야 해서 같은 계층 간 의존이 생긴다. Feature를 나눌 때는 "이 로직이 어느 store와 화면 흐름에 묶여 있는가"를 먼저 본다.
 
