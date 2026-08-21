@@ -1,5 +1,5 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { memoApi } from "@/src/entities/memo/api/memoApi";
+import { memoApi } from "@/src/entities/tree/api/memoApi";
 import { TreeNode } from "@/src/entities/tree/model/types";
 import { treeQueryKeys } from "@/src/entities/tree/model/queryKeys";
 

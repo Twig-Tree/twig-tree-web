@@ -1,7 +1,7 @@
 import {
   useUpdateMemoMutation,
   useDeleteMemoMutation,
-} from "@/src/entities/memo";
+} from "@/src/entities/tree";
 import { useTreeStore } from "@/src/features/tree-editor/model/treeStore";
 
 type UseSaveMemoParams = {
