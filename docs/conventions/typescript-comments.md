@@ -127,7 +127,7 @@ nodes.map(...)
 ```ts
 const parentId = Number(selectedNode.id); // 서버 요청에 사용할 부모 노드 ID를 숫자로 변환한다.
 const newNodeId = `temp_${crypto.randomUUID()}`; // 서버 응답 전까지 사용할 임시 노드 ID를 생성한다.
-const wasDirtyBeforeAdd = useTreeStore.getState().isDirty; // 실패 시 이전 dirty 상태로 복구하기 위해 저장한다.
+const realNodeId = createdNode.id; // 도메인 모델의 ID는 이미 문자열이다.
 ```
 
 문장 주석은 코드 오른쪽에 붙기 때문에 너무 길게 쓰지 않는다. 설명이 길어지면 블록 주석으로 올린다.

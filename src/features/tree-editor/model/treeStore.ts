@@ -17,7 +17,6 @@ interface TreeState {
   treeId: string | null;
   nodes: CustomEditorNode[];
   edges: CustomEditorEdge[];
-  isDirty: boolean;
 
   initializeTree: (params: {
     treeId: string;
@@ -37,7 +36,7 @@ interface TreeState {
     newEdge: CustomEditorEdge,
   ) => void;
   deleteNodeFromStore: (nodeIdsToDelete: string[]) => void;
-  updateNodeMemoInStore: (nodeId: string, memo: string) => void;
+  updateNodeMemoInStore: (nodeId: string, memo: string | null) => void;
   updateNodeLabelInStore: (nodeId: string, label: string) => void;
 }
 
@@ -47,13 +46,11 @@ export const useTreeStore = create<TreeState>()(
       treeId: null,
       nodes: [],
       edges: [],
-      isDirty: false,
       initializeTree: ({ treeId, nodes, edges }) => {
         set({
           treeId,
           nodes,
           edges,
-          isDirty: false,
         });
       },
 
@@ -62,29 +59,18 @@ export const useTreeStore = create<TreeState>()(
           treeId: null,
           nodes: [],
           edges: [],
-          isDirty: false,
         });
       },
 
       onNodesChange: (changes) => {
-        const shouldMarkDirty = changes.some(
-          (change) => change.type !== "select",
-        );
-
         set({
           nodes: applyNodeChanges(changes, get().nodes),
-          isDirty: shouldMarkDirty ? true : get().isDirty,
         });
       },
 
       onEdgesChange: (changes) => {
-        const shouldMarkDirty = changes.some(
-          (change) => change.type !== "select",
-        );
-
         set({
           edges: applyEdgeChanges(changes, get().edges),
-          isDirty: shouldMarkDirty ? true : get().isDirty,
         });
       },
 
@@ -109,7 +95,7 @@ export const useTreeStore = create<TreeState>()(
         if (isDuplicateEdge(edges, connection.source, connection.target))
           return alert("중복 연결 불가");
 
-        set({ edges: addEdge(connection, edges), isDirty: true });
+        set({ edges: addEdge(connection, edges) });
       },
 
       onReconnect: (oldEdge, newConnection) => {
@@ -143,7 +129,6 @@ export const useTreeStore = create<TreeState>()(
 
         set({
           edges: reconnectEdge(oldEdge, newConnection, edges),
-          isDirty: true,
         });
       },
 
@@ -156,7 +141,6 @@ export const useTreeStore = create<TreeState>()(
         set({
           nodes: nodes.concat(newNode),
           edges: edges.concat(newEdge),
-          isDirty: true,
         });
       },
 
@@ -170,11 +154,10 @@ export const useTreeStore = create<TreeState>()(
             (edge) =>
               !idsToDelete.has(edge.source) && !idsToDelete.has(edge.target),
           ),
-          isDirty: true,
         });
       },
 
-      updateNodeMemoInStore: (nodeId: string, memo: string) => {
+      updateNodeMemoInStore: (nodeId: string, memo: string | null) => {
         const { nodes } = get();
 
         set({
@@ -183,7 +166,6 @@ export const useTreeStore = create<TreeState>()(
               ? { ...node, data: { ...node.data, memo } }
               : node,
           ),
-          isDirty: true,
         });
       },
 
@@ -200,7 +182,6 @@ export const useTreeStore = create<TreeState>()(
               ? { ...node, data: { ...node.data, label } }
               : node,
           ),
-          isDirty: true,
         });
       },
     }),
@@ -209,7 +190,6 @@ export const useTreeStore = create<TreeState>()(
       partialize: (state) => ({
         nodes: state.nodes,
         edges: state.edges,
-        isDirty: state.isDirty,
       }),
       // 히스토리 기록 조건 설정
       handleSet: (handleSetAction) => {

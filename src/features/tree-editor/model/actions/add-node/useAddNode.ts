@@ -87,9 +87,11 @@ export const useAddNode = ({
       {
         /*
         서버에서 실제 노드 ID를 받으면 editor store의 임시 노드 ID와 엣지 target을 실제 ID로 교체한다.
+        서버가 label이나 orderIndex를 보정할 수 있으므로 data도 응답 값으로 덮는다.
+        position은 화면 전용 값이라 그대로 둔다.
         */
         onSuccess: (createdNode) => {
-          const realNodeId = String(createdNode.nodeId);
+          const realNodeId = createdNode.id; // 도메인 모델의 ID는 이미 문자열이다.
 
           useTreeStore.setState((state) => ({
             nodes: state.nodes.map((node) =>
@@ -99,6 +101,7 @@ export const useAddNode = ({
                     id: realNodeId,
                     data: {
                       ...node.data,
+                      ...createdNode.data,
                     },
                   }
                 : node,

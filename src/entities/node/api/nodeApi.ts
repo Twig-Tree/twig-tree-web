@@ -1,5 +1,5 @@
 import { axiosInstance } from "@/src/shared/api/axiosInstance";
-import { NodeDTO } from "@/src/entities/tree";
+import { TreeNode, mapNodeDtoToDomain } from "@/src/entities/tree";
 import { EditNodeNameRequest, EditNodeNameResponse } from "./types";
 
 export const nodeApi = {
@@ -10,11 +10,11 @@ export const nodeApi = {
     treeId: number,
     nodeId: number,
     body: EditNodeNameRequest,
-  ): Promise<NodeDTO> => {
+  ): Promise<TreeNode> => {
     const res = await axiosInstance.patch<EditNodeNameResponse>(
       `/trees/${treeId}/nodes/${nodeId}`,
       body,
     );
-    return res.data.data;
+    return mapNodeDtoToDomain(res.data.data);
   },
 };

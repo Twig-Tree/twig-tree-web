@@ -59,8 +59,6 @@ export const useUpdateNodeName = ({
 
       if (previousLabel === trimmedName) return true; // 변경이 없으면 요청을 보내지 않는다.
 
-      const wasDirtyBeforeUpdate = useTreeStore.getState().isDirty; // 실패 시 이전 dirty 상태로 복구하기 위해 저장한다.
-
       /*
       서버 응답을 기다리기 전에 editor store의 label을 먼저 교체한다.
       */
@@ -77,16 +75,15 @@ export const useUpdateNodeName = ({
         서버가 제목을 보정할 수 있으므로 query cache와 같은 값을 store에도 반영한다.
         보내지 않으면 cache는 서버 값, 화면은 입력값으로 갈린다.
         */
-        updateNodeLabelInStore(nodeId, updatedNode.name);
+        updateNodeLabelInStore(nodeId, updatedNode.data.label);
 
         return true;
       } catch {
         /*
         label 변경은 zundo history에 기록되지 않아 undo()로 되돌릴 수 없다.
-        보관해 둔 이전 label과 dirty 상태를 직접 복원한다.
+        보관해 둔 이전 label을 직접 복원한다.
         */
         updateNodeLabelInStore(nodeId, previousLabel);
-        useTreeStore.setState({ isDirty: wasDirtyBeforeUpdate });
         return false;
       }
     },

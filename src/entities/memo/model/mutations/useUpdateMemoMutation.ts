@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { memoApi } from "@/src/entities/memo/api/memoApi";
-import { NodeDTO } from "@/src/entities/tree/api/types";
+import { TreeNode } from "@/src/entities/tree/model/types";
 import { treeQueryKeys } from "@/src/entities/tree/model/queryKeys";
 
 interface UpdateMemoVariables {
@@ -11,7 +11,7 @@ interface UpdateMemoVariables {
 
 /*
 함수 이름 : useUpdateMemoMutation
-기능 : 노드 메모 생성/수정 API 요청을 수행하고, 성공 시 트리 조회 캐시에서 해당 노드의 memo 필드를 갱신한다. 메모 자체는 별도 캐시를 두지 않고 트리 조회 캐시에 얹혀 있는 값을 갱신한다.
+기능 : 노드 메모 생성/수정 API 요청을 수행하고, 성공 시 트리 조회 캐시에서 해당 노드의 memo를 갱신한다. 메모 자체는 별도 캐시를 두지 않고 트리 조회 캐시에 얹혀 있는 값을 갱신한다.
 인자 : UpdateMemoVariables
 반환값 : 메모 저장 mutation 객체
 */
@@ -22,13 +22,17 @@ export const useUpdateMemoMutation = () => {
     mutationFn: ({ nodeId, content }: UpdateMemoVariables) =>
       memoApi.updateMemo(Number(nodeId), { content }),
 
-    onSuccess: (_data, variables) => {
-      queryClient.setQueryData<NodeDTO[]>(
-        treeQueryKeys.detail(variables.treeId),
+    /*
+    서버가 내용을 보정할 수 있으므로 요청 값이 아니라 응답의 content를 캐시에 반영한다.
+    응답의 title은 노드 이름이라 이 mutation이 바꾸는 값이 아니므로 사용하지 않는다.
+    */
+    onSuccess: (savedMemo, { treeId, nodeId }) => {
+      queryClient.setQueryData<TreeNode[]>(
+        treeQueryKeys.detail(treeId),
         (oldNodes) =>
           oldNodes?.map((node) =>
-            node.nodeId === Number(variables.nodeId)
-              ? { ...node, memo: variables.content }
+            node.id === nodeId
+              ? { ...node, data: { ...node.data, memo: savedMemo.content } }
               : node,
           ),
       );
