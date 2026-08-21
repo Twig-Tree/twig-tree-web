@@ -50,8 +50,13 @@ export const useSaveMemo = ({
         return;
       }
 
-      await updateMemo({ treeId, nodeId, content: trimmedContent });
-      updateNodeMemoInStore(nodeId, trimmedContent);
+      const updatedMemo = await updateMemo({
+        treeId,
+        nodeId,
+        content: trimmedContent,
+      });
+
+      updateNodeMemoInStore(nodeId, updatedMemo.content); // 서버가 보정한 값을 화면에도 반영한다.
     } catch {
       alert("메모 저장에 실패했습니다. 다시 시도해주세요.");
     }

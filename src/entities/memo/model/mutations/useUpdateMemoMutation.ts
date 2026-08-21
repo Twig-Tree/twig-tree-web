@@ -22,13 +22,17 @@ export const useUpdateMemoMutation = () => {
     mutationFn: ({ nodeId, content }: UpdateMemoVariables) =>
       memoApi.updateMemo(Number(nodeId), { content }),
 
-    onSuccess: (_data, { treeId, nodeId, content }) => {
+    /*
+    서버가 내용을 보정할 수 있으므로 요청 값이 아니라 응답의 content를 캐시에 반영한다.
+    응답의 title은 노드 이름이라 이 mutation이 바꾸는 값이 아니므로 사용하지 않는다.
+    */
+    onSuccess: (savedMemo, { treeId, nodeId }) => {
       queryClient.setQueryData<TreeNode[]>(
         treeQueryKeys.detail(treeId),
         (oldNodes) =>
           oldNodes?.map((node) =>
             node.id === nodeId
-              ? { ...node, data: { ...node.data, memo: content } }
+              ? { ...node, data: { ...node.data, memo: savedMemo.content } }
               : node,
           ),
       );
