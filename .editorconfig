@@ -1,0 +1,11 @@
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+
+# 마크다운은 줄 끝 공백 두 개가 줄바꿈 문법이므로 제거하지 않는다.
+[*.md]
+trim_trailing_whitespace = false
