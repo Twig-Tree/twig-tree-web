@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { TreeNode, treeQueryKeys } from "@/src/entities/tree";
-import { nodeApi } from "@/src/entities/node/api/nodeApi";
+import { TreeNode } from "@/src/entities/tree/model/types";
+import { treeQueryKeys } from "@/src/entities/tree/model/queryKeys";
+import { nodeApi } from "@/src/entities/tree/api/nodeApi";
 
 interface EditNodeNameVariables {
   treeId: string; // 노드가 속한 트리 ID

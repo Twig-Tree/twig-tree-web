@@ -1,4 +1,5 @@
 export { nodeTypes, edgeTypes } from "./constants/flowConfig";
+export { MemoSidePanel } from "./ui/MemoSidePanel";
 export { useTreeEditorActions } from "./model/actions/useTreeEditorActions";
 export { useInitializeTree } from "./model/initialization/useInitializeTree";
 export { useEditorLayout } from "./model/layout/useEditorLayout";

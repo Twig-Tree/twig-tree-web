@@ -42,3 +42,36 @@ export interface CreateNodeRequest {
 트리 노드 추가 응답 type
 */
 export type CreateNodeResponse = ApiResponse<NodeDTO>;
+
+/*
+노드 제목 수정 요청 body type
+*/
+export interface EditNodeNameRequest {
+  name: string;
+}
+
+/*
+노드 제목 수정 응답 type
+서버는 수정된 노드 전체를 반환하므로 트리 조회 응답과 같은 NodeDTO를 사용한다.
+*/
+export type EditNodeNameResponse = ApiResponse<NodeDTO>;
+
+/*
+메모 응답 DTO type
+*/
+export interface MemoDTO {
+  title: string;
+  content: string | null;
+}
+
+/*
+메모 생성/수정 요청 body type
+*/
+export interface UpdateMemoRequest {
+  content: string;
+}
+
+/*
+메모 생성/수정 응답 type
+*/
+export type UpdateMemoResponse = ApiResponse<MemoDTO>;

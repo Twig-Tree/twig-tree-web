@@ -1,5 +1,5 @@
 import { useCallback } from "react";
-import { useEditNodeNameMutation } from "@/src/entities/node";
+import { useEditNodeNameMutation } from "@/src/entities/tree";
 import { useTreeStore } from "@/src/features/tree-editor/model/treeStore";
 import { validateNodeName } from "@/src/features/tree-editor/lib/update-node-name/validateNodeName";
 
