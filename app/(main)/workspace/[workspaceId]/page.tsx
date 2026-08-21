@@ -1,6 +1,7 @@
 "use client";
 import { ReactFlow, ReactFlowProvider, Panel } from "@xyflow/react";
 import {
+  MemoSidePanel,
   edgeTypes,
   nodeTypes,
   useEditorLayout,
@@ -10,7 +11,6 @@ import {
   useTreeHistory,
   useTreeStore,
 } from "@/src/features/tree-editor";
-import { MemoSidePanel } from "@/src/features/memo/ui/MemoSidePanel";
 import { useEffect, useState } from "react";
 import { useGetTreeQuery } from "@/src/entities/tree/model/queries";
 

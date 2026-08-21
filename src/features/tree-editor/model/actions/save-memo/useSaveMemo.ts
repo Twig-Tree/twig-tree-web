@@ -2,7 +2,7 @@ import {
   useUpdateMemoMutation,
   useDeleteMemoMutation,
 } from "@/src/entities/tree";
-import { useTreeStore } from "@/src/features/tree-editor/model/treeStore";
+import { useTreeStore } from "../../treeStore";
 
 type UseSaveMemoParams = {
   treeId: string; // 메모가 속한 트리 ID

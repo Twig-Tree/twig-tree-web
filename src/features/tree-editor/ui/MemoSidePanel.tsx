@@ -1,6 +1,6 @@
-import { MemoEditor } from "@/src/features/memo/ui/MemoEditor";
-import { useSaveMemo } from "@/src/features/memo/model/useSaveMemo";
-import type { CustomEditorNode } from "@/src/features/tree-editor/model/types";
+import { MemoEditor } from "./MemoEditor";
+import { useSaveMemo } from "../model/actions/save-memo/useSaveMemo";
+import type { CustomEditorNode } from "../model/types";
 
 type MemoSidePanelProps = {
   treeId: string;
