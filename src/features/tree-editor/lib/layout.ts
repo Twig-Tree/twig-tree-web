@@ -38,20 +38,18 @@ export const getLayoutedElements = async (
     })),
   };
 
-  return elk
-    .layout(graph)
-    .then((layoutedGraph) => ({
-      nodes: (layoutedGraph.children ?? []).map((node) => ({
-        // ELK에서 반환한 node의 x, y 좌표 직접 참조
-        ...node,
-        position: { x: node.x ?? 0, y: node.y ?? 0 },
-      })),
-      edges: layoutedGraph.edges,
-    }))
-    .catch((err) => {
-      console.error(err);
-      return { nodes, edges };
-    });
+  /*
+  실패를 여기서 삼키지 않는다. 계산에 실패한 구조를 다시 계산할지 판단하려면
+  호출부가 실패를 알아야 한다.
+  */
+  return elk.layout(graph).then((layoutedGraph) => ({
+    nodes: (layoutedGraph.children ?? []).map((node) => ({
+      // ELK에서 반환한 node의 x, y 좌표 직접 참조
+      ...node,
+      position: { x: node.x ?? 0, y: node.y ?? 0 },
+    })),
+    edges: layoutedGraph.edges,
+  }));
 };
 
 /*

@@ -26,13 +26,31 @@ export function useEditorLayout(
 ) {
   const { fitView } = useReactFlow();
 
+  /*
+  계산을 시작한 구조를 기록해 같은 구조를 중복 계산하지 않는다. 계산에 실패하면 기록을 지워
+  다음 렌더에서 다시 시도한다. 지우지 않으면 노드가 원점에 겹친 채로 남는다.
+  */
+  const requestedStructureRef = useRef<string | null>(null);
+
+  /*
+  마지막으로 시작한 계산을 식별한다. 나중에 시작한 계산일수록 더 나중의 store를 읽었으므로
+  입력이 더 최신이다. 먼저 시작한 계산이 늦게 끝나 그 결과를 얹으면 일부 노드만 예전 배치인
+  좌표가 섞이므로, 최신 계산의 결과만 적용한다.
+  */
+  const latestLayoutRunIdRef = useRef(0);
+
   const onLayout = useCallback(
     ({ direction }: { direction: Direction }) => {
       const opts = { "elk.direction": direction, ...elkOptions };
 
+      latestLayoutRunIdRef.current += 1;
+      const runId = latestLayoutRunIdRef.current; // 이 계산이 최신인지 판단할 때 사용한다.
+
       // ELK 레이아웃 계산 후 노드 위치를 업데이트하고, 화면에 맞게 뷰를 조정
-      getLayoutedElements(nodes, edges, opts).then(
-        ({ nodes: layoutedNodes }) => {
+      getLayoutedElements(nodes, edges, opts)
+        .then(({ nodes: layoutedNodes }) => {
+          if (runId !== latestLayoutRunIdRef.current) return;
+
           /*
           ELK 계산은 비동기라, 계산이 끝나는 사이에 서버 응답에 따른 임시 ID 교체나
           제목·메모 수정이 store에 반영될 수 있다. 계산 시작 시점의 배열로 store를 교체하면
@@ -46,13 +64,18 @@ export function useEditorLayout(
           window.requestAnimationFrame(() => {
             fitView();
           });
-        },
-      );
+        })
+        .catch((error) => {
+          console.error(error);
+
+          // 이미 더 새로운 계산이 시작되었다면 그쪽이 결과를 책임진다.
+          if (runId !== latestLayoutRunIdRef.current) return;
+
+          requestedStructureRef.current = null;
+        });
     },
     [nodes, edges, setNodes, fitView],
   );
-
-  const appliedStructureRef = useRef<string | null>(null);
 
   /*
   레이아웃 정렬 시점 결정.
@@ -63,9 +86,9 @@ export function useEditorLayout(
   useLayoutEffect(() => {
     const structure = getLayoutStructureSignature(nodes, edges);
 
-    if (appliedStructureRef.current === structure) return;
+    if (requestedStructureRef.current === structure) return;
 
-    appliedStructureRef.current = structure;
+    requestedStructureRef.current = structure;
 
     onLayout({ direction: "RIGHT" });
   }, [nodes, edges, onLayout]);
