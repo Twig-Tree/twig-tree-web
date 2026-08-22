@@ -1,4 +1,10 @@
-import { useCallback, useLayoutEffect, Dispatch, SetStateAction } from "react";
+import {
+  useCallback,
+  useLayoutEffect,
+  useRef,
+  Dispatch,
+  SetStateAction,
+} from "react";
 import { useReactFlow } from "@xyflow/react";
 import {
   CustomEditorNode,
@@ -6,6 +12,7 @@ import {
 } from "@/src/features/tree-editor/model/types";
 import {
   getLayoutedElements,
+  getLayoutStructureSignature,
   mergeLayoutPositions,
   elkOptions,
 } from "@/src/features/tree-editor/lib/layout";
@@ -45,11 +52,23 @@ export function useEditorLayout(
     [nodes, edges, setNodes, fitView],
   );
 
-  // 레이아웃 정렬 시점 결정
+  const appliedStructureRef = useRef<string | null>(null);
+
+  /*
+  레이아웃 정렬 시점 결정.
+  노드·엣지 배열은 좌표 병합이나 제목·메모 수정으로도 새 배열이 되므로, 배열이 바뀔 때마다
+  계산하면 레이아웃 결과가 다시 레이아웃을 부르는 순환이 된다. 구조 시그니처가 달라졌을 때만
+  계산해, 배치가 달라져야 하는 변화와 좌표를 다시 얹어야 하는 변화에만 반응한다.
+  */
   useLayoutEffect(() => {
+    const structure = getLayoutStructureSignature(nodes, edges);
+
+    if (appliedStructureRef.current === structure) return;
+
+    appliedStructureRef.current = structure;
+
     onLayout({ direction: "RIGHT" });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [nodes.length, edges.length]);
+  }, [nodes, edges, onLayout]);
 
   return { onLayout };
 }

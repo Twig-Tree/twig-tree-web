@@ -89,3 +89,34 @@ export const mergeLayoutPositions = (
     return { ...node, position: layoutedPosition };
   });
 };
+
+/*
+함수 이름 : getLayoutStructureSignature
+기능 : 레이아웃을 다시 계산해야 하는 시점을 식별하는 문자열을 만든다. 배치를 결정하는 노드 배열 순서와 엣지 연결 관계, 좌표를 얹을 때 기준이 되는 노드 ID를 담는다. 개수만 비교하면 개수가 같은 채로 배열이 교체되는 경우(트리 전환, 형제 순서 변경)를 놓친다.
+인자 : CustomEditorNode[] nodes -> 현재 editor store의 노드 목록
+CustomEditorEdge[] edges -> 현재 editor store의 엣지 목록
+반환값 : 구조 시그니처 문자열
+*/
+export const getLayoutStructureSignature = (
+  nodes: CustomEditorNode[],
+  edges: CustomEditorEdge[],
+): string => {
+  /*
+  노드 ID 목록은 추가·삭제·트리 전환처럼 배치가 달라지는 변화를 잡는다.
+  더해서 임시 ID가 실제 ID로 교체되는 변화도 잡는다. 이쪽은 배치가 달라지지 않지만,
+  mergeLayoutPositions가 ID로 좌표를 찾으므로 계산이 도는 중에 ID가 바뀐 노드는
+  좌표를 받지 못한 채 남는다. 재계산으로 그 노드의 좌표를 다시 얹는다.
+  배열 순서까지 담는 것은 ELK의 considerModelOrder가 순서로 형제 배치를 정하기 때문이다.
+  */
+  const nodeSignature = nodes.map((node) => node.id).join(",");
+
+  /*
+  엣지는 ID 대신 연결 관계로 비교한다. reconnect는 엣지 ID를 유지한 채 source·target만
+  바꾸므로 ID로는 배치가 달라지는 변화를 감지할 수 없다.
+  */
+  const edgeSignature = edges
+    .map((edge) => `${edge.source}>${edge.target}`)
+    .join(",");
+
+  return `${nodeSignature}|${edgeSignature}`;
+};

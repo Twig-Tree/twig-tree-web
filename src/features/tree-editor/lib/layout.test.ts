@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { mergeLayoutPositions } from "./layout";
+import { getLayoutStructureSignature, mergeLayoutPositions } from "./layout";
 import { CustomEditorNode } from "@/src/features/tree-editor/model/types";
 
 const createNode = (
@@ -114,5 +114,97 @@ describe("mergeLayoutPositions", () => {
 
     expect(merged.map((node) => node.id)).toEqual(["1", "2", "3"]);
     expect(merged.map((node) => node.position.x)).toEqual([10, 20, 30]);
+  });
+});
+
+describe("getLayoutStructureSignature", () => {
+  const nodes = [
+    createNode("1", { x: 0, y: 0 }),
+    createNode("2", { x: 0, y: 0 }),
+  ];
+  const edges = [{ id: "e-1-2", source: "1", target: "2" }];
+
+  it("좌표만 달라지면 같은 시그니처를 낸다", () => {
+    const layoutedNodes = [
+      createNode("1", { x: 10, y: 20 }),
+      createNode("2", { x: 30, y: 40 }),
+    ];
+
+    expect(getLayoutStructureSignature(layoutedNodes, edges)).toBe(
+      getLayoutStructureSignature(nodes, edges),
+    );
+  });
+
+  it("제목만 달라지면 같은 시그니처를 낸다", () => {
+    const renamedNodes = [
+      createNode("1", { x: 0, y: 0 }, "수정한 제목"),
+      createNode("2", { x: 0, y: 0 }),
+    ];
+
+    expect(getLayoutStructureSignature(renamedNodes, edges)).toBe(
+      getLayoutStructureSignature(nodes, edges),
+    );
+  });
+
+  /*
+  이슈 #51의 남은 구멍이다. 임시 ID가 실제 ID로 교체되면 개수는 그대로지만
+  새 노드의 좌표를 잡아 줄 레이아웃이 다시 돌아야 한다.
+  */
+  it("임시 ID가 실제 ID로 교체되면 다른 시그니처를 낸다", () => {
+    const beforeNodes = [
+      createNode("1", { x: 0, y: 0 }),
+      createNode("temp_abc", { x: 150, y: 0 }),
+    ];
+    const beforeEdges = [
+      { id: "e-1-temp_abc", source: "1", target: "temp_abc" },
+    ];
+
+    const afterNodes = [
+      createNode("1", { x: 0, y: 0 }),
+      createNode("42", { x: 150, y: 0 }),
+    ];
+    const afterEdges = [{ id: "e-1-42", source: "1", target: "42" }];
+
+    expect(getLayoutStructureSignature(afterNodes, afterEdges)).not.toBe(
+      getLayoutStructureSignature(beforeNodes, beforeEdges),
+    );
+  });
+
+  /*
+  이슈 #50의 경로다. 두 트리의 노드 개수가 우연히 같아도 레이아웃이 실행되어야 한다.
+  */
+  it("노드 개수가 같아도 ID가 다르면 다른 시그니처를 낸다", () => {
+    const otherTreeNodes = [
+      createNode("7", { x: 0, y: 0 }),
+      createNode("8", { x: 0, y: 0 }),
+    ];
+    const otherTreeEdges = [{ id: "e-7-8", source: "7", target: "8" }];
+
+    expect(
+      getLayoutStructureSignature(otherTreeNodes, otherTreeEdges),
+    ).not.toBe(getLayoutStructureSignature(nodes, edges));
+  });
+
+  /*
+  ELK의 considerModelOrder가 배열 순서로 형제 배치를 정하므로, 순서 변경도 재계산 대상이다.
+  */
+  it("노드 배열 순서가 바뀌면 다른 시그니처를 낸다", () => {
+    const reorderedNodes = [nodes[1], nodes[0]];
+
+    expect(getLayoutStructureSignature(reorderedNodes, edges)).not.toBe(
+      getLayoutStructureSignature(nodes, edges),
+    );
+  });
+
+  /*
+  reconnect는 엣지 ID를 유지한 채 연결만 바꾸므로 ID 비교로는 감지되지 않는다.
+  */
+  it("엣지 ID가 같아도 연결이 바뀌면 다른 시그니처를 낸다", () => {
+    const threeNodes = [...nodes, createNode("3", { x: 0, y: 0 })];
+    const reconnectedEdges = [{ id: "e-1-2", source: "3", target: "2" }];
+
+    expect(getLayoutStructureSignature(threeNodes, reconnectedEdges)).not.toBe(
+      getLayoutStructureSignature(threeNodes, edges),
+    );
   });
 });
