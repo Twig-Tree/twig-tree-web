@@ -13,7 +13,7 @@ import {
 import {
   getLayoutedElements,
   getLayoutStructureSignature,
-  mergeLayoutPositions,
+  mergeLayoutResult,
   elkOptions,
 } from "@/src/features/tree-editor/lib/layout";
 import { Direction } from "@/src/features/tree-editor/model/types";
@@ -54,11 +54,11 @@ export function useEditorLayout(
           /*
           ELK 계산은 비동기라, 계산이 끝나는 사이에 서버 응답에 따른 임시 ID 교체나
           제목·메모 수정이 store에 반영될 수 있다. 계산 시작 시점의 배열로 store를 교체하면
-          그 변경이 사라지므로, 최신 store 노드에 position만 병합한다.
+          그 변경이 사라지므로, 최신 store 노드에 배치 값만 병합한다.
           엣지는 React Flow가 노드 위치로 경로를 계산하므로 ELK 결과를 반영하지 않는다.
           */
           setNodes((currentNodes) =>
-            mergeLayoutPositions(currentNodes, layoutedNodes),
+            mergeLayoutResult(currentNodes, layoutedNodes),
           );
 
           window.requestAnimationFrame(() => {

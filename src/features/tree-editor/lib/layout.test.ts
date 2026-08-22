@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
-import { getLayoutStructureSignature, mergeLayoutPositions } from "./layout";
+import { getLayoutStructureSignature, mergeLayoutResult } from "./layout";
+import { Position } from "@xyflow/react";
 import { CustomEditorNode } from "@/src/features/tree-editor/model/types";
 
 const createNode = (
@@ -13,7 +14,22 @@ const createNode = (
   position,
 });
 
-describe("mergeLayoutPositions", () => {
+/*
+ELK 계산 결과의 노드는 좌표뿐 아니라 배치 상자 크기와 핸들 위치를 함께 들고 온다.
+*/
+const createLayoutedNode = (
+  id: string,
+  position: { x: number; y: number },
+  label = `node ${id}`,
+): CustomEditorNode => ({
+  ...createNode(id, position, label),
+  width: 150,
+  height: 50,
+  targetPosition: Position.Left,
+  sourcePosition: Position.Right,
+});
+
+describe("mergeLayoutResult", () => {
   it("ID가 일치하는 노드에 계산된 좌표를 반영한다", () => {
     const currentNodes = [
       createNode("1", { x: 0, y: 0 }),
@@ -24,7 +40,7 @@ describe("mergeLayoutPositions", () => {
       createNode("2", { x: 30, y: 40 }),
     ];
 
-    const merged = mergeLayoutPositions(currentNodes, layoutedNodes);
+    const merged = mergeLayoutResult(currentNodes, layoutedNodes);
 
     expect(merged.map((node) => node.position)).toEqual([
       { x: 10, y: 20 },
@@ -42,7 +58,7 @@ describe("mergeLayoutPositions", () => {
       createNode("temp_abc", { x: 300, y: 80 }, "Added node 1"),
     ];
 
-    const merged = mergeLayoutPositions(currentNodes, layoutedNodes);
+    const merged = mergeLayoutResult(currentNodes, layoutedNodes);
 
     expect(merged).toHaveLength(1);
     expect(merged[0].id).toBe("42");
@@ -53,7 +69,7 @@ describe("mergeLayoutPositions", () => {
     const currentNodes = [createNode("1", { x: 0, y: 0 }, "수정한 제목")];
     const layoutedNodes = [createNode("1", { x: 10, y: 20 }, "이전 제목")];
 
-    const merged = mergeLayoutPositions(currentNodes, layoutedNodes);
+    const merged = mergeLayoutResult(currentNodes, layoutedNodes);
 
     expect(merged[0].data.label).toBe("수정한 제목");
     expect(merged[0].position).toEqual({ x: 10, y: 20 });
@@ -66,7 +82,7 @@ describe("mergeLayoutPositions", () => {
     ];
     const layoutedNodes = [createNode("1", { x: 10, y: 20 })];
 
-    const merged = mergeLayoutPositions(currentNodes, layoutedNodes);
+    const merged = mergeLayoutResult(currentNodes, layoutedNodes);
 
     expect(merged.map((node) => node.id)).toEqual(["1", "temp_new"]);
     expect(merged[1].position).toEqual({ x: 150, y: 0 });
@@ -83,7 +99,7 @@ describe("mergeLayoutPositions", () => {
       createNode("2", { x: 30, y: 40 }),
     ];
 
-    const merged = mergeLayoutPositions(currentNodes, layoutedNodes);
+    const merged = mergeLayoutResult(currentNodes, layoutedNodes);
 
     expect(merged.map((node) => node.id)).toEqual(["1"]);
   });
@@ -93,9 +109,53 @@ describe("mergeLayoutPositions", () => {
     const currentNodes = [unchangedNode];
     const layoutedNodes = [createNode("1", { x: 10, y: 20 })];
 
-    const merged = mergeLayoutPositions(currentNodes, layoutedNodes);
+    const merged = mergeLayoutResult(currentNodes, layoutedNodes);
 
     expect(merged[0]).toBe(unchangedNode);
+  });
+
+  /*
+  레이아웃이 소유하는 값은 좌표만이 아니다. 노드 너비·높이와 핸들 위치도 계산 결과가 정하므로
+  함께 얹지 않으면 노드가 내용 크기로 줄고 연결점이 기본값(상·하)으로 떨어진다.
+  */
+  it("계산된 크기와 핸들 위치를 함께 반영한다", () => {
+    const currentNodes = [createNode("1", { x: 0, y: 0 })];
+    const layoutedNodes = [createLayoutedNode("1", { x: 10, y: 20 })];
+
+    const [merged] = mergeLayoutResult(currentNodes, layoutedNodes);
+
+    expect(merged.width).toBe(150);
+    expect(merged.height).toBe(50);
+    expect(merged.targetPosition).toBe(Position.Left);
+    expect(merged.sourcePosition).toBe(Position.Right);
+  });
+
+  it("store와 React Flow가 소유하는 값은 유지한다", () => {
+    const currentNodes: CustomEditorNode[] = [
+      {
+        ...createNode("1", { x: 0, y: 0 }, "수정한 제목"),
+        selected: true,
+        measured: { width: 94, height: 40 },
+      },
+    ];
+    const layoutedNodes = [
+      createLayoutedNode("1", { x: 10, y: 20 }, "이전 제목"),
+    ];
+
+    const [merged] = mergeLayoutResult(currentNodes, layoutedNodes);
+
+    expect(merged.data.label).toBe("수정한 제목");
+    expect(merged.selected).toBe(true);
+    expect(merged.measured).toEqual({ width: 94, height: 40 });
+  });
+
+  it("배치가 그대로면 같은 객체로 남긴다", () => {
+    const unchangedNode = createLayoutedNode("1", { x: 10, y: 20 });
+    const layoutedNodes = [createLayoutedNode("1", { x: 10, y: 20 })];
+
+    const [merged] = mergeLayoutResult([unchangedNode], layoutedNodes);
+
+    expect(merged).toBe(unchangedNode);
   });
 
   it("노드 배열의 순서를 바꾸지 않는다", () => {
@@ -110,7 +170,7 @@ describe("mergeLayoutPositions", () => {
       createNode("2", { x: 20, y: 0 }),
     ];
 
-    const merged = mergeLayoutPositions(currentNodes, layoutedNodes);
+    const merged = mergeLayoutResult(currentNodes, layoutedNodes);
 
     expect(merged.map((node) => node.id)).toEqual(["1", "2", "3"]);
     expect(merged.map((node) => node.position.x)).toEqual([10, 20, 30]);

@@ -53,38 +53,54 @@ export const getLayoutedElements = async (
 };
 
 /*
-함수 이름 : mergeLayoutPositions
-기능 : ELK 계산 결과에서 position만 현재 노드 목록에 병합한다. 계산 결과 배열로 노드를 통째로 교체하면 계산이 도는 동안 store에 일어난 ID 교체·라벨 수정·추가·삭제가 덮이므로, 좌표만 얹는다.
+함수 이름 : mergeLayoutResult
+기능 : ELK 계산 결과에서 레이아웃이 소유하는 값만 현재 노드 목록에 병합한다. 계산 결과 배열로 노드를 통째로 교체하면 계산이 도는 동안 store에 일어난 ID 교체·라벨 수정·추가·삭제가 덮이므로, 배치에 해당하는 값만 얹는다.
 인자 : CustomEditorNode[] currentNodes -> 병합 시점의 editor store 노드 목록
-CustomEditorNode[] layoutedNodes -> ELK가 좌표를 계산한 노드 목록
-반환값 : position만 갱신된 노드 목록
+CustomEditorNode[] layoutedNodes -> ELK가 배치를 계산한 노드 목록
+반환값 : 배치 값만 갱신된 노드 목록
 */
-export const mergeLayoutPositions = (
+export const mergeLayoutResult = (
   currentNodes: CustomEditorNode[],
   layoutedNodes: CustomEditorNode[],
 ): CustomEditorNode[] => {
-  const positionById = new Map(
-    layoutedNodes.map((node) => [node.id, node.position]),
-  );
+  const layoutedById = new Map(layoutedNodes.map((node) => [node.id, node]));
 
   return currentNodes.map((node) => {
-    const layoutedPosition = positionById.get(node.id);
+    const layoutedNode = layoutedById.get(node.id);
 
     /*
     계산 시작 이후 추가되었거나 임시 ID가 실제 ID로 교체된 노드는 계산 결과에 없다.
-    이런 노드는 다음 레이아웃 실행이 좌표를 잡을 때까지 현재 위치를 유지한다.
+    이런 노드는 다음 레이아웃 실행이 배치를 잡을 때까지 현재 값을 유지한다.
     */
-    if (!layoutedPosition) return node;
+    if (!layoutedNode) return node;
 
-    // 좌표가 그대로면 노드 객체를 재사용해 불필요한 리렌더를 막는다.
+    /*
+    레이아웃이 소유하는 값은 좌표와, ELK에 넘긴 배치 상자 크기, 정렬 방향이 정하는 핸들 위치다.
+    id·data·selected·measured처럼 store와 React Flow가 소유하는 값은 현재 노드의 것을 유지한다.
+    */
+    const { position, width, height, targetPosition, sourcePosition } =
+      layoutedNode;
+
+    // 배치가 그대로면 노드 객체를 재사용해 불필요한 리렌더를 막는다.
     if (
-      node.position.x === layoutedPosition.x &&
-      node.position.y === layoutedPosition.y
+      node.position.x === position.x &&
+      node.position.y === position.y &&
+      node.width === width &&
+      node.height === height &&
+      node.targetPosition === targetPosition &&
+      node.sourcePosition === sourcePosition
     ) {
       return node;
     }
 
-    return { ...node, position: layoutedPosition };
+    return {
+      ...node,
+      position,
+      width,
+      height,
+      targetPosition,
+      sourcePosition,
+    };
   });
 };
 
@@ -102,7 +118,7 @@ export const getLayoutStructureSignature = (
   /*
   노드 ID 목록은 추가·삭제·트리 전환처럼 배치가 달라지는 변화를 잡는다.
   더해서 임시 ID가 실제 ID로 교체되는 변화도 잡는다. 이쪽은 배치가 달라지지 않지만,
-  mergeLayoutPositions가 ID로 좌표를 찾으므로 계산이 도는 중에 ID가 바뀐 노드는
+  mergeLayoutResult가 ID로 배치를 찾으므로 계산이 도는 중에 ID가 바뀐 노드는
   좌표를 받지 못한 채 남는다. 재계산으로 그 노드의 좌표를 다시 얹는다.
   배열 순서까지 담는 것은 ELK의 considerModelOrder가 순서로 형제 배치를 정하기 때문이다.
   */
