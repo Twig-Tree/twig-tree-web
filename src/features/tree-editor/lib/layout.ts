@@ -53,3 +53,39 @@ export const getLayoutedElements = async (
       return { nodes, edges };
     });
 };
+
+/*
+함수 이름 : mergeLayoutPositions
+기능 : ELK 계산 결과에서 position만 현재 노드 목록에 병합한다. 계산 결과 배열로 노드를 통째로 교체하면 계산이 도는 동안 store에 일어난 ID 교체·라벨 수정·추가·삭제가 덮이므로, 좌표만 얹는다.
+인자 : CustomEditorNode[] currentNodes -> 병합 시점의 editor store 노드 목록
+CustomEditorNode[] layoutedNodes -> ELK가 좌표를 계산한 노드 목록
+반환값 : position만 갱신된 노드 목록
+*/
+export const mergeLayoutPositions = (
+  currentNodes: CustomEditorNode[],
+  layoutedNodes: CustomEditorNode[],
+): CustomEditorNode[] => {
+  const positionById = new Map(
+    layoutedNodes.map((node) => [node.id, node.position]),
+  );
+
+  return currentNodes.map((node) => {
+    const layoutedPosition = positionById.get(node.id);
+
+    /*
+    계산 시작 이후 추가되었거나 임시 ID가 실제 ID로 교체된 노드는 계산 결과에 없다.
+    이런 노드는 다음 레이아웃 실행이 좌표를 잡을 때까지 현재 위치를 유지한다.
+    */
+    if (!layoutedPosition) return node;
+
+    // 좌표가 그대로면 노드 객체를 재사용해 불필요한 리렌더를 막는다.
+    if (
+      node.position.x === layoutedPosition.x &&
+      node.position.y === layoutedPosition.y
+    ) {
+      return node;
+    }
+
+    return { ...node, position: layoutedPosition };
+  });
+};
