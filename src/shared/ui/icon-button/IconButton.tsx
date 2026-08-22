@@ -12,8 +12,10 @@ const sizeStyles = {
   md: "h-10 w-10 [&_svg]:size-5",
 } as const;
 
-export interface IconButtonProps
-  extends Omit<ButtonHTMLAttributes<HTMLButtonElement>, "aria-label"> {
+export interface IconButtonProps extends Omit<
+  ButtonHTMLAttributes<HTMLButtonElement>,
+  "aria-label"
+> {
   "aria-label": string; // 아이콘만 있는 버튼이므로 스크린 리더용 이름을 반드시 지정한다
   size?: keyof typeof sizeStyles; // 버튼과 내부 아이콘의 크기. 지정하지 않으면 md 사용
   variant?: keyof typeof variantStyles; // 버튼의 색상과 상태 스타일을 선택. 지정하지 않으면 ghost 사용

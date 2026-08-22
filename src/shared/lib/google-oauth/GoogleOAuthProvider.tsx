@@ -1,8 +1,6 @@
 "use client";
 
-import {
-  GoogleOAuthProvider as ReactGoogleOAuthProvider,
-} from "@react-oauth/google";
+import { GoogleOAuthProvider as ReactGoogleOAuthProvider } from "@react-oauth/google";
 import type { ReactNode } from "react";
 
 interface GoogleOAuthProviderProps {

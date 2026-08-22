@@ -37,12 +37,12 @@ AI가 무엇을 만들어 주었는지가 아니라, **어떤 의문을 제기�
 
 두 방식은 **입력값의 소유자가 누구인가**로 갈린다.
 
-| 구분         | controlled                             | uncontrolled                         |
-| ------------ | -------------------------------------- | ------------------------------------ |
-| 값의 소유자  | React 상태                             | DOM 요소                             |
-| 사용하는 속성 | `value` + `onChange`                   | `defaultValue` + `ref`               |
-| 값을 읽는 시점 | 매 입력마다                            | 필요할 때(주로 제출 시점)            |
-| 리렌더        | 입력마다 발생                          | 입력 중에는 발생하지 않음            |
+| 구분           | controlled           | uncontrolled              |
+| -------------- | -------------------- | ------------------------- |
+| 값의 소유자    | React 상태           | DOM 요소                  |
+| 사용하는 속성  | `value` + `onChange` | `defaultValue` + `ref`    |
+| 값을 읽는 시점 | 매 입력마다          | 필요할 때(주로 제출 시점) |
+| 리렌더         | 입력마다 발생        | 입력 중에는 발생하지 않음 |
 
 즉 uncontrolled는 타이핑 중 React가 값을 알지 못한다. 값이 DOM에만 있으므로, 입력 도중의 값에 반응하는 UI를 만들 수 없다.
 
@@ -116,13 +116,17 @@ AI는 두 함수가 "표시"와 "검증"이라는 서로 다른 책임을 가지
 
 ```ts
 const FILE_KIND_BY_EXTENSION = {
-  txt: "text", md: "text", pdf: "pdf",
-  docx: "word", hwp: "hwp", hwpx: "hwp",
+  txt: "text",
+  md: "text",
+  pdf: "pdf",
+  docx: "word",
+  hwp: "hwp",
+  hwpx: "hwp",
 };
 
 ACCEPTED_FILE_EXTENSIONS = Object.keys(FILE_KIND_BY_EXTENSION);
-FILE_INPUT_ACCEPT        = ".txt,.md,.pdf,.docx,.hwp,.hwpx";
-getFileKind(fileName);        // 확장자만 본다
+FILE_INPUT_ACCEPT = ".txt,.md,.pdf,.docx,.hwp,.hwpx";
+getFileKind(fileName); // 확장자만 본다
 isAcceptedFileName(fileName); // getFileKind가 unknown이 아닌지 확인한다
 ```
 

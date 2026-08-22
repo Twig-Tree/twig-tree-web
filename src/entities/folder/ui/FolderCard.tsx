@@ -11,11 +11,7 @@ interface FolderCardProps {
   onRename: () => void;
 }
 
-export function FolderCard({
-  folder,
-  onDelete,
-  onRename,
-}: FolderCardProps) {
+export function FolderCard({ folder, onDelete, onRename }: FolderCardProps) {
   return (
     <article className="group relative flex min-h-36 flex-col justify-between rounded-xl border border-slate-100 bg-white p-5 shadow-sm transition-shadow hover:shadow-md">
       {folder.id !== null ? (

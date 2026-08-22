@@ -1,0 +1,8 @@
+# 생성 파일은 포맷 대상이 아니다.
+pnpm-lock.yaml
+
+# 빌드 산출물 (.gitignore와 같은 범위)
+/.next/
+/out/
+/build/
+/coverage/

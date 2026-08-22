@@ -39,6 +39,7 @@ description: Draft and (after user confirmation) create a GitHub issue using thi
    ```
 
    상태 줄 다음에 문제/기능이 무엇이고 왜 필요한지 대화 맥락과 코드에서 관찰한 내용을 바탕으로 적는다. 추측성 원인 분석은 확실하지 않으면 단정하지 않는다.
+
 4. `## ✅ TODO`: 실제로 처리해야 할 작업을 체크리스트로 쪼갠다. 상태가 "대기"라면 그 대기 상태를 푸는 일(방식 결정, 선행 이슈 완료 확인 등)을 첫 항목으로 넣는다.
 5. 라벨을 붙일 근거가 명확하면 제안하고, 애매하면 비워두고 사용자에게 맡긴다.
 6. 이미 있는 이슈의 상태가 바뀌었다는 걸 알게 되면(예: 백엔드 완료 소식), 새 이슈를 만들기보다 기존 이슈의 상태 줄을 갱신할지 사용자에게 먼저 물어본다.
@@ -63,6 +64,7 @@ description: Draft and (after user confirmation) create a GitHub issue using thi
    ```
 
    라벨이 있으면 `--label`을 추가한다.
+
 2. 서브 이슈로 만들기로 했다면, 부모/자식 이슈의 **REST 내부 id**(정수)를 조회해 GitHub sub-issues API로 연결한다.
 
    ```bash
@@ -78,4 +80,5 @@ description: Draft and (after user confirmation) create a GitHub issue using thi
    `sub_issue_id`는 반드시 `-F`(타입 추론)로 보낸다. `-f`로 보내면 문자열로 직렬화되어 GitHub API가 `integer` 타입이 아니라고 거부한다.
 
    이 API 호출이 실패하면(권한, 버전 등) 억지로 재시도하지 않고 사용자에게 알린 뒤, 부모 이슈 본문에 자식 이슈 링크를 수동으로 추가할지 물어본다.
+
 3. 생성된 이슈 URL을 사용자에게 보여준다.
