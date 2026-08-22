@@ -15,7 +15,7 @@ export const MemoSidePanel = ({
 }: MemoSidePanelProps) => {
   const savedMemo = selectedNode?.data.memo ?? null; // 저장된 메모가 없으면 null이다.
 
-  const { saveMemo, isSaving } = useSaveMemo({
+  const { handleSaveMemo, isSaving } = useSaveMemo({
     treeId,
     nodeId: selectedNode?.id,
     savedMemo,
@@ -46,7 +46,7 @@ export const MemoSidePanel = ({
         <MemoEditor
           key={selectedNode.id}
           initialMemo={savedMemo ?? ""}
-          onSave={(content) => void saveMemo(content)}
+          onSave={(content) => void handleSaveMemo(content)}
           isSaving={isSaving}
         />
       ) : (

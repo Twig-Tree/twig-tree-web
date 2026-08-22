@@ -32,7 +32,7 @@ export const useSaveMemo = ({
 
   const isSaving = isUpdating || isDeleting;
 
-  const saveMemo = async (content: string) => {
+  const handleSaveMemo = async (content: string) => {
     if (!nodeId || isSaving) return;
 
     const trimmedContent = content.trim();
@@ -63,7 +63,7 @@ export const useSaveMemo = ({
   };
 
   return {
-    saveMemo,
+    handleSaveMemo,
     isSaving,
   };
 };

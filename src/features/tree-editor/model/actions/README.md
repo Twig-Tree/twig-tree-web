@@ -156,10 +156,14 @@ Undo/Redo도 pending 중에는 막는다.
 
 이름은 어떤 계층의 동작인지 드러나야 한다.
 
-- 사용자 이벤트 handler: `handleAddNode`, `handleDeleteNode`
+- 사용자 이벤트 handler: `handleAddNode`, `handleDeleteNode`, `handleSaveMemo`
 - Action hook: `useAddNode`, `useDeleteNode`, `useUpdateNodeName`
 - Server mutation hook: `useAddNodeMutation`, `useDeleteNodeMutation`, `useEditNodeNameMutation`
 - Store action: `addNodeToStore`, `deleteNodeFromStore`, `updateNodeLabelInStore`
+
+`handle*`을 붙이는 기준은 인자 유무가 아니라 **이벤트나 콜백 prop에 연결되어 그 자체로 완결되는가**다. `handleSaveMemo(content)`처럼 인자를 받아도 호출부가 결과를 쓰지 않고 그대로 넘기면 handler다.
+
+반면 호출부가 반환값을 받아 자기 흐름을 결정하는 함수는 동사형으로 둔다. `updateNodeName(name)`은 `Promise<boolean>`을 돌려주고, `CustomNode`의 `commitName`이 그 결과로 편집 종료와 에러 표시를 나눈다. 이런 함수는 handler가 아니라 handler가 조립해 쓰는 연산이다.
 
 `onAdd`, `onDelete`처럼 범용적인 이름은 domain store action에는 사용하지 않는다. `on*` 이름은 React Flow의 `onNodesChange`, `onEdgesChange` 같은 framework callback 성격에 남겨둔다.
 
