@@ -31,9 +31,7 @@ export const useUpdateMemoMutation = () => {
         treeQueryKeys.detail(treeId),
         (oldNodes) =>
           oldNodes?.map((node) =>
-            node.id === nodeId
-              ? { ...node, data: { ...node.data, memo: savedMemo.content } }
-              : node,
+            node.id === nodeId ? { ...node, memo: savedMemo.content } : node,
           ),
       );
     },

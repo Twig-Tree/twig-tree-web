@@ -4,11 +4,22 @@ import {
   CustomEditorNode,
 } from "@/src/features/tree-editor/model/types";
 
+/*
+함수 이름 : mapToVisualNodes
+기능 : 도메인 노드 목록을 React Flow 노드 배열로 변환한다. 도메인 노드의 어떤 값이 화면 노드의
+어느 자리로 가는지가 이 함수에만 있으므로, data에 실을 필드를 펼치지 않고 하나씩 옮긴다.
+인자 : TreeNode[] nodes -> 도메인 노드 목록
+반환값 : React Flow 노드 배열
+*/
 export const mapToVisualNodes = (nodes: TreeNode[]): CustomEditorNode[] => {
   return nodes.map((node) => ({
     id: node.id,
     type: "custom",
-    data: node.data,
+    data: {
+      label: node.label,
+      orderIndex: node.orderIndex,
+      memo: node.memo,
+    },
     position: { x: 0, y: 0 }, // 초기 위치는 ELK 레이아웃 엔진 등이 계산하도록 위임
   }));
 };
@@ -31,9 +42,7 @@ export const mapToVisualEdges = (nodes: TreeNode[]): CustomEditorEdge[] => {
 반환값 : React Flow 노드 배열과 엣지 배열
 */
 export const transformToFlowElements = (nodes: TreeNode[]) => {
-  const orderedNodes = [...nodes].sort(
-    (a, b) => a.data.orderIndex - b.data.orderIndex,
-  );
+  const orderedNodes = [...nodes].sort((a, b) => a.orderIndex - b.orderIndex);
 
   return {
     nodes: mapToVisualNodes(orderedNodes),

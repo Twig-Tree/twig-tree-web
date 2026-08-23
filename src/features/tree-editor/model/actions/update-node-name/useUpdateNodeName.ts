@@ -75,7 +75,7 @@ export const useUpdateNodeName = ({
         서버가 제목을 보정할 수 있으므로 query cache와 같은 값을 store에도 반영한다.
         보내지 않으면 cache는 서버 값, 화면은 입력값으로 갈린다.
         */
-        updateNodeLabelInStore(nodeId, updatedNode.data.label);
+        updateNodeLabelInStore(nodeId, updatedNode.label);
 
         return true;
       } catch {

@@ -101,7 +101,9 @@ export const useAddNode = ({
                     id: realNodeId,
                     data: {
                       ...node.data,
-                      ...createdNode.data,
+                      label: createdNode.label,
+                      orderIndex: createdNode.orderIndex,
+                      memo: createdNode.memo,
                     },
                   }
                 : node,
