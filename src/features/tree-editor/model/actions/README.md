@@ -36,9 +36,9 @@ Action hook은 editor store 상태와 UI action별 동작을 관리한다.
 
 예를 들어 `useAddNode`는 다음을 담당한다.
 
-- 임시 React Flow node/edge를 생성한다.
-- Zustand editor store에 임시 node/edge를 추가한다.
-- 성공 시 임시 editor id를 서버 id로 교체한다.
+- React Flow node/edge를 생성한다. 노드의 신원은 이때 클라이언트가 정한다.
+- Zustand editor store에 node/edge를 추가한다.
+- 성공 시 서버가 확정한 id를 노드의 `data.serverId`에 채운다.
 - 실패 시 editor store를 undo로 복구한다.
 - 사용자에게 보여줄 에러 메시지를 처리한다.
 
@@ -53,7 +53,7 @@ Optimistic update는 editor store에서만 한다.
 
 서버 응답이 도착하면 editor store는 서버가 실제로 보정한 값만 반영한다.
 
-예를 들어 노드 추가 성공 시 editor store에서는 임시 id를 실제 id로 교체하되, React Flow layout 정보는 유지한다.
+예를 들어 노드 추가 성공 시 editor store에서는 `data.serverId`와 서버가 보정한 값만 채우고, 노드 신원과 React Flow layout 정보는 그대로 둔다.
 
 ## 실패 복구 규칙
 
@@ -90,12 +90,12 @@ onError: () => {
 ```ts
 const previousLabel = /* 변경 전 label */;
 
-updateNodeLabelInStore(nodeId, nextLabel);
+updateNodeLabelInStore(clientId, nextLabel);
 
 try {
   await editNodeNameOnServer(...);
 } catch {
-  updateNodeLabelInStore(nodeId, previousLabel);
+  updateNodeLabelInStore(clientId, previousLabel);
 }
 ```
 
@@ -173,7 +173,7 @@ Mutation hook은 서버 상태와 React Query cache를 관리한다.
 
 Action hook은 editor store 상태와 UI interaction state를 관리한다.
 
-store의 node `data`는 cache와 같은 `TreeNodeData`를 그대로 재사용한다. 다만 `position`, `selected`처럼 서버가 모르는 값은 store에만 두고 cache로 올리지 않는다.
+store의 node `data`는 도메인 타입 `TreeNode`에서 React Flow가 이미 소유하는 필드를 덜어낸 `EditorNodeData`다. `position`, `selected`처럼 서버가 모르는 값은 store에만 두고 cache로 올리지 않는다.
 
 한쪽을 바꿨다고 다른 쪽을 따라 바꾸지 않는다. store는 사용자 입력으로, cache는 서버 응답으로 각각 갱신된다.
 
@@ -186,7 +186,7 @@ Mutation 호출부의 callback은 action-specific editor store 동작을 담당�
 노드 추가 기준 책임은 다음과 같다.
 
 - `useAddNodeMutation.onSuccess`: 서버가 반환한 노드를 query cache에 반영한다.
-- `useAddNode`의 call-site `onSuccess`: editor store의 node id와 edge를 업데이트한다.
+- `useAddNode`의 call-site `onSuccess`: editor store 노드의 `data.serverId`와 서버가 보정한 값을 채운다.
 - `useAddNode`의 call-site `onError`: editor store를 undo로 복구한다.
 
 mutation 선언부에는 `onError`를 두지 않는다. cache를 미리 바꾸지 않았으므로 복구할 것이 없다.
@@ -209,12 +209,12 @@ mutation 선언부에는 `onError`를 두지 않는다. cache를 미리 바꾸�
 
 ## 예시: Add Node
 
-`useAddNode`는 임시 editor node/edge를 만들고 `useAddNodeMutation`을 호출한다.
+`useAddNode`는 editor node/edge를 만들고 `useAddNodeMutation`을 호출한다. 새 노드의 신원은 `createClientNodeId`로 이때 정해지고, `data.serverId`는 응답이 올 때까지 `null`이다.
 
 성공 시:
 
 - Query cache는 서버가 반환한 `TreeNode`를 배열 끝에 덧붙인다.
-- Editor store는 임시 node id와 연결된 edge target을 서버 id로 교체한다.
+- Editor store는 노드의 `data.serverId`를 채운다. 노드 신원과 edge는 손대지 않는다.
 - Editor layout은 유지한다.
 
 실패 시:
