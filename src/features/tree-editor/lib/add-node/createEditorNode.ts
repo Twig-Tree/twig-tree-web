@@ -1,7 +1,7 @@
 import { CustomEditorNode } from "../../model/types";
 
 type CreateEditorNodeParams = {
-  id: string;
+  clientId: string; // 편집기가 정한 노드 신원, React Flow의 Node.id가 된다
   serverId: string | null; // 서버가 확정한 노드 ID, 저장 전이면 null
   label: string;
   orderIndex: number;
@@ -17,7 +17,7 @@ serverId를 인자로 받아 저장 여부를 노드 자신이 들고 있게 한
 반환값 : React Flow 노드
 */
 export const createEditorNode = ({
-  id,
+  clientId,
   serverId,
   label,
   orderIndex,
@@ -25,7 +25,7 @@ export const createEditorNode = ({
   y,
 }: CreateEditorNodeParams): CustomEditorNode => {
   return {
-    id,
+    id: clientId,
     type: "custom",
     data: {
       serverId,

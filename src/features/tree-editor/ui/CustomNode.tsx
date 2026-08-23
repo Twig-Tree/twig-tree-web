@@ -32,7 +32,7 @@ export function CustomNode({
   const { getNodeNameError, updateNodeName, isUpdatingNodeName } =
     useUpdateNodeName({
       treeId: treeId ?? "",
-      nodeId: id,
+      clientId: id,
       serverId: data.serverId,
     });
 

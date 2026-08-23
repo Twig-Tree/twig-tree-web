@@ -61,7 +61,7 @@ export const useAddNode = ({
     React Flow editor store에 먼저 반영할 노드와 엣지를 생성한다.
     */
     const newNode = createEditorNode({
-      id: newClientId,
+      clientId: newClientId,
       serverId: null, // 서버 응답을 받기 전이라 아직 서버 ID가 없다.
       label,
       orderIndex: nextOrderIndex,
@@ -70,8 +70,8 @@ export const useAddNode = ({
     });
 
     const newEdge = createEditorEdge({
-      sourceNodeId: selectedNode.id,
-      targetNodeId: newClientId,
+      sourceClientId: selectedNode.id,
+      targetClientId: newClientId,
     });
 
     /*

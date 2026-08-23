@@ -5,7 +5,7 @@ import { validateNodeName } from "@/src/features/tree-editor/lib/update-node-nam
 
 interface UseUpdateNodeNameParams {
   treeId: string; // 노드가 속한 트리 ID
-  nodeId: string; // 제목을 수정할 editor store의 노드 ID
+  clientId: string; // 제목을 수정할 노드의 편집기 노드 ID
   serverId: string | null; // 같은 노드의 서버 ID, 아직 저장 전이면 null
 }
 
@@ -17,7 +17,7 @@ interface UseUpdateNodeNameParams {
 */
 export const useUpdateNodeName = ({
   treeId,
-  nodeId,
+  clientId,
   serverId,
 }: UseUpdateNodeNameParams) => {
   const updateNodeLabelInStore = useTreeStore(
@@ -54,7 +54,7 @@ export const useUpdateNodeName = ({
 
       const previousLabel = useTreeStore
         .getState()
-        .nodes.find((node) => node.id === nodeId)?.data.label;
+        .nodes.find((node) => node.id === clientId)?.data.label;
 
       if (previousLabel === undefined) return false;
 
@@ -63,7 +63,7 @@ export const useUpdateNodeName = ({
       /*
       서버 응답을 기다리기 전에 editor store의 label을 먼저 교체한다.
       */
-      updateNodeLabelInStore(nodeId, trimmedName);
+      updateNodeLabelInStore(clientId, trimmedName);
 
       try {
         const updatedNode = await editNodeNameOnServer({
@@ -76,7 +76,7 @@ export const useUpdateNodeName = ({
         서버가 제목을 보정할 수 있으므로 query cache와 같은 값을 store에도 반영한다.
         보내지 않으면 cache는 서버 값, 화면은 입력값으로 갈린다.
         */
-        updateNodeLabelInStore(nodeId, updatedNode.label);
+        updateNodeLabelInStore(clientId, updatedNode.label);
 
         return true;
       } catch {
@@ -84,14 +84,14 @@ export const useUpdateNodeName = ({
         label 변경은 zundo history에 기록되지 않아 undo()로 되돌릴 수 없다.
         보관해 둔 이전 label을 직접 복원한다.
         */
-        updateNodeLabelInStore(nodeId, previousLabel);
+        updateNodeLabelInStore(clientId, previousLabel);
         return false;
       }
     },
     [
       editNodeNameOnServer,
       isUpdatingNodeName,
-      nodeId,
+      clientId,
       serverId,
       treeId,
       updateNodeLabelInStore,

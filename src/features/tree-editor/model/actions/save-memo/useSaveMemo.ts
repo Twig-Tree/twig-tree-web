@@ -6,7 +6,7 @@ import { useTreeStore } from "../../treeStore";
 
 type UseSaveMemoParams = {
   treeId: string; // 메모가 속한 트리 ID
-  nodeId: string | undefined; // 메모를 저장할 editor store의 노드 ID, 선택된 노드가 없으면 undefined
+  clientId: string | undefined; // 메모를 저장할 노드의 편집기 노드 ID, 선택된 노드가 없으면 undefined
   serverId: string | null; // 같은 노드의 서버 ID, 아직 저장 전이거나 선택된 노드가 없으면 null
   savedMemo: string | null; // 현재 저장되어 있는 메모, 메모가 없으면 null
 };
@@ -19,7 +19,7 @@ type UseSaveMemoParams = {
 */
 export const useSaveMemo = ({
   treeId,
-  nodeId,
+  clientId,
   serverId,
   savedMemo,
 }: UseSaveMemoParams) => {
@@ -35,7 +35,7 @@ export const useSaveMemo = ({
   const isSaving = isUpdating || isDeleting;
 
   const handleSaveMemo = async (content: string) => {
-    if (!nodeId || isSaving) return;
+    if (!clientId || isSaving) return;
 
     const trimmedContent = content.trim();
 
@@ -60,7 +60,7 @@ export const useSaveMemo = ({
     try {
       if (shouldDeleteMemo) {
         await deleteMemo({ treeId, nodeId: serverId });
-        updateNodeMemoInStore(nodeId, null);
+        updateNodeMemoInStore(clientId, null);
         return;
       }
 
@@ -70,7 +70,7 @@ export const useSaveMemo = ({
         content: trimmedContent,
       });
 
-      updateNodeMemoInStore(nodeId, updatedMemo.content); // 서버가 보정한 값을 화면에도 반영한다.
+      updateNodeMemoInStore(clientId, updatedMemo.content); // 서버가 보정한 값을 화면에도 반영한다.
     } catch {
       alert("메모 저장에 실패했습니다. 다시 시도해주세요.");
     }
