@@ -208,6 +208,21 @@ describe("getLayoutStructureSignature", () => {
   });
 
   /*
+  노드 추가에 레이아웃이 두 번 도는 것을 막는 조건이다. 서버 응답은 노드에 serverId를 채울 뿐
+  배치를 바꾸지 않으므로, 이 변화로 레이아웃이 다시 돌면 계산 한 번이 통째로 낭비된다.
+  */
+  it("서버 ID만 채워지면 같은 시그니처를 낸다", () => {
+    const savedNodes = nodes.map((node) => ({
+      ...node,
+      data: { ...node.data, serverId: "42" },
+    }));
+
+    expect(getLayoutStructureSignature(savedNodes, edges)).toBe(
+      getLayoutStructureSignature(nodes, edges),
+    );
+  });
+
+  /*
   이슈 #51의 남은 구멍이다. 임시 ID가 실제 ID로 교체되면 개수는 그대로지만
   새 노드의 좌표를 잡아 줄 레이아웃이 다시 돌아야 한다.
   */

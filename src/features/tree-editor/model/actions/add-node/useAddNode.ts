@@ -1,6 +1,7 @@
 import { useAddNodeMutation } from "@/src/entities/tree/model/mutations/useAddNodeMutation";
 import { createEditorEdge } from "../../../lib/add-node/createEditorEdge";
 import { createEditorNode } from "../../../lib/add-node/createEditorNode";
+import { createClientNodeId } from "../../../lib/createClientNodeId";
 import { getNextOrderIndex } from "../../../lib/node";
 import { useTreeStore } from "../../treeStore";
 import { CustomEditorEdge, CustomEditorNode } from "../../types";
@@ -50,17 +51,17 @@ export const useAddNode = ({
     }
 
     /*
-    선택된 노드의 기존 자식 노드 정보를 기준으로 새 노드의 순서, 임시 ID, 라벨을 만든다.
+    선택된 노드의 기존 자식 노드 정보를 기준으로 새 노드의 순서, 신원, 라벨을 만든다.
     */
     const nextOrderIndex = getNextOrderIndex(selectedNode.id, nodes, edges);
-    const newNodeId = `temp_${crypto.randomUUID()}`; // 서버 응답 전까지 사용할 임시 노드 ID를 생성한다.
+    const newClientId = createClientNodeId(); // 이 신원은 서버 응답과 무관하게 세션 동안 유지된다.
     const label = `Added node ${nextOrderIndex}`;
 
     /*
-    React Flow editor store에 먼저 반영할 임시 노드와 엣지를 생성한다.
+    React Flow editor store에 먼저 반영할 노드와 엣지를 생성한다.
     */
     const newNode = createEditorNode({
-      id: newNodeId,
+      id: newClientId,
       serverId: null, // 서버 응답을 받기 전이라 아직 서버 ID가 없다.
       label,
       orderIndex: nextOrderIndex,
@@ -70,11 +71,11 @@ export const useAddNode = ({
 
     const newEdge = createEditorEdge({
       sourceNodeId: selectedNode.id,
-      targetNodeId: newNodeId,
+      targetNodeId: newClientId,
     });
 
     /*
-    서버 응답을 기다리기 전에 editor store에 임시 노드와 엣지를 추가한다.
+    서버 응답을 기다리기 전에 editor store에 노드와 엣지를 추가한다.
     */
     addNodeToStore(newNode, newEdge);
 
@@ -92,37 +93,26 @@ export const useAddNode = ({
       },
       {
         /*
-        서버에서 실제 노드 ID를 받으면 editor store의 임시 노드 ID와 엣지 target을 실제 ID로 교체한다.
-        서버가 label이나 orderIndex를 보정할 수 있으므로 data도 응답 값으로 덮는다.
+        서버가 확정한 노드 ID를 노드 자신에게 채운다. 노드의 신원은 클라이언트가 정한 값이라
+        교체하지 않으므로 엣지도 손대지 않고, 레이아웃 입력이 되는 구조도 달라지지 않는다.
+        서버가 label이나 orderIndex를 보정할 수 있으므로 그 값은 응답으로 덮는다.
         position은 화면 전용 값이라 그대로 둔다.
         */
         onSuccess: (createdNode) => {
-          const realNodeId = createdNode.id; // 도메인 모델의 ID는 이미 문자열이다.
-
           useTreeStore.setState((state) => ({
             nodes: state.nodes.map((node) =>
-              node.id === newNodeId
+              node.id === newClientId
                 ? {
                     ...node,
-                    id: realNodeId,
                     data: {
                       ...node.data,
-                      serverId: realNodeId,
+                      serverId: createdNode.id, // 도메인 모델의 ID는 이미 문자열이다.
                       label: createdNode.label,
                       orderIndex: createdNode.orderIndex,
                       memo: createdNode.memo,
                     },
                   }
                 : node,
-            ),
-            edges: state.edges.map((edge) =>
-              edge.target === newNodeId
-                ? {
-                    ...edge,
-                    id: `e-${edge.source}-${realNodeId}`,
-                    target: realNodeId,
-                  }
-                : edge,
             ),
           }));
         },
