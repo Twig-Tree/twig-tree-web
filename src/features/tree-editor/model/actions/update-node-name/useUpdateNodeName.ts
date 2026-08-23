@@ -5,7 +5,8 @@ import { validateNodeName } from "@/src/features/tree-editor/lib/update-node-nam
 
 interface UseUpdateNodeNameParams {
   treeId: string; // 노드가 속한 트리 ID
-  nodeId: string; // 제목을 수정할 노드 ID
+  nodeId: string; // 제목을 수정할 editor store의 노드 ID
+  serverId: string | null; // 같은 노드의 서버 ID, 아직 저장 전이면 null
 }
 
 /*
@@ -17,6 +18,7 @@ interface UseUpdateNodeNameParams {
 export const useUpdateNodeName = ({
   treeId,
   nodeId,
+  serverId,
 }: UseUpdateNodeNameParams) => {
   const updateNodeLabelInStore = useTreeStore(
     (state) => state.updateNodeLabelInStore,
@@ -39,8 +41,7 @@ export const useUpdateNodeName = ({
     async (name: string): Promise<boolean> => {
       if (isUpdatingNodeName) return false;
 
-      const apiNodeId = Number(nodeId); // 서버에 저장되지 않은 임시 노드는 temp_ 접두사를 가져 숫자로 변환되지 않는다.
-      if (!Number.isSafeInteger(apiNodeId) || apiNodeId <= 0) {
+      if (serverId === null) {
         alert(
           "아직 서버에 저장되지 않은 노드입니다. 잠시 후 다시 시도해주세요.",
         );
@@ -67,7 +68,7 @@ export const useUpdateNodeName = ({
       try {
         const updatedNode = await editNodeNameOnServer({
           treeId,
-          nodeId,
+          nodeId: serverId,
           name: trimmedName,
         });
 
@@ -91,6 +92,7 @@ export const useUpdateNodeName = ({
       editNodeNameOnServer,
       isUpdatingNodeName,
       nodeId,
+      serverId,
       treeId,
       updateNodeLabelInStore,
     ],

@@ -18,6 +18,7 @@ export const MemoSidePanel = ({
   const { handleSaveMemo, isSaving } = useSaveMemo({
     treeId,
     nodeId: selectedNode?.id,
+    serverId: selectedNode?.data.serverId ?? null,
     savedMemo,
   });
 

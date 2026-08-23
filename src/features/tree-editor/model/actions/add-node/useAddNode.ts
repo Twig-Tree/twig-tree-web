@@ -38,8 +38,13 @@ export const useAddNode = ({
   const handleAddNode = () => {
     if (!selectedNode || isAddingNode) return;
 
-    const numericParentId = Number(selectedNode.id); // 부모 노드 ID가 서버 ID로 변환 가능한지 검증한다.
-    if (Number.isNaN(numericParentId)) {
+    const parentServerId = selectedNode.data.serverId; // 자식 노드 추가 요청에 사용할 부모 노드의 서버 ID
+
+    /*
+    부모가 아직 서버에 없으면 자식의 parentId를 정할 수 없어 요청을 보낼 수 없다.
+    막는 것은 편집이 아니라 서버 전송이며, 대기·큐 방식은 배치 저장(#54)과 함께 정한다.
+    */
+    if (parentServerId === null) {
       alert("아직 서버에 저장되지 않은 노드입니다. 잠시 후 다시 시도해주세요.");
       return;
     }
@@ -80,7 +85,7 @@ export const useAddNode = ({
       {
         treeId,
         node: {
-          parentId: selectedNode.id,
+          parentId: parentServerId,
           orderId: nextOrderIndex,
           name: label,
         },

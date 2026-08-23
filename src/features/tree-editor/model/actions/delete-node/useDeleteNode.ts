@@ -32,8 +32,9 @@ export const useDeleteNode = ({
   const handleDeleteNode = () => {
     if (!selectedNode || isDeletingNode) return;
 
-    const serverNodeId = Number(selectedNode.id); // 서버 요청에 사용할 삭제 대상 노드 ID를 숫자로 검증한다.
-    if (Number.isNaN(serverNodeId)) {
+    const serverNodeId = selectedNode.data.serverId; // 서버 요청에 사용할 삭제 대상 노드의 서버 ID
+
+    if (serverNodeId === null) {
       alert("아직 서버에 저장되지 않은 노드입니다. 잠시 후 다시 시도해주세요.");
       return;
     }
@@ -78,7 +79,7 @@ export const useDeleteNode = ({
     deleteNodeOnServer(
       {
         treeId,
-        nodeId: selectedNode.id,
+        nodeId: serverNodeId,
       },
       {
         /*
