@@ -54,7 +54,7 @@ export const getLayoutedElements = async (
 
 /*
 함수 이름 : mergeLayoutResult
-기능 : ELK 계산 결과에서 레이아웃이 소유하는 값만 현재 노드 목록에 병합한다. 계산 결과 배열로 노드를 통째로 교체하면 계산이 도는 동안 store에 일어난 ID 교체·라벨 수정·추가·삭제가 덮이므로, 배치에 해당하는 값만 얹는다.
+기능 : ELK 계산 결과에서 레이아웃이 소유하는 값만 현재 노드 목록에 병합한다. 계산 결과 배열로 노드를 통째로 교체하면 계산이 도는 동안 store에 일어난 라벨 수정·메모 저장·추가·삭제가 덮이므로, 배치에 해당하는 값만 얹는다.
 인자 : CustomEditorNode[] currentNodes -> 병합 시점의 editor store 노드 목록
 CustomEditorNode[] layoutedNodes -> ELK가 배치를 계산한 노드 목록
 반환값 : 배치 값만 갱신된 노드 목록
@@ -69,7 +69,7 @@ export const mergeLayoutResult = (
     const layoutedNode = layoutedById.get(node.id);
 
     /*
-    계산 시작 이후 추가되었거나 임시 ID가 실제 ID로 교체된 노드는 계산 결과에 없다.
+    계산 시작 이후 추가된 노드는 계산 결과에 없다.
     이런 노드는 다음 레이아웃 실행이 배치를 잡을 때까지 현재 값을 유지한다.
     */
     if (!layoutedNode) return node;
@@ -77,6 +77,7 @@ export const mergeLayoutResult = (
     /*
     레이아웃이 소유하는 값은 좌표와, ELK에 넘긴 배치 상자 크기, 정렬 방향이 정하는 핸들 위치다.
     id·data·selected·measured처럼 store와 React Flow가 소유하는 값은 현재 노드의 것을 유지한다.
+    data에는 서버 응답으로 채워지는 serverId도 들어 있어, 계산이 도는 사이에 도착한 응답이 덮이지 않는다.
     */
     const { position, width, height, targetPosition, sourcePosition } =
       layoutedNode;
@@ -116,11 +117,11 @@ export const getLayoutStructureSignature = (
   edges: CustomEditorEdge[],
 ): string => {
   /*
-  노드 ID 목록은 추가·삭제·트리 전환처럼 배치가 달라지는 변화를 잡는다.
-  더해서 임시 ID가 실제 ID로 교체되는 변화도 잡는다. 이쪽은 배치가 달라지지 않지만,
-  mergeLayoutResult가 ID로 배치를 찾으므로 계산이 도는 중에 ID가 바뀐 노드는
-  좌표를 받지 못한 채 남는다. 재계산으로 그 노드의 좌표를 다시 얹는다.
+  노드 ID 목록은 추가·삭제·트리 전환처럼 배치가 달라지는 변화를 잡는다. 노드의 신원은 편집기가
+  정해 세션 동안 바뀌지 않으므로, 여기에 담긴 ID가 달라졌다는 것은 노드 구성이 달라졌다는 뜻이다.
   배열 순서까지 담는 것은 ELK의 considerModelOrder가 순서로 형제 배치를 정하기 때문이다.
+
+  ID를 빼고 개수만 담으면 개수가 같은 채로 구성이 바뀌는 경우(트리 전환)를 놓치므로 빼지 않는다.
   */
   const nodeIds = nodes.map((node) => node.id);
 
