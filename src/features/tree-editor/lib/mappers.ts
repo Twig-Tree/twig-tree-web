@@ -16,6 +16,7 @@ export const mapToVisualNodes = (nodes: TreeNode[]): CustomEditorNode[] => {
     id: node.id,
     type: "custom",
     data: {
+      serverId: node.id, // 조회로 받은 노드는 이미 서버에 저장되어 있다.
       label: node.label,
       orderIndex: node.orderIndex,
       memo: node.memo,

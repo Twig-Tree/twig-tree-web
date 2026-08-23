@@ -9,7 +9,14 @@ export type Direction = "RIGHT" | "DOWN";
 나머지를 data에 담으므로, 도메인 노드에서 Node가 이미 소유하는 필드를 뺀 조각을 data에 싣는다.
 id는 Node의 것이고, parentId는 편집기에서 엣지가 구조를 들고 있어 mapToVisualEdges가 소비한 뒤 버린다.
 */
-export type EditorNodeData = Omit<TreeNode, "id" | "parentId">;
+export type EditorNodeData = Omit<TreeNode, "id" | "parentId"> & {
+  /*
+  서버가 확정한 노드 ID. 아직 서버에 저장되지 않은 노드는 null이다.
+  도메인 ID를 Node.id가 아니라 data에 두어야 서버 전송 가능 여부를 노드 ID의 생김새가 아니라
+  값의 유무로 판별할 수 있다.
+  */
+  serverId: string | null;
+};
 
 export type CustomEditorNode = Node<EditorNodeData, "custom">;
 export type CustomEditorEdge = Edge;

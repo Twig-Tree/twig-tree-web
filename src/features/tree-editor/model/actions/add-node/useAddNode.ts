@@ -56,6 +56,7 @@ export const useAddNode = ({
     */
     const newNode = createEditorNode({
       id: newNodeId,
+      serverId: null, // 서버 응답을 받기 전이라 아직 서버 ID가 없다.
       label,
       orderIndex: nextOrderIndex,
       x: selectedNode.position.x + 150,
@@ -101,6 +102,7 @@ export const useAddNode = ({
                     id: realNodeId,
                     data: {
                       ...node.data,
+                      serverId: realNodeId,
                       label: createdNode.label,
                       orderIndex: createdNode.orderIndex,
                       memo: createdNode.memo,
