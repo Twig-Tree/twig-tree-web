@@ -257,6 +257,33 @@ describe("getLayoutStructureSignature", () => {
   });
 
   /*
+  시그니처는 ID 문자열의 형태에 기대지 않는다. 지금은 ID가 숫자 문자열이거나 temp_ 접두사를
+  가진 UUID뿐이지만, 구분자로 이어 붙이면 그 전제가 깨졌을 때 서로 다른 구조가 같은 문자열이
+  되어 레이아웃이 조용히 실행되지 않는다. 어떤 문자가 들어와도 구분되는지 고정한다.
+  */
+  it("ID에 구분자로 쓰일 만한 문자가 있어도 서로 다른 구조를 구분한다", () => {
+    const splitLeft = [
+      createNode("a,b", { x: 0, y: 0 }),
+      createNode("c", { x: 0, y: 0 }),
+    ];
+    const splitRight = [
+      createNode("a", { x: 0, y: 0 }),
+      createNode("b,c", { x: 0, y: 0 }),
+    ];
+
+    expect(getLayoutStructureSignature(splitLeft, [])).not.toBe(
+      getLayoutStructureSignature(splitRight, []),
+    );
+
+    const edgesLeft = [{ id: "e1", source: "x>y", target: "z" }];
+    const edgesRight = [{ id: "e1", source: "x", target: "y>z" }];
+
+    expect(getLayoutStructureSignature([], edgesLeft)).not.toBe(
+      getLayoutStructureSignature([], edgesRight),
+    );
+  });
+
+  /*
   reconnect는 엣지 ID를 유지한 채 연결만 바꾸므로 ID 비교로는 감지되지 않는다.
   */
   it("엣지 ID가 같아도 연결이 바뀌면 다른 시그니처를 낸다", () => {

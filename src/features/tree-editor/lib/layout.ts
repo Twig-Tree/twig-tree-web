@@ -122,15 +122,18 @@ export const getLayoutStructureSignature = (
   좌표를 받지 못한 채 남는다. 재계산으로 그 노드의 좌표를 다시 얹는다.
   배열 순서까지 담는 것은 ELK의 considerModelOrder가 순서로 형제 배치를 정하기 때문이다.
   */
-  const nodeSignature = nodes.map((node) => node.id).join(",");
+  const nodeIds = nodes.map((node) => node.id);
 
   /*
   엣지는 ID 대신 연결 관계로 비교한다. reconnect는 엣지 ID를 유지한 채 source·target만
   바꾸므로 ID로는 배치가 달라지는 변화를 감지할 수 없다.
   */
-  const edgeSignature = edges
-    .map((edge) => `${edge.source}>${edge.target}`)
-    .join(",");
+  const edgeConnections = edges.map((edge) => [edge.source, edge.target]);
 
-  return `${nodeSignature}|${edgeSignature}`;
+  /*
+  구분자로 이어 붙이지 않고 JSON으로 직렬화한다. 구분자 방식은 ID에 그 구분자가 없다는
+  전제에 기대는데, 전제가 깨지면 서로 다른 구조가 같은 문자열이 되어 레이아웃이 조용히
+  실행되지 않는다. ID 생성 방식과 무관하게 성립하도록 구조를 그대로 직렬화한다.
+  */
+  return JSON.stringify({ nodeIds, edgeConnections });
 };
