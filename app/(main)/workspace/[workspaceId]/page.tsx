@@ -37,7 +37,7 @@ function LayoutFlow() {
   const { undo, redo, clear, pause, resume, canUndo, canRedo } =
     useTreeHistory();
 
-  const { setNodes, setEdges } = useReactFlowStoreSetters();
+  const { setNodes } = useReactFlowStoreSetters();
 
   const {
     selectedNode,
@@ -58,7 +58,7 @@ function LayoutFlow() {
     clear,
   });
 
-  useEditorLayout(nodes, edges, setNodes, setEdges);
+  useEditorLayout(nodes, edges, setNodes);
 
   // 2. React Flow가 초기 노드들의 뷰포트 정렬(fitView)까지 마쳤을 때 히스토리 기록 재개
   const handleInit = () => {
