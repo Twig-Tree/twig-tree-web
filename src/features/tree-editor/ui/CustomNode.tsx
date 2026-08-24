@@ -30,7 +30,11 @@ export function CustomNode({
   const isCancellingRef = useRef(false);
 
   const { getNodeNameError, updateNodeName, isUpdatingNodeName } =
-    useUpdateNodeName({ treeId: treeId ?? "", nodeId: id });
+    useUpdateNodeName({
+      treeId: treeId ?? "",
+      clientId: id,
+      serverId: data.serverId,
+    });
 
   /*
   편집을 시작하면 기존 제목을 바로 덮어쓸 수 있도록 입력값 전체를 선택한다.

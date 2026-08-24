@@ -1,18 +1,18 @@
 import { CustomEditorEdge } from "../../model/types";
 
 type CreateEditorEdgeParams = {
-  sourceNodeId: string;
-  targetNodeId: string;
+  sourceClientId: string; // 부모 노드의 편집기 노드 ID
+  targetClientId: string; // 자식 노드의 편집기 노드 ID
 };
 
 export const createEditorEdge = ({
-  sourceNodeId,
-  targetNodeId,
+  sourceClientId,
+  targetClientId,
 }: CreateEditorEdgeParams): CustomEditorEdge => {
   return {
-    id: `e-${sourceNodeId}-${targetNodeId}`,
+    id: `e-${sourceClientId}-${targetClientId}`,
     type: "smoothstep",
-    source: sourceNodeId,
-    target: targetNodeId,
+    source: sourceClientId,
+    target: targetClientId,
   };
 };

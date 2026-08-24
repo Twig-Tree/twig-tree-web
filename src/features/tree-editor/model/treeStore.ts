@@ -35,9 +35,9 @@ interface TreeState {
     newNode: CustomEditorNode,
     newEdge: CustomEditorEdge,
   ) => void;
-  deleteNodeFromStore: (nodeIdsToDelete: string[]) => void;
-  updateNodeMemoInStore: (nodeId: string, memo: string | null) => void;
-  updateNodeLabelInStore: (nodeId: string, label: string) => void;
+  deleteNodeFromStore: (clientIdsToDelete: string[]) => void;
+  updateNodeMemoInStore: (clientId: string, memo: string | null) => void;
+  updateNodeLabelInStore: (clientId: string, label: string) => void;
 }
 
 export const useTreeStore = create<TreeState>()(
@@ -144,9 +144,9 @@ export const useTreeStore = create<TreeState>()(
         });
       },
 
-      deleteNodeFromStore: (nodeIdsToDelete: string[]) => {
+      deleteNodeFromStore: (clientIdsToDelete: string[]) => {
         const { nodes, edges } = get();
-        const idsToDelete = new Set(nodeIdsToDelete);
+        const idsToDelete = new Set(clientIdsToDelete);
 
         set({
           nodes: nodes.filter((node) => !idsToDelete.has(node.id)),
@@ -157,12 +157,12 @@ export const useTreeStore = create<TreeState>()(
         });
       },
 
-      updateNodeMemoInStore: (nodeId: string, memo: string | null) => {
+      updateNodeMemoInStore: (clientId: string, memo: string | null) => {
         const { nodes } = get();
 
         set({
           nodes: nodes.map((node) =>
-            node.id === nodeId
+            node.id === clientId
               ? { ...node, data: { ...node.data, memo } }
               : node,
           ),
@@ -173,12 +173,12 @@ export const useTreeStore = create<TreeState>()(
       label 변경은 노드·엣지 개수도 orderIndex도 바꾸지 않으므로 handleSet의 history 기록 조건에 걸리지 않는다.
       따라서 실패 복구를 undo()로 처리할 수 없고, 호출부가 이전 label을 보관했다가 이 action으로 되돌린다.
       */
-      updateNodeLabelInStore: (nodeId: string, label: string) => {
+      updateNodeLabelInStore: (clientId: string, label: string) => {
         const { nodes } = get();
 
         set({
           nodes: nodes.map((node) =>
-            node.id === nodeId
+            node.id === clientId
               ? { ...node, data: { ...node.data, label } }
               : node,
           ),

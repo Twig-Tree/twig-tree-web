@@ -10,7 +10,8 @@ const createNode = (
 ): CustomEditorNode => ({
   id,
   type: "custom",
-  data: { label, orderIndex: 0, memo: null },
+  // 레이아웃은 serverId를 읽지 않으므로 저장 여부를 구분하지 않는다.
+  data: { serverId: null, label, orderIndex: 0, memo: null },
   position,
 });
 
@@ -48,23 +49,6 @@ describe("mergeLayoutResult", () => {
     ]);
   });
 
-  /*
-  이슈 #51의 회귀 케이스다. 계산이 도는 사이에 서버 응답이 도착해 임시 ID가 실제 ID로
-  바뀌면, 계산 결과에는 임시 ID만 남아 있다. 이때 실제 ID가 임시 ID로 되돌아가면 안 된다.
-  */
-  it("계산 중 임시 ID가 실제 ID로 교체된 노드를 되돌리지 않는다", () => {
-    const currentNodes = [createNode("42", { x: 150, y: 0 }, "Added node 1")];
-    const layoutedNodes = [
-      createNode("temp_abc", { x: 300, y: 80 }, "Added node 1"),
-    ];
-
-    const merged = mergeLayoutResult(currentNodes, layoutedNodes);
-
-    expect(merged).toHaveLength(1);
-    expect(merged[0].id).toBe("42");
-    expect(merged[0].position).toEqual({ x: 150, y: 0 }); // 좌표는 다음 레이아웃 실행이 잡는다.
-  });
-
   it("계산 중 수정된 label을 계산 시작 시점의 값으로 덮지 않는다", () => {
     const currentNodes = [createNode("1", { x: 0, y: 0 }, "수정한 제목")];
     const layoutedNodes = [createNode("1", { x: 10, y: 20 }, "이전 제목")];
@@ -78,13 +62,13 @@ describe("mergeLayoutResult", () => {
   it("계산 이후 추가된 노드는 현재 위치를 유지한 채 남는다", () => {
     const currentNodes = [
       createNode("1", { x: 0, y: 0 }),
-      createNode("temp_new", { x: 150, y: 0 }),
+      createNode("new", { x: 150, y: 0 }),
     ];
     const layoutedNodes = [createNode("1", { x: 10, y: 20 })];
 
     const merged = mergeLayoutResult(currentNodes, layoutedNodes);
 
-    expect(merged.map((node) => node.id)).toEqual(["1", "temp_new"]);
+    expect(merged.map((node) => node.id)).toEqual(["1", "new"]);
     expect(merged[1].position).toEqual({ x: 150, y: 0 });
   });
 
@@ -207,26 +191,17 @@ describe("getLayoutStructureSignature", () => {
   });
 
   /*
-  이슈 #51의 남은 구멍이다. 임시 ID가 실제 ID로 교체되면 개수는 그대로지만
-  새 노드의 좌표를 잡아 줄 레이아웃이 다시 돌아야 한다.
+  노드 추가에 레이아웃이 두 번 도는 것을 막는 조건이다. 서버 응답은 노드에 serverId를 채울 뿐
+  배치를 바꾸지 않으므로, 이 변화로 레이아웃이 다시 돌면 계산 한 번이 통째로 낭비된다.
   */
-  it("임시 ID가 실제 ID로 교체되면 다른 시그니처를 낸다", () => {
-    const beforeNodes = [
-      createNode("1", { x: 0, y: 0 }),
-      createNode("temp_abc", { x: 150, y: 0 }),
-    ];
-    const beforeEdges = [
-      { id: "e-1-temp_abc", source: "1", target: "temp_abc" },
-    ];
+  it("서버 ID만 채워지면 같은 시그니처를 낸다", () => {
+    const savedNodes = nodes.map((node) => ({
+      ...node,
+      data: { ...node.data, serverId: "42" },
+    }));
 
-    const afterNodes = [
-      createNode("1", { x: 0, y: 0 }),
-      createNode("42", { x: 150, y: 0 }),
-    ];
-    const afterEdges = [{ id: "e-1-42", source: "1", target: "42" }];
-
-    expect(getLayoutStructureSignature(afterNodes, afterEdges)).not.toBe(
-      getLayoutStructureSignature(beforeNodes, beforeEdges),
+    expect(getLayoutStructureSignature(savedNodes, edges)).toBe(
+      getLayoutStructureSignature(nodes, edges),
     );
   });
 
@@ -257,9 +232,9 @@ describe("getLayoutStructureSignature", () => {
   });
 
   /*
-  시그니처는 ID 문자열의 형태에 기대지 않는다. 지금은 ID가 숫자 문자열이거나 temp_ 접두사를
-  가진 UUID뿐이지만, 구분자로 이어 붙이면 그 전제가 깨졌을 때 서로 다른 구조가 같은 문자열이
-  되어 레이아웃이 조용히 실행되지 않는다. 어떤 문자가 들어와도 구분되는지 고정한다.
+  시그니처는 ID 문자열의 형태에 기대지 않는다. 지금 노드 ID는 편집기가 만든 UUID뿐이지만,
+  구분자로 이어 붙이면 그 전제가 깨졌을 때 서로 다른 구조가 같은 문자열이 되어 레이아웃이
+  조용히 실행되지 않는다. 어떤 문자가 들어와도 구분되는지 고정한다.
   */
   it("ID에 구분자로 쓰일 만한 문자가 있어도 서로 다른 구조를 구분한다", () => {
     const splitLeft = [

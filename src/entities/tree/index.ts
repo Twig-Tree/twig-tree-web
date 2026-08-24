@@ -11,7 +11,7 @@ export type {
   UpdateMemoRequest,
   UpdateMemoResponse,
 } from "./api/types";
-export type { TreeNode, TreeNodeData } from "./model/types";
+export type { TreeNode } from "./model/types";
 export { treeApi } from "./api/treeApi";
 export { nodeApi } from "./api/nodeApi";
 export { memoApi } from "./api/memoApi";

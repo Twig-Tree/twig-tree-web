@@ -138,11 +138,19 @@ folderApi.getFolderList(Number(folderParentId));
 
 ## 화면 전용 타입
 
-도메인 모델과 화면 라이브러리가 요구하는 타입은 한 계층 더 갈린다. 이때 도메인 타입을 화면 타입의 데이터 슬롯에 그대로 재사용한다.
+도메인 모델과 화면 라이브러리가 요구하는 타입은 한 계층 더 갈린다. 이때 도메인 타입에서 화면 타입이 이미 소유하는 필드를 덜어내 데이터 슬롯에 재사용한다.
 
 ```ts
-export type CustomEditorNode = Node<TreeNodeData, "custom">;
+export type EditorNodeData = Omit<TreeNode, "id" | "parentId"> & {
+  serverId: string | null;
+};
+
+export type CustomEditorNode = Node<EditorNodeData, "custom">;
 ```
+
+도메인 모델을 화면 라이브러리의 모양에 맞춰 미리 쪼개 두지 않는다. 어떤 필드가 최상위로 가고 어떤 필드가 데이터 슬롯으로 가는지는 화면 라이브러리가 정하는 사실이므로, 그 라이브러리를 아는 계층에서 덜어낸다.
+
+덜어낸 필드가 화면에서도 필요하면 이름을 바꿔 데이터 슬롯에 다시 싣는다. 위의 `serverId`가 그 경우다. 화면 라이브러리가 `id`를 자기 신원으로 쓰므로 도메인 ID는 최상위에 남을 수 없고, 화면이 먼저 만든 객체는 아직 서버 ID가 없어 `null`이 된다.
 
 `position`, `selected`처럼 서버가 모르는 값은 화면 타입에만 두고 도메인 모델에 넣지 않는다. 도메인 모델은 서버가 아는 사실만 담는다.
 

@@ -32,8 +32,9 @@ export const useDeleteNode = ({
   const handleDeleteNode = () => {
     if (!selectedNode || isDeletingNode) return;
 
-    const serverNodeId = Number(selectedNode.id); // 서버 요청에 사용할 삭제 대상 노드 ID를 숫자로 검증한다.
-    if (Number.isNaN(serverNodeId)) {
+    const serverId = selectedNode.data.serverId; // 서버 요청에 사용할 삭제 대상 노드의 서버 ID
+
+    if (serverId === null) {
       alert("아직 서버에 저장되지 않은 노드입니다. 잠시 후 다시 시도해주세요.");
       return;
     }
@@ -48,20 +49,21 @@ export const useDeleteNode = ({
     }
 
     /*
-    삭제 대상 노드를 시작점으로 삼아 서브트리에 포함된 모든 노드 ID를 수집한다.
+    삭제 대상 노드를 시작점으로 삼아 서브트리에 포함된 모든 노드를 수집한다.
+    엣지가 잇는 것은 편집기 노드 신원이므로 여기서 모이는 것도 서버 ID가 아니라 편집기 노드 ID다.
     */
-    const idsToDelete = new Set<string>([selectedNode.id]);
+    const clientIdsToDelete = new Set<string>([selectedNode.id]);
     const queue = [selectedNode.id];
 
     /*
-    현재 노드를 source로 가지는 엣지를 따라가며 자식 노드 ID를 삭제 대상에 추가한다.
+    현재 노드를 source로 가지는 엣지를 따라가며 자식 노드를 삭제 대상에 추가한다.
     */
     while (queue.length > 0) {
-      const currentId = queue.shift()!;
+      const currentClientId = queue.shift()!;
 
       edges.forEach((edge) => {
-        if (edge.source === currentId) {
-          idsToDelete.add(edge.target);
+        if (edge.source === currentClientId) {
+          clientIdsToDelete.add(edge.target);
           queue.push(edge.target);
         }
       });
@@ -70,7 +72,7 @@ export const useDeleteNode = ({
     /*
     서버 응답을 기다리기 전에 editor store에서 삭제 대상 서브트리를 제거한다.
     */
-    deleteNodeFromStore(Array.from(idsToDelete));
+    deleteNodeFromStore(Array.from(clientIdsToDelete));
 
     /*
     서버에 노드 삭제 요청을 보내고, 실패하면 editor store를 삭제 전 상태로 되돌린다.
@@ -78,7 +80,7 @@ export const useDeleteNode = ({
     deleteNodeOnServer(
       {
         treeId,
-        nodeId: selectedNode.id,
+        nodeId: serverId,
       },
       {
         /*

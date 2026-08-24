@@ -26,9 +26,7 @@ export const useDeleteMemoMutation = () => {
         treeQueryKeys.detail(treeId),
         (oldNodes) =>
           oldNodes?.map((node) =>
-            node.id === nodeId
-              ? { ...node, data: { ...node.data, memo: null } }
-              : node,
+            node.id === nodeId ? { ...node, memo: null } : node,
           ),
       );
     },
