@@ -23,19 +23,18 @@ export function useLogout() {
       return;
     }
 
-    const refreshToken = authSession.getRefreshToken();
-
     /*
+    refresh token 쿠키의 존재 여부는 JS가 확인할 수 없으므로 항상 폐기를 요청한다.
+    폐기할 대상이 없어도 서버가 성공으로 응답한다.
+
     서버 폐기에 실패해도 로컬 정리는 계속한다.
     네트워크 오류나 저장소 장애로 로그아웃이 막히면 사용자가 세션을 끝낼 방법이 없어진다.
     이 경우 서버의 refresh token은 남지만 TTL이 지나면 사라진다.
     */
-    if (refreshToken) {
-      try {
-        await mutateAsync(refreshToken);
-      } catch (error) {
-        console.error("Failed to revoke refresh token", error);
-      }
+    try {
+      await mutateAsync();
+    } catch (error) {
+      console.error("Failed to revoke refresh token", error);
     }
 
     authSession.clearSession();

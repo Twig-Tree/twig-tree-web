@@ -11,16 +11,14 @@ export interface MemberDTO {
   profileImage: string;
 }
 
+/*
+refresh token은 응답 본문이 아니라 Set-Cookie로 내려오므로 DTO에 없다.
+*/
 export interface GoogleLoginData {
   accessToken: string;
-  refreshToken: string;
   member: MemberDTO;
 }
 
 export type GoogleLoginResponse = ApiResponse<GoogleLoginData>;
-
-export interface LogoutRequest {
-  refreshToken: string;
-}
 
 export type LogoutResponse = ApiResponse<null>;

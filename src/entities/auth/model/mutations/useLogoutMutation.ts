@@ -3,6 +3,6 @@ import { useMutation } from "@tanstack/react-query";
 
 export const useLogoutMutation = () => {
   return useMutation({
-    mutationFn: (refreshToken: string) => authApi.logout(refreshToken),
+    mutationFn: () => authApi.logout(),
   });
 };
