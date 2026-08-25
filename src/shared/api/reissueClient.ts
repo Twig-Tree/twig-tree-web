@@ -11,6 +11,7 @@ import type { ApiResponse } from "./types";
 const reissueAxios = axios.create({
   baseURL: apiBaseUrl,
   timeout: 10000,
+  withCredentials: true, // 재발급은 쿠키의 refresh token으로 인증하므로 반드시 쿠키를 실어 보낸다.
   headers: {
     "Content-Type": "application/json",
   },

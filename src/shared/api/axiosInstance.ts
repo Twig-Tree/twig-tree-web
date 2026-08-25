@@ -13,6 +13,7 @@ import { requestReissue } from "./reissueClient";
 export const axiosInstance = axios.create({
   baseURL: apiBaseUrl,
   timeout: 10000,
+  withCredentials: true, // refresh token이 HttpOnly 쿠키로 오가므로 크로스 오리진 요청에도 쿠키를 싣는다.
   headers: {
     "Content-Type": "application/json",
   },
