@@ -1,31 +1,30 @@
-import type { FolderItem } from "@/src/entities/folder";
-
-export const MAX_FOLDER_NAME_BYTES = 40;
+import { type FolderItem, MAX_FOLDER_NAME_LENGTH } from "@/src/entities/folder";
+import { validateNameLength } from "@/src/shared/lib/validation/validateNameLength";
 
 interface ValidateFolderNameParams {
-  folderId: string;
-  folders: FolderItem[];
-  name: string;
+  folderId: string; // 검사 대상 폴더 ID. 중복 검사에서 자기 자신을 제외하는 데 사용한다
+  folders: FolderItem[]; // 이름 중복을 검사할 형제 폴더 목록
+  name: string; // 사용자가 입력한 폴더 이름
 }
 
-export function getFolderNameByteLength(name: string) {
-  return new TextEncoder().encode(name).length;
-}
-
+/*
+함수 이름 : validateFolderName
+기능 : 폴더 이름 입력값이 저장 가능한지 검사한다. 길이 정책은 이름 공용 검증에 맡기고, 같은 위치의 이름 중복만 폴더 고유 규칙으로 확인한다.
+인자 : ValidateFolderNameParams
+반환값 : 오류 안내 문구, 통과하면 null
+*/
 export function validateFolderName({
   folderId,
   folders,
   name,
 }: ValidateFolderNameParams): string | null {
+  const lengthError = validateNameLength(name, "폴더", MAX_FOLDER_NAME_LENGTH);
+
+  if (lengthError) {
+    return lengthError;
+  }
+
   const trimmedName = name.trim();
-
-  if (!trimmedName) {
-    return "폴더 이름을 입력해 주세요.";
-  }
-
-  if (getFolderNameByteLength(trimmedName) > MAX_FOLDER_NAME_BYTES) {
-    return "폴더 이름은 최대 40바이트까지 입력할 수 있습니다.";
-  }
 
   const isDuplicateName = folders.some(
     (folder) => folder.id !== folderId && folder.name.trim() === trimmedName,

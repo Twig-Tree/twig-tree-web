@@ -4,7 +4,7 @@ import { useCallback, useState } from "react";
 import type { AttachmentItem } from "@/src/entities/attachment";
 import { createAttachmentFromFile } from "../lib/createAttachmentFromFile";
 import { splitAcceptedFiles } from "../lib/splitAcceptedFiles";
-import type { PromptDraft } from "./types";
+import type { PromptDraft, RejectedFile } from "./types";
 
 /*
 백엔드가 요청 하나당 파일 하나만 받는다. 제약이 풀리면 이 값만 올리면 된다.
@@ -30,7 +30,7 @@ export function useComposePrompt({
 }: UseComposePromptParams) {
   const [text, setText] = useState("");
   const [attachments, setAttachments] = useState<AttachmentItem[]>([]);
-  const [rejectedFileNames, setRejectedFileNames] = useState<string[]>([]);
+  const [rejectedFiles, setRejectedFiles] = useState<RejectedFile[]>([]);
 
   const isSubmitDisabled = isSubmitting || text.trim().length === 0;
   const isAttachDisabled = attachments.length >= MAX_ATTACHMENT_COUNT;
@@ -39,10 +39,10 @@ export function useComposePrompt({
   파일을 새로 선택할 때마다 이전 안내를 지운다. 방금 선택한 파일에 대한 안내만 남기기 위해서다.
   */
   const addFiles = useCallback((files: File[]) => {
-    const { acceptedFiles, rejectedFileNames: rejected } =
+    const { acceptedFiles, rejectedFiles: rejected } =
       splitAcceptedFiles(files);
 
-    setRejectedFileNames(rejected);
+    setRejectedFiles(rejected);
 
     if (acceptedFiles.length === 0) return;
 
@@ -65,7 +65,7 @@ export function useComposePrompt({
     );
   }, []);
 
-  const dismissRejection = useCallback(() => setRejectedFileNames([]), []);
+  const dismissRejection = useCallback(() => setRejectedFiles([]), []);
 
   /*
   입력을 상위로 넘긴 뒤 작성 상태를 비운다.
@@ -78,7 +78,7 @@ export function useComposePrompt({
 
     setText("");
     setAttachments([]);
-    setRejectedFileNames([]);
+    setRejectedFiles([]);
   }, [attachments, isSubmitDisabled, onSubmit, text]);
 
   return {
@@ -87,7 +87,7 @@ export function useComposePrompt({
     dismissRejection,
     isAttachDisabled,
     isSubmitDisabled,
-    rejectedFileNames,
+    rejectedFiles,
     removeAttachment,
     setText,
     submitPrompt,

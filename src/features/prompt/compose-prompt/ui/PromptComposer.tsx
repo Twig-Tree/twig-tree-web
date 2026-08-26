@@ -32,7 +32,7 @@ export function PromptComposer({
     dismissRejection,
     isAttachDisabled,
     isSubmitDisabled,
-    rejectedFileNames,
+    rejectedFiles,
     removeAttachment,
     setText,
     submitPrompt,
@@ -54,10 +54,7 @@ export function PromptComposer({
         </ul>
       ) : null}
 
-      <RejectedFilesNotice
-        fileNames={rejectedFileNames}
-        onDismiss={dismissRejection}
-      />
+      <RejectedFilesNotice files={rejectedFiles} onDismiss={dismissRejection} />
 
       <ChatInput
         value={text}
