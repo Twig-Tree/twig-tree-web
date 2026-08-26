@@ -30,6 +30,20 @@ Entity에 작성하는 항목은 다음과 같다.
 - 단일 조회 목적의 query
 - 단일 변경 목적의 mutation
 - 도메인 객체를 표현하는 기본 UI
+- 백엔드 계약에서 오는 제약값
+
+이름 길이나 파일 크기 상한처럼 초과 시 백엔드가 거절하는 값은 계약의 일부다. 계약을 소유하는 계층이 entity이므로 상한값도 entity가 소유한다.
+
+```ts
+// src/entities/folder/model/constants.ts
+export const MAX_FOLDER_NAME_LENGTH = 30;
+```
+
+검증 로직 자체는 `shared/lib`에 둘 수 있지만, 그때도 값은 인자로 받는다. `shared`는 도메인을 모르는 계층이므로 세는 규칙만 갖는다.
+
+```ts
+validateNameLength(name, "폴더", MAX_FOLDER_NAME_LENGTH);
+```
 
 폴더 entity의 예시는 다음과 같다.
 
@@ -242,6 +256,36 @@ import {
 } from "@/src/entities/folder";
 
 import { useCreateFolder } from "@/src/features/folder/create-folder";
+```
+
+### 부수효과가 있는 슬라이스의 예외
+
+`index.ts`는 슬라이스의 모든 모듈을 한 그래프로 묶는다. 슬라이스 안에 import 시점부터 동작하는 모듈이 있으면, 그 슬라이스에서 값 하나만 가져와도 전부 함께 로드된다.
+
+`entities/tree`와 `entities/folder`가 이 경우다. 공개 API를 거치면 `api/` → `shared/api/axiosInstance` → `shared/config`까지 이어지고, `shared/config`는 모듈 로드 시점에 환경변수를 검사하며 없으면 예외를 던진다. vitest는 `.env`를 읽지 않으므로 단위 테스트가 이 지점에서 죽는다.
+
+따라서 **부수효과 없는 값을 이런 슬라이스에서 가져올 때는 해당 모듈을 직접 짚는다.**
+
+```ts
+import { MAX_MEMO_LENGTH } from "@/src/entities/tree/model/constants";
+import { mapNodesDtoToDomain } from "@/src/entities/tree/lib/mappers";
+```
+
+이때 상수 모듈은 `index.ts`로 내보내지 않는다. 내보내 두면 공개 API 쪽이 정답처럼 보여 같은 문제가 되풀이된다.
+
+타입은 이 예외에 해당하지 않는다. `import type`은 컴파일 시 지워져 런타임 그래프를 만들지 않으므로 공개 API를 그대로 쓴다.
+
+```ts
+import type { TreeNode } from "@/src/entities/tree";
+```
+
+**테스트 파일만 깊은 경로로 바꾸는 방법은 통하지 않는다.** 테스트가 검사하는 대상 모듈이 공개 API를 import하면 그 경로로 그대로 끌려온다. 경로를 정하는 쪽은 테스트가 아니라 검사 대상이다.
+
+```text
+validateMemoContent.test.ts
+├─ "@/src/entities/tree/model/constants"   깊은 경로. 안전
+└─ "./validateMemoContent"                 검사 대상
+      └─ "@/src/entities/tree"             공개 API. 여기서 예외가 발생한다
 ```
 
 ## Entity와 Feature는 서로 다른 축으로 나눈다
