@@ -1,4 +1,5 @@
 import type { FolderItem } from "@/src/entities/folder";
+import { MAX_FOLDER_NAME_LENGTH } from "@/src/entities/folder/model/constants";
 import { validateNameLength } from "@/src/shared/lib/validation/validateNameLength";
 
 interface ValidateFolderNameParams {
@@ -18,7 +19,7 @@ export function validateFolderName({
   folders,
   name,
 }: ValidateFolderNameParams): string | null {
-  const lengthError = validateNameLength(name, "폴더");
+  const lengthError = validateNameLength(name, "폴더", MAX_FOLDER_NAME_LENGTH);
 
   if (lengthError) {
     return lengthError;

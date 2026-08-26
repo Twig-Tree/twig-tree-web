@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import type { FolderItem } from "@/src/entities/folder";
-import { MAX_NAME_LENGTH } from "@/src/shared/lib/validation/validateNameLength";
+import { MAX_FOLDER_NAME_LENGTH } from "@/src/entities/folder/model/constants";
 import { validateFolderName } from "./validateFolderName";
 
 const folders: FolderItem[] = [
@@ -25,11 +25,11 @@ describe("validateFolderName", () => {
   });
 
   it("30자까지는 통과시킨다", () => {
-    expect(validate("가".repeat(MAX_NAME_LENGTH))).toBeNull();
+    expect(validate("가".repeat(MAX_FOLDER_NAME_LENGTH))).toBeNull();
   });
 
   it("30자를 초과하면 폴더 안내 문구로 거부한다", () => {
-    expect(validate("가".repeat(MAX_NAME_LENGTH + 1))).toBe(
+    expect(validate("가".repeat(MAX_FOLDER_NAME_LENGTH + 1))).toBe(
       "폴더 이름은 최대 30자까지 입력할 수 있습니다.",
     );
   });
@@ -39,8 +39,8 @@ describe("validateFolderName", () => {
   한영 동일 30자 정책이 적용되었는지 확인한다.
   */
   it("한글과 영문을 같은 글자 수로 센다", () => {
-    expect(validate("가".repeat(MAX_NAME_LENGTH))).toBeNull();
-    expect(validate("a".repeat(MAX_NAME_LENGTH))).toBeNull();
+    expect(validate("가".repeat(MAX_FOLDER_NAME_LENGTH))).toBeNull();
+    expect(validate("a".repeat(MAX_FOLDER_NAME_LENGTH))).toBeNull();
   });
 
   it("같은 위치에 동일한 이름이 있으면 거부한다", () => {

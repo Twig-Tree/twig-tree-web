@@ -1,4 +1,4 @@
-export const MAX_MEMO_LENGTH = 500;
+import { MAX_MEMO_LENGTH } from "@/src/entities/tree/model/constants";
 
 /*
 함수 이름 : validateMemoContent

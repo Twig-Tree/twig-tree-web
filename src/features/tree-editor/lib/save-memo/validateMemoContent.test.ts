@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
-import { MAX_MEMO_LENGTH, validateMemoContent } from "./validateMemoContent";
+import { MAX_MEMO_LENGTH } from "@/src/entities/tree/model/constants";
+import { validateMemoContent } from "./validateMemoContent";
 
 describe("validateMemoContent", () => {
   it("일반적인 내용은 통과시킨다", () => {

@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { MAX_NAME_LENGTH } from "@/src/shared/lib/validation/validateNameLength";
+import { MAX_NODE_NAME_LENGTH } from "@/src/entities/tree/model/constants";
 import { validateNodeName } from "./validateNodeName";
 
 /*
@@ -16,11 +16,11 @@ describe("validateNodeName", () => {
   });
 
   it("30자까지는 통과시킨다", () => {
-    expect(validateNodeName("가".repeat(MAX_NAME_LENGTH))).toBeNull();
+    expect(validateNodeName("가".repeat(MAX_NODE_NAME_LENGTH))).toBeNull();
   });
 
   it("30자를 초과하면 노드 안내 문구로 거부한다", () => {
-    expect(validateNodeName("가".repeat(MAX_NAME_LENGTH + 1))).toBe(
+    expect(validateNodeName("가".repeat(MAX_NODE_NAME_LENGTH + 1))).toBe(
       "노드 이름은 최대 30자까지 입력할 수 있습니다.",
     );
   });
