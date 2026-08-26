@@ -16,6 +16,12 @@ export const FILE_KIND_BY_EXTENSION: Record<string, FileKind> = {
 export const ACCEPTED_FILE_EXTENSIONS = Object.keys(FILE_KIND_BY_EXTENSION);
 
 /*
+첨부할 수 있는 파일 크기 상한. 확장자와 마찬가지로 파일 선택 창에서는 거를 수 없어
+선택 이후에 검사한다.
+*/
+export const MAX_ATTACHMENT_SIZE_BYTES = 10 * 1024 * 1024;
+
+/*
 input[type=file]의 accept 속성 값. 파일 선택 창에서 허용 확장자만 보이게 한다.
 accept는 사용자가 우회할 수 있으므로 검증을 대신하지는 못한다.
 */
