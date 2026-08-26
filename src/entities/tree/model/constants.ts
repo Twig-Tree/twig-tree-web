@@ -3,10 +3,6 @@
 글자 수는 Java String 길이(UTF-16 코드 단위) 기준이라 JavaScript의 String.length와 같은 단위다.
 
 메모가 트리와 같은 슬라이스에 있는 이유는 fsd-layers.md의 "한 응답을 여러 도메인이 나눠 쓸 때"를 따른다.
-
-이 모듈은 슬라이스 공개 API로 내보내지 않는다. 이 슬라이스의 index를 거치면 api 모듈까지 함께
-로드되어, 값 하나를 쓰는 쪽이 axios와 환경변수 검사까지 끌어오게 된다.
-같은 이유로 checkCycle.test.ts도 mappers를 깊은 경로로 가져온다.
 */
 export const MAX_NODE_NAME_LENGTH = 30;
 

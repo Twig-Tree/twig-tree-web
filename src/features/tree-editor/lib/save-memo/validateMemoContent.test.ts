@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { MAX_MEMO_LENGTH } from "@/src/entities/tree/model/constants";
+import { MAX_MEMO_LENGTH } from "@/src/entities/tree";
 import { validateMemoContent } from "./validateMemoContent";
 
 describe("validateMemoContent", () => {

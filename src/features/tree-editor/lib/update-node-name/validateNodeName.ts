@@ -1,4 +1,4 @@
-import { MAX_NODE_NAME_LENGTH } from "@/src/entities/tree/model/constants";
+import { MAX_NODE_NAME_LENGTH } from "@/src/entities/tree";
 import { validateNameLength } from "@/src/shared/lib/validation/validateNameLength";
 
 /*

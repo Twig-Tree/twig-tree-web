@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { MAX_MEMO_LENGTH } from "@/src/entities/tree/model/constants";
+import { MAX_MEMO_LENGTH } from "@/src/entities/tree";
 import { validateMemoContent } from "../lib/save-memo/validateMemoContent";
 
 type MemoEditorProps = {

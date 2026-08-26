@@ -1,5 +1,4 @@
-import type { FolderItem } from "@/src/entities/folder";
-import { MAX_FOLDER_NAME_LENGTH } from "@/src/entities/folder/model/constants";
+import { type FolderItem, MAX_FOLDER_NAME_LENGTH } from "@/src/entities/folder";
 import { validateNameLength } from "@/src/shared/lib/validation/validateNameLength";
 
 interface ValidateFolderNameParams {

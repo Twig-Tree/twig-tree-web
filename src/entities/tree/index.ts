@@ -12,6 +12,7 @@ export type {
   UpdateMemoResponse,
 } from "./api/types";
 export type { TreeNode } from "./model/types";
+export { MAX_MEMO_LENGTH, MAX_NODE_NAME_LENGTH } from "./model/constants";
 export { treeApi } from "./api/treeApi";
 export { nodeApi } from "./api/nodeApi";
 export { memoApi } from "./api/memoApi";

@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { MAX_NODE_NAME_LENGTH } from "@/src/entities/tree/model/constants";
+import { MAX_NODE_NAME_LENGTH } from "@/src/entities/tree";
 import { validateNodeName } from "./validateNodeName";
 
 /*

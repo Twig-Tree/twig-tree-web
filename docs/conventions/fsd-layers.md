@@ -258,35 +258,24 @@ import {
 import { useCreateFolder } from "@/src/features/folder/create-folder";
 ```
 
-### 부수효과가 있는 슬라이스의 예외
+### 공개 API import는 테스트 환경에 환경변수를 요구한다
 
-`index.ts`는 슬라이스의 모든 모듈을 한 그래프로 묶는다. 슬라이스 안에 import 시점부터 동작하는 모듈이 있으면, 그 슬라이스에서 값 하나만 가져와도 전부 함께 로드된다.
+`index.ts`는 슬라이스의 모든 모듈을 한 그래프로 묶는다. `entities/tree`와 `entities/folder`에서는 값 하나만 가져와도 `api/` → `shared/api/axiosInstance` → `shared/config`까지 함께 로드된다.
 
-`entities/tree`와 `entities/folder`가 이 경우다. 공개 API를 거치면 `api/` → `shared/api/axiosInstance` → `shared/config`까지 이어지고, `shared/config`는 모듈 로드 시점에 환경변수를 검사하며 없으면 예외를 던진다. vitest는 `.env`를 읽지 않으므로 단위 테스트가 이 지점에서 죽는다.
+`shared/config/api.ts`와 `shared/config/auth.ts`는 모듈 로드 시점에 `process.env.NEXT_PUBLIC_API_BASE_URL`과 `process.env.NEXT_PUBLIC_AUTH_MODE`를 읽고, 값이 없으면 예외를 던진다. vitest는 `.env`를 `process.env`로 주입하지 않으므로, 셸 환경에도 값이 없으면 테스트가 검사를 시작하기 전에 죽는다.
 
-따라서 **부수효과 없는 값을 이런 슬라이스에서 가져올 때는 해당 모듈을 직접 짚는다.**
-
-```ts
-import { MAX_MEMO_LENGTH } from "@/src/entities/tree/model/constants";
-import { mapNodesDtoToDomain } from "@/src/entities/tree/lib/mappers";
-```
-
-이때 상수 모듈은 `index.ts`로 내보내지 않는다. 내보내 두면 공개 API 쪽이 정답처럼 보여 같은 문제가 되풀이된다.
-
-타입은 이 예외에 해당하지 않는다. `import type`은 컴파일 시 지워져 런타임 그래프를 만들지 않으므로 공개 API를 그대로 쓴다.
+따라서 `vitest.config.ts`의 `test.env`에 두 값을 고정해 둔다. 각자의 `.env`나 셸 상태에 따라 결과가 달라지지 않게 하려는 것이므로, 셸 환경을 읽어 오지 않는다.
 
 ```ts
-import type { TreeNode } from "@/src/entities/tree";
+env: {
+  NEXT_PUBLIC_API_BASE_URL: "http://localhost/api",
+  NEXT_PUBLIC_AUTH_MODE: "optional",
+},
 ```
 
-**테스트 파일만 깊은 경로로 바꾸는 방법은 통하지 않는다.** 테스트가 검사하는 대상 모듈이 공개 API를 import하면 그 경로로 그대로 끌려온다. 경로를 정하는 쪽은 테스트가 아니라 검사 대상이다.
+깊은 경로로 우회하지 않는다. 상수처럼 부수효과가 없는 값은 우회할 수 있지만, hook과 컴포넌트 테스트는 api 계층 자체가 검사 대상이라 우회 경로가 없다. 두 방식이 섞이면 같은 값을 어디서는 공개 API로, 어디서는 깊은 경로로 가져오게 된다.
 
-```text
-validateMemoContent.test.ts
-├─ "@/src/entities/tree/model/constants"   깊은 경로. 안전
-└─ "./validateMemoContent"                 검사 대상
-      └─ "@/src/entities/tree"             공개 API. 여기서 예외가 발생한다
-```
+`shared/config`가 로드 시점에 예외를 던지는 구조는 그대로 남아 있어, required 환경변수가 늘면 위 목록도 따라 늘어난다.
 
 ## Entity와 Feature는 서로 다른 축으로 나눈다
 

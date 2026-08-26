@@ -1,4 +1,4 @@
-import { MAX_MEMO_LENGTH } from "@/src/entities/tree/model/constants";
+import { MAX_MEMO_LENGTH } from "@/src/entities/tree";
 
 /*
 함수 이름 : validateMemoContent
