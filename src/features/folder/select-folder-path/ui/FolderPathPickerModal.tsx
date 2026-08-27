@@ -1,6 +1,12 @@
 "use client";
 
-import { ChevronRight, CornerUpLeft, FolderOpen, X } from "lucide-react";
+import {
+  ChevronRight,
+  CornerUpLeft,
+  Folder,
+  FolderOpen,
+  X,
+} from "lucide-react";
 import { useGetFolderListQuery, type FolderItem } from "@/src/entities/folder";
 import { Breadcrumb } from "@/src/shared/ui/breadcrumb";
 import { Button } from "@/src/shared/ui/button";
@@ -9,6 +15,17 @@ import { useFolderPath } from "../model/useFolderPath";
 
 const MODAL_TITLE = "워크스페이스를 만들 위치";
 const SKELETON_WIDTH_CLASS_NAMES = ["w-3/5", "w-2/5", "w-2/3"];
+
+/*
+목록 영역의 높이를 고정한다. 폴더 개수와 로딩·에러·빈 폴더 상태에 따라 높이가 달라지면
+경로를 옮길 때마다 팝업 크기가 흔들린다. 높이를 넘는 목록은 이 영역 안에서 스크롤한다.
+*/
+const FOLDER_LIST_CLASS_NAME =
+  "flex h-56 flex-col overflow-hidden rounded-xl border border-slate-100";
+
+// 목록 대신 안내 문구를 보여주는 상태는 고정된 높이 안에서 가운데 정렬한다.
+const LIST_NOTICE_CLASS_NAME =
+  "flex h-full flex-col items-center justify-center px-4 text-center";
 
 interface FolderPathPickerModalProps {
   isOpen: boolean; // 팝업 표시 여부
@@ -52,7 +69,6 @@ function FolderPathPickerContent({
   const {
     breadcrumbItems,
     currentFolderId,
-    currentPathLabel,
     handleEnterFolder,
     handleGoToParentFolder,
     hasParentFolder,
@@ -100,30 +116,30 @@ function FolderPathPickerContent({
       </div>
 
       <div className="px-5 pb-4">
-        <div className="overflow-hidden rounded-xl border border-slate-100">
-          <div className="max-h-56 overflow-y-auto">
-            {hasParentFolder ? (
-              <button
-                type="button"
-                onClick={handleGoToParentFolder}
-                className="flex w-full items-center gap-3 border-b border-slate-100 bg-slate-50 px-3.5 py-2.5 text-left transition-colors hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-indigo-500"
+        <div className={FOLDER_LIST_CLASS_NAME}>
+          {hasParentFolder ? (
+            <button
+              type="button"
+              onClick={handleGoToParentFolder}
+              className="flex w-full shrink-0 items-center gap-3 border-b border-slate-100 bg-slate-50 px-3.5 py-2.5 text-left transition-colors hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-indigo-500"
+            >
+              <span
+                className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-slate-100 text-slate-500"
+                aria-hidden="true"
               >
-                <span
-                  className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-slate-100 text-slate-500"
-                  aria-hidden="true"
-                >
-                  <CornerUpLeft className="h-4 w-4" />
-                </span>
-                <span className="text-sm font-medium text-slate-500">
-                  상위 폴더로
-                </span>
-              </button>
-            ) : null}
+                <CornerUpLeft className="h-4 w-4" />
+              </span>
+              <span className="text-sm font-medium text-slate-500">
+                상위 폴더로
+              </span>
+            </button>
+          ) : null}
 
+          <div className="flex-1 overflow-y-auto">
             {isFolderListPending ? (
               <FolderListSkeleton />
             ) : folderListQuery.isError ? (
-              <div className="px-4 py-7 text-center">
+              <div className={LIST_NOTICE_CLASS_NAME}>
                 <p role="alert" className="text-sm font-medium text-red-600">
                   폴더 목록을 불러오지 못했습니다.
                 </p>
@@ -149,23 +165,15 @@ function FolderPathPickerContent({
         </div>
       </div>
 
-      <div className="flex items-center justify-between gap-3 border-t border-slate-100 bg-slate-50 px-5 py-3.5">
-        <p className="min-w-0 truncate text-sm text-slate-500">
-          <span className="text-slate-400">여기에 만듭니다 · </span>
-          <span className="font-semibold text-slate-700">
-            {currentPathLabel}
-          </span>
-        </p>
-        <div className="flex shrink-0 gap-3">
-          <Button onClick={onClose}>취소</Button>
-          <Button
-            variant="primary"
-            onClick={handleSelectCurrentFolder}
-            disabled={isSelectDisabled}
-          >
-            여기에 만들기
-          </Button>
-        </div>
+      <div className="flex items-center justify-end gap-3 border-t border-slate-100 bg-slate-50 px-5 py-3.5">
+        <Button onClick={onClose}>취소</Button>
+        <Button
+          variant="primary"
+          onClick={handleSelectCurrentFolder}
+          disabled={isSelectDisabled}
+        >
+          여기에 만들기
+        </Button>
       </div>
     </div>
   );
@@ -190,10 +198,10 @@ function FolderRow({ folder, onEnter }: FolderRowProps) {
       className="group flex w-full items-center gap-3 border-b border-slate-100 px-3.5 py-2.5 text-left transition-colors last:border-b-0 hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-indigo-500"
     >
       <span
-        className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-indigo-50"
+        className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-indigo-50 text-indigo-600"
         aria-hidden="true"
       >
-        <span className="relative block h-2.5 w-3.5 rounded-[3px] bg-indigo-600 before:absolute before:-top-1 before:left-0 before:h-1 before:w-2 before:rounded-t-[2px] before:bg-indigo-600" />
+        <Folder className="h-4 w-4" />
       </span>
       <span className="flex-1 truncate text-sm font-semibold text-slate-800 transition-colors group-hover:text-indigo-700">
         {folder.name}
@@ -238,9 +246,9 @@ function FolderListSkeleton() {
 */
 function EmptyFolderNotice() {
   return (
-    <div className="px-4 py-7 text-center">
+    <div className={LIST_NOTICE_CLASS_NAME}>
       <span
-        className="mx-auto mb-2.5 flex h-9 w-9 items-center justify-center rounded-[10px] bg-indigo-50 text-indigo-400"
+        className="mb-2.5 flex h-9 w-9 items-center justify-center rounded-[10px] bg-indigo-50 text-indigo-400"
         aria-hidden="true"
       >
         <FolderOpen className="h-5 w-5" />

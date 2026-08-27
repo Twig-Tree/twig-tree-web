@@ -15,7 +15,7 @@ export interface FolderPathEntry {
 함수 이름 : useFolderPath
 기능 : 루트에서부터 따라 내려간 폴더 경로를 스택으로 관리하고, 현재 위치와 breadcrumb 항목을 제공한다.
 인자 : 없음
-반환값 : 현재 폴더 ID, 경로 표시에 필요한 값, 경로 이동 handler
+반환값 : 현재 폴더 ID, breadcrumb 항목, 경로 이동 handler
 
 경로는 사용자가 밟은 순서 그대로이므로 조상 조회 API 없이 화면에서 구성한다.
 루트는 스택이 비어 있는 상태로 표현해, 현재 폴더 ID가 자연스럽게 null이 된다.
@@ -77,15 +77,9 @@ export function useFolderPath() {
     })),
   ];
 
-  const currentPathLabel = [
-    ROOT_LABEL,
-    ...path.map((entry) => entry.name),
-  ].join(" / ");
-
   return {
     breadcrumbItems,
     currentFolderId,
-    currentPathLabel,
     handleEnterFolder,
     handleGoToParentFolder,
     hasParentFolder,
