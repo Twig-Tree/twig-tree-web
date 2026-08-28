@@ -5,6 +5,7 @@ import { Breadcrumb, type BreadcrumbItem } from "@/src/shared/ui/breadcrumb";
 export interface DirectoryHeaderProps {
   title: string;
   breadcrumbs: BreadcrumbItem[];
+  isTitleLoading?: boolean; // 제목을 처음 불러오는 중이라 자리표시자를 보여줄지 여부
   onCreateFolder?: () => void;
   isCreateFolderDisabled?: boolean;
 }
@@ -12,6 +13,7 @@ export interface DirectoryHeaderProps {
 export function DirectoryHeader({
   title,
   breadcrumbs,
+  isTitleLoading = false,
   onCreateFolder,
   isCreateFolderDisabled = false,
 }: DirectoryHeaderProps) {
@@ -20,7 +22,20 @@ export function DirectoryHeader({
       <div>
         <Breadcrumb items={breadcrumbs} />
         <h1 className="mt-2 text-3xl font-bold tracking-tight text-slate-900">
-          {title}
+          {isTitleLoading ? (
+            <>
+              <span className="sr-only">폴더 이름을 불러오는 중입니다.</span>
+              {/*
+              자리표시자의 높이를 text-3xl의 line-height에 맞춰, 제목이 도착해도 높이가 변하지 않게 한다.
+              */}
+              <span
+                className="block h-9 w-48 animate-pulse rounded-lg bg-slate-200"
+                aria-hidden="true"
+              />
+            </>
+          ) : (
+            title
+          )}
         </h1>
       </div>
 

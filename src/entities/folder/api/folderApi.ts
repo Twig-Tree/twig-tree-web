@@ -5,12 +5,14 @@ import {
   DeleteFolderResponse,
   GetFolderResponse,
   GetFolderListResponse,
+  GetFolderPathResponse,
   UpdateFolderRequest,
   UpdateFolderResponse,
 } from "@/src/entities/folder/api/types";
 import {
   mapFolderDtoToDomain,
   mapFolderListDtoToDomain,
+  mapFolderPathDtoToDomain,
 } from "@/src/entities/folder/lib/mappers";
 import { FolderItem } from "@/src/entities/folder/model/types";
 
@@ -57,5 +59,12 @@ export const folderApi = {
       },
     );
     return mapFolderListDtoToDomain(response.data.data);
+  },
+
+  getFolderPath: async (folderId: number): Promise<FolderItem[]> => {
+    const response = await axiosInstance.get<GetFolderPathResponse>(
+      `/folders/${folderId}/path`,
+    );
+    return mapFolderPathDtoToDomain(response.data.data.path);
   },
 };
