@@ -20,17 +20,20 @@ export function Sidebar() {
               pathname.startsWith(`${item.activePrefix}/`)
             : pathname === item.href;
 
+          const Icon = item.icon;
+
           return (
             <Link
               key={item.href}
               href={item.href}
-              className={`flex h-10 w-full items-center rounded-md px-3 text-left text-sm transition-colors ${
+              className={`flex h-10 w-full items-center gap-3 rounded-md px-3 text-left text-sm transition-colors ${
                 isActive
                   ? "bg-white font-medium text-indigo-600 shadow-sm ring-1 ring-slate-200"
                   : "text-slate-600 hover:bg-white hover:text-slate-900"
               }`}
               aria-current={isActive ? "page" : undefined}
             >
+              <Icon className="h-4 w-4 shrink-0" aria-hidden="true" />
               {item.label}
             </Link>
           );
