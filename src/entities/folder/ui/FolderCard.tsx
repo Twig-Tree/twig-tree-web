@@ -1,5 +1,6 @@
 "use client";
 
+import { Folder } from "lucide-react";
 import Link from "next/link";
 import { routes } from "@/src/shared/config/routes";
 import { KebabMenu } from "@/src/shared/ui/kebab-menu";
@@ -46,7 +47,7 @@ export function FolderCard({ folder, onDelete, onRename }: FolderCardProps) {
         className="pointer-events-none relative flex h-10 w-10 items-center justify-center rounded-lg bg-indigo-50"
         aria-hidden="true"
       >
-        <span className="relative block h-4 w-5 rounded-[3px] bg-indigo-600 before:absolute before:-top-1 before:left-0 before:h-1.5 before:w-2.5 before:rounded-t-[2px] before:bg-indigo-600" />
+        <Folder className="h-5 w-5 text-indigo-600 fill-current" />
       </div>
       <h2 className="pointer-events-none relative text-base font-semibold leading-snug text-slate-800 transition-colors group-hover:text-indigo-700">
         {folder.name}
