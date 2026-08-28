@@ -77,7 +77,7 @@ function DirectoryPageContent({ folderParentId }: DirectoryPageContentProps) {
         <DirectoryHeader
           title={currentFolderName}
           breadcrumbs={breadcrumbs}
-          isTitlePending={folderPathQuery.isPending}
+          isTitleLoading={folderPathQuery.isLoading}
           onCreateFolder={() => void handleCreateFolder()}
           isCreateFolderDisabled={isCreateFolderDisabled}
         />
