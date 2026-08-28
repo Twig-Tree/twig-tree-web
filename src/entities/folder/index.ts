@@ -5,4 +5,8 @@ export { folderApi } from "./api/folderApi";
 export { useCreateFolderMutation } from "./model/mutations/useCreateFolderMutation";
 export { useDeleteFolderMutation } from "./model/mutations/useDeleteFolderMutation";
 export { useUpdateFolderMutation } from "./model/mutations/useUpdateFolderMutation";
-export { useGetFolderListQuery, useGetFolderQuery } from "./model/queries";
+export {
+  useGetFolderListQuery,
+  useGetFolderPathQuery,
+  useGetFolderQuery,
+} from "./model/queries";
