@@ -22,6 +22,12 @@ export const ACCEPTED_FILE_EXTENSIONS = Object.keys(FILE_KIND_BY_EXTENSION);
 export const MAX_ATTACHMENT_SIZE_BYTES = 10 * 1024 * 1024;
 
 /*
+한 요청에 담을 수 있는 첨부 파일 수. 백엔드가 요청 하나당 파일 하나만 받는다.
+제약이 풀리면 이 값만 올리면 된다.
+*/
+export const MAX_ATTACHMENT_COUNT = 1;
+
+/*
 input[type=file]의 accept 속성 값. 파일 선택 창에서 허용 확장자만 보이게 한다.
 accept는 사용자가 우회할 수 있으므로 검증을 대신하지는 못한다.
 */

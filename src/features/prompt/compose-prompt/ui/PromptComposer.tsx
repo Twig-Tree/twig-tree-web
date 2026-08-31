@@ -63,7 +63,7 @@ export function PromptComposer({
         placeholder={placeholder}
         isSubmitDisabled={isSubmitDisabled}
         actions={
-          <AttachFileButton onSelect={addFiles} disabled={isAttachDisabled} />
+          <AttachFileButton onSelect={addFiles} isDisabled={isAttachDisabled} />
         }
       />
     </div>
