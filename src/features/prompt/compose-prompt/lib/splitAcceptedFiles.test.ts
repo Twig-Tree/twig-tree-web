@@ -1,20 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { MAX_ATTACHMENT_SIZE_BYTES } from "@/src/entities/attachment";
+import { createFile, createFileOfSize } from "@/src/tests/helpers/createFile";
 import { splitAcceptedFiles } from "./splitAcceptedFiles";
-
-const createFile = (name: string, type = "") => new File([], name, { type });
-
-/*
-File 생성자에 실제로 10MB를 담으면 테스트가 느려지므로 size만 원하는 값으로 바꾼다.
-File.size는 읽기 전용이라 정의를 덮어써야 한다.
-*/
-const createFileOfSize = (name: string, sizeInBytes: number) => {
-  const file = createFile(name);
-
-  Object.defineProperty(file, "size", { value: sizeInBytes });
-
-  return file;
-};
 
 describe("splitAcceptedFiles", () => {
   it("허용 확장자와 그렇지 않은 파일을 나눈다", () => {
