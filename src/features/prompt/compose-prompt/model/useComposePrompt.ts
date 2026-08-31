@@ -1,15 +1,13 @@
 "use client";
 
 import { useCallback, useState } from "react";
-import type { AttachmentItem } from "@/src/entities/attachment";
+import {
+  type AttachmentItem,
+  MAX_ATTACHMENT_COUNT,
+} from "@/src/entities/attachment";
 import { createAttachmentFromFile } from "../lib/createAttachmentFromFile";
 import { splitAcceptedFiles } from "../lib/splitAcceptedFiles";
 import type { PromptDraft, RejectedFile } from "./types";
-
-/*
-백엔드가 요청 하나당 파일 하나만 받는다. 제약이 풀리면 이 값만 올리면 된다.
-*/
-const MAX_ATTACHMENT_COUNT = 1;
 
 interface UseComposePromptParams {
   isSubmitting: boolean; // 상위 요청이 진행 중인 동안 전송을 잠근다

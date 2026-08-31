@@ -4,6 +4,7 @@ export { isAcceptedFileSize } from "./lib/isAcceptedFileSize";
 export {
   ACCEPTED_FILE_EXTENSIONS,
   FILE_INPUT_ACCEPT,
+  MAX_ATTACHMENT_COUNT,
   MAX_ATTACHMENT_SIZE_BYTES,
 } from "./model/constants";
 export type { AttachmentItem, FileKind } from "./model/types";
