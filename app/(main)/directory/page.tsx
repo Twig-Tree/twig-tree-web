@@ -18,10 +18,6 @@ export default function DirectoryRootPage() {
     folderParentId: null,
   });
 
-  /*
-  목록 조회가 하나라도 실패하면 그리드를 그리지 않는다. 성공한 쪽만 그리면
-  실패한 쪽이 "비어 있음"으로 읽혀, 조회가 실패한 사실이 화면에서 사라진다.
-  */
   const isListError = folderListQuery.isError || workspaceListQuery.isError;
 
   const handleCreateFolder = async () => {
@@ -42,21 +38,15 @@ export default function DirectoryRootPage() {
           onCreateFolder={() => void handleCreateFolder()}
           isCreateFolderDisabled={isCreateFolderDisabled}
         />
-        {isListError ? null : (
-          <DirectoryContentsGrid
-            editingFolderId={editingFolderId}
-            folderParentId={null}
-            folders={folderListQuery.data ?? []}
-            onEditingStart={setEditingFolderId}
-            onEditingEnd={() => setEditingFolderId(null)}
-            workspaces={workspaceListQuery.data ?? []}
-          />
-        )}
-        {isListError ? (
-          <p role="alert" className="text-sm font-medium text-red-600">
-            목록을 불러오지 못했습니다.
-          </p>
-        ) : null}
+        <DirectoryContentsGrid
+          editingFolderId={editingFolderId}
+          folderParentId={null}
+          folders={folderListQuery.data ?? []}
+          isError={isListError}
+          onEditingStart={setEditingFolderId}
+          onEditingEnd={() => setEditingFolderId(null)}
+          workspaces={workspaceListQuery.data ?? []}
+        />
       </div>
     </div>
   );
