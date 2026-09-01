@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useGetFolderListQuery } from "@/src/entities/folder";
+import { useGetWorkspaceListQuery } from "@/src/entities/workspace";
 import { useCreateFolder } from "@/src/features/folder/create-folder";
 import {
   DirectoryContentsGrid,
@@ -11,10 +12,17 @@ import {
 export default function DirectoryRootPage() {
   const [editingFolderId, setEditingFolderId] = useState<string | null>(null);
   const folderListQuery = useGetFolderListQuery(null);
+  const workspaceListQuery = useGetWorkspaceListQuery(null);
   const { createFolder, isCreateFolderDisabled } = useCreateFolder({
     folders: folderListQuery.data,
     folderParentId: null,
   });
+
+  /*
+  목록 조회가 하나라도 실패하면 그리드를 그리지 않는다. 성공한 쪽만 그리면
+  실패한 쪽이 "비어 있음"으로 읽혀, 조회가 실패한 사실이 화면에서 사라진다.
+  */
+  const isListError = folderListQuery.isError || workspaceListQuery.isError;
 
   const handleCreateFolder = async () => {
     try {
@@ -34,17 +42,19 @@ export default function DirectoryRootPage() {
           onCreateFolder={() => void handleCreateFolder()}
           isCreateFolderDisabled={isCreateFolderDisabled}
         />
-        <DirectoryContentsGrid
-          editingFolderId={editingFolderId}
-          folderParentId={null}
-          folders={folderListQuery.data ?? []}
-          onEditingStart={setEditingFolderId}
-          onEditingEnd={() => setEditingFolderId(null)}
-          workspaces={[]}
-        />
-        {folderListQuery.isError ? (
+        {isListError ? null : (
+          <DirectoryContentsGrid
+            editingFolderId={editingFolderId}
+            folderParentId={null}
+            folders={folderListQuery.data ?? []}
+            onEditingStart={setEditingFolderId}
+            onEditingEnd={() => setEditingFolderId(null)}
+            workspaces={workspaceListQuery.data ?? []}
+          />
+        )}
+        {isListError ? (
           <p role="alert" className="text-sm font-medium text-red-600">
-            폴더 목록을 불러오지 못했습니다.
+            목록을 불러오지 못했습니다.
           </p>
         ) : null}
       </div>

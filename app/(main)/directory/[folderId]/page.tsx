@@ -5,6 +5,7 @@ import {
   useGetFolderListQuery,
   useGetFolderPathQuery,
 } from "@/src/entities/folder";
+import { useGetWorkspaceListQuery } from "@/src/entities/workspace";
 import { useCreateFolder } from "@/src/features/folder/create-folder";
 import { routes } from "@/src/shared/config/routes";
 import type { BreadcrumbItem } from "@/src/shared/ui/breadcrumb";
@@ -39,6 +40,7 @@ function DirectoryPageContent({ folderParentId }: DirectoryPageContentProps) {
   const [editingFolderId, setEditingFolderId] = useState<string | null>(null);
   const folderPathQuery = useGetFolderPathQuery(folderParentId);
   const folderListQuery = useGetFolderListQuery(folderParentId);
+  const workspaceListQuery = useGetWorkspaceListQuery(folderParentId);
   const { createFolder, isCreateFolderDisabled } = useCreateFolder({
     folders: folderListQuery.data,
     folderParentId,
@@ -62,6 +64,12 @@ function DirectoryPageContent({ folderParentId }: DirectoryPageContentProps) {
     })),
   ];
 
+  /*
+  목록 조회가 하나라도 실패하면 그리드를 그리지 않는다. 성공한 쪽만 그리면
+  실패한 쪽이 "비어 있음"으로 읽혀, 조회가 실패한 사실이 화면에서 사라진다.
+  */
+  const isListError = folderListQuery.isError || workspaceListQuery.isError;
+
   const handleCreateFolder = async () => {
     try {
       const createdFolder = await createFolder();
@@ -81,17 +89,28 @@ function DirectoryPageContent({ folderParentId }: DirectoryPageContentProps) {
           onCreateFolder={() => void handleCreateFolder()}
           isCreateFolderDisabled={isCreateFolderDisabled}
         />
-        <DirectoryContentsGrid
-          editingFolderId={editingFolderId}
-          folderParentId={folderParentId}
-          folders={folderListQuery.data ?? []}
-          onEditingStart={setEditingFolderId}
-          onEditingEnd={() => setEditingFolderId(null)}
-          workspaces={[]}
-        />
-        {folderPathQuery.isError || folderListQuery.isError ? (
+        {isListError ? null : (
+          <DirectoryContentsGrid
+            editingFolderId={editingFolderId}
+            folderParentId={folderParentId}
+            folders={folderListQuery.data ?? []}
+            onEditingStart={setEditingFolderId}
+            onEditingEnd={() => setEditingFolderId(null)}
+            workspaces={workspaceListQuery.data ?? []}
+          />
+        )}
+        {/*
+        경로 조회가 실패하면 제목이 "Folder"로, breadcrumb이 "Root"만으로 떨어진다.
+        정상 화면과 구분되지 않으므로 목록 실패와 나눠서 알린다.
+        */}
+        {folderPathQuery.isError ? (
           <p role="alert" className="text-sm font-medium text-red-600">
-            폴더 정보를 불러오지 못했습니다.
+            현재 폴더 위치를 확인하지 못했습니다.
+          </p>
+        ) : null}
+        {isListError ? (
+          <p role="alert" className="text-sm font-medium text-red-600">
+            목록을 불러오지 못했습니다.
           </p>
         ) : null}
       </div>
