@@ -1,10 +1,36 @@
 import {
   RAW_TREE_DATA,
   RAW_TREE_DATA_WITH_CYCLE,
+  RAW_WORKSPACE_DATA,
 } from "@/src/tests/mocks/data";
 import { http, HttpResponse } from "msw";
 
 export const handlers = [
+  /*
+  워크스페이스 목록 조회 GET 요청 핸들러.
+  folderId를 생략하면 폴더에 속하지 않은 것만, 값이 있으면 그 폴더의 것만 돌려준다.
+  실제 백엔드와 같은 규칙이라 쿼리 파라미터가 빠지면 결과가 달라져 테스트가 잡아낸다.
+  */
+  http.get("*/api/workspaces", ({ request }) => {
+    const folderId = new URL(request.url).searchParams.get("folderId");
+
+    const data = RAW_WORKSPACE_DATA.filter((workspace) =>
+      folderId === null
+        ? workspace.folderId === null
+        : String(workspace.folderId) === folderId,
+    );
+
+    return HttpResponse.json(
+      {
+        isSuccess: true,
+        code: "WORKSPACES_FOUND",
+        message: "워크스페이스 목록이 조회되었습니다.",
+        data,
+      },
+      { status: 200 },
+    );
+  }),
+
   // 트리 조회 GET 요청 핸들러
   http.get("*/api/tree/:treeId", ({ params }) => {
     const { treeId } = params;
