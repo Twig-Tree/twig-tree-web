@@ -65,6 +65,8 @@ function DirectoryPageContent({ folderParentId }: DirectoryPageContentProps) {
   ];
 
   const isListError = folderListQuery.isError || workspaceListQuery.isError;
+  const isListLoaded =
+    folderListQuery.isSuccess && workspaceListQuery.isSuccess;
 
   const handleCreateFolder = async () => {
     try {
@@ -91,6 +93,7 @@ function DirectoryPageContent({ folderParentId }: DirectoryPageContentProps) {
           folderParentId={folderParentId}
           folders={folderListQuery.data ?? []}
           isError={isListError}
+          isLoaded={isListLoaded}
           onEditingStart={setEditingFolderId}
           onEditingEnd={() => setEditingFolderId(null)}
           workspaces={workspaceListQuery.data ?? []}

@@ -19,6 +19,8 @@ export default function DirectoryRootPage() {
   });
 
   const isListError = folderListQuery.isError || workspaceListQuery.isError;
+  const isListLoaded =
+    folderListQuery.isSuccess && workspaceListQuery.isSuccess;
 
   const handleCreateFolder = async () => {
     try {
@@ -43,6 +45,7 @@ export default function DirectoryRootPage() {
           folderParentId={null}
           folders={folderListQuery.data ?? []}
           isError={isListError}
+          isLoaded={isListLoaded}
           onEditingStart={setEditingFolderId}
           onEditingEnd={() => setEditingFolderId(null)}
           workspaces={workspaceListQuery.data ?? []}
