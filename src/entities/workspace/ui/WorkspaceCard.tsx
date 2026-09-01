@@ -25,7 +25,7 @@ export function WorkspaceCard({
       <Heading className="text-base font-semibold leading-snug text-slate-800">
         {workspace.name}
       </Heading>
-      <p className="text-xs text-slate-500">Modified {workspace.modifiedAt}</p>
+      <p className="text-xs text-slate-500">Modified {workspace.updatedAt}</p>
     </article>
   );
 }
