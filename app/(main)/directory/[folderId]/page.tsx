@@ -57,10 +57,7 @@ function DirectoryPageContent({ folderParentId }: DirectoryPageContentProps) {
     { label: "Root", href: routes.directoryRoot },
     ...folderPath.map(({ id, name }, index) => ({
       label: name,
-      href:
-        id === null || index === folderPath.length - 1
-          ? undefined
-          : routes.directory(id),
+      href: index === folderPath.length - 1 ? undefined : routes.directory(id),
     })),
   ];
 

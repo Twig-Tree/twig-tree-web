@@ -80,10 +80,10 @@ export function DirectoryContentsGrid({
       aria-label="Directory contents"
     >
       {folders.map((folder) =>
-        folder.id !== null && folder.id === editingFolderId ? (
+        folder.id === editingFolderId ? (
           <EditableFolderCard
             key={folder.id}
-            folder={{ ...folder, id: folder.id }}
+            folder={folder}
             folders={folders}
             folderParentId={folderParentId}
             onEditingEnd={onEditingEnd}
@@ -93,20 +93,16 @@ export function DirectoryContentsGrid({
             key={folder.id}
             folder={folder}
             onDelete={
-              folder.id === null || isDeletingFolder
+              isDeletingFolder
                 ? undefined
                 : () => {
                     void deleteFolder({
-                      folderId: folder.id as string,
+                      folderId: folder.id,
                       name: folder.name,
                     });
                   }
             }
-            onRename={() => {
-              if (folder.id !== null) {
-                onEditingStart(folder.id);
-              }
-            }}
+            onRename={() => onEditingStart(folder.id)}
           />
         ),
       )}
