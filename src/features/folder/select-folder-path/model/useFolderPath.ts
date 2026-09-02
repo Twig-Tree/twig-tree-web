@@ -41,12 +41,9 @@ export function useFolderPath() {
   기능 : 선택한 폴더를 경로 끝에 쌓아 한 단계 아래로 이동한다.
   인자 : FolderItem folder -> 목록에서 선택한 폴더
   반환값 : 없음
-
-  ID가 없는 폴더는 아직 서버에 확정되지 않아 자식 목록을 조회할 수 없으므로 무시한다.
   */
   const handleEnterFolder = (folder: FolderItem) => {
     const { id, name } = folder;
-    if (id === null) return;
 
     setPath((current) => [...current, { id, name }]);
   };

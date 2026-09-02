@@ -13,7 +13,7 @@ import type { FolderItem } from "@/src/entities/folder";
 import { useUpdateFolder } from "../model/useUpdateFolder";
 
 interface EditableFolderCardProps {
-  folder: FolderItem & { id: string }; // 이름을 수정할 폴더
+  folder: FolderItem; // 이름을 수정할 폴더
   folders: FolderItem[]; // 이름 중복을 검사할 형제 폴더 목록
   folderParentId: string | null; // 수정 후 목록 cache를 갱신할 부모 폴더 ID
   onEditingEnd: () => void; // 저장 또는 취소 후 편집 상태를 종료하는 callback
