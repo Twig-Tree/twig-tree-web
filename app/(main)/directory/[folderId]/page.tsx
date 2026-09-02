@@ -5,6 +5,7 @@ import {
   useGetFolderListQuery,
   useGetFolderPathQuery,
 } from "@/src/entities/folder";
+import { useGetWorkspaceListQuery } from "@/src/entities/workspace";
 import { useCreateFolder } from "@/src/features/folder/create-folder";
 import { routes } from "@/src/shared/config/routes";
 import type { BreadcrumbItem } from "@/src/shared/ui/breadcrumb";
@@ -39,6 +40,7 @@ function DirectoryPageContent({ folderParentId }: DirectoryPageContentProps) {
   const [editingFolderId, setEditingFolderId] = useState<string | null>(null);
   const folderPathQuery = useGetFolderPathQuery(folderParentId);
   const folderListQuery = useGetFolderListQuery(folderParentId);
+  const workspaceListQuery = useGetWorkspaceListQuery(folderParentId);
   const { createFolder, isCreateFolderDisabled } = useCreateFolder({
     folders: folderListQuery.data,
     folderParentId,
@@ -62,6 +64,12 @@ function DirectoryPageContent({ folderParentId }: DirectoryPageContentProps) {
     })),
   ];
 
+  const isListError = folderListQuery.isError || workspaceListQuery.isError;
+  const isListLoaded =
+    folderListQuery.isSuccess && workspaceListQuery.isSuccess;
+  const isListLoading =
+    folderListQuery.isLoading || workspaceListQuery.isLoading;
+
   const handleCreateFolder = async () => {
     try {
       const createdFolder = await createFolder();
@@ -78,6 +86,7 @@ function DirectoryPageContent({ folderParentId }: DirectoryPageContentProps) {
           title={currentFolderName}
           breadcrumbs={breadcrumbs}
           isTitleLoading={folderPathQuery.isLoading}
+          isPathError={folderPathQuery.isError}
           onCreateFolder={() => void handleCreateFolder()}
           isCreateFolderDisabled={isCreateFolderDisabled}
         />
@@ -85,15 +94,13 @@ function DirectoryPageContent({ folderParentId }: DirectoryPageContentProps) {
           editingFolderId={editingFolderId}
           folderParentId={folderParentId}
           folders={folderListQuery.data ?? []}
+          isError={isListError}
+          isLoaded={isListLoaded}
+          isLoading={isListLoading}
           onEditingStart={setEditingFolderId}
           onEditingEnd={() => setEditingFolderId(null)}
-          workspaces={[]}
+          workspaces={workspaceListQuery.data ?? []}
         />
-        {folderPathQuery.isError || folderListQuery.isError ? (
-          <p role="alert" className="text-sm font-medium text-red-600">
-            폴더 정보를 불러오지 못했습니다.
-          </p>
-        ) : null}
       </div>
     </div>
   );

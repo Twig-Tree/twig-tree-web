@@ -1,3 +1,4 @@
+import { formatUpdatedAt } from "../lib/formatUpdatedAt";
 import type { WorkspaceItem } from "../model/types";
 
 interface WorkspaceCardProps {
@@ -19,13 +20,16 @@ export function WorkspaceCard({
   workspace,
 }: WorkspaceCardProps) {
   const Heading = headingLevel === 3 ? "h3" : "h2";
+  const formattedUpdatedAt = formatUpdatedAt(workspace.updatedAt);
 
   return (
     <article className="flex min-h-36 flex-col justify-between rounded-xl border border-slate-100 bg-white p-5 shadow-sm transition-shadow hover:shadow-md">
       <Heading className="text-base font-semibold leading-snug text-slate-800">
         {workspace.name}
       </Heading>
-      <p className="text-xs text-slate-500">Modified {workspace.modifiedAt}</p>
+      {formattedUpdatedAt ? (
+        <p className="text-xs text-slate-500">Modified {formattedUpdatedAt}</p>
+      ) : null}
     </article>
   );
 }

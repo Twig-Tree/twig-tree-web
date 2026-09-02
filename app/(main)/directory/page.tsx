@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useGetFolderListQuery } from "@/src/entities/folder";
+import { useGetWorkspaceListQuery } from "@/src/entities/workspace";
 import { useCreateFolder } from "@/src/features/folder/create-folder";
 import {
   DirectoryContentsGrid,
@@ -11,10 +12,17 @@ import {
 export default function DirectoryRootPage() {
   const [editingFolderId, setEditingFolderId] = useState<string | null>(null);
   const folderListQuery = useGetFolderListQuery(null);
+  const workspaceListQuery = useGetWorkspaceListQuery(null);
   const { createFolder, isCreateFolderDisabled } = useCreateFolder({
     folders: folderListQuery.data,
     folderParentId: null,
   });
+
+  const isListError = folderListQuery.isError || workspaceListQuery.isError;
+  const isListLoaded =
+    folderListQuery.isSuccess && workspaceListQuery.isSuccess;
+  const isListLoading =
+    folderListQuery.isLoading || workspaceListQuery.isLoading;
 
   const handleCreateFolder = async () => {
     try {
@@ -38,15 +46,13 @@ export default function DirectoryRootPage() {
           editingFolderId={editingFolderId}
           folderParentId={null}
           folders={folderListQuery.data ?? []}
+          isError={isListError}
+          isLoaded={isListLoaded}
+          isLoading={isListLoading}
           onEditingStart={setEditingFolderId}
           onEditingEnd={() => setEditingFolderId(null)}
-          workspaces={[]}
+          workspaces={workspaceListQuery.data ?? []}
         />
-        {folderListQuery.isError ? (
-          <p role="alert" className="text-sm font-medium text-red-600">
-            폴더 목록을 불러오지 못했습니다.
-          </p>
-        ) : null}
       </div>
     </div>
   );
