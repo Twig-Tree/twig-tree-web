@@ -5,6 +5,7 @@ import { DirectoryContentsGrid } from "./DirectoryContentsGrid";
 
 const ERROR_MESSAGE = "목록을 불러오지 못했습니다.";
 const EMPTY_MESSAGE = "아직 폴더나 워크스페이스가 없습니다.";
+const LOADING_MESSAGE = "목록을 불러오는 중입니다.";
 
 const renderGrid = (
   overrides: Partial<Parameters<typeof DirectoryContentsGrid>[0]> = {},
@@ -16,6 +17,7 @@ const renderGrid = (
       folders={[]}
       isError={false}
       isLoaded={true}
+      isLoading={false}
       onEditingStart={vi.fn()}
       onEditingEnd={vi.fn()}
       workspaces={[]}
@@ -56,14 +58,30 @@ describe("DirectoryContentsGrid", () => {
     expect(screen.getByText("기획 폴더")).toBeInTheDocument();
   });
 
-  /*
-  조회 중이거나 query가 비활성이면 두 목록 모두 빈 배열이지만 비어 있다고 확인된 것이 아니다.
-  */
-  it("목록이 아직 도착하지 않았으면 빈 상태를 알리지 않는다", () => {
-    renderGrid({ isLoaded: false });
+  it("조회 중이면 자리표시자를 보여준다", () => {
+    renderGrid({ isLoaded: false, isLoading: true });
 
+    expect(screen.getByText(LOADING_MESSAGE)).toBeInTheDocument();
+    expect(screen.queryByText(EMPTY_MESSAGE)).not.toBeInTheDocument();
+  });
+
+  /*
+  query가 비활성이면 조회 중도 아니고 도착한 것도 아니다. 이때 자리표시자를 두면
+  끝나지 않는 로딩으로 보이고, 빈 상태를 알리면 확인되지 않은 사실을 말하게 된다.
+  */
+  it("조회를 시작하지 않았으면 아무 상태도 알리지 않는다", () => {
+    renderGrid({ isLoaded: false, isLoading: false });
+
+    expect(screen.queryByText(LOADING_MESSAGE)).not.toBeInTheDocument();
     expect(screen.queryByText(EMPTY_MESSAGE)).not.toBeInTheDocument();
     expect(screen.queryByText(ERROR_MESSAGE)).not.toBeInTheDocument();
+  });
+
+  it("조회 중이더라도 실패가 우선한다", () => {
+    renderGrid({ isError: true, isLoading: true });
+
+    expect(screen.getByRole("alert")).toHaveTextContent(ERROR_MESSAGE);
+    expect(screen.queryByText(LOADING_MESSAGE)).not.toBeInTheDocument();
   });
 
   it("조회에 실패하면 실패를 알린다", () => {

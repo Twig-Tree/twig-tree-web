@@ -4,12 +4,14 @@ import { FolderCard, type FolderItem } from "@/src/entities/folder";
 import { useDeleteFolder } from "@/src/features/folder/delete-folder";
 import { EditableFolderCard } from "@/src/features/folder/update-folder";
 import { WorkspaceCard, type WorkspaceItem } from "@/src/entities/workspace";
+import { DirectoryContentsSkeleton } from "./DirectoryContentsSkeleton";
 
 interface DirectoryContentsGridProps {
   editingFolderId: string | null;
   folderParentId: string | null;
   folders: FolderItem[];
   isError: boolean; // 폴더와 워크스페이스 목록 중 하나라도 조회에 실패했는지 여부
+  isLoading: boolean; // 두 목록 중 하나라도 조회 중인지 여부
   isLoaded: boolean; // 두 목록이 모두 도착했는지 여부. 빈 상태 안내를 언제 보여줄지 정한다
   onEditingStart: (folderId: string) => void;
   onEditingEnd: () => void;
@@ -22,6 +24,7 @@ export function DirectoryContentsGrid({
   folders,
   isError,
   isLoaded,
+  isLoading,
   onEditingStart,
   onEditingEnd,
   workspaces,
@@ -42,6 +45,16 @@ export function DirectoryContentsGrid({
         </p>
       </section>
     );
+  }
+
+  /*
+  조회 중임을 자리표시자로 알린다. 아무것도 그리지 않으면 빈 폴더와 구분되지 않는다.
+
+  isLoaded의 반대가 아니라 isLoading을 따로 받는다. query가 비활성이면 둘 다 false여서,
+  isLoaded만 보면 조회를 시작하지도 않은 화면에 자리표시자가 계속 남는다.
+  */
+  if (isLoading) {
+    return <DirectoryContentsSkeleton />;
   }
 
   /*
