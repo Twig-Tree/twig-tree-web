@@ -1,4 +1,5 @@
 import {
+  RAW_FOLDER_DATA,
   RAW_TREE_DATA,
   RAW_TREE_DATA_WITH_CYCLE,
   RAW_WORKSPACE_DATA,
@@ -6,6 +7,32 @@ import {
 import { http, HttpResponse } from "msw";
 
 export const handlers = [
+  /*
+  폴더 목록 조회 GET 요청 핸들러.
+  folderParentId를 생략하면 루트의 폴더만, 값이 있으면 그 폴더의 하위 폴더만 돌려준다.
+  */
+  http.get("*/api/folders", ({ request }) => {
+    const folderParentId = new URL(request.url).searchParams.get(
+      "folderParentId",
+    );
+
+    const data = RAW_FOLDER_DATA.filter((folder) =>
+      folderParentId === null
+        ? folder.folderParentId === null
+        : String(folder.folderParentId) === folderParentId,
+    );
+
+    return HttpResponse.json(
+      {
+        isSuccess: true,
+        code: "FOLDERS_FOUND",
+        message: "폴더 목록이 조회되었습니다.",
+        data,
+      },
+      { status: 200 },
+    );
+  }),
+
   /*
   워크스페이스 목록 조회 GET 요청 핸들러.
   folderId를 생략하면 폴더에 속하지 않은 것만, 값이 있으면 그 폴더의 것만 돌려준다.

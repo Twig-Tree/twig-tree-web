@@ -6,6 +6,28 @@ import { handlers } from "@/src/tests/mocks/handlers";
 
 const server = setupServer(...handlers);
 
+/*
+jsdom은 dialog의 showModal과 close를 구현하지 않는다. Modal이 열림 상태를 이 두 메서드로
+옮기므로, 없으면 모달을 쓰는 컴포넌트 테스트가 렌더 시점에 죽는다.
+
+open 속성만 맞춰 주면 children이 표시되어 내용은 검사할 수 있다. top layer와 포커스 가둠은
+브라우저가 하는 일이라 여기서 흉내 내지 않고 브라우저에서 확인한다.
+*/
+if (!HTMLDialogElement.prototype.showModal) {
+  HTMLDialogElement.prototype.showModal = function showModal(
+    this: HTMLDialogElement,
+  ) {
+    this.open = true;
+  };
+}
+
+if (!HTMLDialogElement.prototype.close) {
+  HTMLDialogElement.prototype.close = function close(this: HTMLDialogElement) {
+    this.open = false;
+    this.dispatchEvent(new Event("close"));
+  };
+}
+
 // Start server before all tests
 beforeAll(() => server.listen({ onUnhandledRequest: "error" }));
 
