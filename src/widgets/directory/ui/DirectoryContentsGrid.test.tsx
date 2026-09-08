@@ -23,7 +23,7 @@ const renderGrid = (
       workspaces={[]}
       {...overrides}
     />,
-    { wrapper: createQueryWrapper() },
+    { wrapper: createQueryWrapper().wrapper },
   );
 
 const folder = { id: "1", name: "기획 폴더" };

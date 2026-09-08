@@ -10,7 +10,7 @@ const renderModal = () => {
 
   render(
     <FolderPathPickerModal isOpen onClose={onClose} onSelect={onSelect} />,
-    { wrapper: createQueryWrapper() },
+    { wrapper: createQueryWrapper().wrapper },
   );
 
   return { onClose, onSelect };
