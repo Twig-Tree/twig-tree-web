@@ -58,6 +58,32 @@ export const handlers = [
     );
   }),
 
+  /*
+  워크스페이스 생성 POST 요청 핸들러.
+  요청 body를 그대로 반영해 응답하므로, 이름과 folderId가 실제로 실려 가는지 확인할 수 있다.
+  */
+  http.post("*/api/workspaces", async ({ request }) => {
+    const body = (await request.json()) as {
+      name: string;
+      folderId: number | null;
+    };
+
+    return HttpResponse.json(
+      {
+        isSuccess: true,
+        code: "WORKSPACE_CREATED",
+        message: "워크스페이스가 생성되었습니다.",
+        data: {
+          workspaceId: 999,
+          name: body.name,
+          folderId: body.folderId,
+          updatedAt: "2026-09-07T00:00:00",
+        },
+      },
+      { status: 201 },
+    );
+  }),
+
   // 트리 조회 GET 요청 핸들러
   http.get("*/api/tree/:treeId", ({ params }) => {
     const { treeId } = params;

@@ -1,6 +1,13 @@
 import { axiosInstance } from "@/src/shared/api/axiosInstance";
-import { GetWorkspaceListResponse } from "@/src/entities/workspace/api/types";
-import { mapWorkspaceListDtoToDomain } from "@/src/entities/workspace/lib/mappers";
+import {
+  CreateWorkspaceRequest,
+  CreateWorkspaceResponse,
+  GetWorkspaceListResponse,
+} from "@/src/entities/workspace/api/types";
+import {
+  mapWorkspaceDtoToDomain,
+  mapWorkspaceListDtoToDomain,
+} from "@/src/entities/workspace/lib/mappers";
 import { WorkspaceItem } from "@/src/entities/workspace/model/types";
 
 export const workspaceApi = {
@@ -22,5 +29,21 @@ export const workspaceApi = {
       },
     );
     return mapWorkspaceListDtoToDomain(response.data.data);
+  },
+
+  /*
+  함수 이름 : createWorkspace
+  기능 : 빈 워크스페이스를 생성한다. 응답은 조회와 같은 DTO라 같은 mapper를 쓴다.
+  인자 : CreateWorkspaceRequest body -> 생성할 워크스페이스 이름과 위치
+  반환값 : 생성된 워크스페이스
+  */
+  createWorkspace: async (
+    body: CreateWorkspaceRequest,
+  ): Promise<WorkspaceItem> => {
+    const response = await axiosInstance.post<CreateWorkspaceResponse>(
+      "/workspaces",
+      body,
+    );
+    return mapWorkspaceDtoToDomain(response.data.data);
   },
 };
