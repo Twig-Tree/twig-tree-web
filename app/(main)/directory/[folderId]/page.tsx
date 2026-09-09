@@ -7,6 +7,7 @@ import {
 } from "@/src/entities/folder";
 import { useGetWorkspaceListQuery } from "@/src/entities/workspace";
 import { useCreateFolder } from "@/src/features/folder/create-folder";
+import { useCreateWorkspace } from "@/src/features/workspace/create-workspace";
 import { routes } from "@/src/shared/config/routes";
 import type { BreadcrumbItem } from "@/src/shared/ui/breadcrumb";
 import {
@@ -45,6 +46,10 @@ function DirectoryPageContent({ folderParentId }: DirectoryPageContentProps) {
     folders: folderListQuery.data,
     folderParentId,
   });
+  const { createWorkspace, isCreateWorkspaceDisabled } = useCreateWorkspace({
+    folderId: folderParentId,
+    workspaces: workspaceListQuery.data,
+  });
 
   /*
   경로는 루트부터 현재 폴더까지 순서대로 오므로 마지막 항목이 현재 폴더다.
@@ -76,6 +81,14 @@ function DirectoryPageContent({ folderParentId }: DirectoryPageContentProps) {
     }
   };
 
+  const handleCreateWorkspace = async () => {
+    try {
+      await createWorkspace();
+    } catch {
+      // 생성 실패 알림은 useCreateWorkspace에서 처리한다.
+    }
+  };
+
   return (
     <div className="h-full overflow-y-auto bg-slate-50/70 px-6 py-8 lg:px-8">
       <div className="mx-auto flex w-full max-w-7xl flex-col gap-8">
@@ -86,6 +99,8 @@ function DirectoryPageContent({ folderParentId }: DirectoryPageContentProps) {
           isPathError={folderPathQuery.isError}
           onCreateFolder={() => void handleCreateFolder()}
           isCreateFolderDisabled={isCreateFolderDisabled}
+          onCreateWorkspace={() => void handleCreateWorkspace()}
+          isCreateWorkspaceDisabled={isCreateWorkspaceDisabled}
         />
         <DirectoryContentsGrid
           editingFolderId={editingFolderId}

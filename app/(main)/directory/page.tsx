@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useGetFolderListQuery } from "@/src/entities/folder";
 import { useGetWorkspaceListQuery } from "@/src/entities/workspace";
 import { useCreateFolder } from "@/src/features/folder/create-folder";
+import { useCreateWorkspace } from "@/src/features/workspace/create-workspace";
 import {
   DirectoryContentsGrid,
   DirectoryHeader,
@@ -16,6 +17,10 @@ export default function DirectoryRootPage() {
   const { createFolder, isCreateFolderDisabled } = useCreateFolder({
     folders: folderListQuery.data,
     folderParentId: null,
+  });
+  const { createWorkspace, isCreateWorkspaceDisabled } = useCreateWorkspace({
+    folderId: null,
+    workspaces: workspaceListQuery.data,
   });
 
   const isListError = folderListQuery.isError || workspaceListQuery.isError;
@@ -33,6 +38,14 @@ export default function DirectoryRootPage() {
     }
   };
 
+  const handleCreateWorkspace = async () => {
+    try {
+      await createWorkspace();
+    } catch {
+      // 생성 실패 알림은 useCreateWorkspace에서 처리한다.
+    }
+  };
+
   return (
     <div className="h-full overflow-y-auto bg-slate-50/70 px-6 py-8 lg:px-8">
       <div className="mx-auto flex w-full max-w-7xl flex-col gap-8">
@@ -41,6 +54,8 @@ export default function DirectoryRootPage() {
           breadcrumbs={[{ label: "Root" }]}
           onCreateFolder={() => void handleCreateFolder()}
           isCreateFolderDisabled={isCreateFolderDisabled}
+          onCreateWorkspace={() => void handleCreateWorkspace()}
+          isCreateWorkspaceDisabled={isCreateWorkspaceDisabled}
         />
         <DirectoryContentsGrid
           editingFolderId={editingFolderId}
