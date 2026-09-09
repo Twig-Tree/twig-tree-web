@@ -42,7 +42,7 @@ Action hook은 editor store 상태와 UI action별 동작을 관리한다.
 - 실패 시 editor store를 undo로 복구한다.
 - 사용자에게 보여줄 에러 메시지를 처리한다.
 
-사용자에게 보여주는 알림은 보통 action hook 호출부에서 처리한다. 이렇게 해야 같은 mutation hook을 여러 곳에서 재사용할 때 중복 alert를 피할 수 있다.
+사용자에게 보여주는 알림은 보통 action hook 정의부(=mutation hook 호출부)에서 처리한다. 이렇게 해야 같은 mutation hook을 여러 곳에서 재사용할 때 중복 alert를 피할 수 있다.
 
 ## Optimistic Update 규칙
 
