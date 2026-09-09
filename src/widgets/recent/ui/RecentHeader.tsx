@@ -6,6 +6,7 @@ import { NewWorkspaceButton } from "@/src/features/workspace/create-workspace";
 
 interface RecentHeaderProps {
   onSelectFolderPath: (folderParentId: string | null) => void; // 워크스페이스를 만들 위치를 확정했을 때 실행할 callback. 루트는 null
+  isCreateWorkspaceDisabled: boolean;
 }
 
 /*
@@ -17,7 +18,10 @@ interface RecentHeaderProps {
 열림 상태는 페이지가 아니라 트리거와 팝업을 함께 가진 이 컴포넌트가 소유한다.
 페이지 최상위에 두면 팝업을 열고 닫을 때마다 워크스페이스 목록까지 함께 다시 그려진다.
 */
-export function RecentHeader({ onSelectFolderPath }: RecentHeaderProps) {
+export function RecentHeader({
+  onSelectFolderPath,
+  isCreateWorkspaceDisabled,
+}: RecentHeaderProps) {
   const [isFolderPathPickerOpen, setIsFolderPathPickerOpen] = useState(false);
 
   return (
@@ -29,6 +33,7 @@ export function RecentHeader({ onSelectFolderPath }: RecentHeaderProps) {
 
         <NewWorkspaceButton
           onClick={() => setIsFolderPathPickerOpen(true)}
+          disabled={isCreateWorkspaceDisabled}
           className="sm:ml-auto"
         />
       </header>
