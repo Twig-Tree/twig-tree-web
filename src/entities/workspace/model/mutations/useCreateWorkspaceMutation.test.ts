@@ -1,6 +1,7 @@
 import { renderHook, waitFor } from "@testing-library/react";
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import { createQueryWrapper } from "@/src/tests/helpers/createQueryWrapper";
+import { workspaceApi } from "../../api/workspaceApi";
 import { workspaceQueryKeys } from "../queryKeys";
 import { useCreateWorkspaceMutation } from "./useCreateWorkspaceMutation";
 
@@ -27,6 +28,7 @@ describe("useCreateWorkspaceMutation", () => {
   순서가 뒤집히면 루트 생성이 folderId=0으로 나가 이 검사가 실패한다.
   */
   it("루트에 만들 때는 folderId 없이 요청한다", async () => {
+    const createWorkspaceSpy = vi.spyOn(workspaceApi, "createWorkspace");
     const { wrapper } = createQueryWrapper();
     const { result } = renderHook(() => useCreateWorkspaceMutation(), {
       wrapper,
@@ -36,7 +38,10 @@ describe("useCreateWorkspaceMutation", () => {
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
 
-    expect(result.current.data?.name).toBe("Workspace");
+    expect(createWorkspaceSpy).toHaveBeenCalledWith({
+      name: "Workspace",
+      folderId: null,
+    });
   });
 
   it("생성한 위치의 워크스페이스 목록 캐시를 무효화한다", async () => {
