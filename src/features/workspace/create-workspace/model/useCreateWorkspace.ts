@@ -2,6 +2,7 @@
 
 import { useCallback } from "react";
 import { useQueryClient } from "@tanstack/react-query";
+import { isValidFolderId } from "@/src/entities/folder";
 import {
   type WorkspaceItem,
   useCreateWorkspaceMutation,
@@ -20,10 +21,6 @@ interface UseCreateWorkspaceParams {
   folderId?: string | null; // 렌더 시점에 위치를 아는 화면만 넘긴다. 생략하면 createWorkspace 호출 인자로 위치를 받는다. 루트는 null
   workspaces?: WorkspaceItem[]; // 위 folderId 폴더의 형제 워크스페이스 목록. 기본 이름 계산에 쓴다
 }
-
-const isValidFolderId = (folderId: string | null): boolean =>
-  folderId === null ||
-  (Number.isSafeInteger(Number(folderId)) && Number(folderId) > 0);
 
 /*
 함수 이름 : useCreateWorkspace

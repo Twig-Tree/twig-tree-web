@@ -1,4 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
+import { getApiFolderId, isValidFolderId } from "@/src/entities/folder";
 import { workspaceApi } from "../api/workspaceApi";
 import { workspaceQueryKeys } from "./queryKeys";
 
@@ -9,14 +10,9 @@ import { workspaceQueryKeys } from "./queryKeys";
 반환값 : 워크스페이스 목록 query
 */
 export function useGetWorkspaceListQuery(folderId: string | null) {
-  const apiFolderId = folderId === null ? null : Number(folderId);
-  const isValidFolderId =
-    apiFolderId === null ||
-    (Number.isSafeInteger(apiFolderId) && apiFolderId > 0);
-
   return useQuery({
     queryKey: workspaceQueryKeys.listByFolder(folderId),
-    queryFn: () => workspaceApi.getWorkspaceList(apiFolderId),
-    enabled: isValidFolderId,
+    queryFn: () => workspaceApi.getWorkspaceList(getApiFolderId(folderId)),
+    enabled: isValidFolderId(folderId),
   });
 }

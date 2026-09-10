@@ -3,6 +3,7 @@
 import { useCallback } from "react";
 import {
   type FolderItem,
+  isValidFolderId,
   useUpdateFolderMutation,
 } from "@/src/entities/folder";
 import { validateFolderName } from "../lib/validateFolderName";
@@ -23,15 +24,8 @@ export function useUpdateFolder({
 }: UseUpdateFolderParams) {
   const { mutateAsync, isPending } = useUpdateFolderMutation();
 
-  const apiFolderParentId =
-    folderParentId === null ? null : Number(folderParentId);
-
-  const isValidFolderParentId =
-    apiFolderParentId === null ||
-    (Number.isSafeInteger(apiFolderParentId) && apiFolderParentId > 0);
-
   const isUpdateFolderDisabled =
-    isPending || !isValidFolderParentId || folders === undefined;
+    isPending || !isValidFolderId(folderParentId) || folders === undefined;
 
   const getFolderNameError = useCallback(
     ({ folderId, name }: UpdateFolderInput) => {
@@ -50,12 +44,13 @@ export function useUpdateFolder({
 
   const updateFolder = useCallback(
     async ({ folderId, name }: UpdateFolderInput): Promise<boolean> => {
-      const apiFolderId = Number(folderId);
-      const isValidFolderId =
-        Number.isSafeInteger(apiFolderId) && apiFolderId > 0;
       const validationError = getFolderNameError({ folderId, name });
 
-      if (isUpdateFolderDisabled || !isValidFolderId || validationError) {
+      if (
+        isUpdateFolderDisabled ||
+        !isValidFolderId(folderId) ||
+        validationError
+      ) {
         return false;
       }
 
