@@ -1,7 +1,10 @@
 "use client";
 
 import { useCallback } from "react";
-import { isValidFolderId, useDeleteFolderMutation } from "@/src/entities/folder";
+import {
+  isValidFolderId,
+  useDeleteFolderMutation,
+} from "@/src/entities/folder";
 
 interface UseDeleteFolderParams {
   folderParentId: string | null;
