@@ -3,6 +3,7 @@
 import { useCallback } from "react";
 import {
   type FolderItem,
+  isValidFolderId,
   useCreateFolderMutation,
 } from "@/src/entities/folder";
 import { getAvailableName } from "@/src/shared/lib/naming/getAvailableName";
@@ -20,15 +21,9 @@ export function useCreateFolder({
   folderParentId,
 }: UseCreateFolderParams) {
   const { mutateAsync, isPending } = useCreateFolderMutation();
-  const apiFolderParentId =
-    folderParentId === null ? null : Number(folderParentId);
-
-  const isValidFolderParentId =
-    apiFolderParentId === null ||
-    (Number.isSafeInteger(apiFolderParentId) && apiFolderParentId > 0);
 
   const isCreateFolderDisabled =
-    isPending || !isValidFolderParentId || folders === undefined;
+    isPending || !isValidFolderId(folderParentId) || folders === undefined;
 
   const createFolder = useCallback(async (): Promise<FolderItem> => {
     if (isCreateFolderDisabled || !folders) {

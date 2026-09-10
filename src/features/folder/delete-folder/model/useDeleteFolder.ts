@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback } from "react";
-import { useDeleteFolderMutation } from "@/src/entities/folder";
+import { isValidFolderId, useDeleteFolderMutation } from "@/src/entities/folder";
 
 interface UseDeleteFolderParams {
   folderParentId: string | null;
@@ -17,11 +17,7 @@ export function useDeleteFolder({ folderParentId }: UseDeleteFolderParams) {
 
   const deleteFolder = useCallback(
     async ({ folderId, name }: DeleteFolderInput): Promise<boolean> => {
-      const apiFolderId = Number(folderId);
-      const isValidFolderId =
-        Number.isSafeInteger(apiFolderId) && apiFolderId > 0;
-
-      if (isPending || !isValidFolderId) {
+      if (isPending || !isValidFolderId(folderId)) {
         return false;
       }
 
