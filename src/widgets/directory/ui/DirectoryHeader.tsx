@@ -7,8 +7,10 @@ export interface DirectoryHeaderProps {
   breadcrumbs: BreadcrumbItem[];
   isTitleLoading?: boolean; // 제목을 처음 불러오는 중이라 자리표시자를 보여줄지 여부
   isPathError?: boolean; // 상위 경로를 불러오지 못해 제목과 breadcrumb을 믿을 수 없는 상태인지 여부
-  onCreateFolder?: () => void;
-  isCreateFolderDisabled?: boolean;
+  onCreateFolder: () => void;
+  isCreateFolderDisabled: boolean;
+  onCreateWorkspace: () => void;
+  isCreateWorkspaceDisabled: boolean;
 }
 
 export function DirectoryHeader({
@@ -17,7 +19,9 @@ export function DirectoryHeader({
   isTitleLoading = false,
   isPathError = false,
   onCreateFolder,
-  isCreateFolderDisabled = false,
+  isCreateFolderDisabled,
+  onCreateWorkspace,
+  isCreateWorkspaceDisabled,
 }: DirectoryHeaderProps) {
   return (
     <header className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
@@ -56,7 +60,10 @@ export function DirectoryHeader({
           onClick={onCreateFolder}
           disabled={isCreateFolderDisabled}
         />
-        <NewWorkspaceButton />
+        <NewWorkspaceButton
+          onClick={onCreateWorkspace}
+          disabled={isCreateWorkspaceDisabled}
+        />
       </div>
     </header>
   );

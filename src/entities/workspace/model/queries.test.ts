@@ -5,7 +5,7 @@ import { useGetWorkspaceListQuery } from "./queries";
 
 const renderWorkspaceListQuery = (folderId: string | null) =>
   renderHook(() => useGetWorkspaceListQuery(folderId), {
-    wrapper: createQueryWrapper(),
+    wrapper: createQueryWrapper().wrapper,
   });
 
 describe("useGetWorkspaceListQuery", () => {

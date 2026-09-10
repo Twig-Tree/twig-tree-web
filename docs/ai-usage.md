@@ -152,7 +152,7 @@ isAcceptedFileName(fileName); // getFileKind가 unknown이 아닌지 확인한�
 
 ## 사례 3. "mapper 불필요" 결론 — 기존 구조의 규약 위반이 드러남
 
-**대상 파일**: `docs/plans/41-node-name-edit.md`, `src/entities/tree/api/treeApi.ts`, `src/entities/tree/model/queries.ts`
+**대상 파일**: `src/entities/tree/api/treeApi.ts`, `src/entities/tree/model/queries.ts`
 
 ### 상황
 
@@ -365,3 +365,39 @@ React에서 모달이라고 하면 `createPortal`로 `document.body`에 붙이�
 - 접근 이름은 `aria-label`로 받고, 화면에 보이는 제목은 children에서 자유롭게 구성하도록 했다. 팝업 상단이 breadcrumb·제목·닫기 버튼으로 구성되어 고정된 헤더 구조를 강제할 수 없기 때문이다.
 - 애니메이션이 필요해지면 `@starting-style`과 `transition-behavior: allow-discrete`를 검토한다. 그 시점에도 포탈로 되돌릴 필요는 없다.
 - 브라우저에서 `dialog.open`과 `:modal` 매칭, 열릴 때 팝업 안으로의 포커스 이동, `::backdrop` 적용, 바깥 클릭 판별(팝업 안쪽 클릭은 닫히지 않음)을 확인했다. `<dialog>`가 대신 해주기로 한 항목들이 실제로 코드 없이 동작한다.
+
+---
+
+## 사례 7. `ensureQueryData` — 전제가 바뀌었는데 선택이 그대로 남음
+
+**대상 파일**: `src/features/workspace/create-workspace/model/useCreateWorkspace.ts`(작성 예정)
+
+### 상황
+
+워크스페이스 생성(#72) 계획에서, 최신순 화면은 기본 이름 번호(`Workspace 2`)를 정할 형제 목록을 캐시에 갖고 있지 않았다. AI는 생성 직전에 `queryClient.ensureQueryData`로 목록을 확보하는 안을 냈고, 그에 딸려 entity에 `queryOptions`를 추출하는 단계까지 계획에 들어갔다.
+
+이후 논의에서 경로 선택 모달에 워크스페이스 목록도 함께 표시하기로 정했다. AI는 그 변경을 "요청 한 번을 아끼는 부수 효과"로만 적고 기존 선택은 그대로 뒀다.
+
+### 제기한 의문
+
+- `ensureQueryData`는 공식 문서에 사라질 예정이라고 적혀 있는데, 애초에 이걸 왜 쓰는가?
+
+### 확인한 내용
+
+1. 문서 내용은 사실이었다. 프리페칭 가이드가 `prefetchQuery`와 `ensureQueryData`를 deprecated로 표시하고 다음 major에서 제거된다고 안내하며, `QueryClient` 레퍼런스에는 `fetchQuery`까지 셋 다 빠지고 `queryClient.query()`만 남아 있다. 다만 설치된 `@tanstack/query-core@5.100.14`의 타입에는 `query()`가 없어(최신 5.102.8) 문서가 권하는 대체 API를 쓸 수도 없는 상태였다.
+2. 더 중요한 것은 그 API가 필요한 전제가 이미 사라져 있었다는 점이다. 모달이 워크스페이스 목록을 조회하고 확정 버튼은 두 목록이 도착한 뒤에만 열리므로, 위치를 확정하는 시점에는 캐시가 차 있다. 디렉토리 화면은 원래 그 목록을 그리고 있다.
+
+### 결정과 근거
+
+**`queryClient.getQueryData`가 `undefined`이면 생성하지 않는다. `[]`이면 번호를 포기하고 `Workspace`로 만들고, 목록이 있으면 그 이름들을 기준으로 번호를 매긴다.** 캐시가 비어 있다고 생성을 막을 이유는 없지만(백엔드가 이름 중복을 막지 않음), 캐시 자체를 모르는 상태에서는 기본 이름의 근거가 없어 생성하지 않는다.
+
+동기 호출이라 가져오는 동작 자체가 사라지고, 그것을 위해 넣었던 `queryOptions` 추출 단계도 필요 없어졌다. 모달 목록 표시는 "부수 효과"가 아니라 생성 연결의 선행 작업으로 자리를 옮겼다. 기본 이름의 근거가 그 단계에서 채워지는 캐시이기 때문이다.
+
+### 반영 결과
+
+계획이 9단계에서 8단계로 줄었고, 폐기 예정 API에 대한 의존이 코드에 들어가기 전에 빠졌다.
+
+이 사례에서 얻은 것은 두 가지다.
+
+- 전제가 바뀌면 그 전제 위에 세운 선택도 다시 봐야 한다. AI는 바뀐 전제(캐시가 미리 채워짐)를 최적화로만 기록하고, 그 전제 때문에 골랐던 API는 그대로 뒀다.
+- 라이브러리 API는 설치된 버전의 타입과 최신 문서를 함께 봐야 한다. 문서가 권하는 대체 API가 설치본에 없을 수 있다.
