@@ -1,4 +1,5 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { getApiFolderId } from "@/src/entities/folder";
 import { workspaceApi } from "../../api/workspaceApi";
 import type { CreateWorkspaceRequest } from "../../api/types";
 import { workspaceQueryKeys } from "../queryKeys";
@@ -24,7 +25,7 @@ export function useCreateWorkspaceMutation() {
     mutationFn: ({ name, folderId }: CreateWorkspaceVariables) => {
       const request: CreateWorkspaceRequest = {
         name,
-        folderId: folderId === null ? null : Number(folderId),
+        folderId: getApiFolderId(folderId),
       };
 
       return workspaceApi.createWorkspace(request);
