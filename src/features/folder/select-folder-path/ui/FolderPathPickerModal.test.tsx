@@ -21,7 +21,7 @@ describe("FolderPathPickerModal", () => {
     renderModal();
 
     expect(await screen.findByText("Root Folder")).toBeInTheDocument();
-    expect(screen.getByText("Root Workspace")).toBeInTheDocument();
+    expect(await screen.findByText("Root Workspace")).toBeInTheDocument();
   });
 
   /*
@@ -49,7 +49,7 @@ describe("FolderPathPickerModal", () => {
     );
 
     expect(await screen.findByText("Folder In Folder")).toBeInTheDocument();
-    expect(screen.getByText("Workspace In Folder")).toBeInTheDocument();
+    expect(await screen.findByText("Workspace In Folder")).toBeInTheDocument();
     expect(screen.queryByText("Root Workspace")).not.toBeInTheDocument();
   });
 
