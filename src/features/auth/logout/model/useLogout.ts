@@ -4,6 +4,7 @@ import { useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
 import { useLogoutMutation } from "@/src/entities/auth";
+import { markSessionEnded } from "@/src/shared/api/restoreSession";
 import { routes } from "@/src/shared/config/routes";
 import { authSession } from "@/src/shared/lib/auth/authSession";
 
@@ -37,6 +38,11 @@ export function useLogout() {
       console.error("Failed to revoke refresh token", error);
     }
 
+    /*
+    폐기에 실패했다면 쿠키가 아직 유효하므로, 세션 복구가 로그아웃을 되돌리지 않게 먼저 기록한다.
+    clearSession의 알림을 받은 화면이 곧바로 복구를 시도하므로 순서를 바꾸지 않는다.
+    */
+    markSessionEnded();
     authSession.clearSession();
     router.replace(routes.login);
 

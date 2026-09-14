@@ -4,6 +4,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 // 테스트마다 새로 불러온 모듈을 담는다. 아래 beforeEach 주석 참고.
 let restoreSession: typeof import("./restoreSession").restoreSession;
+let markSessionEnded: typeof import("./restoreSession").markSessionEnded;
 let authSession: typeof import("@/src/shared/lib/auth/authSession").authSession;
 
 // 재발급 요청이 서버에 몇 번 도착했는지 센다.
@@ -47,7 +48,7 @@ beforeEach(async () => {
   vi.resetModules();
   refreshRequestCount = 0;
 
-  ({ restoreSession } = await import("./restoreSession"));
+  ({ restoreSession, markSessionEnded } = await import("./restoreSession"));
   ({ authSession } = await import("@/src/shared/lib/auth/authSession"));
 });
 
@@ -92,6 +93,18 @@ describe("restoreSession", () => {
 
     await expect(restoreSession()).resolves.toBe("failed");
     expect(authSession.getAccessToken()).toBeNull();
+  });
+
+  /*
+  로그아웃의 서버 폐기가 실패해 쿠키가 살아 있는 상황이다.
+  재발급이 성공하는 서버에서도 복구하지 않아야 로그아웃이 되돌려지지 않는다.
+  */
+  it("세션을 끝냈다고 기록하면 재발급이 가능해도 요청하지 않고 unauthenticated", async () => {
+    mockRefreshResponse(refreshSuccess);
+    markSessionEnded();
+
+    await expect(restoreSession()).resolves.toBe("unauthenticated");
+    expect(refreshRequestCount).toBe(0);
   });
 
   it("동시에 여러 번 호출해도 재발급은 한 번만 보낸다", async () => {

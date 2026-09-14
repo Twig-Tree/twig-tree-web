@@ -18,6 +18,21 @@ failed는 일시적인 오류라 남기지 않고 다음 호출에서 다시 묻
 let isNoSessionConfirmed = false;
 
 /*
+함수 이름 : markSessionEnded
+기능 : 사용자가 이 탭에서 세션을 끝냈음을 기록해, 새로고침 전까지 restoreSession이 복구를 시도하지 않게 한다.
+인자 : 없음
+반환값 : 없음
+*/
+export const markSessionEnded = (): void => {
+  /*
+  로그아웃은 서버의 refresh token 폐기에 실패해도 로컬 정리를 계속한다.
+  이때 쿠키는 서버에서 아직 유효하므로, 기록하지 않으면 로그인 화면이 세션을 복구해 로그아웃이 되돌려진다.
+  쿠키는 HttpOnly라 JS가 지울 수 없어서 새 탭이나 새로고침까지는 막지 못한다.
+  */
+  isNoSessionConfirmed = true;
+};
+
+/*
 함수 이름 : restoreSession
 기능 : access token이 없는 탭에서 refresh token 쿠키로 세션을 복구한다. 로그인 화면으로 보낼지는 결과를 받은 화면이 정한다.
 인자 : 없음
