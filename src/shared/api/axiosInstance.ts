@@ -2,13 +2,9 @@ import axios, { type InternalAxiosRequestConfig } from "axios";
 import { apiBaseUrl } from "@/src/shared/config/api";
 import { isAuthRequired } from "@/src/shared/config/auth";
 import { routes } from "@/src/shared/config/routes";
-import { createSingleFlight } from "@/src/shared/lib/async/createSingleFlight";
-import {
-  authSession,
-  type AuthTokens,
-} from "@/src/shared/lib/auth/authSession";
+import { authSession } from "@/src/shared/lib/auth/authSession";
 import { isReissuableError, isSessionEndingError } from "./authErrorCodes";
-import { requestReissue } from "./reissueClient";
+import { reissueSession } from "./reissueSession";
 
 export const axiosInstance = axios.create({
   baseURL: apiBaseUrl,
@@ -45,18 +41,6 @@ axiosInstance.interceptors.request.use((config) => {
   }
 
   return config;
-});
-
-/*
-여러 요청이 동시에 만료를 받아도 재발급은 한 번만 보낸다.
-서버는 쿠키 방식에서도 재발급마다 refresh token을 회전시키므로, 두 번 보내면 두 번째가
-이미 폐기된 토큰을 사용한 것이 되어 탈취로 판정되고 해당 회원의 모든 세션이 끊긴다.
-*/
-const reissueOnce = createSingleFlight(async (): Promise<AuthTokens> => {
-  const tokens = await requestReissue();
-  authSession.setTokens(tokens);
-
-  return tokens;
 });
 
 /*
@@ -98,7 +82,7 @@ axiosInstance.interceptors.response.use(
       }
 
       try {
-        await reissueOnce();
+        await reissueSession();
       } catch (reissueError) {
         /*
         저장소 장애와 네트워크 오류는 세션 문제가 아니므로 로그인 화면으로 보내지 않는다.
@@ -113,7 +97,7 @@ axiosInstance.interceptors.response.use(
 
       /*
       axiosInstance(config)는 실패했던 요청을 같은 설정으로 다시 보낸다.
-      reissueOnce가 새 토큰을 이미 저장했고 재시도 요청도 request 인터셉터를 다시 타므로
+      reissueSession이 새 토큰을 이미 저장했고 재시도 요청도 request 인터셉터를 다시 타므로
       Authorization 헤더는 여기서 손대지 않는다.
       */
       config.isRetriedAfterReissue = true;
