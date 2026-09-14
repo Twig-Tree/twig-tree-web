@@ -4,6 +4,7 @@ import { useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
 import { useLogoutMutation } from "@/src/entities/auth";
+import { markSessionEnded } from "@/src/shared/api/restoreSession";
 import { routes } from "@/src/shared/config/routes";
 import { authSession } from "@/src/shared/lib/auth/authSession";
 
@@ -23,21 +24,25 @@ export function useLogout() {
       return;
     }
 
-    const refreshToken = authSession.getRefreshToken();
-
     /*
+    refresh token 쿠키의 존재 여부는 JS가 확인할 수 없으므로 항상 폐기를 요청한다.
+    폐기할 대상이 없어도 서버가 성공으로 응답한다.
+
     서버 폐기에 실패해도 로컬 정리는 계속한다.
     네트워크 오류나 저장소 장애로 로그아웃이 막히면 사용자가 세션을 끝낼 방법이 없어진다.
     이 경우 서버의 refresh token은 남지만 TTL이 지나면 사라진다.
     */
-    if (refreshToken) {
-      try {
-        await mutateAsync(refreshToken);
-      } catch (error) {
-        console.error("Failed to revoke refresh token", error);
-      }
+    try {
+      await mutateAsync();
+    } catch (error) {
+      console.error("Failed to revoke refresh token", error);
     }
 
+    /*
+    폐기에 실패했다면 쿠키가 아직 유효하므로, 세션 복구가 로그아웃을 되돌리지 않게 먼저 기록한다.
+    clearSession의 알림을 받은 화면이 곧바로 복구를 시도하므로 순서를 바꾸지 않는다.
+    */
+    markSessionEnded();
     authSession.clearSession();
     router.replace(routes.login);
 

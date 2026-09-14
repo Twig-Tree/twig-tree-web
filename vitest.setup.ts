@@ -1,10 +1,7 @@
 import "@testing-library/jest-dom/vitest";
 import { cleanup } from "@testing-library/react";
 import { afterAll, afterEach, beforeAll } from "vitest";
-import { setupServer } from "msw/node";
-import { handlers } from "@/src/tests/mocks/handlers";
-
-const server = setupServer(...handlers);
+import { server } from "@/src/tests/mocks/server";
 
 /*
 jsdom은 dialog의 showModal과 close를 구현하지 않는다. Modal이 열림 상태를 이 두 메서드로

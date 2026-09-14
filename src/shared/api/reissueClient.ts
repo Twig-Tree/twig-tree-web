@@ -11,34 +11,26 @@ import type { ApiResponse } from "./types";
 const reissueAxios = axios.create({
   baseURL: apiBaseUrl,
   timeout: 10000,
+  withCredentials: true, // 재발급은 쿠키의 refresh token으로 인증하므로 반드시 쿠키를 실어 보낸다.
   headers: {
     "Content-Type": "application/json",
   },
 });
 
-interface ReissueRequest {
-  refreshToken: string;
-}
-
 /*
 함수 이름 : requestReissue
-기능 : refresh token으로 새 토큰쌍을 발급받는다. 서버는 member 정보도 함께 내려주지만 토큰 갱신에는 쓰지 않으므로 받지 않는다.
-인자 : string refreshToken -> 현재 보관 중인 refresh token
-반환값 : 새로 발급된 access token과 refresh token
+기능 : 쿠키의 refresh token으로 새 access token을 발급받는다. 서버는 member 정보도 함께 내려주지만 토큰 갱신에는 쓰지 않으므로 받지 않는다.
+인자 : 없음
+반환값 : 새로 발급된 access token
 */
-export const requestReissue = async (
-  refreshToken: string,
-): Promise<AuthTokens> => {
-  const body: ReissueRequest = { refreshToken };
-
+export const requestReissue = async (): Promise<AuthTokens> => {
   /*
-  서버는 재발급마다 refresh token을 회전시키므로 응답의 refreshToken도 반드시 저장해야 한다.
-  옛 refresh token을 다시 보내면 서버가 탈취로 판정해 해당 회원의 모든 세션을 끊는다.
+  refresh token은 쿠키로 오가므로 보낼 본문도, 저장할 응답 값도 없다.
+  서버는 재발급마다 refresh token을 회전시키지만 회전 결과는 Set-Cookie로만 내려오고
+  브라우저가 알아서 교체하므로 프론트가 관여하지 않는다.
   */
-  const response = await reissueAxios.post<ApiResponse<AuthTokens>>(
-    "/auth/refresh",
-    body,
-  );
+  const response =
+    await reissueAxios.post<ApiResponse<AuthTokens>>("/auth/refresh");
 
   return response.data.data;
 };

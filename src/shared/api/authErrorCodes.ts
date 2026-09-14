@@ -5,8 +5,8 @@ import axios from "axios";
  *   global/apiPayload/code/GeneralErrorCode.java
  *   domain/auth/exception/code/AuthErrorCode.java
  *
- * 인증 흐름에서 올라올 수 있는 코드는 다음과 같다. 이 중 분기에 필요한 둘만 상수로 둔다.
- *   AUTH401-1   구글 ID 토큰 무효 (로그인 화면에서 처리)
+ * 인증 흐름에서 올라올 수 있는 코드는 다음과 같다. 이 중 분기에 필요한 코드만 상수로 둔다.
+ *   AUTH401-1   구글 ID 토큰 무효          → 로그인 화면 안내
  *   AUTH401-2   access token 만료          → 재발급
  *   AUTH401-3   access token 위조·손상
  *   AUTH401-4   refresh token 무효·재사용 탐지
@@ -16,6 +16,7 @@ import axios from "axios";
  *   COMMON401-1 Authorization 헤더 없음
  */
 export const AUTH_ERROR_CODE = {
+  INVALID_GOOGLE_ID_TOKEN: "AUTH401-1",
   EXPIRED_ACCESS_TOKEN: "AUTH401-2",
   TOKEN_STORE_UNAVAILABLE: "AUTH503-1",
 } as const;

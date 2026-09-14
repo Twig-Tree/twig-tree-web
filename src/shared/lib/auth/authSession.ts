@@ -1,16 +1,14 @@
 const ACCESS_TOKEN_KEY = "twig-tree.access-token";
-const REFRESH_TOKEN_KEY = "twig-tree.refresh-token";
 const AUTH_SESSION_CHANGE_EVENT = "twig-tree:auth-session-change";
 
 export type AuthTokens = {
   accessToken: string; // 보호된 API 요청의 Authorization 헤더에 사용한다.
-  refreshToken: string; // access token 만료 시 재발급 요청에 사용한다.
 };
 
 /*
- * refresh token은 수명이 14일이라 localStorage에 두면 XSS 노출 구간이 그만큼 길어진다.
- * sessionStorage로 제한해 탭 수명까지만 남긴다.
- * 백엔드가 refresh token을 HttpOnly 쿠키로 내려주면(BE #42) 이 저장 로직은 삭제한다.
+ * refresh token은 HttpOnly 쿠키로만 오가므로 여기서 다루지 않는다.
+ * access token은 Authorization 헤더에 실어야 해서 JS가 읽을 수 있어야 하고,
+ * 수명이 짧아 sessionStorage로 탭 수명까지만 남긴다.
  */
 const getSessionStorage = (): Storage | null => {
   if (typeof window === "undefined") {
@@ -32,27 +30,21 @@ export const authSession = {
     return getSessionStorage()?.getItem(ACCESS_TOKEN_KEY) ?? null;
   },
 
-  getRefreshToken: (): string | null => {
-    return getSessionStorage()?.getItem(REFRESH_TOKEN_KEY) ?? null;
-  },
-
   hasAccessToken: (): boolean => {
     return authSession.getAccessToken() !== null;
   },
 
-  setTokens: ({ accessToken, refreshToken }: AuthTokens): void => {
-    const sessionStorage = getSessionStorage();
-
-    sessionStorage?.setItem(ACCESS_TOKEN_KEY, accessToken);
-    sessionStorage?.setItem(REFRESH_TOKEN_KEY, refreshToken);
+  setTokens: ({ accessToken }: AuthTokens): void => {
+    getSessionStorage()?.setItem(ACCESS_TOKEN_KEY, accessToken);
     notifyAuthSessionChange();
   },
 
+  /*
+  refresh token 쿠키는 JS가 지울 수 없으므로 서버의 로그아웃 응답이 만료시킨다.
+  여기서는 화면이 들고 있는 access token만 정리한다.
+  */
   clearSession: (): void => {
-    const sessionStorage = getSessionStorage();
-
-    sessionStorage?.removeItem(ACCESS_TOKEN_KEY);
-    sessionStorage?.removeItem(REFRESH_TOKEN_KEY);
+    getSessionStorage()?.removeItem(ACCESS_TOKEN_KEY);
     notifyAuthSessionChange();
   },
 

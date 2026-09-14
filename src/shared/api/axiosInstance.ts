@@ -2,23 +2,20 @@ import axios, { type InternalAxiosRequestConfig } from "axios";
 import { apiBaseUrl } from "@/src/shared/config/api";
 import { isAuthRequired } from "@/src/shared/config/auth";
 import { routes } from "@/src/shared/config/routes";
-import { createSingleFlight } from "@/src/shared/lib/async/createSingleFlight";
-import {
-  authSession,
-  type AuthTokens,
-} from "@/src/shared/lib/auth/authSession";
+import { authSession } from "@/src/shared/lib/auth/authSession";
 import { isReissuableError, isSessionEndingError } from "./authErrorCodes";
-import { requestReissue } from "./reissueClient";
+import { reissueSession } from "./reissueSession";
 
 export const axiosInstance = axios.create({
   baseURL: apiBaseUrl,
   timeout: 10000,
+  withCredentials: true, // refresh token이 HttpOnly 쿠키로 오가므로 크로스 오리진 요청에도 쿠키를 싣는다.
   headers: {
     "Content-Type": "application/json",
   },
 });
 
-// 백엔드가 인증 없이 허용하는 경로. 재발급과 로그아웃은 refresh token을 본문으로 보낸다.
+// 백엔드가 access token 없이 허용하는 경로. 재발급과 로그아웃은 쿠키의 refresh token으로 인증한다.
 const AUTH_PUBLIC_PATHS = ["/auth/google", "/auth/refresh", "/auth/logout"];
 
 const isAuthPublicRequest = (url: string | undefined): boolean => {
@@ -47,22 +44,6 @@ axiosInstance.interceptors.request.use((config) => {
 });
 
 /*
-여러 요청이 동시에 만료를 받아도 재발급은 한 번만 보낸다.
-서버는 재발급마다 refresh token을 회전시키므로, 두 번 보내면 두 번째가 이미 폐기된
-토큰을 사용한 것이 되어 탈취로 판정되고 해당 회원의 모든 세션이 끊긴다.
-
-동시 호출자는 모두 같은 refresh token을 넘기므로 인자가 하나로 좁혀져도 문제가 없다.
-*/
-const reissueOnce = createSingleFlight(
-  async (refreshToken: string): Promise<AuthTokens> => {
-    const tokens = await requestReissue(refreshToken);
-    authSession.setTokens(tokens);
-
-    return tokens;
-  },
-);
-
-/*
 함수 이름 : endSession
 기능 : 보관 중인 토큰을 지우고 로그인 화면으로 보낸다.
 인자 : 없음
@@ -85,21 +66,23 @@ axiosInstance.interceptors.response.use(
   async (error: unknown) => {
     /*
     access token 만료만 재발급으로 복구한다.
-    재발급 후 재시도한 요청이 다시 만료를 받거나 refresh token이 없으면 복구할 방법이 없다.
+    재발급 후 재시도한 요청이 다시 만료를 받으면 복구할 방법이 없다.
+
+    refresh token이 있는지는 미리 확인할 수 없다. HttpOnly 쿠키라 JS가 읽지 못하므로
+    일단 재발급을 보내고, 쿠키가 없거나 만료였다면 서버가 내려주는 401을 아래에서 받는다.
     */
     if (isReissuableError(error)) {
       const config = axios.isAxiosError(error)
         ? (error.config as RetriableRequestConfig | undefined)
         : undefined;
-      const refreshToken = authSession.getRefreshToken();
 
-      if (!config || config.isRetriedAfterReissue || !refreshToken) {
+      if (!config || config.isRetriedAfterReissue) {
         endSession();
         return Promise.reject(error);
       }
 
       try {
-        await reissueOnce(refreshToken);
+        await reissueSession();
       } catch (reissueError) {
         /*
         저장소 장애와 네트워크 오류는 세션 문제가 아니므로 로그인 화면으로 보내지 않는다.
@@ -114,7 +97,7 @@ axiosInstance.interceptors.response.use(
 
       /*
       axiosInstance(config)는 실패했던 요청을 같은 설정으로 다시 보낸다.
-      reissueOnce가 새 토큰을 이미 저장했고 재시도 요청도 request 인터셉터를 다시 타므로
+      reissueSession이 새 토큰을 이미 저장했고 재시도 요청도 request 인터셉터를 다시 타므로
       Authorization 헤더는 여기서 손대지 않는다.
       */
       config.isRetriedAfterReissue = true;

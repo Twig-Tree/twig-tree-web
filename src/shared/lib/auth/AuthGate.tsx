@@ -2,6 +2,7 @@
 
 import { useEffect, useSyncExternalStore, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
+import { restoreSession } from "@/src/shared/api/restoreSession";
 import { isAuthRequired } from "@/src/shared/config/auth";
 import { routes } from "@/src/shared/config/routes";
 import { authSession } from "./authSession";
@@ -44,12 +45,33 @@ export function AuthGate({ children }: AuthGateProps) {
     getServerSnapshot,
   );
 
+  /*
+   * access token이 없어도 refresh token 쿠키가 살아 있을 수 있다. 새 탭이나 브라우저 재시작이 그렇다.
+   * 쿠키는 HttpOnly라 JS가 확인할 수 없으므로 로그인 화면으로 보내기 전에 서버에 복구를 요청한다.
+   *
+   * 복구에 성공하면 setTokens의 알림으로 hasAccessToken이 true가 되어 children이 그려지므로
+   * 진행 상태를 따로 두지 않는다. 복구하는 동안에는 토큰이 없어 아래에서 null을 렌더링한다.
+   *
+   * 서버가 답하지 못한 failed도 로그인 화면으로 보낸다. 세션은 지우지 않으므로 로그인 화면이 다시 복구를 시도한다.
+   */
   useEffect(() => {
-    if (!isAuthRequired || !isHydrated || hasAccessToken) {
+    if (!isHydrated || hasAccessToken) {
       return;
     }
 
-    router.replace(routes.login);
+    let isCancelled = false; // 복구 중 언마운트되면 늦게 도착한 결과로 이동하지 않는다.
+
+    void restoreSession().then((result) => {
+      if (isCancelled || !isAuthRequired || result === "restored") {
+        return;
+      }
+
+      router.replace(routes.login);
+    });
+
+    return () => {
+      isCancelled = true;
+    };
   }, [hasAccessToken, isHydrated, router]);
 
   if (isAuthRequired && (!isHydrated || !hasAccessToken)) {

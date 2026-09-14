@@ -6,19 +6,40 @@ import { authSession } from "@/src/shared/lib/auth/authSession";
 import { GoogleLogin } from "@react-oauth/google";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { getGoogleLoginErrorMessage } from "../lib/getGoogleLoginErrorMessage";
+import { useExistingSessionCheck } from "../model/useExistingSessionCheck";
 
 export const GoogleLoginButton = () => {
   const router = useRouter();
   const [googleLoginError, setGoogleLoginError] = useState(false);
   const googleLoginMutation = useGoogleLoginMutation();
+  const sessionCheckStatus = useExistingSessionCheck();
 
-  const errorMessage =
-    googleLoginMutation.error instanceof Error
-      ? googleLoginMutation.error.message
-      : "백엔드 로그인 요청에 실패했습니다.";
+  /*
+  기존 세션을 확인하는 동안에는 버튼을 감추고 같은 크기의 자리만 남긴다.
+  세션이 있는 사용자에게 버튼이 잠깐 보였다 사라지는 깜빡임과 레이아웃 흔들림을 막는다.
+  */
+  if (sessionCheckStatus === "checking") {
+    return (
+      <div className="flex flex-col items-center gap-4">
+        <div className="h-10 w-80" role="status">
+          <span className="sr-only">로그인 상태를 확인하고 있습니다.</span>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col items-center gap-4">
+      {sessionCheckStatus === "failed" && (
+        <p
+          className="w-full rounded-lg bg-amber-50 px-4 py-3 text-sm text-amber-800"
+          role="status"
+        >
+          로그인 상태를 확인하지 못했습니다. 다시 로그인해 주세요.
+        </p>
+      )}
+
       <GoogleLogin
         onSuccess={(credentialResponse) => {
           const idToken = credentialResponse.credential;
@@ -31,8 +52,8 @@ export const GoogleLoginButton = () => {
 
           setGoogleLoginError(false);
           googleLoginMutation.mutate(idToken, {
-            onSuccess: ({ accessToken, refreshToken }) => {
-              authSession.setTokens({ accessToken, refreshToken });
+            onSuccess: ({ accessToken }) => {
+              authSession.setTokens({ accessToken });
               router.replace(routes.dashboard);
             },
           });
@@ -50,19 +71,8 @@ export const GoogleLoginButton = () => {
 
       {googleLoginMutation.isPending && (
         <p className="text-sm text-slate-600" role="status">
-          백엔드 로그인 API를 확인하고 있습니다.
+          로그인하고 있습니다.
         </p>
-      )}
-
-      {googleLoginMutation.data && (
-        <div
-          className="w-full rounded-lg bg-emerald-50 px-4 py-3 text-sm text-emerald-800"
-          role="status"
-        >
-          <p className="font-medium">로그인 API 연결에 성공했습니다.</p>
-          <p className="mt-1">{googleLoginMutation.data.member.name}</p>
-          <p>{googleLoginMutation.data.member.email}</p>
-        </div>
       )}
 
       {googleLoginError && (
@@ -71,10 +81,10 @@ export const GoogleLoginButton = () => {
         </p>
       )}
 
-      {/* Google 인증은 성공했지만 백엔드 로그인 API 요청이 실패한 경우 */}
+      {/* Google 인증은 성공했지만 백엔드 로그인 요청이 실패한 경우 */}
       {googleLoginMutation.isError && !googleLoginError && (
         <p className="text-sm text-red-600" role="alert">
-          {errorMessage}
+          {getGoogleLoginErrorMessage(googleLoginMutation.error)}
         </p>
       )}
     </div>
