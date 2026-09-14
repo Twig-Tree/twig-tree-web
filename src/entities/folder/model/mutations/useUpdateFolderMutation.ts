@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { folderApi } from "../../api/folderApi";
 import type { UpdateFolderRequest } from "../../api/types";
+import { getApiFolderId } from "../../lib/folderId";
 import { folderQueryKeys } from "../queryKeys";
 
 interface UpdateFolderVariables {
@@ -18,7 +19,7 @@ export function useUpdateFolderMutation() {
         name,
       };
 
-      return folderApi.updateFolder(Number(folderId), request);
+      return folderApi.updateFolder(getApiFolderId(folderId), request);
     },
     onSuccess: (_updatedFolder, variables) => {
       return queryClient.invalidateQueries({

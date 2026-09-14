@@ -25,6 +25,14 @@ export interface FolderDTO {
 }
 
 /**
+ * 폴더 상위 경로 항목 DTO type
+ */
+export interface FolderPathItemDTO {
+  folderId: number;
+  name: string;
+}
+
+/**
  * 폴더 생성 응답 type
  */
 export type CreateFolderResponse = ApiResponse<FolderDTO>;
@@ -48,3 +56,10 @@ export type GetFolderResponse = ApiResponse<FolderDTO>;
  * 폴더 목록 조회 응답 type
  */
 export type GetFolderListResponse = ApiResponse<FolderDTO[]>;
+
+/**
+ * 폴더 상위 경로 조회 응답 type
+ */
+export type GetFolderPathResponse = ApiResponse<{
+  path: FolderPathItemDTO[];
+}>;

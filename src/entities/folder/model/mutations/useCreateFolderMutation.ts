@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { folderApi } from "../../api/folderApi";
 import type { CreateFolderRequest } from "../../api/types";
+import { getApiFolderId } from "../../lib/folderId";
 import { folderQueryKeys } from "../queryKeys";
 
 interface CreateFolderVariables {
@@ -15,7 +16,7 @@ export function useCreateFolderMutation() {
     mutationFn: ({ name, folderParentId }: CreateFolderVariables) => {
       const request: CreateFolderRequest = {
         name,
-        folderParentId: folderParentId === null ? null : Number(folderParentId),
+        folderParentId: getApiFolderId(folderParentId),
       };
 
       return folderApi.createFolder(request);

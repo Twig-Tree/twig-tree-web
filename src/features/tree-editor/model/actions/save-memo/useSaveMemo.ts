@@ -2,6 +2,7 @@ import {
   useUpdateMemoMutation,
   useDeleteMemoMutation,
 } from "@/src/entities/tree";
+import { validateMemoContent } from "@/src/features/tree-editor/lib/save-memo/validateMemoContent";
 import { useTreeStore } from "../../treeStore";
 
 type UseSaveMemoParams = {
@@ -36,6 +37,13 @@ export const useSaveMemo = ({
 
   const handleSaveMemo = async (content: string) => {
     if (!clientId || isSaving) return;
+
+    /*
+    길이를 넘긴 내용은 서버가 거부하므로 요청을 보내지 않는다.
+    화면에서는 저장 버튼이 이미 잠겨 여기까지 오지 않지만, 다른 호출 경로가 생겨도
+    제한이 깨지지 않도록 남겨 둔다. 안내 문구는 입력 화면이 보여준다.
+    */
+    if (validateMemoContent(content) !== null) return;
 
     const trimmedContent = content.trim();
 

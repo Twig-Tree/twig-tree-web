@@ -1,5 +1,6 @@
 "use client";
 
+import { Folder } from "lucide-react";
 import {
   type ChangeEvent,
   type KeyboardEvent,
@@ -12,7 +13,7 @@ import type { FolderItem } from "@/src/entities/folder";
 import { useUpdateFolder } from "../model/useUpdateFolder";
 
 interface EditableFolderCardProps {
-  folder: FolderItem & { id: string }; // 이름을 수정할 폴더
+  folder: FolderItem; // 이름을 수정할 폴더
   folders: FolderItem[]; // 이름 중복을 검사할 형제 폴더 목록
   folderParentId: string | null; // 수정 후 목록 cache를 갱신할 부모 폴더 ID
   onEditingEnd: () => void; // 저장 또는 취소 후 편집 상태를 종료하는 callback
@@ -143,7 +144,7 @@ export function EditableFolderCard({
         className="flex h-10 w-10 items-center justify-center rounded-lg bg-indigo-50"
         aria-hidden="true"
       >
-        <span className="relative block h-4 w-5 rounded-[3px] bg-indigo-600 before:absolute before:-top-1 before:left-0 before:h-1.5 before:w-2.5 before:rounded-t-[2px] before:bg-indigo-600" />
+        <Folder className="h-5 w-5 text-indigo-600 fill-current" />
       </div>
 
       <div>

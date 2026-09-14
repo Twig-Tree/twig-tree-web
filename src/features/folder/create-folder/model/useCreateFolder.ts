@@ -3,9 +3,13 @@
 import { useCallback } from "react";
 import {
   type FolderItem,
+  isValidFolderId,
   useCreateFolderMutation,
 } from "@/src/entities/folder";
-import { getAvailableFolderName } from "../lib/getAvailableFolderName";
+import { getAvailableName } from "@/src/shared/lib/naming/getAvailableName";
+
+// 이름을 묻지 않고 만들 때 붙이는 이름. 겹치면 뒤에 번호가 붙는다.
+const DEFAULT_FOLDER_NAME = "Folder";
 
 interface UseCreateFolderParams {
   folders: FolderItem[] | undefined;
@@ -17,15 +21,9 @@ export function useCreateFolder({
   folderParentId,
 }: UseCreateFolderParams) {
   const { mutateAsync, isPending } = useCreateFolderMutation();
-  const apiFolderParentId =
-    folderParentId === null ? null : Number(folderParentId);
-
-  const isValidFolderParentId =
-    apiFolderParentId === null ||
-    (Number.isSafeInteger(apiFolderParentId) && apiFolderParentId > 0);
 
   const isCreateFolderDisabled =
-    isPending || !isValidFolderParentId || folders === undefined;
+    isPending || !isValidFolderId(folderParentId) || folders === undefined;
 
   const createFolder = useCallback(async (): Promise<FolderItem> => {
     if (isCreateFolderDisabled || !folders) {
@@ -34,7 +32,10 @@ export function useCreateFolder({
 
     try {
       return await mutateAsync({
-        name: getAvailableFolderName(folders),
+        name: getAvailableName(
+          DEFAULT_FOLDER_NAME,
+          folders.map(({ name }) => name),
+        ),
         folderParentId,
       });
     } catch (error) {

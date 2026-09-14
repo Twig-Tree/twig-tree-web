@@ -1,10 +1,21 @@
 import type { ButtonHTMLAttributes } from "react";
 
+/*
+잠긴 모습은 disabled와 aria-disabled 두 경우 모두에 걸어 준다.
+
+잠근 이유를 알려 줘야 하는 버튼은 네이티브 disabled 대신 aria-disabled를 쓴다.
+disabled 버튼은 포커스를 받지 못해 키보드와 스크린 리더에 이유가 닿지 않기 때문이다.
+그런데 aria-disabled인 요소는 :disabled에 매칭되지 않으므로, 같은 값을 한 벌 더 적는다.
+Tailwind에는 두 선택자를 묶는 문법이 없어 중복을 줄일 방법이 없다.
+
+hover 변형을 함께 적는 것은 잠긴 버튼에 마우스를 올렸을 때 밝아지지 않게 하기 위해서다.
+호버 툴팁을 읽는 순간이 곧 마우스를 올린 순간이므로, 이때 눌리는 것처럼 보이면 안 된다.
+*/
 const variantStyles = {
   ghost:
-    "text-slate-500 hover:bg-slate-100 hover:text-slate-800 disabled:text-slate-300 disabled:hover:bg-transparent",
+    "text-slate-500 hover:bg-slate-100 hover:text-slate-800 disabled:text-slate-300 disabled:hover:bg-transparent aria-disabled:text-slate-300 aria-disabled:hover:bg-transparent aria-disabled:hover:text-slate-300",
   primary:
-    "bg-indigo-600 text-white shadow-sm hover:bg-indigo-700 disabled:bg-indigo-300",
+    "bg-indigo-600 text-white shadow-sm hover:bg-indigo-700 disabled:bg-indigo-300 aria-disabled:bg-indigo-300 aria-disabled:hover:bg-indigo-300",
 } as const;
 
 const sizeStyles = {
@@ -46,7 +57,7 @@ export function IconButton({
     <button
       {...props}
       type={type}
-      className={`inline-flex shrink-0 items-center justify-center rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 disabled:cursor-not-allowed ${sizeStyles[size]} ${variantStyles[variant]} ${className ?? ""}`}
+      className={`inline-flex shrink-0 items-center justify-center rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 disabled:cursor-not-allowed aria-disabled:cursor-not-allowed ${sizeStyles[size]} ${variantStyles[variant]} ${className ?? ""}`}
     />
   );
 }

@@ -2,7 +2,9 @@
 
 import { useState } from "react";
 import { useGetFolderListQuery } from "@/src/entities/folder";
+import { useGetWorkspaceListQuery } from "@/src/entities/workspace";
 import { useCreateFolder } from "@/src/features/folder/create-folder";
+import { useCreateWorkspace } from "@/src/features/workspace/create-workspace";
 import {
   DirectoryContentsGrid,
   DirectoryHeader,
@@ -11,10 +13,21 @@ import {
 export default function DirectoryRootPage() {
   const [editingFolderId, setEditingFolderId] = useState<string | null>(null);
   const folderListQuery = useGetFolderListQuery(null);
+  const workspaceListQuery = useGetWorkspaceListQuery(null);
   const { createFolder, isCreateFolderDisabled } = useCreateFolder({
     folders: folderListQuery.data,
     folderParentId: null,
   });
+  const { createWorkspace, isCreateWorkspaceDisabled } = useCreateWorkspace({
+    folderId: null,
+    workspaces: workspaceListQuery.data,
+  });
+
+  const isListError = folderListQuery.isError || workspaceListQuery.isError;
+  const isListLoaded =
+    folderListQuery.isSuccess && workspaceListQuery.isSuccess;
+  const isListLoading =
+    folderListQuery.isLoading || workspaceListQuery.isLoading;
 
   const handleCreateFolder = async () => {
     try {
@@ -22,6 +35,14 @@ export default function DirectoryRootPage() {
       setEditingFolderId(createdFolder.id);
     } catch {
       // 생성 실패 알림은 useCreateFolder에서 처리한다.
+    }
+  };
+
+  const handleCreateWorkspace = async () => {
+    try {
+      await createWorkspace();
+    } catch {
+      // 생성 실패 알림은 useCreateWorkspace에서 처리한다.
     }
   };
 
@@ -33,20 +54,20 @@ export default function DirectoryRootPage() {
           breadcrumbs={[{ label: "Root" }]}
           onCreateFolder={() => void handleCreateFolder()}
           isCreateFolderDisabled={isCreateFolderDisabled}
+          onCreateWorkspace={() => void handleCreateWorkspace()}
+          isCreateWorkspaceDisabled={isCreateWorkspaceDisabled}
         />
         <DirectoryContentsGrid
           editingFolderId={editingFolderId}
           folderParentId={null}
           folders={folderListQuery.data ?? []}
+          isError={isListError}
+          isLoaded={isListLoaded}
+          isLoading={isListLoading}
           onEditingStart={setEditingFolderId}
           onEditingEnd={() => setEditingFolderId(null)}
-          workspaces={[]}
+          workspaces={workspaceListQuery.data ?? []}
         />
-        {folderListQuery.isError ? (
-          <p role="alert" className="text-sm font-medium text-red-600">
-            폴더 목록을 불러오지 못했습니다.
-          </p>
-        ) : null}
       </div>
     </div>
   );

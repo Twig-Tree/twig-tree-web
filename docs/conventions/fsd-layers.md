@@ -30,6 +30,20 @@ Entity에 작성하는 항목은 다음과 같다.
 - 단일 조회 목적의 query
 - 단일 변경 목적의 mutation
 - 도메인 객체를 표현하는 기본 UI
+- 백엔드 계약에서 오는 제약값
+
+이름 길이나 파일 크기 상한처럼 초과 시 백엔드가 거절하는 값은 계약의 일부다. 계약을 소유하는 계층이 entity이므로 상한값도 entity가 소유한다.
+
+```ts
+// src/entities/folder/model/constants.ts
+export const MAX_FOLDER_NAME_LENGTH = 30;
+```
+
+검증 로직 자체는 `shared/lib`에 둘 수 있지만, 그때도 값은 인자로 받는다. `shared`는 도메인을 모르는 계층이므로 세는 규칙만 갖는다.
+
+```ts
+validateNameLength(name, "폴더", MAX_FOLDER_NAME_LENGTH);
+```
 
 폴더 entity의 예시는 다음과 같다.
 
@@ -243,6 +257,25 @@ import {
 
 import { useCreateFolder } from "@/src/features/folder/create-folder";
 ```
+
+### 공개 API import는 테스트 환경에 환경변수를 요구한다
+
+`index.ts`는 슬라이스의 모든 모듈을 한 그래프로 묶는다. `entities/tree`와 `entities/folder`에서는 값 하나만 가져와도 `api/` → `shared/api/axiosInstance` → `shared/config`까지 함께 로드된다.
+
+`shared/config/api.ts`와 `shared/config/auth.ts`는 모듈 로드 시점에 `process.env.NEXT_PUBLIC_API_BASE_URL`과 `process.env.NEXT_PUBLIC_AUTH_MODE`를 읽고, 값이 없으면 예외를 던진다. vitest는 `.env`를 `process.env`로 주입하지 않으므로, 셸 환경에도 값이 없으면 테스트가 검사를 시작하기 전에 죽는다.
+
+따라서 `vitest.config.ts`의 `test.env`에 두 값을 고정해 둔다. 각자의 `.env`나 셸 상태에 따라 결과가 달라지지 않게 하려는 것이므로, 셸 환경을 읽어 오지 않는다.
+
+```ts
+env: {
+  NEXT_PUBLIC_API_BASE_URL: "http://localhost/api",
+  NEXT_PUBLIC_AUTH_MODE: "optional",
+},
+```
+
+깊은 경로로 우회하지 않는다. 상수처럼 부수효과가 없는 값은 우회할 수 있지만, hook과 컴포넌트 테스트는 api 계층 자체가 검사 대상이라 우회 경로가 없다. 두 방식이 섞이면 같은 값을 어디서는 공개 API로, 어디서는 깊은 경로로 가져오게 된다.
+
+`shared/config`가 로드 시점에 예외를 던지는 구조는 그대로 남아 있어, required 환경변수가 늘면 위 목록도 따라 늘어난다.
 
 ## Entity와 Feature는 서로 다른 축으로 나눈다
 

@@ -1,5 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { folderApi } from "../../api/folderApi";
+import { getApiFolderId } from "../../lib/folderId";
 import { folderQueryKeys } from "../queryKeys";
 
 interface DeleteFolderVariables {
@@ -12,7 +13,7 @@ export function useDeleteFolderMutation() {
 
   return useMutation({
     mutationFn: ({ folderId }: DeleteFolderVariables) => {
-      return folderApi.deleteFolder(Number(folderId));
+      return folderApi.deleteFolder(getApiFolderId(folderId));
     },
     onSuccess: (_data, variables) => {
       return queryClient.invalidateQueries({

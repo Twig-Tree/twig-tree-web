@@ -10,9 +10,9 @@ import { DashboardHero, RecentWorkspaceSection } from "@/src/widgets/dashboard";
 연동 시 useGetRecentWorkspaceListQuery의 결과로 교체한다.
 */
 const recentWorkspaces: WorkspaceItem[] = [
-  { id: "1", name: "Recent Workspace 1", modifiedAt: "2 hours ago" },
-  { id: "2", name: "Recent Workspace 2", modifiedAt: "5 hours ago" },
-  { id: "3", name: "Recent Workspace 3", modifiedAt: "Yesterday" },
+  { id: "1", name: "Recent Workspace 1", updatedAt: "2026-08-31T21:00:00" },
+  { id: "2", name: "Recent Workspace 2", updatedAt: "2026-08-31T18:00:00" },
+  { id: "3", name: "Recent Workspace 3", updatedAt: "2026-08-30T09:00:00" },
 ];
 
 export default function DashboardPage() {
