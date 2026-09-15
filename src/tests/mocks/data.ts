@@ -33,18 +33,21 @@ export const RAW_FOLDER_DATA: FolderDTO[] = [
 /*
 폴더에 속하지 않은 것과 특정 폴더에 든 것을 함께 두어, folderId 쿼리 파라미터가
 제대로 실려 나가는지 핸들러가 걸러내는 것으로 확인할 수 있게 한다.
+treeId도 있는 것과 없는 것을 하나씩 두어 상세 조회에서 null 변환을 확인한다.
 */
 export const RAW_WORKSPACE_DATA: WorkspaceDTO[] = [
   {
     workspaceId: 1,
     name: "Root Workspace",
     folderId: null,
+    treeId: 10,
     updatedAt: "2026-08-31T21:00:00",
   },
   {
     workspaceId: 2,
     name: "Workspace In Folder",
     folderId: 3,
+    treeId: null,
     updatedAt: "2026-08-30T09:00:00",
   },
 ];

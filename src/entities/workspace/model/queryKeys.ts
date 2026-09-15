@@ -5,4 +5,9 @@ export const workspaceQueryKeys = {
 
   listByFolder: (folderId: string | null) =>
     [...workspaceQueryKeys.lists(), folderId] as const,
+
+  details: () => [...workspaceQueryKeys.all, "detail"] as const,
+
+  detail: (workspaceId: string) =>
+    [...workspaceQueryKeys.details(), workspaceId] as const,
 };

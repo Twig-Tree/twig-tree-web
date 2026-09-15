@@ -3,12 +3,17 @@ import {
   CreateWorkspaceRequest,
   CreateWorkspaceResponse,
   GetWorkspaceListResponse,
+  GetWorkspaceResponse,
 } from "@/src/entities/workspace/api/types";
 import {
+  mapWorkspaceDetailDtoToDomain,
   mapWorkspaceDtoToDomain,
   mapWorkspaceListDtoToDomain,
 } from "@/src/entities/workspace/lib/mappers";
-import { WorkspaceItem } from "@/src/entities/workspace/model/types";
+import {
+  WorkspaceDetail,
+  WorkspaceItem,
+} from "@/src/entities/workspace/model/types";
 
 export const workspaceApi = {
   /*
@@ -29,6 +34,19 @@ export const workspaceApi = {
       },
     );
     return mapWorkspaceListDtoToDomain(response.data.data);
+  },
+
+  /*
+  함수 이름 : getWorkspace
+  기능 : 워크스페이스 ID로 워크스페이스 하나를 조회한다. 목록과 같은 DTO지만 treeId까지 싣는 상세 mapper를 쓴다.
+  인자 : number workspaceId -> 조회할 워크스페이스 ID
+  반환값 : 조회한 워크스페이스
+  */
+  getWorkspace: async (workspaceId: number): Promise<WorkspaceDetail> => {
+    const response = await axiosInstance.get<GetWorkspaceResponse>(
+      `/workspaces/${workspaceId}`,
+    );
+    return mapWorkspaceDetailDtoToDomain(response.data.data);
   },
 
   /*

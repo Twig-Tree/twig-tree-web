@@ -59,6 +59,38 @@ export const handlers = [
   }),
 
   /*
+  워크스페이스 상세 조회 GET 요청 핸들러.
+  목록에 없는 ID는 백엔드처럼 404와 에러 응답 봉투를 돌려준다.
+  */
+  http.get("*/api/workspaces/:workspaceId", ({ params }) => {
+    const workspace = RAW_WORKSPACE_DATA.find(
+      ({ workspaceId }) => String(workspaceId) === params.workspaceId,
+    );
+
+    if (!workspace) {
+      return HttpResponse.json(
+        {
+          isSuccess: false,
+          code: "WORKSPACE404-1",
+          message: "해당 워크스페이스가 존재하지 않습니다.",
+          data: null,
+        },
+        { status: 404 },
+      );
+    }
+
+    return HttpResponse.json(
+      {
+        isSuccess: true,
+        code: "WORKSPACE_FOUND",
+        message: "워크스페이스가 조회되었습니다.",
+        data: workspace,
+      },
+      { status: 200 },
+    );
+  }),
+
+  /*
   워크스페이스 생성 POST 요청 핸들러.
   요청 body를 그대로 반영해 응답하므로, 이름과 folderId가 실제로 실려 가는지 확인할 수 있다.
   */
@@ -77,6 +109,7 @@ export const handlers = [
           workspaceId: 999,
           name: body.name,
           folderId: body.folderId,
+          treeId: null,
           updatedAt: "2026-09-07T00:00:00",
         },
       },
