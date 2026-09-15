@@ -3,7 +3,7 @@ import { useAddNode } from "./add-node/useAddNode";
 import { useDeleteNode } from "./delete-node/useDeleteNode";
 
 type UseTreeEditorActionsParams = {
-  treeId: string;
+  treeId: string | null; // 트리가 없는 워크스페이스는 null
 };
 
 export const useTreeEditorActions = ({

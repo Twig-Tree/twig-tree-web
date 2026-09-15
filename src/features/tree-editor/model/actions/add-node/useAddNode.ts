@@ -7,7 +7,7 @@ import { useTreeStore } from "../../treeStore";
 import { CustomEditorEdge, CustomEditorNode } from "../../types";
 
 interface UseAddNodeParams {
-  treeId: string; // 노드를 추가할 트리 ID
+  treeId: string | null; // 노드를 추가할 트리 ID. 트리가 없는 워크스페이스는 null
   selectedNode: CustomEditorNode | undefined; // 자식 노드를 추가할 기준 노드
   nodes: CustomEditorNode[]; // 현재 editor store의 노드 목록
   edges: CustomEditorEdge[]; // 현재 editor store의 엣지 목록
@@ -37,7 +37,10 @@ export const useAddNode = ({
   선택된 노드를 기준으로 새 자식 노드를 생성하고 서버에 노드 추가 요청을 보낸다.
   */
   const handleAddNode = () => {
-    if (!selectedNode || isAddingNode) return;
+    /*
+    트리가 없으면 노드도 없어 선택된 노드가 있을 수 없지만, 요청에 treeId가 필요하므로 타입을 좁힌다.
+    */
+    if (treeId === null || !selectedNode || isAddingNode) return;
 
     const parentServerId = selectedNode.data.serverId; // 자식 노드 추가 요청에 사용할 부모 노드의 서버 ID
 

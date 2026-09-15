@@ -3,7 +3,7 @@ import { useTreeStore } from "@/src/features/tree-editor/model/treeStore";
 import { CustomEditorNode } from "@/src/features/tree-editor/model/types";
 
 interface UseDeleteNodeParams {
-  treeId: string; // 노드를 삭제할 트리 ID
+  treeId: string | null; // 노드를 삭제할 트리 ID. 트리가 없는 워크스페이스는 null
   selectedNode: CustomEditorNode | undefined; // 삭제 기준이 되는 선택 노드
 }
 
@@ -30,7 +30,10 @@ export const useDeleteNode = ({
   선택된 노드를 기준으로 삭제할 서브트리를 찾고 서버에 노드 삭제 요청을 보낸다.
   */
   const handleDeleteNode = () => {
-    if (!selectedNode || isDeletingNode) return;
+    /*
+    트리가 없으면 노드도 없어 선택된 노드가 있을 수 없지만, 요청에 treeId가 필요하므로 타입을 좁힌다.
+    */
+    if (treeId === null || !selectedNode || isDeletingNode) return;
 
     const serverId = selectedNode.data.serverId; // 서버 요청에 사용할 삭제 대상 노드의 서버 ID
 
