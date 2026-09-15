@@ -11,12 +11,16 @@ import {
   useTreeHistory,
   useTreeStore,
 } from "@/src/features/tree-editor";
-import { useEffect, useState } from "react";
+import { use, useEffect, useState } from "react";
 import { useGetTreeQuery } from "@/src/entities/tree/model/queries";
+import { useGetWorkspaceQuery } from "@/src/entities/workspace";
 
-function LayoutFlow() {
+interface LayoutFlowProps {
+  treeId: string;
+}
+
+function LayoutFlow({ treeId }: LayoutFlowProps) {
   const [isMemoPanelOpen, setIsMemoPanelOpen] = useState(false);
-  const treeId = "1"; // todo: treeId 동적 처리
   // todo: React Server Component 사용
   const {
     data: treeData,
@@ -151,11 +155,56 @@ function LayoutFlow() {
   );
 }
 
-export default function WorkspacePage() {
+interface WorkspacePageProps {
+  params: Promise<{ workspaceId: string }>;
+}
+
+export default function WorkspacePage({ params }: WorkspacePageProps) {
+  const { workspaceId } = use(params);
+
+  return (
+    // App Router의 클라이언트 내비게이션에서는 컴포넌트 상태가 보존될 수 있다.
+    // workspaceId를 key로 사용해 다른 워크스페이스로 이동하면 편집기를 새로 마운트한다.
+    <WorkspacePageContent key={workspaceId} workspaceId={workspaceId} />
+  );
+}
+
+interface WorkspacePageContentProps {
+  workspaceId: string;
+}
+
+function WorkspacePageContent({ workspaceId }: WorkspacePageContentProps) {
+  const {
+    data: workspace,
+    isPending,
+    isError: isGetWorkspaceError,
+  } = useGetWorkspaceQuery(workspaceId);
+
+  /*
+  isLoading은 요청 중일 때만 true라, 네트워크가 끊겨 요청이 일시정지되면 데이터 없이 false가 된다.
+  isPending으로 분기해야 그 상태도 로딩으로 보이고, 두 분기를 지나면 workspace가 성공 데이터로 좁혀진다.
+  */
+  if (isPending) {
+    return <div>Loading...</div>;
+  }
+
+  // todo: 조회 실패 안내 화면 (#66 4단계)
+  if (isGetWorkspaceError) {
+    return <div>Error loading workspace data.</div>;
+  }
+
   return (
     <div className="h-full w-full">
       <ReactFlowProvider>
-        <LayoutFlow />
+        {/*
+        트리가 없는 워크스페이스는 조회할 트리도, 편집 action이 기준으로 삼을 노드도 없다.
+        편집기 hook들은 treeId가 있는 것을 전제하므로 빈 캔버스만 그린다. 루트 노드 추가는 #83에서 다룬다.
+        */}
+        {workspace.treeId === null ? (
+          <ReactFlow nodes={[]} edges={[]} />
+        ) : (
+          <LayoutFlow treeId={workspace.treeId} />
+        )}
       </ReactFlowProvider>
     </div>
   );
