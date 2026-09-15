@@ -6,5 +6,5 @@ export const routes = {
   recent: "/recent",
   workspaceDefault: "/workspace/default",
   workspaceRoot: "/workspace",
-  workspace: (treeId: string) => `/workspace/${treeId}`,
+  workspace: (workspaceId: string) => `/workspace/${workspaceId}`,
 } as const;
