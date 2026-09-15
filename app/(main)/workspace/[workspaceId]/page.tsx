@@ -14,6 +14,7 @@ import {
 import { use, useEffect, useState } from "react";
 import { useGetTreeQuery } from "@/src/entities/tree/model/queries";
 import { useGetWorkspaceQuery } from "@/src/entities/workspace";
+import { WorkspaceHeader } from "@/src/widgets/workspace";
 
 interface LayoutFlowProps {
   treeId: string;
@@ -180,32 +181,36 @@ function WorkspacePageContent({ workspaceId }: WorkspacePageContentProps) {
     isError: isGetWorkspaceError,
   } = useGetWorkspaceQuery(workspaceId);
 
-  /*
-  isLoading은 요청 중일 때만 true라, 네트워크가 끊겨 요청이 일시정지되면 데이터 없이 false가 된다.
-  isPending으로 분기해야 그 상태도 로딩으로 보이고, 두 분기를 지나면 workspace가 성공 데이터로 좁혀진다.
-  */
-  if (isPending) {
-    return <div>Loading...</div>;
-  }
-
   // todo: 조회 실패 안내 화면 (#66 4단계)
   if (isGetWorkspaceError) {
     return <div>Error loading workspace data.</div>;
   }
 
+  /*
+  isLoading은 요청 중일 때만 true라, 네트워크가 끊겨 요청이 일시정지되면 데이터 없이 false가 된다.
+  isPending으로 분기해야 그 상태도 로딩으로 보이고, 이 분기를 지나면 workspace가 성공 데이터로 좁혀진다.
+  */
   return (
-    <div className="h-full w-full">
-      <ReactFlowProvider>
-        {/*
-        트리가 없는 워크스페이스는 조회할 트리도, 편집 action이 기준으로 삼을 노드도 없다.
-        편집기 hook들은 treeId가 있는 것을 전제하므로 빈 캔버스만 그린다. 루트 노드 추가는 #83에서 다룬다.
-        */}
-        {workspace.treeId === null ? (
-          <ReactFlow nodes={[]} edges={[]} />
+    <div className="flex h-full w-full flex-col">
+      <WorkspaceHeader name={workspace?.name} isNameLoading={isPending} />
+
+      <div className="min-h-0 flex-1">
+        {isPending ? (
+          <div>Loading...</div>
         ) : (
-          <LayoutFlow treeId={workspace.treeId} />
+          <ReactFlowProvider>
+            {/*
+            트리가 없는 워크스페이스는 조회할 트리도, 편집 action이 기준으로 삼을 노드도 없다.
+            편집기 hook들은 treeId가 있는 것을 전제하므로 빈 캔버스만 그린다. 루트 노드 추가는 #83에서 다룬다.
+            */}
+            {workspace.treeId === null ? (
+              <ReactFlow nodes={[]} edges={[]} />
+            ) : (
+              <LayoutFlow treeId={workspace.treeId} />
+            )}
+          </ReactFlowProvider>
         )}
-      </ReactFlowProvider>
+      </div>
     </div>
   );
 }
