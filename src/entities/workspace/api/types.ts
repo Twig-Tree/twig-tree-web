@@ -33,3 +33,9 @@ export type GetWorkspaceResponse = ApiResponse<WorkspaceDTO>;
  * 워크스페이스 생성 응답 type
  */
 export type CreateWorkspaceResponse = ApiResponse<WorkspaceDTO>;
+
+/**
+ * 워크스페이스 트리 생성 응답 type
+ * 서버는 노드 없는 빈 트리를 만들고 treeId만 돌려준다.
+ */
+export type CreateWorkspaceTreeResponse = ApiResponse<{ treeId: number }>;

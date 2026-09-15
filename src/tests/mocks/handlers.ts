@@ -117,6 +117,91 @@ export const handlers = [
     );
   }),
 
+  /*
+  워크스페이스 트리 생성 POST 요청 핸들러.
+  백엔드처럼 워크스페이스당 트리는 하나라, 이미 트리가 있는 워크스페이스는 409로 거절한다.
+  */
+  http.post("*/api/workspaces/:workspaceId/trees", ({ params }) => {
+    const workspace = RAW_WORKSPACE_DATA.find(
+      ({ workspaceId }) => String(workspaceId) === params.workspaceId,
+    );
+
+    if (!workspace) {
+      return HttpResponse.json(
+        {
+          isSuccess: false,
+          code: "WORKSPACE404-1",
+          message: "해당 워크스페이스가 존재하지 않습니다.",
+          data: null,
+        },
+        { status: 404 },
+      );
+    }
+
+    if (workspace.treeId !== null) {
+      return HttpResponse.json(
+        {
+          isSuccess: false,
+          code: "TREE409-1",
+          message: "해당 워크스페이스에 이미 트리가 존재합니다.",
+          data: null,
+        },
+        { status: 409 },
+      );
+    }
+
+    return HttpResponse.json(
+      {
+        isSuccess: true,
+        code: "TREE_CREATED",
+        message: "트리가 생성되었습니다.",
+        data: { treeId: 20 },
+      },
+      { status: 201 },
+    );
+  }),
+
+  /*
+  노드 생성 POST 요청 핸들러.
+  요청 body를 그대로 반영해 응답하므로 parentId가 실제로 어떻게 실려 가는지 확인할 수 있다.
+  백엔드처럼 트리당 루트는 하나라, 루트가 있는 트리(RAW_TREE_DATA를 쓰는 10번)에 루트를 만들면 409로 거절한다.
+  */
+  http.post("*/api/trees/:treeId/nodes", async ({ params, request }) => {
+    const body = (await request.json()) as {
+      name: string;
+      parentId: number | null;
+      orderId: number;
+    };
+
+    if (body.parentId === null && params.treeId === "10") {
+      return HttpResponse.json(
+        {
+          isSuccess: false,
+          code: "NODE409-2",
+          message: "하나의 트리에는 하나의 루트만 존재할 수 있습니다.",
+          data: null,
+        },
+        { status: 409 },
+      );
+    }
+
+    return HttpResponse.json(
+      {
+        isSuccess: true,
+        code: "NODE_CREATED",
+        message: "노드가 생성되었습니다.",
+        data: {
+          nodeId: 500,
+          name: body.name,
+          parentId: body.parentId,
+          orderId: body.orderId,
+          memo: null,
+        },
+      },
+      { status: 201 },
+    );
+  }),
+
   // 트리 조회 GET 요청 핸들러
   http.get("*/api/tree/:treeId", ({ params }) => {
     const { treeId } = params;

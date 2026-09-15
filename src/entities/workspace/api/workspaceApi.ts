@@ -2,6 +2,7 @@ import { axiosInstance } from "@/src/shared/api/axiosInstance";
 import {
   CreateWorkspaceRequest,
   CreateWorkspaceResponse,
+  CreateWorkspaceTreeResponse,
   GetWorkspaceListResponse,
   GetWorkspaceResponse,
 } from "@/src/entities/workspace/api/types";
@@ -63,5 +64,18 @@ export const workspaceApi = {
       body,
     );
     return mapWorkspaceDtoToDomain(response.data.data);
+  },
+
+  /*
+  함수 이름 : createWorkspaceTree
+  기능 : 워크스페이스에 노드 없는 빈 트리를 생성한다. 워크스페이스당 트리는 하나라 이미 있으면 서버가 409로 거절한다.
+  인자 : number workspaceId -> 트리를 만들 워크스페이스 ID
+  반환값 : 생성된 트리 ID
+  */
+  createWorkspaceTree: async (workspaceId: number): Promise<string> => {
+    const response = await axiosInstance.post<CreateWorkspaceTreeResponse>(
+      `/workspaces/${workspaceId}/trees`,
+    );
+    return String(response.data.data.treeId);
   },
 };

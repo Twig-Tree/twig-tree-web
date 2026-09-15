@@ -5,4 +5,6 @@ export {
   useGetWorkspaceQuery,
 } from "./model/queries";
 export { useCreateWorkspaceMutation } from "./model/mutations/useCreateWorkspaceMutation";
+export { useCreateWorkspaceTreeMutation } from "./model/mutations/useCreateWorkspaceTreeMutation";
+export { useSetWorkspaceTreeIdInCache } from "./model/useSetWorkspaceTreeIdInCache";
 export { workspaceQueryKeys } from "./model/queryKeys";
