@@ -14,7 +14,8 @@ import {
 import { use, useEffect, useState } from "react";
 import { useGetTreeQuery } from "@/src/entities/tree/model/queries";
 import { useGetWorkspaceQuery } from "@/src/entities/workspace";
-import { WorkspaceHeader } from "@/src/widgets/workspace";
+import { isClientError } from "@/src/shared/api/httpErrors";
+import { WorkspaceHeader, WorkspaceLoadError } from "@/src/widgets/workspace";
 
 interface LayoutFlowProps {
   treeId: string;
@@ -177,13 +178,23 @@ interface WorkspacePageContentProps {
 function WorkspacePageContent({ workspaceId }: WorkspacePageContentProps) {
   const {
     data: workspace,
+    error: getWorkspaceError,
     isPending,
     isError: isGetWorkspaceError,
+    refetch,
   } = useGetWorkspaceQuery(workspaceId);
 
-  // todo: 조회 실패 안내 화면 (#66 4단계)
+  /*
+  조회에 실패하면 헤더 바와 편집기를 그리지 않는다. 4xx는 다시 요청해도 같으므로 다시 시도 대신 대시보드로 안내한다.
+  데이터가 없는 query를 refetch하면 오류가 지워지고 pending으로 돌아가므로, 다시 시도 중에는 아래 로딩 화면이 보인다.
+  */
   if (isGetWorkspaceError) {
-    return <div>Error loading workspace data.</div>;
+    return (
+      <WorkspaceLoadError
+        isNotFound={isClientError(getWorkspaceError)}
+        onRetry={() => void refetch()}
+      />
+    );
   }
 
   /*
