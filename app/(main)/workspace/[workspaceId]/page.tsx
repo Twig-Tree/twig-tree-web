@@ -48,6 +48,7 @@ function LayoutFlow({ treeId }: LayoutFlowProps) {
   const {
     selectedNode,
     isAddingNode,
+    isAddNodeEnabled,
     handleAddNode,
     isDeletingNode,
     handleDeleteNode,
@@ -122,7 +123,7 @@ function LayoutFlow({ treeId }: LayoutFlowProps) {
             <button
               className="xy-theme__button"
               onClick={handleAddNode}
-              disabled={!selectedNode || isMutating}
+              disabled={!isAddNodeEnabled || isMutating}
             >
               Add Node
             </button>

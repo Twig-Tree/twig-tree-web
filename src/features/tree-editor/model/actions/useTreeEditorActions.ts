@@ -1,5 +1,7 @@
+import { isAddNodeAvailable } from "../../lib/add-node/isAddNodeAvailable";
 import { useTreeStore } from "../treeStore";
 import { useAddNode } from "./add-node/useAddNode";
+import { useAddRootNode } from "./add-root-node/useAddRootNode";
 import { useDeleteNode } from "./delete-node/useDeleteNode";
 
 type UseTreeEditorActionsParams = {
@@ -13,12 +15,18 @@ export const useTreeEditorActions = ({
   const edges = useTreeStore((state) => state.edges);
 
   const selectedNode = nodes.find((node) => node.selected);
-  const { handleAddNode, isAddingNode, isAddNodeError } = useAddNode({
+  const {
+    handleAddNode: handleAddChildNode,
+    isAddingNode: isAddingChildNode,
+    isAddNodeError: isAddChildNodeError,
+  } = useAddNode({
     treeId,
     selectedNode,
     nodes,
     edges,
   });
+  const { handleAddRootNode, isAddingRootNode, isAddRootNodeError } =
+    useAddRootNode({ treeId, nodes });
   const { handleDeleteNode, isDeletingNode, isDeleteNodeError } = useDeleteNode(
     {
       treeId,
@@ -26,10 +34,25 @@ export const useTreeEditorActions = ({
     },
   );
 
+  /*
+  노드 추가 버튼 하나가 노드 개수에 따라 루트 추가와 자식 추가를 나눠 맡는다.
+  노드가 없으면 선택할 노드도 없으므로 루트를, 있으면 선택한 노드의 자식을 추가한다.
+  */
+  const handleAddNode =
+    nodes.length === 0 ? handleAddRootNode : handleAddChildNode;
+  const isAddingNode = isAddingChildNode || isAddingRootNode; // 페이지의 편집 잠금이 두 요청을 모두 기다리도록 합친다.
+  const isAddNodeError = isAddChildNodeError || isAddRootNodeError;
+  const isAddNodeEnabled = isAddNodeAvailable({
+    treeId,
+    nodeCount: nodes.length,
+    hasSelectedNode: selectedNode !== undefined,
+  });
+
   return {
     selectedNode,
     isAddingNode,
     isAddNodeError,
+    isAddNodeEnabled,
     handleAddNode,
     isDeletingNode,
     isDeleteNodeError,

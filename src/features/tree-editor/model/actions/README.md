@@ -222,6 +222,29 @@ mutation 선언부에는 `onError`를 두지 않는다. cache를 미리 바꾸�
 - Query cache는 그대로 둔다. 추가된 적이 없다.
 - Editor store는 `undo()`로 optimistic add를 되돌린다.
 
+## 예시: Add Root Node
+
+`useAddRootNode`는 노드가 하나도 없는 트리에 루트 노드를 추가한다. 노드 추가 버튼 하나를 자식 추가와 함께 쓰며, `useTreeEditorActions`가 노드 개수로 둘을 나눈다.
+
+위 "Optimistic Update 규칙"의 예외다. editor store에 먼저 넣지 않고 서버 응답을 받은 뒤에 넣는다.
+
+- 캔버스가 비어 있어 먼저 그려서 얻는 이득이 작다.
+- store를 건드리지 않았으므로 실패해도 `undo()`나 직접 복구가 필요 없다.
+- 요청 중에는 `isAddingNode`에 합쳐 편집을 잠근다.
+
+트리당 루트는 하나다. 백엔드는 DB 유니크 인덱스로 막고 `409 NODE409-2`를 돌려주므로, 루트 추가는 노드가 0개일 때만 연다.
+
+성공 시:
+
+- Query cache는 `useAddNodeMutation`이 서버가 반환한 `TreeNode`를 덧붙인다.
+- Editor store에는 서버가 확정한 값으로 만든 노드를 엣지 없이 넣는다. 위치는 레이아웃이 계산한다.
+- undo 기록을 비운다. undo는 서버와 연결되어 있지 않아 루트 추가를 되돌리면 서버에 루트가 남은 채 store만 비고, 버튼이 다시 루트 추가로 바뀌어 `409`가 난다. 루트는 지울 수 없으므로 트리 초기화처럼 편집의 시작점으로 둔다.
+
+실패 시:
+
+- Query cache와 editor store 모두 그대로 둔다. 둘 다 바꾼 적이 없다.
+- `409 NODE409-2`는 다른 곳에서 루트가 먼저 생긴 경우다. store는 트리당 한 번만 채워지므로 새로고침을 안내한다.
+
 ## 예시: Delete Node
 
 `useDeleteNode`는 선택된 노드와 하위 노드 id를 수집한 뒤 editor store에서 먼저 제거하고 `useDeleteNodeMutation`을 호출한다.

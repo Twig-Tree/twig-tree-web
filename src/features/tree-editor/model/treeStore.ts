@@ -33,7 +33,7 @@ interface TreeState {
   onReconnect: (oldEdge: CustomEditorEdge, newConnection: Connection) => void;
   addNodeToStore: (
     newNode: CustomEditorNode,
-    newEdge: CustomEditorEdge,
+    newEdge?: CustomEditorEdge, // 루트 노드는 들어오는 엣지가 없어 생략한다
   ) => void;
   deleteNodeFromStore: (clientIdsToDelete: string[]) => void;
   updateNodeMemoInStore: (clientId: string, memo: string | null) => void;
@@ -134,13 +134,13 @@ export const useTreeStore = create<TreeState>()(
 
       addNodeToStore: (
         newNode: CustomEditorNode,
-        newEdge: CustomEditorEdge,
+        newEdge?: CustomEditorEdge,
       ) => {
         const { nodes, edges } = get();
 
         set({
           nodes: nodes.concat(newNode),
-          edges: edges.concat(newEdge),
+          edges: newEdge ? edges.concat(newEdge) : edges,
         });
       },
 
