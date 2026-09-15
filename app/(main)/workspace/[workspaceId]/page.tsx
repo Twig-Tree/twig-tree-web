@@ -18,10 +18,11 @@ import { isClientError } from "@/src/shared/api/httpErrors";
 import { WorkspaceHeader, WorkspaceLoadError } from "@/src/widgets/workspace";
 
 interface LayoutFlowProps {
+  workspaceId: string;
   treeId: string | null; // 트리가 없는 워크스페이스는 null
 }
 
-function LayoutFlow({ treeId }: LayoutFlowProps) {
+function LayoutFlow({ workspaceId, treeId }: LayoutFlowProps) {
   const [isMemoPanelOpen, setIsMemoPanelOpen] = useState(false);
   // todo: React Server Component 사용
   const {
@@ -52,7 +53,7 @@ function LayoutFlow({ treeId }: LayoutFlowProps) {
     handleAddNode,
     isDeletingNode,
     handleDeleteNode,
-  } = useTreeEditorActions({ treeId });
+  } = useTreeEditorActions({ workspaceId, treeId });
 
   // 1. 컴포넌트 마운트 시 일단 기록 중지 (트리 레이아웃 정렬 전 히스토리 기록 방지)
   useEffect(() => {
@@ -218,7 +219,7 @@ function WorkspacePageContent({ workspaceId }: WorkspacePageContentProps) {
             트리가 없는 워크스페이스도 같은 편집기로 그린다. 트리 조회는 보내지 않고 빈 캔버스와 버튼 패널만 보인다.
             트리를 만들면 treeId만 바뀌므로 편집기를 갈아 끼우지 않아 store가 유지된다.
             */}
-            <LayoutFlow treeId={workspace.treeId} />
+            <LayoutFlow workspaceId={workspaceId} treeId={workspace.treeId} />
           </ReactFlowProvider>
         )}
       </div>

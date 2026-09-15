@@ -224,25 +224,55 @@ mutation 선언부에는 `onError`를 두지 않는다. cache를 미리 바꾸�
 
 ## 예시: Add Root Node
 
-`useAddRootNode`는 노드가 하나도 없는 트리에 루트 노드를 추가한다. 노드 추가 버튼 하나를 자식 추가와 함께 쓰며, `useTreeEditorActions`가 노드 개수로 둘을 나눈다.
+`useAddRootNode`는 노드가 하나도 없는 트리에 루트 노드를 추가한다. 트리가 없는 워크스페이스는 트리부터 만든다. 노드 추가 버튼 하나를 자식 추가와 함께 쓰며, `useTreeEditorActions`가 노드 개수로 둘을 나눈다.
 
 위 "Optimistic Update 규칙"의 예외다. editor store에 먼저 넣지 않고 서버 응답을 받은 뒤에 넣는다.
 
 - 캔버스가 비어 있어 먼저 그려서 얻는 이득이 작다.
+- 트리까지 만드는 경우 요청이 둘이라, 먼저 넣으면 중간 실패 시 되돌릴 경로가 갈린다.
 - store를 건드리지 않았으므로 실패해도 `undo()`나 직접 복구가 필요 없다.
 - 요청 중에는 `isAddingNode`에 합쳐 편집을 잠근다.
 
 트리당 루트는 하나다. 백엔드는 DB 유니크 인덱스로 막고 `409 NODE409-2`를 돌려주므로, 루트 추가는 노드가 0개일 때만 연다.
 
+흐름:
+
+```text
+treeId가 null → 트리 생성 → 루트 노드 생성 → store 초기화(treeId + 루트) → 워크스페이스 상세 캐시에 treeId
+treeId가 있음 →            루트 노드 생성 → store 초기화(treeId + 루트)
+```
+
+트리를 새로 만들지는 store가 아니라 페이지가 넘기는 `treeId`(워크스페이스 상세 캐시)로 판단한다. 루트 생성이 실패해 캐시만 채워진 직후에는 store의 `treeId`가 아직 `null`이라, store로 판단하면 트리를 다시 만들려다 `409 TREE409-1`이 난다.
+
+### 상세 캐시는 store 반영 뒤에 채운다
+
+캐시에 `treeId`가 들어가면 페이지가 새 `treeId`로 트리를 조회하고, 조회가 끝나면 `useInitializeTree`가 store의 `treeId`와 비교해 다르면 store를 덮는다. 캐시를 트리 생성 직후에 채우면 이 조회가 루트 노드 생성과 동시에 진행된다.
+
+```text
+1. 트리 생성 응답 → 캐시에 treeId "5"
+2. 페이지 재렌더 → GET /trees/5/nodes 시작    ┐ 동시에 진행
+3. POST /trees/5/nodes (루트) 시작             ┘
+4. 서버: 루트 저장 → 조회 처리 (루트 포함)
+5. 조회 응답 먼저 도착 → store treeId(null) ≠ "5" → useInitializeTree가 루트를 채움
+6. 루트 생성 응답 도착 → 같은 루트를 또 넣음 → 중복
+```
+
+그래서 store를 `initializeTree`로 `treeId`와 루트까지 채운 뒤에 캐시를 채운다. 조회는 루트 생성이 끝난 뒤 시작되고, store의 `treeId`가 이미 같아 `useInitializeTree`는 건너뛴다.
+
+이 순서 때문에 **컨벤션 예외**가 생긴다. 캐시 갱신은 원래 mutation 선언부 `onSuccess`에 두지만, 선언부는 응답 직후 실행되어 순서를 지킬 수 없다. `useCreateWorkspaceTreeMutation` 선언부는 상세 캐시를 채우지 않고, 캐시 모양을 아는 `entities/workspace`가 `useSetWorkspaceTreeIdInCache`를 제공해 이 hook이 호출 시점을 정한다.
+
 성공 시:
 
-- Query cache는 `useAddNodeMutation`이 서버가 반환한 `TreeNode`를 덧붙인다.
-- Editor store에는 서버가 확정한 값으로 만든 노드를 엣지 없이 넣는다. 위치는 레이아웃이 계산한다.
+- Tree query cache는 `useAddNodeMutation`이 서버가 반환한 `TreeNode`를 덧붙인다. 새 트리는 아직 캐시가 없어 건드리지 않는다.
+- Editor store는 `initializeTree`로 `treeId`와 루트 노드 하나로 채운다. 엣지는 없고 위치는 레이아웃이 계산한다.
 - undo 기록을 비운다. undo는 서버와 연결되어 있지 않아 루트 추가를 되돌리면 서버에 루트가 남은 채 store만 비고, 버튼이 다시 루트 추가로 바뀌어 `409`가 난다. 루트는 지울 수 없으므로 트리 초기화처럼 편집의 시작점으로 둔다.
+- 트리를 새로 만들었다면 워크스페이스 상세 캐시에 `treeId`를 채운다.
 
 실패 시:
 
-- Query cache와 editor store 모두 그대로 둔다. 둘 다 바꾼 적이 없다.
+- Editor store는 그대로 둔다. 바꾼 적이 없다.
+- 트리 생성 후 루트 생성만 실패했다면 트리는 생겼으므로 상세 캐시에 `treeId`를 채운다. store에 루트가 없어 조회 결과로 채워져도 겹칠 노드가 없고, 다음 시도는 루트 생성만 한다.
+- `409 TREE409-1`은 다른 곳에서 트리가 먼저 생긴 경우다. 응답에 `treeId`가 없어 `useCreateWorkspaceTreeMutation` 선언부가 상세 캐시를 무효화한다.
 - `409 NODE409-2`는 다른 곳에서 루트가 먼저 생긴 경우다. store는 트리당 한 번만 채워지므로 새로고침을 안내한다.
 
 ## 예시: Delete Node
