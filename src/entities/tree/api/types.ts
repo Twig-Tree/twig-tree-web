@@ -34,7 +34,7 @@ export type GetTreeResponse = ApiResponse<{ nodes: NodeDTO[] }>;
 */
 export interface CreateNodeRequest {
   name: string;
-  parentId: number;
+  parentId: number | null; // 루트 노드는 null. 트리당 루트는 하나라 이미 있으면 서버가 409로 거절한다
   orderId: number;
 }
 

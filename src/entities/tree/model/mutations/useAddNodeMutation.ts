@@ -8,7 +8,7 @@ interface AddNodeVariables {
   treeId: string; // 노드를 추가할 트리 ID
   node: {
     name: string;
-    parentId: string;
+    parentId: string | null; // 루트 노드는 null
     orderId: number;
   };
 }
@@ -24,9 +24,12 @@ export const useAddNodeMutation = () => {
 
   return useMutation({
     mutationFn: ({ treeId, node }: AddNodeVariables) => {
+      /*
+      Number(null)은 0이므로 null 확인이 숫자 변환보다 먼저다. 순서가 뒤집히면 루트 생성이 parentId=0으로 나간다.
+      */
       const request: CreateNodeRequest = {
         ...node,
-        parentId: Number(node.parentId),
+        parentId: node.parentId === null ? null : Number(node.parentId),
       };
 
       return treeApi.createNode(Number(treeId), request);

@@ -4,7 +4,7 @@ import { transformToFlowElements } from "../../lib/mappers";
 import { useTreeStore } from "../treeStore";
 
 type UseInitializeTreeParams = {
-  treeId: string; // 편집할 트리 ID
+  treeId: string | null; // 편집할 트리 ID. 트리가 없는 워크스페이스는 null
   treeData: TreeNode[] | undefined; // 트리 조회 캐시의 노드 목록
   clear: () => void; // 초기화 직후 undo/redo history를 비우는 함수
 };
@@ -29,7 +29,10 @@ export const useInitializeTree = ({
   편집 중인 내용까지 덮어쓰므로, 이미 이 트리로 초기화되어 있으면 캐시가 갱신되어도 건너뛴다.
   */
   useEffect(() => {
-    if (!treeData) return;
+    /*
+    트리가 없으면 채울 노드도 없다. store는 처음부터 비어 있으므로 그대로 둔다.
+    */
+    if (treeId === null || !treeData) return;
 
     if (currentTreeId === treeId) return;
 
