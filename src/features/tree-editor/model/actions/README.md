@@ -152,6 +152,40 @@ Undo/Redo도 pending 중에는 막는다.
 <button disabled={!canRedo || isMutating}>Redo</button>
 ```
 
+### pending 값은 연타를 막지 못한다
+
+위 잠금은 **요청이 진행 중이라고 화면이 인지한 뒤**에만 걸린다. `isPending`도 버튼의 `disabled`도 렌더 시점 값이라, 리렌더 전에 도착한 다음 클릭은 아직 이전 값을 본다. 핸들러 첫 줄의 `if (... || isPending) return`도 같은 스냅샷을 읽으므로 함께 뚫린다.
+
+브라우저에서 버튼을 빠르게 3번 눌러 확인한 결과는 다음과 같다.
+
+| action    | 나간 요청                       | 이유                                                   |
+| --------- | ------------------------------- | ------------------------------------------------------ |
+| 루트 추가 | 트리 생성 3회 (201 + `409` 2회) | 가드가 뚫리고, 중복 요청이 같은 대상을 노린다          |
+| 자식 추가 | 노드 생성 3회 (모두 201)        | 가드는 뚫리지만 클릭마다 다른 노드라 결과가 일관된다   |
+| 노드 삭제 | 삭제 1회                        | optimistic 삭제로 선택이 풀려 `!selectedNode`에 걸렸다 |
+
+삭제가 안전한 것은 pending 가드 덕분이 아니라 선택이 풀린 덕분이다. 코드만 봐서는 드러나지 않으므로 여기 적어 둔다.
+
+따라서 **중복 요청이 같은 대상을 노리는 action에만** `useRef` 동기 가드를 둔다. 핸들러 진입 즉시 세우고 `finally`에서 내린다.
+
+```ts
+const isSubmittingRef = useRef(false);
+
+const handleAddRootNode = async () => {
+  if (nodes.length > 0 || isAddingRootNode || isSubmittingRef.current) return;
+
+  isSubmittingRef.current = true;
+
+  try {
+    /* 요청 흐름 */
+  } finally {
+    isSubmittingRef.current = false;
+  }
+};
+```
+
+모든 action에 일괄로 두지는 않는다. 자식 추가처럼 클릭마다 대상이 달라지는 action은 연타로 여러 번 실행되는 것이 사용자가 누른 그대로다.
+
 ## 이름 규칙
 
 이름은 어떤 계층의 동작인지 드러나야 한다.
@@ -201,6 +235,7 @@ mutation 선언부에는 `onError`를 두지 않는다. cache를 미리 바꾸�
 - 이 action이 Zustand editor store를 변경하는가?
 - Optimistic update가 필요한가?
 - 실패 시 `undo()` 복구가 안전하도록 pending 중 다른 편집이 막혀 있는가?
+- 연타로 중복 요청이 나가면 같은 대상을 노리는가? 그렇다면 `useRef` 동기 가드를 두었는가?
 - 실패 복구가 `undo()`인가 직접 복구인가? 직접 복구라면 되돌릴 값을 그 action이 바꾼 범위로 한정했는가?
 - 사용자-facing 에러를 어디에서 보여줄 것인가?
 - 서버 성공 후 cache를 직접 보정할 수 있는가, 아니면 invalidate가 필요한가?
@@ -231,7 +266,7 @@ mutation 선언부에는 `onError`를 두지 않는다. cache를 미리 바꾸�
 - 캔버스가 비어 있어 먼저 그려서 얻는 이득이 작다.
 - 트리까지 만드는 경우 요청이 둘이라, 먼저 넣으면 중간 실패 시 되돌릴 경로가 갈린다.
 - store를 건드리지 않았으므로 실패해도 `undo()`나 직접 복구가 필요 없다.
-- 요청 중에는 `isAddingNode`에 합쳐 편집을 잠근다.
+- 요청 중에는 `isAddingNode`에 합쳐 편집을 잠근다. 여기에 더해 `useRef` 동기 가드로 연타를 막는다(위 "pending 값은 연타를 막지 못한다").
 
 트리당 루트는 하나다. 백엔드는 DB 유니크 인덱스로 막고 `409 NODE409-2`를 돌려주므로, 루트 추가는 노드가 0개일 때만 연다.
 

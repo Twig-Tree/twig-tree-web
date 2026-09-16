@@ -1,3 +1,4 @@
+import { useRef } from "react";
 import { NODE_ERROR_CODE, useAddNodeMutation } from "@/src/entities/tree";
 import {
   TREE_ERROR_CODE,
@@ -81,66 +82,79 @@ export const useAddRootNode = ({
   const isAddRootNodeError = isCreateTreeError || isAddNodeError;
 
   /*
+  연타로 트리를 두 번 만들지 않기 위한 동기 가드다. isAddingRootNode는 렌더 시점 값이라
+  리렌더 전에 들어온 다음 클릭은 아직 false를 보고, 버튼 disabled도 같은 이유로 늦게 걸린다.
+  이 hook에서만 두는 이유는 중복 요청이 같은 대상(워크스페이스의 트리 하나)을 노려 409가 되기 때문이다.
+  */
+  const isSubmittingRef = useRef(false);
+
+  /*
   트리당 루트는 하나라 노드가 이미 있으면 요청하지 않는다.
   */
   const handleAddRootNode = async () => {
-    if (nodes.length > 0 || isAddingRootNode) return;
+    if (nodes.length > 0 || isAddingRootNode || isSubmittingRef.current) return;
 
-    let rootTreeId = treeId;
-    const isNewTree = treeId === null; // 이번 흐름에서 트리를 새로 만들어 상세 캐시를 채워야 하는지 여부
-
-    try {
-      rootTreeId ??= await createTreeOnServer(workspaceId);
-    } catch (error) {
-      alert(getAddRootNodeErrorMessage(error));
-      return;
-    }
+    isSubmittingRef.current = true;
 
     try {
-      const createdNode = await addNodeOnServer({
-        treeId: rootTreeId,
-        node: {
-          parentId: null,
-          orderId: ROOT_ORDER_INDEX,
-          name: ROOT_NODE_LABEL,
-        },
-      });
+      let rootTreeId = treeId;
+      const isNewTree = treeId === null; // 이번 흐름에서 트리를 새로 만들어 상세 캐시를 채워야 하는지 여부
 
-      /*
-      빈 store를 루트 하나로 초기화한다. treeId도 함께 채우므로, 뒤이어 상세 캐시가 바뀌어 트리 조회가 끝나도
-      useInitializeTree가 같은 트리로 보고 건너뛴다. 들어오는 엣지가 없고 위치는 레이아웃이 계산한다.
-      */
-      initializeTree({
-        treeId: rootTreeId,
-        nodes: [
-          createEditorNode({
-            clientId: createClientNodeId(),
-            serverId: createdNode.id,
-            label: createdNode.label,
-            orderIndex: createdNode.orderIndex,
-            x: 0,
-            y: 0,
-          }),
-        ],
-        edges: [],
-      });
-
-      /*
-      추가 직후 undo 기록을 비운다. undo는 서버와 연결되어 있지 않아, 되돌리면 서버에 루트가 남은 채 store만 비고
-      버튼이 다시 루트 추가로 바뀌어 409가 난다. 루트는 지울 수 없으므로 트리 초기화처럼 편집의 시작점으로 둔다.
-      */
-      useTreeStore.temporal.getState().clear();
-    } catch (error) {
-      alert(getAddRootNodeErrorMessage(error));
-    } finally {
-      /*
-      store 반영이 끝난 뒤에 상세 캐시를 채운다. 순서가 뒤집히면 트리 조회가 루트 생성과 겹쳐 루트가 두 번 들어갈 수 있다.
-      루트 생성이 실패해도 트리는 생겼으므로 채운다. store에 루트가 없어 조회 결과로 채워져도 겹칠 노드가 없고,
-      다음 시도는 트리를 다시 만들지 않고 루트 생성만 한다.
-      */
-      if (isNewTree) {
-        setWorkspaceTreeIdInCache(workspaceId, rootTreeId);
+      try {
+        rootTreeId ??= await createTreeOnServer(workspaceId);
+      } catch (error) {
+        alert(getAddRootNodeErrorMessage(error));
+        return;
       }
+
+      try {
+        const createdNode = await addNodeOnServer({
+          treeId: rootTreeId,
+          node: {
+            parentId: null,
+            orderId: ROOT_ORDER_INDEX,
+            name: ROOT_NODE_LABEL,
+          },
+        });
+
+        /*
+        빈 store를 루트 하나로 초기화한다. treeId도 함께 채우므로, 뒤이어 상세 캐시가 바뀌어 트리 조회가 끝나도
+        useInitializeTree가 같은 트리로 보고 건너뛴다. 들어오는 엣지가 없고 위치는 레이아웃이 계산한다.
+        */
+        initializeTree({
+          treeId: rootTreeId,
+          nodes: [
+            createEditorNode({
+              clientId: createClientNodeId(),
+              serverId: createdNode.id,
+              label: createdNode.label,
+              orderIndex: createdNode.orderIndex,
+              x: 0,
+              y: 0,
+            }),
+          ],
+          edges: [],
+        });
+
+        /*
+        추가 직후 undo 기록을 비운다. undo는 서버와 연결되어 있지 않아, 되돌리면 서버에 루트가 남은 채 store만 비고
+        버튼이 다시 루트 추가로 바뀌어 409가 난다. 루트는 지울 수 없으므로 트리 초기화처럼 편집의 시작점으로 둔다.
+        */
+        useTreeStore.temporal.getState().clear();
+      } catch (error) {
+        alert(getAddRootNodeErrorMessage(error));
+      } finally {
+        /*
+        store 반영이 끝난 뒤에 상세 캐시를 채운다. 순서가 뒤집히면 트리 조회가 루트 생성과 겹쳐 루트가 두 번 들어갈 수 있다.
+        루트 생성이 실패해도 트리는 생겼으므로 채운다. store에 루트가 없어 조회 결과로 채워져도 겹칠 노드가 없고,
+        다음 시도는 트리를 다시 만들지 않고 루트 생성만 한다.
+        */
+        if (isNewTree) {
+          setWorkspaceTreeIdInCache(workspaceId, rootTreeId);
+        }
+      }
+    } finally {
+      isSubmittingRef.current = false;
     }
   };
 
