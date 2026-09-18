@@ -5,13 +5,14 @@ import {
   type AttachmentItem,
   MAX_ATTACHMENT_COUNT,
 } from "@/src/entities/attachment";
+import { MAX_PROMPT_MESSAGE_LENGTH } from "@/src/entities/tree";
 import { createAttachmentFromFile } from "../lib/createAttachmentFromFile";
 import { splitAcceptedFiles } from "../lib/splitAcceptedFiles";
 import type { PromptDraft, RejectedFile } from "./types";
 
 interface UseComposePromptParams {
   isSubmitting: boolean; // 상위 요청이 진행 중인 동안 전송을 잠근다
-  onSubmit: (draft: PromptDraft) => void; // 작성이 끝난 입력을 상위로 전달한다
+  onSubmit: (draft: PromptDraft) => void | Promise<void>; // 작성이 끝난 입력을 상위로 전달한다. Promise를 돌려주면 성공한 경우에만 입력을 비운다
 }
 
 /*
@@ -30,7 +31,14 @@ export function useComposePrompt({
   const [attachments, setAttachments] = useState<AttachmentItem[]>([]);
   const [rejectedFiles, setRejectedFiles] = useState<RejectedFile[]>([]);
 
-  const isSubmitDisabled = isSubmitting || text.trim().length === 0;
+  /*
+  백엔드가 500자를 넘는 지시문을 거절한다. 트리 생성은 응답까지 1분 가까이 걸릴 수 있어,
+  기다린 끝에 길이 때문에 실패하지 않도록 전송 전에 막는다.
+  */
+  const isMessageTooLong = text.trim().length > MAX_PROMPT_MESSAGE_LENGTH;
+
+  const isSubmitDisabled =
+    isSubmitting || text.trim().length === 0 || isMessageTooLong;
   const isAttachDisabled = attachments.length >= MAX_ATTACHMENT_COUNT;
 
   /*
@@ -66,13 +74,19 @@ export function useComposePrompt({
   const dismissRejection = useCallback(() => setRejectedFiles([]), []);
 
   /*
-  입력을 상위로 넘긴 뒤 작성 상태를 비운다.
-  서버 요청이 붙으면 요청이 성공한 시점에 비우도록 옮겨야 한다.
+  입력을 상위로 넘기고, 처리가 끝난 뒤에 작성 상태를 비운다.
+  실패했을 때 비우면 1분 가까이 기다린 사용자가 지시문과 첨부를 처음부터 다시 만들어야 한다.
+  상위가 Promise를 돌려주지 않으면 await가 그대로 통과하므로 넘긴 직후 비워진다.
   */
-  const submitPrompt = useCallback(() => {
+  const submitPrompt = useCallback(async () => {
     if (isSubmitDisabled) return;
 
-    onSubmit({ attachments, text: text.trim() });
+    try {
+      await onSubmit({ attachments, text: text.trim() });
+    } catch {
+      // 실패 안내는 onSubmit을 넘긴 화면이 한다. 여기서는 입력을 남기는 것만 책임진다.
+      return;
+    }
 
     setText("");
     setAttachments([]);
@@ -84,6 +98,7 @@ export function useComposePrompt({
     attachments,
     dismissRejection,
     isAttachDisabled,
+    isMessageTooLong,
     isSubmitDisabled,
     rejectedFiles,
     removeAttachment,

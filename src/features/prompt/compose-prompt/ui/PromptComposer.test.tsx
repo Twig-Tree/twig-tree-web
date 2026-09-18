@@ -2,6 +2,7 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, it, expect, vi } from "vitest";
 import { MAX_ATTACHMENT_SIZE_BYTES } from "@/src/entities/attachment";
+import { MAX_PROMPT_MESSAGE_LENGTH } from "@/src/entities/tree";
 import { createFile, createFileOfSize } from "@/src/tests/helpers/createFile";
 import { PromptComposer } from "./PromptComposer";
 
@@ -162,5 +163,30 @@ describe("PromptComposer", () => {
     await user.type(screen.getByRole("textbox"), "연구 요약");
 
     expect(getSubmitButton()).toBeDisabled();
+  });
+
+  /*
+  타자로 500자를 넘기면 테스트가 느려지므로 값을 한 번에 붙여 넣는다.
+  */
+  it("지시문이 상한을 넘으면 안내가 나오고 전송이 잠긴다", async () => {
+    const { user } = renderPromptComposer();
+    const textbox = screen.getByRole("textbox");
+
+    await user.click(textbox);
+    await user.paste("가".repeat(MAX_PROMPT_MESSAGE_LENGTH + 1));
+
+    expect(screen.getByText(/지시문은 최대/)).toBeInTheDocument();
+    expect(getSubmitButton()).toBeDisabled();
+  });
+
+  it("상한 이내면 안내가 나오지 않는다", async () => {
+    const { user } = renderPromptComposer();
+    const textbox = screen.getByRole("textbox");
+
+    await user.click(textbox);
+    await user.paste("가".repeat(MAX_PROMPT_MESSAGE_LENGTH));
+
+    expect(screen.queryByText(/지시문은 최대/)).not.toBeInTheDocument();
+    expect(getSubmitButton()).toBeEnabled();
   });
 });
