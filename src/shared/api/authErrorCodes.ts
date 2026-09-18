@@ -53,6 +53,30 @@ export const getApiErrorCode = (error: unknown): string | null => {
 };
 
 /*
+함수 이름 : getApiErrorMessage
+기능 : 백엔드 에러 응답 봉투에서 안내 문구를 꺼낸다. 제약값이 백엔드 계약에서 오는 요청은 서버 문구를 그대로 보여주는 편이 낫다.
+인자 : unknown error -> axios가 reject한 오류 객체
+반환값 : 안내 문구. axios 오류가 아니거나 응답 본문에 message가 없으면 null
+
+응답이 없는 네트워크·타임아웃 오류에는 문구가 없으므로 null이 된다. 호출부가 그때 쓸 문구를 정한다.
+*/
+export const getApiErrorMessage = (error: unknown): string | null => {
+  if (!axios.isAxiosError(error)) {
+    return null;
+  }
+
+  const data: unknown = error.response?.data;
+
+  if (typeof data !== "object" || data === null) {
+    return null;
+  }
+
+  const message: unknown = (data as { message?: unknown }).message;
+
+  return typeof message === "string" && message !== "" ? message : null;
+};
+
+/*
 함수 이름 : isReissuableError
 기능 : access token 재발급으로 복구할 수 있는 오류인지 판정한다.
 인자 : unknown error -> axios가 reject한 오류 객체
