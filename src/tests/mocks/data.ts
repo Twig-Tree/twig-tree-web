@@ -16,6 +16,25 @@ export const RAW_TREE_DATA: NodeDTO[] = [
   { nodeId: 7, name: "output", memo: null, parentId: 5, orderId: 10 },
 ];
 
+/*
+프롬프트로 만들어진 트리의 응답 데이터. 워크스페이스·트리·노드가 한 응답에 함께 온다.
+루트와 자식을 하나씩 두어 parentId가 null과 숫자 양쪽으로 변환되는지 확인할 수 있다.
+*/
+export const RAW_CREATED_TREE_DATA = {
+  treeId: 30,
+  workspaceId: 31,
+  nodes: [
+    {
+      nodeId: 40,
+      name: "컴퓨터 사이언스",
+      memo: "전공 기초",
+      parentId: null,
+      orderId: 1,
+    },
+    { nodeId: 41, name: "자료구조", memo: null, parentId: 40, orderId: 1 },
+  ] satisfies NodeDTO[],
+};
+
 export const RAW_TREE_DATA_WITH_CYCLE: NodeDTO[] = [
   { nodeId: 100, name: "Cycle 1", memo: null, parentId: 101, orderId: 1 },
   { nodeId: 101, name: "Cycle 2", memo: null, parentId: 100, orderId: 2 },

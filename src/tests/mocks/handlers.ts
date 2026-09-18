@@ -1,4 +1,5 @@
 import {
+  RAW_CREATED_TREE_DATA,
   RAW_FOLDER_DATA,
   RAW_TREE_DATA,
   RAW_TREE_DATA_WITH_CYCLE,
@@ -197,6 +198,57 @@ export const handlers = [
           orderId: body.orderId,
           memo: null,
         },
+      },
+      { status: 201 },
+    );
+  }),
+
+  /*
+  프롬프트 트리 생성 POST 요청 핸들러.
+  백엔드처럼 Content-Type으로 JSON과 multipart를 가르고, 지시문과 파일이 모두 비면 CHAT400-3으로 거절한다.
+  multipart 경로에서 message와 provider를 쿼리 파라미터로 읽는 것도 백엔드와 같아서,
+  요청이 어느 형식으로 나갔는지 이 핸들러가 걸러내는 것으로 확인할 수 있다.
+  */
+  http.post("*/api/tree-request", async ({ request }) => {
+    const searchParams = new URL(request.url).searchParams;
+    const isMultipart = request.headers
+      .get("content-type")
+      ?.includes("multipart/form-data");
+
+    let message: string | null;
+    let hasFile: boolean;
+
+    if (isMultipart) {
+      const formData = await request.formData();
+
+      message = searchParams.get("message");
+      hasFile = formData.get("file") !== null;
+    } else {
+      const body = (await request.json()) as { message?: string };
+
+      message = body.message ?? null;
+      hasFile = false;
+    }
+
+    // mock 시나리오는 백엔드에서도 본문 검증보다 먼저 분기한다.
+    if (searchParams.get("mock") === null && !message && !hasFile) {
+      return HttpResponse.json(
+        {
+          isSuccess: false,
+          code: "CHAT400-3",
+          message: "메시지와 파일 중 최소 하나는 필요합니다.",
+          data: null,
+        },
+        { status: 400 },
+      );
+    }
+
+    return HttpResponse.json(
+      {
+        isSuccess: true,
+        code: "CHAT201-1",
+        message: "트리가 성공적으로 생성되었습니다.",
+        data: RAW_CREATED_TREE_DATA,
       },
       { status: 201 },
     );

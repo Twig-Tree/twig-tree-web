@@ -4,15 +4,16 @@
 
 ## 진행 상황 (다른 곳에서 이어갈 때 먼저 읽기)
 
-| 단계                                  | 상태 | 커밋 |
-| ------------------------------------- | ---- | ---- |
-| 1. entity: 트리 생성 API·DTO·mutation | 대기 |      |
-| 2. feature: 생성 handler hook         | 대기 |      |
-| 3. 화면: 대시보드 연결과 생성 중 표시 | 대기 |      |
-| 4. 첨부 파일 전송                     | 대기 |      |
+| 단계                                  | 상태             | 커밋 |
+| ------------------------------------- | ---------------- | ---- |
+| 1. entity: 트리 생성 API·DTO·mutation | 완료 (커밋 대기) |      |
+| 2. feature: 생성 handler hook         | 대기             |      |
+| 3. 화면: 대시보드 연결과 생성 중 표시 | 대기             |      |
+| 4. 첨부 파일 전송                     | 대기             |      |
 
 - 결정 사항은 모두 확정되었다. 미결 항목 없음.
-- #83이 main에 머지된 뒤 그 위에서 브랜치를 판다.
+- #83은 main에 머지되었고, 브랜치는 그 위에 있다.
+- 구현 중 계획과 달라진 점은 각 단계의 **구현 결과**에 적는다.
 
 ## 목표
 
@@ -239,6 +240,15 @@ LLM 대기가 최대 65초다. 입력 바만 잠그면 그동안 화면이 멈�
   - mapper: `workspaceId`·`treeId`가 문자열로, `parentId: null`이 루트로 유지되는지
   - mutation: 성공 후 `treeQueryKeys.detail(treeId)`에 노드가 들어가고 루트 목록이 무효화되는지
 
+#### 구현 결과
+
+`vitest` 221개, `tsc`, `eslint` 통과. 계획과 달라진 점은 다음과 같다.
+
+- **`CreatedTree` 도메인 모델과 `mapCreatedTreeDtoToDomain`을 만들었다.** 계획에는 반환 모양만 적었는데, 응답 DTO를 도메인 모델로 바꾸는 일이라 mapper 자리가 맞다. `model/types.ts`에 타입을, `lib/mappers.ts`에 mapper를 두었다.
+- **`MAX_PROMPT_MESSAGE_LENGTH`(500)를 1단계에서 미리 넣었다.** 3단계 항목이지만 백엔드 계약값이라 `LLM_PROVIDER`와 같은 자리에 함께 두는 편이 낫다. 화면에서 쓰는 것은 3단계에서 한다.
+- **`formData.append`에 파일 이름을 명시했다.** 생략하면 조각의 filename이 `blob`으로 실려, 확장자로 파서를 고르는 백엔드가 `CHAT400-4`로 거절한다.
+- **파일 이름은 테스트로 확인할 수 없다.** jsdom에서는 `FormData`가 `Request`를 통과하는 순간 filename이 `blob`이 된다(jsdom의 `File`을 undici가 일반 `Blob`으로 취급). axios와 무관한 환경 한계라 테스트는 파일 조각의 존재만 확인하고, 실제 이름은 4단계 브라우저 확인으로 넘긴다.
+
 ### 2단계 — feature: 생성 handler hook
 
 - `features/prompt/create-workspace-from-prompt/model/useCreateWorkspaceFromPrompt.ts`
@@ -264,7 +274,7 @@ LLM 대기가 최대 65초다. 입력 바만 잠그면 그동안 화면이 멈�
 - `PromptDraft`의 첨부에서 `File`을 꺼내 요청에 싣는다
 - 확장자별 크기 상한 (결정 14) — txt·md 1MB, 나머지 10MB
 - 테스트: 첨부가 있을 때 multipart로 나가는지, 확장자별 상한이 적용되는지, 파일 제약 위반 안내
-- **브라우저 확인** — txt·pdf 각각 한 번
+- **브라우저 확인** — txt·pdf 각각 한 번. **파일 이름이 서버에 그대로 도착하는지 반드시 본다** (1단계 구현 결과 참고: 테스트로는 확인할 수 없다)
 
 ## 범위 밖
 

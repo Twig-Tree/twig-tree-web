@@ -1,5 +1,5 @@
-import { NodeDTO } from "@/src/entities/tree/api/types";
-import { TreeNode } from "../model/types";
+import { NodeDTO, TreeDTO } from "@/src/entities/tree/api/types";
+import { CreatedTree, TreeNode } from "../model/types";
 
 /**
  * 단일 NodeDTO를 TreeNode(Domain Entity)로 변환합니다.
@@ -19,3 +19,13 @@ orderIndex 정렬은 여기서 하지 않는다. 배열 순서는 ELK가 형제 
 */
 export const mapNodesDtoToDomain = (dtos: NodeDTO[]): TreeNode[] =>
   dtos.map(mapNodeDtoToDomain);
+
+/**
+ * 프롬프트 트리 생성 응답을 도메인 모델로 변환합니다.
+ * 워크스페이스 ID까지 문자열로 바꾸는 이유는 라우트와 query key가 프론트 ID 타입을 쓰기 때문입니다.
+ */
+export const mapCreatedTreeDtoToDomain = (dto: TreeDTO): CreatedTree => ({
+  workspaceId: String(dto.workspaceId),
+  treeId: String(dto.treeId),
+  nodes: mapNodesDtoToDomain(dto.nodes),
+});
