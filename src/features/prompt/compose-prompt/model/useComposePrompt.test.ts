@@ -1,6 +1,6 @@
 import { act, renderHook } from "@testing-library/react";
 import { describe, it, expect, vi } from "vitest";
-import { MAX_ATTACHMENT_SIZE_BYTES } from "@/src/entities/attachment";
+import { MAX_DOCUMENT_ATTACHMENT_SIZE_BYTES } from "@/src/entities/attachment";
 import { MAX_PROMPT_MESSAGE_LENGTH } from "@/src/entities/tree";
 import { createFile, createFileOfSize } from "@/src/tests/helpers/createFile";
 import { useComposePrompt } from "./useComposePrompt";
@@ -66,7 +66,7 @@ describe("useComposePrompt", () => {
     act(() =>
       result.current.addFiles([
         createFile("shot.png"),
-        createFileOfSize("too_big.pdf", MAX_ATTACHMENT_SIZE_BYTES + 1),
+        createFileOfSize("too_big.pdf", MAX_DOCUMENT_ATTACHMENT_SIZE_BYTES + 1),
       ]),
     );
 
@@ -117,6 +117,19 @@ describe("useComposePrompt", () => {
     expect(result.current.isSubmitDisabled).toBe(true);
 
     act(() => result.current.setText("연구 요약"));
+    expect(result.current.isSubmitDisabled).toBe(false);
+  });
+
+  /*
+  백엔드도 지시문과 파일이 모두 비었을 때만 거절한다. 문서만 올리고 지시문을 생략하는 흐름을 막지 않는다.
+  */
+  it("지시문이 없어도 첨부가 있으면 전송할 수 있다", () => {
+    const { result } = renderComposePrompt();
+
+    expect(result.current.isSubmitDisabled).toBe(true);
+
+    act(() => result.current.addFiles([createFile("보고서.hwp")]));
+
     expect(result.current.isSubmitDisabled).toBe(false);
   });
 

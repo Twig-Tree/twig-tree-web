@@ -1,7 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, it, expect, vi } from "vitest";
-import { MAX_ATTACHMENT_SIZE_BYTES } from "@/src/entities/attachment";
+import { MAX_DOCUMENT_ATTACHMENT_SIZE_BYTES } from "@/src/entities/attachment";
 import { MAX_PROMPT_MESSAGE_LENGTH } from "@/src/entities/tree";
 import { createFile, createFileOfSize } from "@/src/tests/helpers/createFile";
 import { PromptComposer } from "./PromptComposer";
@@ -114,13 +114,15 @@ describe("PromptComposer", () => {
 
     await user.upload(
       fileInput,
-      createFileOfSize("too_big.pdf", MAX_ATTACHMENT_SIZE_BYTES + 1),
+      createFileOfSize("too_big.pdf", MAX_DOCUMENT_ATTACHMENT_SIZE_BYTES + 1),
     );
 
     const notice = screen.getByRole("alert");
 
     expect(notice).toHaveTextContent("용량이 너무 큽니다: too_big.pdf");
-    expect(notice).toHaveTextContent("최대 10 MB까지 첨부할 수 있습니다.");
+    expect(notice).toHaveTextContent(
+      "텍스트 파일(txt, md)은 1 MB, 나머지는 10 MB까지 첨부할 수 있습니다.",
+    );
   });
 
   it("안내 닫기 버튼을 누르면 안내가 사라진다", async () => {

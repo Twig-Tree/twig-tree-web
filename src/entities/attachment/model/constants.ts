@@ -18,8 +18,14 @@ export const ACCEPTED_FILE_EXTENSIONS = Object.keys(FILE_KIND_BY_EXTENSION);
 /*
 첨부할 수 있는 파일 크기 상한. 확장자와 마찬가지로 파일 선택 창에서는 거를 수 없어
 선택 이후에 검사한다.
+
+백엔드가 포맷마다 다른 값을 쓴다. 평문은 파일 크기가 곧 본문 길이라 본문 상한(20,000자)과
+비슷한 수준으로 낮고, PDF·DOCX 같은 바이너리는 같은 분량이어도 파일이 훨씬 커져 넉넉하다.
+출처는 각 DocumentParser 구현체의 maxBytes다.
 */
-export const MAX_ATTACHMENT_SIZE_BYTES = 10 * 1024 * 1024;
+export const MAX_PLAIN_TEXT_ATTACHMENT_SIZE_BYTES = 1024 * 1024;
+
+export const MAX_DOCUMENT_ATTACHMENT_SIZE_BYTES = 10 * 1024 * 1024;
 
 /*
 한 요청에 담을 수 있는 첨부 파일 수. 백엔드가 요청 하나당 파일 하나만 받는다.

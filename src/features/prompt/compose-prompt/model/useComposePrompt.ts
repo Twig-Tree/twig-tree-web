@@ -37,8 +37,15 @@ export function useComposePrompt({
   */
   const isMessageTooLong = text.trim().length > MAX_PROMPT_MESSAGE_LENGTH;
 
+  /*
+  지시문과 첨부 중 하나만 있어도 보낼 수 있다. 백엔드도 둘 다 비었을 때만 거절하므로,
+  파일만 올리고 "이 문서로 만들어 줘"를 생략하는 흐름을 막지 않는다.
+  */
   const isSubmitDisabled =
-    isSubmitting || text.trim().length === 0 || isMessageTooLong;
+    isSubmitting ||
+    (text.trim().length === 0 && attachments.length === 0) ||
+    isMessageTooLong;
+
   const isAttachDisabled = attachments.length >= MAX_ATTACHMENT_COUNT;
 
   /*

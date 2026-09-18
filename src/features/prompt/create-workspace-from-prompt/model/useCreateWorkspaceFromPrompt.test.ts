@@ -42,6 +42,43 @@ describe("useCreateWorkspaceFromPrompt", () => {
     expect(push).toHaveBeenCalledWith("/workspace/31");
   });
 
+  /*
+  첨부를 넘기면 multipart로 나가야 백엔드의 파일 핸들러가 받는다.
+  */
+  it("첨부를 함께 넘기면 multipart 요청으로 나간다", async () => {
+    let contentType: string | null = null;
+
+    server.use(
+      http.post("*/api/tree-request", async ({ request }) => {
+        contentType = request.headers.get("content-type");
+        await request.formData();
+
+        return HttpResponse.json(
+          {
+            isSuccess: true,
+            code: "CHAT201-1",
+            message: "트리가 성공적으로 생성되었습니다.",
+            data: RAW_CREATED_TREE_DATA,
+          },
+          { status: 201 },
+        );
+      }),
+    );
+
+    const { wrapper } = createQueryWrapper();
+    const { result } = renderHook(() => useCreateWorkspaceFromPrompt(), {
+      wrapper,
+    });
+
+    await result.current.createWorkspaceFromPrompt(
+      "3단계로 정리해줘",
+      new File(["본문"], "보고서.txt", { type: "text/plain" }),
+    );
+
+    expect(contentType).toContain("multipart/form-data");
+    expect(push).toHaveBeenCalledWith("/workspace/31");
+  });
+
   it("실패하면 이동하지 않고 오류를 다시 던진다", async () => {
     vi.spyOn(window, "alert").mockImplementation(() => {});
     respondWithError(400, "파일 크기가 상한을 초과했습니다.");

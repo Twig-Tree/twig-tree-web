@@ -2,7 +2,8 @@ import { X } from "lucide-react";
 import {
   ACCEPTED_FILE_EXTENSIONS,
   formatFileSize,
-  MAX_ATTACHMENT_SIZE_BYTES,
+  MAX_DOCUMENT_ATTACHMENT_SIZE_BYTES,
+  MAX_PLAIN_TEXT_ATTACHMENT_SIZE_BYTES,
 } from "@/src/entities/attachment";
 import { IconButton } from "@/src/shared/ui/icon-button";
 import type { RejectedFile } from "../model/types";
@@ -57,8 +58,14 @@ export function RejectedFilesNotice({
             <p className="font-medium">
               용량이 너무 큽니다: {namesBySize.join(", ")}
             </p>
+            {/*
+            상한이 포맷마다 달라 둘을 함께 알린다. 거부된 파일 옆에 그 파일의 상한만
+            보여주면, 다른 형식으로 바꾸면 되는 경우를 사용자가 알 수 없다.
+            */}
             <p className="mt-0.5 text-amber-700">
-              최대 {formatFileSize(MAX_ATTACHMENT_SIZE_BYTES)}까지 첨부할 수
+              텍스트 파일(txt, md)은{" "}
+              {formatFileSize(MAX_PLAIN_TEXT_ATTACHMENT_SIZE_BYTES)}, 나머지는{" "}
+              {formatFileSize(MAX_DOCUMENT_ATTACHMENT_SIZE_BYTES)}까지 첨부할 수
               있습니다.
             </p>
           </div>

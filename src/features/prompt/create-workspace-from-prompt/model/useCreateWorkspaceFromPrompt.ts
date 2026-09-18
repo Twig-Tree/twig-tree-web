@@ -42,8 +42,9 @@ const getCreateTreeErrorMessage = (error: unknown): string => {
 이동까지 이 hook이 맡는다. 목적지가 화면 사정이 아니라 방금 만든 워크스페이스로 정해져 있어,
 이 유스케이스를 쓰는 화면이 늘어도 갈 곳은 같다. 위치를 화면이 정하는 useCreateWorkspace와 다른 점이다.
 
-지시문을 문자열로 받고 PromptDraft를 받지 않는다. 입력 초안의 모양은 compose-prompt가 소유하므로
-그 타입을 가져오면 같은 계층의 다른 슬라이스에 기대게 된다.
+지시문과 파일을 따로 받고 PromptDraft를 받지 않는다. 입력 초안의 모양은 compose-prompt가 소유하므로
+그 타입을 가져오면 같은 계층의 다른 슬라이스에 기대게 되고, 첨부를 배열로 관리한다는 입력 UI의 사정까지 알아야 한다.
+여기서 필요한 것은 요청에 실을 값뿐이다.
 */
 export function useCreateWorkspaceFromPrompt() {
   const router = useRouter();
@@ -57,13 +58,13 @@ export function useCreateWorkspaceFromPrompt() {
   const isSubmittingRef = useRef(false);
 
   const createWorkspaceFromPrompt = useCallback(
-    async (message: string): Promise<void> => {
+    async (message: string, file?: File): Promise<void> => {
       if (isSubmittingRef.current) return;
 
       isSubmittingRef.current = true;
 
       try {
-        const { workspaceId } = await mutateAsync({ message });
+        const { workspaceId } = await mutateAsync({ message, file });
 
         router.push(routes.workspace(workspaceId));
       } catch (error) {

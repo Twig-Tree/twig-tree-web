@@ -39,12 +39,15 @@ export default function DashboardPage() {
         {isCreatingWorkspaceFromPrompt ? <TreeCreatingNotice /> : null}
 
         {/*
-        첨부는 아직 보내지 않는다. AttachmentItem이 원본 File을 갖게 되면 지시문과 함께 넘긴다.
+        첨부는 하나까지만 받으므로 첫 항목의 원본 파일을 넘긴다. 목록으로 관리하는 것은 입력 UI의 사정이고,
+        요청에 실리는 것은 파일 하나다.
         */}
         <PromptComposer
           placeholder="Research on renewable energy"
           isSubmitting={isCreatingWorkspaceFromPrompt}
-          onSubmit={(draft) => createWorkspaceFromPrompt(draft.text)}
+          onSubmit={(draft) =>
+            createWorkspaceFromPrompt(draft.text, draft.attachments[0]?.file)
+          }
         />
 
         <p className="text-center text-xs text-slate-400">

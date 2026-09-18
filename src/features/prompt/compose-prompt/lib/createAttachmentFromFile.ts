@@ -8,9 +8,12 @@ import type { AttachmentItem } from "@/src/entities/attachment";
 
 id는 목록에서 항목을 구분하기 위한 클라이언트 전용 값이다.
 서버에 업로드하는 흐름이 생기면 응답으로 받은 파일 ID를 별도 필드로 갖게 된다.
+
+원본 File을 함께 싣는다. 나머지 필드는 화면 표시용으로 뽑아낸 값이고, 요청에 실어 보낼 것은 원본이다.
 */
 export const createAttachmentFromFile = (file: File): AttachmentItem => ({
   id: `attachment_${crypto.randomUUID()}`,
+  file,
   mimeType: file.type,
   name: file.name,
   sizeInBytes: file.size,
