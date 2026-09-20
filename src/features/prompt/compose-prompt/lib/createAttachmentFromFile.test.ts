@@ -14,6 +14,15 @@ describe("createAttachmentFromFile", () => {
     expect(attachment.mimeType).toBe("application/x-hwp");
   });
 
+  /*
+  서버로 보낼 것은 원본 파일이다. 나머지 필드는 화면 표시용으로 뽑아낸 값이라 요청에 쓸 수 없다.
+  */
+  it("원본 File을 그대로 싣는다", () => {
+    const file = new File([], "보고서.hwp");
+
+    expect(createAttachmentFromFile(file).file).toBe(file);
+  });
+
   it("브라우저가 판별하지 못한 mimeType은 빈 문자열로 유지한다", () => {
     const attachment = createAttachmentFromFile(new File([], "설계.hwpx"));
 

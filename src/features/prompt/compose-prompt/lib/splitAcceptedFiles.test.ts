@@ -1,5 +1,8 @@
 import { describe, it, expect } from "vitest";
-import { MAX_ATTACHMENT_SIZE_BYTES } from "@/src/entities/attachment";
+import {
+  MAX_DOCUMENT_ATTACHMENT_SIZE_BYTES,
+  MAX_PLAIN_TEXT_ATTACHMENT_SIZE_BYTES,
+} from "@/src/entities/attachment";
 import { createFile, createFileOfSize } from "@/src/tests/helpers/createFile";
 import { splitAcceptedFiles } from "./splitAcceptedFiles";
 
@@ -43,7 +46,7 @@ describe("splitAcceptedFiles", () => {
 
   it("상한과 같은 크기까지는 통과시킨다", () => {
     const { acceptedFiles, rejectedFiles } = splitAcceptedFiles([
-      createFileOfSize("just_fit.pdf", MAX_ATTACHMENT_SIZE_BYTES),
+      createFileOfSize("just_fit.pdf", MAX_DOCUMENT_ATTACHMENT_SIZE_BYTES),
     ]);
 
     expect(acceptedFiles).toHaveLength(1);
@@ -52,7 +55,7 @@ describe("splitAcceptedFiles", () => {
 
   it("상한을 넘는 파일을 크기 사유로 거부한다", () => {
     const { acceptedFiles, rejectedFiles } = splitAcceptedFiles([
-      createFileOfSize("too_big.pdf", MAX_ATTACHMENT_SIZE_BYTES + 1),
+      createFileOfSize("too_big.pdf", MAX_DOCUMENT_ATTACHMENT_SIZE_BYTES + 1),
     ]);
 
     expect(acceptedFiles).toEqual([]);
@@ -60,11 +63,39 @@ describe("splitAcceptedFiles", () => {
   });
 
   /*
+  백엔드가 평문에만 낮은 상한을 쓴다. 파일 크기가 곧 본문 길이라 같은 분량이어도 훨씬 작기 때문이다.
+  */
+  it("평문 파일은 1MB 상한으로 판정한다", () => {
+    const justFit = splitAcceptedFiles([
+      createFileOfSize("메모.txt", MAX_PLAIN_TEXT_ATTACHMENT_SIZE_BYTES),
+    ]);
+
+    expect(justFit.acceptedFiles).toHaveLength(1);
+
+    const tooBig = splitAcceptedFiles([
+      createFileOfSize("메모.md", MAX_PLAIN_TEXT_ATTACHMENT_SIZE_BYTES + 1),
+    ]);
+
+    expect(tooBig.rejectedFiles).toEqual([{ name: "메모.md", reason: "size" }]);
+  });
+
+  /*
+  같은 크기라도 확장자에 따라 판정이 갈린다. 상한이 하나였다면 둘 다 통과했을 크기다.
+  */
+  it("평문 상한을 넘는 크기도 문서 포맷이면 통과한다", () => {
+    const { acceptedFiles } = splitAcceptedFiles([
+      createFileOfSize("보고서.pdf", MAX_PLAIN_TEXT_ATTACHMENT_SIZE_BYTES + 1),
+    ]);
+
+    expect(acceptedFiles).toHaveLength(1);
+  });
+
+  /*
   크기를 줄여도 첨부할 수 없는 파일이므로 확장자를 먼저 알린다.
   */
   it("확장자와 크기가 모두 어긋나면 확장자 사유로 거부한다", () => {
     const { rejectedFiles } = splitAcceptedFiles([
-      createFileOfSize("huge.png", MAX_ATTACHMENT_SIZE_BYTES + 1),
+      createFileOfSize("huge.png", MAX_DOCUMENT_ATTACHMENT_SIZE_BYTES + 1),
     ]);
 
     expect(rejectedFiles).toEqual([{ name: "huge.png", reason: "extension" }]);
@@ -73,7 +104,7 @@ describe("splitAcceptedFiles", () => {
   it("사유가 다른 파일을 한 목록에 순서대로 담는다", () => {
     const { acceptedFiles, rejectedFiles } = splitAcceptedFiles([
       createFile("shot.png"),
-      createFileOfSize("too_big.pdf", MAX_ATTACHMENT_SIZE_BYTES + 1),
+      createFileOfSize("too_big.pdf", MAX_DOCUMENT_ATTACHMENT_SIZE_BYTES + 1),
       createFile("보고서.hwp"),
     ]);
 

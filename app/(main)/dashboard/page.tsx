@@ -2,8 +2,13 @@
 
 import type { WorkspaceItem } from "@/src/entities/workspace";
 import { PromptComposer } from "@/src/features/prompt/compose-prompt";
+import { useCreateWorkspaceFromPrompt } from "@/src/features/prompt/create-workspace-from-prompt";
 import { routes } from "@/src/shared/config/routes";
-import { DashboardHero, RecentWorkspaceSection } from "@/src/widgets/dashboard";
+import {
+  DashboardHero,
+  RecentWorkspaceSection,
+  TreeCreatingNotice,
+} from "@/src/widgets/dashboard";
 
 /*
 최근 워크스페이스 조회 API를 연동하기 전까지 사용하는 임시 목록.
@@ -16,6 +21,9 @@ const recentWorkspaces: WorkspaceItem[] = [
 ];
 
 export default function DashboardPage() {
+  const { createWorkspaceFromPrompt, isCreatingWorkspaceFromPrompt } =
+    useCreateWorkspaceFromPrompt();
+
   return (
     <div className="mx-auto flex h-full max-w-3xl flex-col gap-12 overflow-y-auto px-8 py-12">
       <div className="flex flex-1 flex-col justify-center gap-12">
@@ -27,19 +35,22 @@ export default function DashboardPage() {
         />
       </div>
 
-      <div>
+      <div className="flex flex-col gap-3">
+        {isCreatingWorkspaceFromPrompt ? <TreeCreatingNotice /> : null}
+
+        {/*
+        첨부는 하나까지만 받으므로 첫 항목의 원본 파일을 넘긴다. 목록으로 관리하는 것은 입력 UI의 사정이고,
+        요청에 실리는 것은 파일 하나다.
+        */}
         <PromptComposer
           placeholder="Research on renewable energy"
-          onSubmit={() => {
-            /*
-            워크스페이스 생성 API 연동 전까지 전송이 눌린 사실만 알린다.
-            연동 시 create-workspace-from-prompt feature의 handler로 교체한다.
-            */
-            alert("API 연동 예정입니다.");
-          }}
+          isSubmitting={isCreatingWorkspaceFromPrompt}
+          onSubmit={(draft) =>
+            createWorkspaceFromPrompt(draft.text, draft.attachments[0]?.file)
+          }
         />
 
-        <p className="mt-3 text-center text-xs text-slate-400">
+        <p className="text-center text-xs text-slate-400">
           The Architect may produce inaccurate information about people, places,
           or facts.
         </p>

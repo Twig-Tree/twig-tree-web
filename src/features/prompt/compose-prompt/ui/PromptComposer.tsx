@@ -1,6 +1,7 @@
 "use client";
 
 import { AttachmentChip } from "@/src/entities/attachment";
+import { MAX_PROMPT_MESSAGE_LENGTH } from "@/src/entities/tree";
 import { ChatInput } from "@/src/shared/ui/chat-input";
 import type { PromptDraft } from "../model/types";
 import { useComposePrompt } from "../model/useComposePrompt";
@@ -9,7 +10,7 @@ import { RejectedFilesNotice } from "./RejectedFilesNotice";
 
 interface PromptComposerProps {
   isSubmitting?: boolean; // 상위 요청이 진행 중인 동안 전송을 잠근다
-  onSubmit: (draft: PromptDraft) => void; // 작성이 끝난 입력을 상위로 전달한다
+  onSubmit: (draft: PromptDraft) => Promise<void>; // 작성이 끝난 입력을 상위로 전달한다. resolve하면 입력이 비워지고, reject하면 남는다
   placeholder?: string; // 화면마다 다른 안내 문구
 }
 
@@ -28,9 +29,11 @@ export function PromptComposer({
 }: PromptComposerProps) {
   const {
     addFiles,
+    attachDisabledReason,
     attachments,
     dismissRejection,
     isAttachDisabled,
+    isMessageTooLong,
     isSubmitDisabled,
     rejectedFiles,
     removeAttachment,
@@ -45,9 +48,17 @@ export function PromptComposer({
         <ul className="flex flex-wrap gap-2">
           {attachments.map((attachment) => (
             <li key={attachment.id}>
+              {/*
+              생성 중에는 onRemove를 넘기지 않는다. AttachmentChip이 제거 버튼을 숨기고
+              읽기 전용으로 표시하므로, 이미 나간 요청의 첨부를 목록에서만 지우는 일이 없다.
+              */}
               <AttachmentChip
                 attachment={attachment}
-                onRemove={() => removeAttachment(attachment.id)}
+                onRemove={
+                  isSubmitting
+                    ? undefined
+                    : () => removeAttachment(attachment.id)
+                }
               />
             </li>
           ))}
@@ -59,13 +70,32 @@ export function PromptComposer({
       <ChatInput
         value={text}
         onChange={setText}
-        onSubmit={submitPrompt}
+        onSubmit={() => void submitPrompt()}
         placeholder={placeholder}
+        isReadOnly={isSubmitting}
         isSubmitDisabled={isSubmitDisabled}
         actions={
-          <AttachFileButton onSelect={addFiles} isDisabled={isAttachDisabled} />
+          <AttachFileButton
+            onSelect={addFiles}
+            isDisabled={isAttachDisabled}
+            disabledReason={attachDisabledReason ?? undefined}
+          />
         }
       />
+
+      {/*
+      길이를 넘긴 동안에만 알린다. 상한에 가까워질 때부터 글자 수를 세어 보여주면
+      평소 입력에 계속 따라붙는데, 500자는 평범한 지시문이 닿지 않는 길이다.
+
+      입력창 아래에 둔다. 상한을 넘겼다는 것은 입력이 길다는 뜻이고, 그때 textarea는
+      최대 높이까지 자라 있다. 위에 두면 안내가 화면 밖으로 밀려 잠긴 전송 버튼만 남는다.
+      */}
+      {isMessageTooLong ? (
+        <p role="alert" className="px-1 text-xs text-amber-700">
+          지시문은 최대 {MAX_PROMPT_MESSAGE_LENGTH}자까지 보낼 수 있습니다. 현재{" "}
+          {text.trim().length}자입니다.
+        </p>
+      ) : null}
     </div>
   );
 }

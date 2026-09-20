@@ -12,3 +12,15 @@ export interface TreeNode {
   orderIndex: number;
   memo: string | null; // 백엔드는 빈 문자열을 주고받지 않으므로 메모 없음은 null로만 표현한다.
 }
+
+/**
+ * 프롬프트 한 번으로 만들어진 트리.
+ *
+ * 서버가 워크스페이스·트리·노드를 한 트랜잭션에 만들고 셋을 함께 확정하므로, 생성 결과도 셋을 함께 담는다.
+ * 화면은 workspaceId로 이동하고 nodes를 트리 캐시에 그대로 넣는다.
+ */
+export interface CreatedTree {
+  workspaceId: string;
+  treeId: string;
+  nodes: TreeNode[];
+}

@@ -1,7 +1,8 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, it, expect, vi } from "vitest";
-import { MAX_ATTACHMENT_SIZE_BYTES } from "@/src/entities/attachment";
+import { MAX_DOCUMENT_ATTACHMENT_SIZE_BYTES } from "@/src/entities/attachment";
+import { MAX_PROMPT_MESSAGE_LENGTH } from "@/src/entities/tree";
 import { createFile, createFileOfSize } from "@/src/tests/helpers/createFile";
 import { PromptComposer } from "./PromptComposer";
 
@@ -113,13 +114,15 @@ describe("PromptComposer", () => {
 
     await user.upload(
       fileInput,
-      createFileOfSize("too_big.pdf", MAX_ATTACHMENT_SIZE_BYTES + 1),
+      createFileOfSize("too_big.pdf", MAX_DOCUMENT_ATTACHMENT_SIZE_BYTES + 1),
     );
 
     const notice = screen.getByRole("alert");
 
     expect(notice).toHaveTextContent("용량이 너무 큽니다: too_big.pdf");
-    expect(notice).toHaveTextContent("최대 10 MB까지 첨부할 수 있습니다.");
+    expect(notice).toHaveTextContent(
+      "텍스트 파일(txt, md)은 1 MB, 나머지는 10 MB까지 첨부할 수 있습니다.",
+    );
   });
 
   it("안내 닫기 버튼을 누르면 안내가 사라진다", async () => {
@@ -156,11 +159,64 @@ describe("PromptComposer", () => {
     });
   });
 
+  /*
+  입력한 뒤에 잠기는 순서라 isSubmitting을 나중에 올린다. 처음부터 true로 두면 지시문을
+  입력할 수 없어(readOnly) "입력이 있어도"를 확인하지 못한다.
+  */
   it("isSubmitting이 true면 입력이 있어도 전송이 잠긴다", async () => {
-    const { user } = renderPromptComposer({ isSubmitting: true });
+    const { onSubmit, rerender, user } = renderPromptComposer();
 
     await user.type(screen.getByRole("textbox"), "연구 요약");
 
+    rerender(<PromptComposer isSubmitting onSubmit={onSubmit} />);
+
+    expect(screen.getByRole("textbox")).toHaveValue("연구 요약");
     expect(getSubmitButton()).toBeDisabled();
+  });
+
+  /*
+  생성 중에 지시문이나 첨부를 바꿀 수 있으면, 그 변경은 이미 나간 요청에 실리지 않는데도
+  성공해서 입력을 비울 때 함께 사라진다. 보낸 내용은 그대로 읽을 수 있어야 하므로 감추지 않고 잠근다.
+  */
+  it("생성 중에는 지시문과 첨부를 바꿀 수 없다", async () => {
+    const { fileInput, onSubmit, rerender, user } = renderPromptComposer();
+
+    await user.upload(fileInput, createFile("보고서.hwp"));
+    await user.type(screen.getByRole("textbox"), "연구 요약");
+
+    rerender(<PromptComposer isSubmitting onSubmit={onSubmit} />);
+
+    expect(screen.getByRole("textbox")).toHaveAttribute("readonly");
+    expect(getAttachButton()).toHaveAccessibleDescription(
+      "트리를 만드는 동안에는 첨부를 바꿀 수 없습니다.",
+    );
+    expect(
+      screen.queryByRole("button", { name: "보고서.hwp 첨부 제거" }),
+    ).not.toBeInTheDocument();
+  });
+
+  /*
+  타자로 500자를 넘기면 테스트가 느려지므로 값을 한 번에 붙여 넣는다.
+  */
+  it("지시문이 상한을 넘으면 안내가 나오고 전송이 잠긴다", async () => {
+    const { user } = renderPromptComposer();
+    const textbox = screen.getByRole("textbox");
+
+    await user.click(textbox);
+    await user.paste("가".repeat(MAX_PROMPT_MESSAGE_LENGTH + 1));
+
+    expect(screen.getByText(/지시문은 최대/)).toBeInTheDocument();
+    expect(getSubmitButton()).toBeDisabled();
+  });
+
+  it("상한 이내면 안내가 나오지 않는다", async () => {
+    const { user } = renderPromptComposer();
+    const textbox = screen.getByRole("textbox");
+
+    await user.click(textbox);
+    await user.paste("가".repeat(MAX_PROMPT_MESSAGE_LENGTH));
+
+    expect(screen.queryByText(/지시문은 최대/)).not.toBeInTheDocument();
+    expect(getSubmitButton()).toBeEnabled();
   });
 });

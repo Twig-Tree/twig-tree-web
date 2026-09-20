@@ -8,6 +8,7 @@ const MAX_HEIGHT_IN_PX = 200; // textarea가 자동으로 늘어날 수 있는 �
 
 export interface ChatInputProps {
   actions?: ReactNode; // 입력창 하단 왼쪽에 배치할 보조 버튼 영역
+  isReadOnly?: boolean; // 입력값을 그대로 보여 주면서 편집만 막을지 여부
   isSubmitDisabled?: boolean; // 전송 버튼을 잠글지 여부
   onChange: (value: string) => void;
   onSubmit: () => void; // 전송 버튼 클릭 또는 Enter 입력 시 실행한다
@@ -27,6 +28,7 @@ export interface ChatInputProps {
 */
 export function ChatInput({
   actions,
+  isReadOnly = false,
   isSubmitDisabled = false,
   onChange,
   onSubmit,
@@ -75,6 +77,11 @@ export function ChatInput({
         placeholder={placeholder}
         onChange={(event) => onChange(event.target.value)}
         onKeyDown={handleKeyDown}
+        /*
+        disabled 대신 readOnly로 잠근다. disabled textarea는 포커스를 받지 못해 보낸 내용을
+        키보드와 스크린 리더로 훑을 수 없는데, 기다리는 동안 무엇을 보냈는지는 계속 읽을 수 있어야 한다.
+        */
+        readOnly={isReadOnly}
         className="w-full resize-none bg-transparent px-2 py-1 text-sm text-slate-700 outline-none placeholder:text-slate-400"
       />
 
