@@ -2,14 +2,12 @@
 
 import { Paperclip } from "lucide-react";
 import { useRef } from "react";
-import {
-  FILE_INPUT_ACCEPT,
-  MAX_ATTACHMENT_COUNT,
-} from "@/src/entities/attachment";
+import { FILE_INPUT_ACCEPT } from "@/src/entities/attachment";
 import { IconButton } from "@/src/shared/ui/icon-button";
 
 interface AttachFileButtonProps {
-  isDisabled?: boolean; // 첨부 개수 제한에 도달했을 때 버튼을 잠근다
+  disabledReason?: string; // 잠겼을 때 알릴 이유. 조건을 아는 상위가 정한다
+  isDisabled?: boolean; // 첨부를 더 받을 수 없을 때 버튼을 잠근다
   onSelect: (files: File[]) => void; // 선택한 파일을 상위로 전달한다
 }
 
@@ -27,6 +25,7 @@ accept는 파일 선택 창의 편의를 위한 필터일 뿐이므로, 허용 �
 onClick에서 직접 막고, 잠긴 모습도 IconButton의 aria-disabled 변형이 담당한다.
 */
 export function AttachFileButton({
+  disabledReason,
   isDisabled = false,
   onSelect,
 }: AttachFileButtonProps) {
@@ -42,12 +41,11 @@ export function AttachFileButton({
         잠긴 이유를 알린다. aria-label이 이름을 이미 갖고 있어 title은 설명이 되고,
         마우스에는 호버 툴팁으로, 스크린 리더에는 이름 뒤의 설명으로 전달된다.
         열려 있을 때는 설명할 이유가 없어 붙이지 않는다.
+
+        문구는 상위에서 받는다. 개수 제한과 생성 중은 잠그는 이유가 다른데,
+        버튼은 자기가 왜 잠겼는지 모른다.
         */
-        title={
-          isDisabled
-            ? `첨부는 ${MAX_ATTACHMENT_COUNT}개까지 가능합니다.`
-            : undefined
-        }
+        title={isDisabled ? disabledReason : undefined}
         onClick={() => {
           if (isDisabled) return;
 

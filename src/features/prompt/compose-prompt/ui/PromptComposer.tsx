@@ -29,6 +29,7 @@ export function PromptComposer({
 }: PromptComposerProps) {
   const {
     addFiles,
+    attachDisabledReason,
     attachments,
     dismissRejection,
     isAttachDisabled,
@@ -47,9 +48,17 @@ export function PromptComposer({
         <ul className="flex flex-wrap gap-2">
           {attachments.map((attachment) => (
             <li key={attachment.id}>
+              {/*
+              생성 중에는 onRemove를 넘기지 않는다. AttachmentChip이 제거 버튼을 숨기고
+              읽기 전용으로 표시하므로, 이미 나간 요청의 첨부를 목록에서만 지우는 일이 없다.
+              */}
               <AttachmentChip
                 attachment={attachment}
-                onRemove={() => removeAttachment(attachment.id)}
+                onRemove={
+                  isSubmitting
+                    ? undefined
+                    : () => removeAttachment(attachment.id)
+                }
               />
             </li>
           ))}
@@ -63,9 +72,14 @@ export function PromptComposer({
         onChange={setText}
         onSubmit={() => void submitPrompt()}
         placeholder={placeholder}
+        isReadOnly={isSubmitting}
         isSubmitDisabled={isSubmitDisabled}
         actions={
-          <AttachFileButton onSelect={addFiles} isDisabled={isAttachDisabled} />
+          <AttachFileButton
+            onSelect={addFiles}
+            isDisabled={isAttachDisabled}
+            disabledReason={attachDisabledReason ?? undefined}
+          />
         }
       />
 

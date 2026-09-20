@@ -46,31 +46,51 @@ export function useComposePrompt({
     (text.trim().length === 0 && attachments.length === 0) ||
     isMessageTooLong;
 
-  const isAttachDisabled = attachments.length >= MAX_ATTACHMENT_COUNT;
+  /*
+  생성 중에는 첨부를 잠근다. 응답을 1분 가까이 기다리는 동안 첨부를 바꿀 수 있으면, 그 파일은
+  이미 나간 요청에 실리지 않는데도 성공해서 입력을 비울 때 함께 지워진다.
+
+  잠긴 이유까지 여기서 만든다. 개수 제한과 생성 중은 이유가 다른데 첨부 버튼은 조건을 모른다.
+  */
+  const attachDisabledReason = isSubmitting
+    ? "트리를 만드는 동안에는 첨부를 바꿀 수 없습니다."
+    : attachments.length >= MAX_ATTACHMENT_COUNT
+      ? `첨부는 ${MAX_ATTACHMENT_COUNT}개까지 가능합니다.`
+      : null;
+
+  const isAttachDisabled = attachDisabledReason !== null;
 
   /*
   파일을 새로 선택할 때마다 이전 안내를 지운다. 방금 선택한 파일에 대한 안내만 남기기 위해서다.
+
+  생성 중에는 받지 않는다. 화면에서는 첨부 버튼이 잠겨 여기까지 오지 않지만, 드래그 앤 드롭처럼
+  다른 경로가 생겨도 요청에 실리지 않을 파일이 목록에 들어오지 않게 한다.
   */
-  const addFiles = useCallback((files: File[]) => {
-    const { acceptedFiles, rejectedFiles: rejected } =
-      splitAcceptedFiles(files);
+  const addFiles = useCallback(
+    (files: File[]) => {
+      if (isSubmitting) return;
 
-    setRejectedFiles(rejected);
+      const { acceptedFiles, rejectedFiles: rejected } =
+        splitAcceptedFiles(files);
 
-    if (acceptedFiles.length === 0) return;
+      setRejectedFiles(rejected);
 
-    /*
-    요청 하나에 파일 하나만 보낼 수 있으므로 개수를 넘기지 않도록 자른다.
-    첨부가 이미 있으면 첨부 버튼이 잠기기 때문에 화면에서는 여기까지 오지 않지만,
-    드래그 앤 드롭처럼 다른 경로가 생겨도 개수 제약이 깨지지 않도록 남겨 둔다.
-    */
-    setAttachments((current) =>
-      [...current, ...acceptedFiles.map(createAttachmentFromFile)].slice(
-        0,
-        MAX_ATTACHMENT_COUNT,
-      ),
-    );
-  }, []);
+      if (acceptedFiles.length === 0) return;
+
+      /*
+      요청 하나에 파일 하나만 보낼 수 있으므로 개수를 넘기지 않도록 자른다.
+      첨부가 이미 있으면 첨부 버튼이 잠기기 때문에 화면에서는 여기까지 오지 않지만,
+      드래그 앤 드롭처럼 다른 경로가 생겨도 개수 제약이 깨지지 않도록 남겨 둔다.
+      */
+      setAttachments((current) =>
+        [...current, ...acceptedFiles.map(createAttachmentFromFile)].slice(
+          0,
+          MAX_ATTACHMENT_COUNT,
+        ),
+      );
+    },
+    [isSubmitting],
+  );
 
   const removeAttachment = useCallback((attachmentId: string) => {
     setAttachments((current) =>
@@ -101,6 +121,7 @@ export function useComposePrompt({
 
   return {
     addFiles,
+    attachDisabledReason,
     attachments,
     dismissRejection,
     isAttachDisabled,

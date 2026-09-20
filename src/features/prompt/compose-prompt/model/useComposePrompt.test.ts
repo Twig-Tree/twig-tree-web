@@ -36,6 +36,23 @@ describe("useComposePrompt", () => {
     expect(result.current.attachments[0].name).toBe("보고서.hwp");
   });
 
+  /*
+  응답을 1분 가까이 기다리는 동안 첨부를 더할 수 있으면, 그 파일은 이미 나간 요청에 실리지
+  않는데도 성공해서 입력을 비울 때 함께 지워진다.
+  */
+  it("생성 중에는 첨부를 잠그고 파일도 받지 않는다", () => {
+    const { result } = renderComposePrompt(true);
+
+    expect(result.current.isAttachDisabled).toBe(true);
+    expect(result.current.attachDisabledReason).toBe(
+      "트리를 만드는 동안에는 첨부를 바꿀 수 없습니다.",
+    );
+
+    act(() => result.current.addFiles([createFile("보고서.hwp")]));
+
+    expect(result.current.attachments).toHaveLength(0);
+  });
+
   it("첨부가 하나면 isAttachDisabled가 true다", () => {
     const { result } = renderComposePrompt();
 
