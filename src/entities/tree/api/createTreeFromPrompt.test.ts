@@ -27,14 +27,16 @@ const captureRequest = () => {
       captured.searchParams = new URL(request.url).searchParams;
 
       if (captured.contentType?.includes("multipart/form-data")) {
-        const file = (await request.formData()).get("file");
-
         /*
+        본문을 문자열로 읽어 조각 이름만 확인한다. request.formData()를 쓰면 Node 24에서 예외가 난다.
+        jsdom 환경에서 File과 FormData는 jsdom 것이고 Request는 Node 것이라, 본문을 되읽을 때
+        undici의 multipart 파서가 자기 File이 아닌 값을 만나 단언에서 멈춘다.
+
         파일 이름은 검사하지 않는다. jsdom에서는 FormData가 Request를 통과하는 순간 조각의 filename이
         "blob"으로 바뀐다. jsdom의 File을 undici가 일반 Blob으로 취급하기 때문이고, 브라우저에서는 유지된다.
         요청 코드가 file.name을 명시해 두었으므로 실제 이름이 실리는지는 브라우저에서 확인한다.
         */
-        captured.hasFile = file !== null;
+        captured.hasFile = (await request.text()).includes('name="file"');
       } else {
         captured.jsonBody = await request.json();
       }

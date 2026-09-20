@@ -51,7 +51,12 @@ describe("useCreateWorkspaceFromPrompt", () => {
     server.use(
       http.post("*/api/tree-request", async ({ request }) => {
         contentType = request.headers.get("content-type");
-        await request.formData();
+
+        /*
+        본문을 문자열로 읽는다. request.formData()는 Node 24의 undici multipart 파서가
+        jsdom의 File을 받아들이지 못해 예외가 난다.
+        */
+        await request.text();
 
         return HttpResponse.json(
           {
