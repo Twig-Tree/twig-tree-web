@@ -12,7 +12,7 @@ import type { PromptDraft, RejectedFile } from "./types";
 
 interface UseComposePromptParams {
   isSubmitting: boolean; // 상위 요청이 진행 중인 동안 전송을 잠근다
-  onSubmit: (draft: PromptDraft) => void | Promise<void>; // 작성이 끝난 입력을 상위로 전달한다. Promise를 돌려주면 성공한 경우에만 입력을 비운다
+  onSubmit: (draft: PromptDraft) => Promise<void>; // 작성이 끝난 입력을 상위로 전달한다. resolve하면 입력을 비우고, reject하면 남긴다
 }
 
 /*
@@ -83,7 +83,6 @@ export function useComposePrompt({
   /*
   입력을 상위로 넘기고, 처리가 끝난 뒤에 작성 상태를 비운다.
   실패했을 때 비우면 1분 가까이 기다린 사용자가 지시문과 첨부를 처음부터 다시 만들어야 한다.
-  상위가 Promise를 돌려주지 않으면 await가 그대로 통과하므로 넘긴 직후 비워진다.
   */
   const submitPrompt = useCallback(async () => {
     if (isSubmitDisabled) return;

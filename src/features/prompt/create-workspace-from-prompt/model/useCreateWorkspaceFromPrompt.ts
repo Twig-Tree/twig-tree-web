@@ -59,7 +59,14 @@ export function useCreateWorkspaceFromPrompt() {
 
   const createWorkspaceFromPrompt = useCallback(
     async (message: string, file?: File): Promise<void> => {
-      if (isSubmittingRef.current) return;
+      /*
+      진행 중인 요청이 있으면 두 번째 호출은 보내지 않고 reject한다. resolve하면 호출부가
+      성공으로 보고 입력을 비우는데, 첫 요청의 결과를 아직 모르는 시점이라 그 요청이 실패하면
+      되돌릴 입력이 남지 않는다. 사용자가 할 일은 없으므로 안내는 하지 않는다.
+      */
+      if (isSubmittingRef.current) {
+        throw new Error("Tree creation from prompt is already in progress.");
+      }
 
       isSubmittingRef.current = true;
 

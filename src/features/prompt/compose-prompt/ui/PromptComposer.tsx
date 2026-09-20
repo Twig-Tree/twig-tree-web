@@ -10,7 +10,7 @@ import { RejectedFilesNotice } from "./RejectedFilesNotice";
 
 interface PromptComposerProps {
   isSubmitting?: boolean; // 상위 요청이 진행 중인 동안 전송을 잠근다
-  onSubmit: (draft: PromptDraft) => void | Promise<void>; // 작성이 끝난 입력을 상위로 전달한다. Promise를 돌려주면 성공한 경우에만 입력이 비워진다
+  onSubmit: (draft: PromptDraft) => Promise<void>; // 작성이 끝난 입력을 상위로 전달한다. resolve하면 입력이 비워지고, reject하면 남는다
   placeholder?: string; // 화면마다 다른 안내 문구
 }
 

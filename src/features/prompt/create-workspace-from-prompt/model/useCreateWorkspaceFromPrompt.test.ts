@@ -143,18 +143,23 @@ describe("useCreateWorkspaceFromPrompt", () => {
   /*
   전송 버튼이 잠기기 전에 두 번 눌린 경우다. 이 요청은 중복돼도 서버가 거절하지 않고
   워크스페이스를 하나 더 만들므로, 렌더를 기다리지 않는 가드로 막아야 한다.
+
+  막은 호출은 reject해야 한다. resolve하면 호출부(useComposePrompt)가 성공으로 보고
+  첫 요청의 결과를 알기 전에 입력을 비운다.
   */
-  it("요청이 끝나기 전에 다시 부르면 두 번째는 보내지 않는다", async () => {
+  it("요청이 끝나기 전에 다시 부르면 두 번째는 보내지 않고 reject한다", async () => {
     const { wrapper } = createQueryWrapper();
     const { result } = renderHook(() => useCreateWorkspaceFromPrompt(), {
       wrapper,
     });
 
-    await Promise.all([
+    const [first, second] = await Promise.allSettled([
       result.current.createWorkspaceFromPrompt("트리 만들어줘"),
       result.current.createWorkspaceFromPrompt("또 만들어줘"),
     ]);
 
+    expect(first.status).toBe("fulfilled");
+    expect(second.status).toBe("rejected");
     expect(push).toHaveBeenCalledTimes(1);
   });
 
