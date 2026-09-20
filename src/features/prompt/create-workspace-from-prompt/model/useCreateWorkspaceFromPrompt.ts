@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useCallback, useRef } from "react";
+import { useCallback, useRef, useState } from "react";
 import { useCreateTreeFromPromptMutation } from "@/src/entities/tree";
 import { getApiErrorMessage } from "@/src/shared/api/authErrorCodes";
 import { isClientError } from "@/src/shared/api/httpErrors";
@@ -57,6 +57,13 @@ export function useCreateWorkspaceFromPrompt() {
   */
   const isSubmittingRef = useRef(false);
 
+  /*
+  mutation이 끝나도 화면은 아직 대시보드다. router.push는 내비게이션이 끝나기를 기다리지 않고
+  바로 돌아오므로 isPending만으로는 이 구간이 비어 있는 것처럼 보인다. 대상 화면이 대시보드를
+  대체할 때까지 생성 중 안내와 입력 잠금을 유지하려고 따로 둔다.
+  */
+  const [isNavigating, setIsNavigating] = useState(false);
+
   const createWorkspaceFromPrompt = useCallback(
     async (message: string, file?: File): Promise<void> => {
       /*
@@ -73,18 +80,26 @@ export function useCreateWorkspaceFromPrompt() {
       try {
         const { workspaceId } = await mutateAsync({ message, file });
 
+        /*
+        성공 경로에서는 잠금을 풀지 않는다. 여기서 풀면 대상 화면이 그려지기 전에 다시 제출할 수
+        있고, 이 요청은 중복돼도 서버가 거절하지 않고 워크스페이스를 하나 더 만든다.
+        대시보드가 화면에서 내려가면서 이 hook도 함께 사라지므로 되돌릴 일은 없다.
+        */
+        setIsNavigating(true);
+
         router.push(routes.workspace(workspaceId));
       } catch (error) {
         /*
-        실패하면 이동하지 않는다. 안내는 여기서 하고 오류는 다시 던진다.
-        호출부(useComposePrompt)가 이 함수의 reject 여부로 입력을 비울지 판단하기 때문이다.
+        실패하면 이동하지 않는다. 화면이 그대로 남으므로 여기서만 잠금을 푼다.
+        안내는 여기서 하고 오류는 다시 던진다. 호출부(useComposePrompt)가 이 함수의
+        reject 여부로 입력을 비울지 판단하기 때문이다.
         */
+        isSubmittingRef.current = false;
+
         alert(getCreateTreeErrorMessage(error));
         console.error("Failed to create workspace from prompt", error);
 
         throw error;
-      } finally {
-        isSubmittingRef.current = false;
       }
     },
     [mutateAsync, router],
@@ -92,6 +107,6 @@ export function useCreateWorkspaceFromPrompt() {
 
   return {
     createWorkspaceFromPrompt,
-    isCreatingWorkspaceFromPrompt: isPending,
+    isCreatingWorkspaceFromPrompt: isPending || isNavigating,
   };
 }

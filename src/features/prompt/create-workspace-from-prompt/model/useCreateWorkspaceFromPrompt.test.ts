@@ -163,7 +163,34 @@ describe("useCreateWorkspaceFromPrompt", () => {
     expect(push).toHaveBeenCalledTimes(1);
   });
 
-  it("요청 중에는 진행 상태를 알린다", async () => {
+  /*
+  router.push는 내비게이션이 끝나기를 기다리지 않고 바로 돌아온다. 대상 화면이 대시보드를
+  대체하기 전의 이 구간에서 잠금을 풀면 워크스페이스가 하나 더 만들어진다.
+  */
+  it("성공한 뒤에는 내비게이션 구간에서도 잠금을 풀지 않는다", async () => {
+    const { wrapper } = createQueryWrapper();
+    const { result } = renderHook(() => useCreateWorkspaceFromPrompt(), {
+      wrapper,
+    });
+
+    await result.current.createWorkspaceFromPrompt("트리 만들어줘");
+
+    await expect(
+      result.current.createWorkspaceFromPrompt("또 만들어줘"),
+    ).rejects.toThrow();
+
+    expect(push).toHaveBeenCalledTimes(1);
+
+    await waitFor(() =>
+      expect(result.current.isCreatingWorkspaceFromPrompt).toBe(true),
+    );
+  });
+
+  /*
+  성공한 뒤에는 false로 돌아오지 않는다. mutation이 끝나도 화면은 아직 대시보드이고,
+  이 상태가 생성 중 안내와 입력 잠금을 내비게이션이 끝날 때까지 붙잡아 둔다.
+  */
+  it("요청 중에는 진행 상태를 알리고 성공 뒤에도 유지한다", async () => {
     /*
     기본 핸들러는 즉시 답해서 진행 상태를 관찰할 틈이 없다. 응답을 늦춰 pending 구간을 만든다.
     */
@@ -198,8 +225,29 @@ describe("useCreateWorkspaceFromPrompt", () => {
 
     await creating;
 
-    await waitFor(() =>
-      expect(result.current.isCreatingWorkspaceFromPrompt).toBe(false),
-    );
+    expect(result.current.isCreatingWorkspaceFromPrompt).toBe(true);
+  });
+
+  /*
+  실패하면 화면이 그대로 남으므로 잠금을 풀어 다시 시도할 수 있어야 한다.
+  */
+  it("실패하면 잠금을 풀어 다시 보낼 수 있다", async () => {
+    vi.spyOn(window, "alert").mockImplementation(() => {});
+    respondWithError(500, "AI 모델 호출에 실패했습니다.");
+
+    const { wrapper } = createQueryWrapper();
+    const { result } = renderHook(() => useCreateWorkspaceFromPrompt(), {
+      wrapper,
+    });
+
+    await expect(
+      result.current.createWorkspaceFromPrompt("트리 만들어줘"),
+    ).rejects.toThrow();
+
+    server.resetHandlers();
+
+    await result.current.createWorkspaceFromPrompt("다시 만들어줘");
+
+    expect(push).toHaveBeenCalledWith("/workspace/31");
   });
 });
