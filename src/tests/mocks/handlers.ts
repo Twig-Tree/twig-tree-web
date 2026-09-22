@@ -119,6 +119,45 @@ export const handlers = [
   }),
 
   /*
+  워크스페이스 이름 수정 PATCH 요청 핸들러.
+  요청 body의 이름을 반영해 응답하므로, 이름이 실제로 실려 가는지 확인할 수 있다.
+  수정 시각은 백엔드처럼 새 값으로 바뀐다.
+  */
+  http.patch("*/api/workspaces/:workspaceId", async ({ params, request }) => {
+    const workspace = RAW_WORKSPACE_DATA.find(
+      ({ workspaceId }) => String(workspaceId) === params.workspaceId,
+    );
+
+    if (!workspace) {
+      return HttpResponse.json(
+        {
+          isSuccess: false,
+          code: "WORKSPACE404-1",
+          message: "해당 워크스페이스가 존재하지 않습니다.",
+          data: null,
+        },
+        { status: 404 },
+      );
+    }
+
+    const body = (await request.json()) as { name: string };
+
+    return HttpResponse.json(
+      {
+        isSuccess: true,
+        code: "WORKSPACE_UPDATED",
+        message: "성공적으로 워크스페이스 정보를 수정했습니다.",
+        data: {
+          ...workspace,
+          name: body.name,
+          updatedAt: "2026-09-22T00:00:00",
+        },
+      },
+      { status: 200 },
+    );
+  }),
+
+  /*
   워크스페이스 트리 생성 POST 요청 핸들러.
   백엔드처럼 워크스페이스당 트리는 하나라, 이미 트리가 있는 워크스페이스는 409로 거절한다.
   */

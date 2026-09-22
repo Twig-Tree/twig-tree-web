@@ -20,6 +20,13 @@ export interface CreateWorkspaceRequest {
 }
 
 /**
+ * 워크스페이스 이름 수정 요청 body type
+ */
+export interface UpdateWorkspaceRequest {
+  name: string;
+}
+
+/**
  * 워크스페이스 목록 조회 응답 type
  */
 export type GetWorkspaceListResponse = ApiResponse<WorkspaceDTO[]>;
@@ -33,6 +40,12 @@ export type GetWorkspaceResponse = ApiResponse<WorkspaceDTO>;
  * 워크스페이스 생성 응답 type
  */
 export type CreateWorkspaceResponse = ApiResponse<WorkspaceDTO>;
+
+/**
+ * 워크스페이스 이름 수정 응답 type
+ * 조회와 같은 DTO라 treeId까지 모두 담겨 온다.
+ */
+export type UpdateWorkspaceResponse = ApiResponse<WorkspaceDTO>;
 
 /**
  * 워크스페이스 트리 생성 응답 type
