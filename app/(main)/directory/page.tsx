@@ -61,7 +61,8 @@ export default function DirectoryRootPage() {
 
   const handleCreateWorkspace = async () => {
     try {
-      await createWorkspace();
+      const createdWorkspace = await createWorkspace();
+      startWorkspaceEditing(createdWorkspace.id);
     } catch {
       // 생성 실패 알림은 useCreateWorkspace에서 처리한다.
     }
