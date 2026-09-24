@@ -13,13 +13,15 @@ const renderGrid = (
   render(
     <DirectoryContentsGrid
       editingFolderId={null}
+      editingWorkspaceId={null}
       folderParentId={null}
       folders={[]}
       isError={false}
       isLoaded={true}
       isLoading={false}
-      onEditingStart={vi.fn()}
+      onFolderEditingStart={vi.fn()}
       onEditingEnd={vi.fn()}
+      onWorkspaceEditingStart={vi.fn()}
       workspaces={[]}
       {...overrides}
     />,
@@ -40,6 +42,26 @@ describe("DirectoryContentsGrid", () => {
     expect(screen.getByText("기획 폴더")).toBeInTheDocument();
     expect(screen.getByText("리서치")).toBeInTheDocument();
     expect(screen.queryByText(EMPTY_MESSAGE)).not.toBeInTheDocument();
+  });
+
+  /*
+  폴더 ID와 워크스페이스 ID는 둘 다 숫자 문자열이라 값이 겹칠 수 있다.
+  편집 상태를 따로 받지 않으면 같은 ID의 폴더까지 편집 카드로 바뀐다.
+  */
+  it("ID가 같은 폴더가 있어도 편집 중인 워크스페이스만 편집 카드로 그린다", () => {
+    renderGrid({
+      editingWorkspaceId: "2",
+      folders: [{ id: "2", name: "기획 폴더" }],
+      workspaces: [workspace],
+    });
+
+    expect(
+      screen.getByRole("textbox", { name: "워크스페이스 이름" }),
+    ).toHaveValue("리서치");
+    expect(
+      screen.queryByRole("textbox", { name: "폴더 이름" }),
+    ).not.toBeInTheDocument();
+    expect(screen.getByText("기획 폴더")).toBeInTheDocument();
   });
 
   it("두 목록이 모두 비면 빈 상태를 알린다", () => {

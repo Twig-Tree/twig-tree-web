@@ -5,6 +5,8 @@ import {
   CreateWorkspaceTreeResponse,
   GetWorkspaceListResponse,
   GetWorkspaceResponse,
+  UpdateWorkspaceRequest,
+  UpdateWorkspaceResponse,
 } from "@/src/entities/workspace/api/types";
 import {
   mapWorkspaceDetailDtoToDomain,
@@ -64,6 +66,24 @@ export const workspaceApi = {
       body,
     );
     return mapWorkspaceDtoToDomain(response.data.data);
+  },
+
+  /*
+  함수 이름 : updateWorkspace
+  기능 : 워크스페이스 이름을 수정한다. 응답이 조회와 같은 DTO라 treeId까지 싣는 상세 mapper를 쓴다.
+  인자 : number workspaceId -> 수정할 워크스페이스 ID
+  UpdateWorkspaceRequest body -> 바꿀 이름
+  반환값 : 수정된 워크스페이스
+  */
+  updateWorkspace: async (
+    workspaceId: number,
+    body: UpdateWorkspaceRequest,
+  ): Promise<WorkspaceDetail> => {
+    const response = await axiosInstance.patch<UpdateWorkspaceResponse>(
+      `/workspaces/${workspaceId}`,
+      body,
+    );
+    return mapWorkspaceDetailDtoToDomain(response.data.data);
   },
 
   /*
