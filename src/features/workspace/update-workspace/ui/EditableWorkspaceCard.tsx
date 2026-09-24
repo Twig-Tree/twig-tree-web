@@ -9,6 +9,7 @@ import {
   useState,
 } from "react";
 import type { WorkspaceItem } from "@/src/entities/workspace";
+import { useIsMounted } from "@/src/shared/lib/react/useIsMounted";
 import { useUpdateWorkspace } from "../model/useUpdateWorkspace";
 
 interface EditableWorkspaceCardProps {
@@ -37,6 +38,7 @@ export function EditableWorkspaceCard({
   const inputRef = useRef<HTMLInputElement>(null);
   const isCommittingRef = useRef(false);
   const isCancellingRef = useRef(false);
+  const isMounted = useIsMounted();
   const { getWorkspaceNameError, isUpdatingWorkspace, updateWorkspace } =
     useUpdateWorkspace({
       folderId,
@@ -92,6 +94,12 @@ export function EditableWorkspaceCard({
 
     isCommittingRef.current = false;
 
+    /*
+    요청을 기다리는 동안 다른 편집이 시작되면 이 카드는 사라진다. 그때 onEditingEnd를 부르면
+    사용자가 방금 연 편집이 닫히므로, 사라진 카드의 요청 결과는 화면에 반영하지 않는다.
+    */
+    if (!isMounted()) return;
+
     if (isUpdated) {
       onEditingEnd();
       return;
@@ -101,6 +109,7 @@ export function EditableWorkspaceCard({
   }, [
     focusInput,
     getWorkspaceNameError,
+    isMounted,
     name,
     onEditingEnd,
     updateWorkspace,

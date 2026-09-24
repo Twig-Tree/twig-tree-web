@@ -35,6 +35,43 @@ export const handlers = [
   }),
 
   /*
+  폴더 이름 수정 PATCH 요청 핸들러.
+  요청 body의 이름을 반영해 응답하므로, 이름이 실제로 실려 가는지 확인할 수 있다.
+  */
+  http.patch("*/api/folders/:folderId", async ({ params, request }) => {
+    const folder = RAW_FOLDER_DATA.find(
+      ({ folderId }) => String(folderId) === params.folderId,
+    );
+
+    if (!folder) {
+      return HttpResponse.json(
+        {
+          isSuccess: false,
+          code: "FOLDER404-1",
+          message: "해당 폴더가 존재하지 않습니다.",
+          data: null,
+        },
+        { status: 404 },
+      );
+    }
+
+    const body = (await request.json()) as { name: string };
+
+    return HttpResponse.json(
+      {
+        isSuccess: true,
+        code: "FOLDER_UPDATED",
+        message: "성공적으로 폴더 정보를 수정했습니다.",
+        data: {
+          ...folder,
+          name: body.name,
+        },
+      },
+      { status: 200 },
+    );
+  }),
+
+  /*
   워크스페이스 목록 조회 GET 요청 핸들러.
   folderId를 생략하면 폴더에 속하지 않은 것만, 값이 있으면 그 폴더의 것만 돌려준다.
   실제 백엔드와 같은 규칙이라 쿼리 파라미터가 빠지면 결과가 달라져 테스트가 잡아낸다.
