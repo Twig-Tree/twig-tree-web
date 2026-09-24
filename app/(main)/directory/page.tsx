@@ -12,6 +12,9 @@ import {
 
 export default function DirectoryRootPage() {
   const [editingFolderId, setEditingFolderId] = useState<string | null>(null);
+  const [editingWorkspaceId, setEditingWorkspaceId] = useState<string | null>(
+    null,
+  );
   const folderListQuery = useGetFolderListQuery(null);
   const workspaceListQuery = useGetWorkspaceListQuery(null);
   const { createFolder, isCreateFolderDisabled } = useCreateFolder({
@@ -29,10 +32,28 @@ export default function DirectoryRootPage() {
   const isListLoading =
     folderListQuery.isLoading || workspaceListQuery.isLoading;
 
+  /*
+  편집 카드는 화면에 하나만 둔다. 한쪽 편집을 시작하면 다른 쪽 편집은 끝낸다.
+  */
+  const startFolderEditing = (folderId: string) => {
+    setEditingWorkspaceId(null);
+    setEditingFolderId(folderId);
+  };
+
+  const startWorkspaceEditing = (workspaceId: string) => {
+    setEditingFolderId(null);
+    setEditingWorkspaceId(workspaceId);
+  };
+
+  const endEditing = () => {
+    setEditingFolderId(null);
+    setEditingWorkspaceId(null);
+  };
+
   const handleCreateFolder = async () => {
     try {
       const createdFolder = await createFolder();
-      setEditingFolderId(createdFolder.id);
+      startFolderEditing(createdFolder.id);
     } catch {
       // 생성 실패 알림은 useCreateFolder에서 처리한다.
     }
@@ -59,13 +80,15 @@ export default function DirectoryRootPage() {
         />
         <DirectoryContentsGrid
           editingFolderId={editingFolderId}
+          editingWorkspaceId={editingWorkspaceId}
           folderParentId={null}
           folders={folderListQuery.data ?? []}
           isError={isListError}
           isLoaded={isListLoaded}
           isLoading={isListLoading}
-          onEditingStart={setEditingFolderId}
-          onEditingEnd={() => setEditingFolderId(null)}
+          onFolderEditingStart={startFolderEditing}
+          onEditingEnd={endEditing}
+          onWorkspaceEditingStart={startWorkspaceEditing}
           workspaces={workspaceListQuery.data ?? []}
         />
       </div>

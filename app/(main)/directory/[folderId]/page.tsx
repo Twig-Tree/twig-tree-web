@@ -39,6 +39,9 @@ interface DirectoryPageContentProps {
 // key로 재마운트할 수 있도록 별도 컴포넌트에서 관리한다.
 function DirectoryPageContent({ folderParentId }: DirectoryPageContentProps) {
   const [editingFolderId, setEditingFolderId] = useState<string | null>(null);
+  const [editingWorkspaceId, setEditingWorkspaceId] = useState<string | null>(
+    null,
+  );
   const folderPathQuery = useGetFolderPathQuery(folderParentId);
   const folderListQuery = useGetFolderListQuery(folderParentId);
   const workspaceListQuery = useGetWorkspaceListQuery(folderParentId);
@@ -72,10 +75,28 @@ function DirectoryPageContent({ folderParentId }: DirectoryPageContentProps) {
   const isListLoading =
     folderListQuery.isLoading || workspaceListQuery.isLoading;
 
+  /*
+  편집 카드는 화면에 하나만 둔다. 한쪽 편집을 시작하면 다른 쪽 편집은 끝낸다.
+  */
+  const startFolderEditing = (folderId: string) => {
+    setEditingWorkspaceId(null);
+    setEditingFolderId(folderId);
+  };
+
+  const startWorkspaceEditing = (workspaceId: string) => {
+    setEditingFolderId(null);
+    setEditingWorkspaceId(workspaceId);
+  };
+
+  const endEditing = () => {
+    setEditingFolderId(null);
+    setEditingWorkspaceId(null);
+  };
+
   const handleCreateFolder = async () => {
     try {
       const createdFolder = await createFolder();
-      setEditingFolderId(createdFolder.id);
+      startFolderEditing(createdFolder.id);
     } catch {
       // 생성 실패 알림은 useCreateFolder에서 처리한다.
     }
@@ -104,13 +125,15 @@ function DirectoryPageContent({ folderParentId }: DirectoryPageContentProps) {
         />
         <DirectoryContentsGrid
           editingFolderId={editingFolderId}
+          editingWorkspaceId={editingWorkspaceId}
           folderParentId={folderParentId}
           folders={folderListQuery.data ?? []}
           isError={isListError}
           isLoaded={isListLoaded}
           isLoading={isListLoading}
-          onEditingStart={setEditingFolderId}
-          onEditingEnd={() => setEditingFolderId(null)}
+          onFolderEditingStart={startFolderEditing}
+          onEditingEnd={endEditing}
+          onWorkspaceEditingStart={startWorkspaceEditing}
           workspaces={workspaceListQuery.data ?? []}
         />
       </div>
