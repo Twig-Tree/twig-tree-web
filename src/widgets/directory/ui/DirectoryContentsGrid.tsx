@@ -97,16 +97,13 @@ export function DirectoryContentsGrid({
           <FolderCard
             key={folder.id}
             folder={folder}
-            onDelete={
-              isDeletingFolder
-                ? undefined
-                : () => {
-                    void deleteFolder({
-                      folderId: folder.id,
-                      name: folder.name,
-                    });
-                  }
-            }
+            isDeleteDisabled={isDeletingFolder}
+            onDelete={() => {
+              void deleteFolder({
+                folderId: folder.id,
+                name: folder.name,
+              });
+            }}
             onRename={() => onEditingStart(folder.id)}
           />
         ),
