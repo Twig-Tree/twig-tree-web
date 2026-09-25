@@ -8,11 +8,17 @@ import type { FolderItem } from "../model/types";
 
 interface FolderCardProps {
   folder: FolderItem;
-  onDelete?: () => void;
-  onRename: () => void;
+  isDeleteDisabled?: boolean; // 삭제 항목을 잠시 막을지 여부. 다른 삭제 요청이 진행 중일 때 넘긴다
+  onDelete: () => void; // 폴더 삭제를 시작하는 callback
+  onRename: () => void; // 이름 수정을 시작하는 callback
 }
 
-export function FolderCard({ folder, onDelete, onRename }: FolderCardProps) {
+export function FolderCard({
+  folder,
+  isDeleteDisabled = false,
+  onDelete,
+  onRename,
+}: FolderCardProps) {
   return (
     <article className="group relative flex min-h-36 flex-col justify-between rounded-xl border border-slate-100 bg-white p-5 shadow-sm transition-shadow hover:shadow-md">
       <Link
@@ -34,7 +40,7 @@ export function FolderCard({ folder, onDelete, onRename }: FolderCardProps) {
               id: "delete",
               label: "삭제하기",
               tone: "danger",
-              disabled: !onDelete,
+              disabled: isDeleteDisabled,
               onSelect: onDelete,
             },
           ]}
