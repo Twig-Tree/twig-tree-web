@@ -4,6 +4,7 @@ import { FolderCard, type FolderItem } from "@/src/entities/folder";
 import { useDeleteFolder } from "@/src/features/folder/delete-folder";
 import { EditableFolderCard } from "@/src/features/folder/update-folder";
 import { WorkspaceCard, type WorkspaceItem } from "@/src/entities/workspace";
+import { useDeleteWorkspace } from "@/src/features/workspace/delete-workspace";
 import { EditableWorkspaceCard } from "@/src/features/workspace/update-workspace";
 import { DirectoryContentsSkeleton } from "./DirectoryContentsSkeleton";
 
@@ -36,6 +37,9 @@ export function DirectoryContentsGrid({
 }: DirectoryContentsGridProps) {
   const { deleteFolder, isDeletingFolder } = useDeleteFolder({
     folderParentId,
+  });
+  const { deleteWorkspace, isDeletingWorkspace } = useDeleteWorkspace({
+    folderId: folderParentId,
   });
 
   /*
@@ -121,6 +125,13 @@ export function DirectoryContentsGrid({
           <WorkspaceCard
             key={workspace.id}
             workspace={workspace}
+            isDeleteDisabled={isDeletingWorkspace}
+            onDelete={() => {
+              void deleteWorkspace({
+                workspaceId: workspace.id,
+                name: workspace.name,
+              });
+            }}
             onRename={() => onWorkspaceEditingStart(workspace.id)}
           />
         ),
