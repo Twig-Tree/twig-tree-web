@@ -3,6 +3,7 @@ import {
   CreateWorkspaceRequest,
   CreateWorkspaceResponse,
   CreateWorkspaceTreeResponse,
+  DeleteWorkspaceResponse,
   GetWorkspaceListResponse,
   GetWorkspaceResponse,
   UpdateWorkspaceRequest,
@@ -84,6 +85,18 @@ export const workspaceApi = {
       body,
     );
     return mapWorkspaceDetailDtoToDomain(response.data.data);
+  },
+
+  /*
+  함수 이름 : deleteWorkspace
+  기능 : 워크스페이스를 삭제한다. 워크스페이스에 속한 트리와 노드도 서버에서 함께 삭제된다.
+  인자 : number workspaceId -> 삭제할 워크스페이스 ID
+  반환값 : 없음
+  */
+  deleteWorkspace: async (workspaceId: number): Promise<void> => {
+    await axiosInstance.delete<DeleteWorkspaceResponse>(
+      `/workspaces/${workspaceId}`,
+    );
   },
 
   /*

@@ -195,6 +195,38 @@ export const handlers = [
   }),
 
   /*
+  워크스페이스 삭제 DELETE 요청 핸들러.
+  없는 워크스페이스는 백엔드처럼 404로 거절한다.
+  */
+  http.delete("*/api/workspaces/:workspaceId", ({ params }) => {
+    const workspace = RAW_WORKSPACE_DATA.find(
+      ({ workspaceId }) => String(workspaceId) === params.workspaceId,
+    );
+
+    if (!workspace) {
+      return HttpResponse.json(
+        {
+          isSuccess: false,
+          code: "WORKSPACE404-1",
+          message: "해당 워크스페이스가 존재하지 않습니다.",
+          data: null,
+        },
+        { status: 404 },
+      );
+    }
+
+    return HttpResponse.json(
+      {
+        isSuccess: true,
+        code: "WORKSPACE200-4",
+        message: "성공적으로 워크스페이스를 삭제했습니다.",
+        data: null,
+      },
+      { status: 200 },
+    );
+  }),
+
+  /*
   워크스페이스 트리 생성 POST 요청 핸들러.
   백엔드처럼 워크스페이스당 트리는 하나라, 이미 트리가 있는 워크스페이스는 409로 거절한다.
   */

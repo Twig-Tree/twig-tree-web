@@ -48,6 +48,12 @@ export type CreateWorkspaceResponse = ApiResponse<WorkspaceDTO>;
 export type UpdateWorkspaceResponse = ApiResponse<WorkspaceDTO>;
 
 /**
+ * 워크스페이스 삭제 응답 type
+ * 본문에 데이터가 없다.
+ */
+export type DeleteWorkspaceResponse = ApiResponse<void>;
+
+/**
  * 워크스페이스 트리 생성 응답 type
  * 서버는 노드 없는 빈 트리를 만들고 treeId만 돌려준다.
  */
