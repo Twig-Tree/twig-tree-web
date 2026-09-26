@@ -321,6 +321,57 @@ entities/memo ──(treeQueryKeys, NodeDTO)──▶ entities/tree
 
 백엔드가 조회 API를 도메인별로 쪼개면 캐시도 함께 갈라지므로 그때 슬라이스를 다시 나눌 수 있다. 도메인별 파일을 유지해 두면 추출 비용이 낮다.
 
+## Entity 사이의 의존 방향
+
+Entity 슬라이스끼리는 서로 import할 수 있지만, 방향은 한쪽으로만 둔다. 도메인은 다음 순서로 부모와 자식이 된다.
+
+```text
+folder ⊃ workspace ⊃ tree
+```
+
+계층 규칙과 섞이지 않도록 여기서는 "위·아래" 대신 "부모·자식"이라고 부른다.
+
+**자식 entity는 부모 entity를 import할 수 있다.** 자식은 부모의 ID를 가진다. 워크스페이스는 `folderId`를, 트리는 `workspaceId`를 가지므로 의존 방향이 데이터의 FK 방향과 같다.
+
+```text
+entities/tree ──(workspaceQueryKeys)──────────────────▶ entities/workspace
+entities/workspace ──(getApiFolderId, isValidFolderId)──▶ entities/folder
+```
+
+자식이 바뀌어 부모의 캐시가 낡는 경우도 이 방향으로 처리한다. 프롬프트로 트리를 만들면 워크스페이스가 생기므로, `useCreateTreeFromPromptMutation`이 워크스페이스 목록을 직접 무효화한다.
+
+**부모 entity는 자식 entity를 import하지 않는다.** 이미 자식이 부모를 import하고 있어, 반대 방향이 더해지면 두 슬라이스의 `index.ts`가 서로를 import하는 순환이 생긴다.
+
+```text
+entities/folder/index.ts
+  └─ useDeleteFolderMutation.ts ──▶ entities/workspace/index.ts
+                                      └─ queries.ts ──▶ entities/folder/index.ts
+```
+
+ES 모듈은 실행 중인 모듈을 다시 만나면 기다리지 않고 건너뛴다. 값을 함수 안에서만 읽으면 당장은 동작하지만, 어느 한쪽이 모듈 최상단에서 상대의 값을 읽는 순간 import 순서에 따라 초기화 전 값을 읽는 오류가 난다. 같은 코드가 어떤 페이지에서는 되고 어떤 페이지나 테스트에서는 안 되므로 원인을 찾기 어렵다.
+
+**부모의 변경이 자식 캐시를 낡게 하면 feature에서 조합한다.** DB cascade 삭제가 대표적이다. 폴더를 지우면 안의 워크스페이스와 트리도 함께 지워지므로 워크스페이스 캐시가 낡는다. 이때는 자식 entity가 캐시 갱신 hook을 공개하고, 부모 쪽 feature가 호출 시점을 정한다.
+
+```ts
+// entities/workspace — 캐시 키와 갱신 방법은 캐시 소유자가 안다.
+export function useInvalidateRecentWorkspaceList() {
+  const queryClient = useQueryClient();
+
+  return () =>
+    queryClient.invalidateQueries({ queryKey: workspaceQueryKeys.recent() });
+}
+```
+
+```ts
+// features/folder/delete-folder — 두 entity를 조합하므로 순환이 생기지 않는다.
+await deleteFolderMutateAsync({ folderId, folderParentId });
+await invalidateRecentWorkspaceList();
+```
+
+feature는 여러 entity를 import할 수 있으므로, 화살표는 feature에서 각 entity로만 향한다.
+
+**순서에 없는 entity는 다른 entity를 import하지 않는다.** `auth`, `attachment`처럼 부모·자식 관계가 없는 entity가 다른 entity를 필요로 하게 되면, 먼저 위 순서에서 자리를 정한다.
+
 ## 판단 기준
 
 코드 위치가 불분명할 때 다음 질문을 사용한다.
@@ -328,7 +379,9 @@ entities/memo ──(treeQueryKeys, NodeDTO)──▶ entities/tree
 1. 도메인 데이터 자체의 CRUD인가? → `entities`
 2. 하나의 query 또는 mutation인가? → `entities`
 3. 다른 도메인과 한 응답·한 캐시를 공유하는가? → 캐시를 소유한 `entities` 슬라이스
-4. query와 mutation에 검증·입력·UI 조건을 결합하는가? → `features`
-5. 여러 entity와 feature를 하나의 화면 영역으로 조합하는가? → `widgets`
-6. 라우트 파라미터를 해석하고 페이지를 구성하는가? → `app`
-7. 특정 도메인에 속하지 않는 공통 기능인가? → `shared`
+4. 자식 entity의 변경이 부모 entity 캐시를 낡게 하는가? → 자식 entity의 mutation에서 직접 갱신
+5. 부모 entity의 변경이 자식 entity 캐시를 낡게 하는가? → 자식 entity가 hook을 공개하고 `features`에서 호출
+6. query와 mutation에 검증·입력·UI 조건을 결합하는가? → `features`
+7. 여러 entity와 feature를 하나의 화면 영역으로 조합하는가? → `widgets`
+8. 라우트 파라미터를 해석하고 페이지를 구성하는가? → `app`
+9. 특정 도메인에 속하지 않는 공통 기능인가? → `shared`
