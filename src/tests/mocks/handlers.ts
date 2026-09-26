@@ -97,6 +97,27 @@ export const handlers = [
   }),
 
   /*
+  최신순 워크스페이스 목록 조회 GET 요청 핸들러.
+  백엔드처럼 폴더와 무관하게 전체를 수정 시각 내림차순으로 돌려준다.
+  상세 조회 핸들러보다 앞에 둔다. 뒤에 두면 recent가 :workspaceId로 잡혀 404가 된다.
+  */
+  http.get("*/api/workspaces/recent", () => {
+    const data = [...RAW_WORKSPACE_DATA].sort((a, b) =>
+      b.updatedAt.localeCompare(a.updatedAt),
+    );
+
+    return HttpResponse.json(
+      {
+        isSuccess: true,
+        code: "WORKSPACES_FOUND",
+        message: "워크스페이스 목록이 조회되었습니다.",
+        data,
+      },
+      { status: 200 },
+    );
+  }),
+
+  /*
   워크스페이스 상세 조회 GET 요청 핸들러.
   목록에 없는 ID는 백엔드처럼 404와 에러 응답 봉투를 돌려준다.
   */

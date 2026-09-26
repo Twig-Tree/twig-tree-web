@@ -1,6 +1,7 @@
 export type { WorkspaceDetail, WorkspaceItem } from "./model/types";
 export { WorkspaceCard } from "./ui/WorkspaceCard";
 export {
+  useGetRecentWorkspaceListQuery,
   useGetWorkspaceListQuery,
   useGetWorkspaceQuery,
 } from "./model/queries";

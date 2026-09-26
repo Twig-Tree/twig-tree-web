@@ -40,3 +40,16 @@ export function useGetWorkspaceListQuery(folderId: string | null) {
     enabled: isValidFolderId(folderId),
   });
 }
+
+/*
+함수 이름 : useGetRecentWorkspaceListQuery
+기능 : 폴더와 무관하게 내 워크스페이스 전체를 수정 시각 내림차순으로 조회한다.
+인자 : 없음
+반환값 : 최신순 워크스페이스 목록 query
+*/
+export function useGetRecentWorkspaceListQuery() {
+  return useQuery({
+    queryKey: workspaceQueryKeys.recent(),
+    queryFn: workspaceApi.getRecentWorkspaceList,
+  });
+}
