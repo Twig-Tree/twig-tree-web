@@ -6,7 +6,7 @@ import { EditableFolderCard } from "@/src/features/folder/update-folder";
 import { WorkspaceCard, type WorkspaceItem } from "@/src/entities/workspace";
 import { useDeleteWorkspace } from "@/src/features/workspace/delete-workspace";
 import { EditableWorkspaceCard } from "@/src/features/workspace/update-workspace";
-import { DirectoryContentsSkeleton } from "./DirectoryContentsSkeleton";
+import { CardGridSkeleton } from "@/src/shared/ui/card-grid-skeleton";
 
 interface DirectoryContentsGridProps {
   editingFolderId: string | null;
@@ -63,7 +63,7 @@ export function DirectoryContentsGrid({
   isLoaded만 보면 조회를 시작하지도 않은 화면에 자리표시자가 계속 남는다.
   */
   if (isLoading) {
-    return <DirectoryContentsSkeleton />;
+    return <CardGridSkeleton ariaLabel="Directory contents" />;
   }
 
   /*
