@@ -50,9 +50,10 @@ export const workspaceApi = {
   지금은 개수 제한 없이 전체를 받는다. 백엔드에 페이지네이션이 붙으면 인자와 응답 모양이 바뀐다(#91).
   */
   getRecentWorkspaceList: async (): Promise<WorkspaceItem[]> => {
-    const response = await axiosInstance.get<GetRecentWorkspaceListResponse>(
-      "/workspaces/recent",
-    );
+    const response =
+      await axiosInstance.get<GetRecentWorkspaceListResponse>(
+        "/workspaces/recent",
+      );
     return mapWorkspaceListDtoToDomain(response.data.data);
   },
 
