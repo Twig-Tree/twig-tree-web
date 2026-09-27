@@ -10,6 +10,7 @@ export { useUpdateWorkspaceMutation } from "./model/mutations/useUpdateWorkspace
 export { useDeleteWorkspaceMutation } from "./model/mutations/useDeleteWorkspaceMutation";
 export { useCreateWorkspaceTreeMutation } from "./model/mutations/useCreateWorkspaceTreeMutation";
 export { useSetWorkspaceTreeIdInCache } from "./model/useSetWorkspaceTreeIdInCache";
+export { useInvalidateRecentWorkspaceList } from "./model/useInvalidateRecentWorkspaceList";
 export { workspaceApi } from "./api/workspaceApi";
 export { workspaceQueryKeys } from "./model/queryKeys";
 export { MAX_WORKSPACE_NAME_LENGTH, TREE_ERROR_CODE } from "./model/constants";
