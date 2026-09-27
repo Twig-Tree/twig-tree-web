@@ -114,4 +114,25 @@ describe("useUpdateWorkspaceMutation", () => {
         ?.isInvalidated,
     ).toBe(false);
   });
+
+  /*
+  수정 시각이 바뀌어 최신순 목록에서도 순서가 달라진다.
+  */
+  it("최신순 워크스페이스 목록 캐시를 무효화한다", async () => {
+    const { queryClient, wrapper } = createQueryWrapper();
+    queryClient.setQueryData(workspaceQueryKeys.recent(), []);
+
+    const { result } = renderHook(() => useUpdateWorkspaceMutation(), {
+      wrapper,
+    });
+
+    result.current.mutate({ workspaceId: "2", folderId: "3", name: "새 이름" });
+
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+    await waitFor(() =>
+      expect(
+        queryClient.getQueryState(workspaceQueryKeys.recent())?.isInvalidated,
+      ).toBe(true),
+    );
+  });
 });
