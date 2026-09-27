@@ -15,7 +15,7 @@ export const createFile = (name: string, type = "") =>
 number sizeInBytes -> File.size가 보고할 값
 반환값 : File
 
-File 생성자에 실제로 10MB를 담으면 테스트가 느려지므로 size만 원하는 값으로 바꾼다.
+File 생성자에 실제로 25MB를 담으면 테스트가 느려지므로 size만 원하는 값으로 바꾼다.
 File.size는 읽기 전용이라 정의를 덮어써야 한다.
 */
 export const createFileOfSize = (name: string, sizeInBytes: number) => {

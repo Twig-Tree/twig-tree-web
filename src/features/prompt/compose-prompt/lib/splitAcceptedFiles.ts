@@ -23,7 +23,7 @@ export const splitAcceptedFiles = (files: File[]) => {
       continue;
     }
 
-    if (!isAcceptedFileSize(file.name, file.size)) {
+    if (!isAcceptedFileSize(file.size)) {
       rejectedFiles.push({ name: file.name, reason: "size" });
       continue;
     }
