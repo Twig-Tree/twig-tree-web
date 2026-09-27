@@ -1,12 +1,14 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { useGetRecentWorkspaceListQuery } from "@/src/entities/workspace";
 import { useCreateWorkspace } from "@/src/features/workspace/create-workspace";
 import { routes } from "@/src/shared/config/routes";
-import { RecentHeader } from "@/src/widgets/recent";
+import { RecentHeader, RecentWorkspaceGrid } from "@/src/widgets/recent";
 
 export default function RecentPage() {
   const router = useRouter();
+  const recentWorkspaceListQuery = useGetRecentWorkspaceListQuery();
   const { createWorkspace, isCreateWorkspaceDisabled } = useCreateWorkspace();
 
   /*
@@ -34,6 +36,13 @@ export default function RecentPage() {
             void handleSelectFolderPath(folderParentId)
           }
           isCreateWorkspaceDisabled={isCreateWorkspaceDisabled}
+        />
+
+        <RecentWorkspaceGrid
+          isError={recentWorkspaceListQuery.isError}
+          isLoaded={recentWorkspaceListQuery.isSuccess}
+          isLoading={recentWorkspaceListQuery.isLoading}
+          workspaces={recentWorkspaceListQuery.data ?? []}
         />
       </div>
     </div>
