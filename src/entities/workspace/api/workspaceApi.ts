@@ -4,6 +4,7 @@ import {
   CreateWorkspaceResponse,
   CreateWorkspaceTreeResponse,
   DeleteWorkspaceResponse,
+  GetRecentWorkspaceListResponse,
   GetWorkspaceListResponse,
   GetWorkspaceResponse,
   UpdateWorkspaceRequest,
@@ -37,6 +38,22 @@ export const workspaceApi = {
         },
       },
     );
+    return mapWorkspaceListDtoToDomain(response.data.data);
+  },
+
+  /*
+  함수 이름 : getRecentWorkspaceList
+  기능 : 폴더와 무관하게 내 워크스페이스 전체를 조회한다. 정렬은 서버가 수정 시각 내림차순으로 해 준다.
+  인자 : 없음
+  반환값 : 워크스페이스 목록
+
+  지금은 개수 제한 없이 전체를 받는다. 백엔드에 페이지네이션이 붙으면 인자와 응답 모양이 바뀐다(#91).
+  */
+  getRecentWorkspaceList: async (): Promise<WorkspaceItem[]> => {
+    const response =
+      await axiosInstance.get<GetRecentWorkspaceListResponse>(
+        "/workspaces/recent",
+      );
     return mapWorkspaceListDtoToDomain(response.data.data);
   },
 

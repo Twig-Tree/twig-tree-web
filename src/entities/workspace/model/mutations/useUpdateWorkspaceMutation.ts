@@ -11,12 +11,9 @@ interface UpdateWorkspaceVariables {
 
 /*
 함수 이름 : useUpdateWorkspaceMutation
-기능 : 워크스페이스 이름을 수정하고, 상세 캐시는 응답으로 확정하고 속한 폴더의 목록 캐시는 무효화한다.
+기능 : 워크스페이스 이름을 수정하고, 상세 캐시는 응답으로 확정하고 속한 폴더의 목록과 최신순 목록 캐시는 무효화한다.
 인자 : 없음
 반환값 : 워크스페이스 이름 수정 mutation
-
-최신순 목록(#62)은 아직 이 프로젝트에 없어 무효화 대상에 넣지 않는다.
-그 query가 생기면 위치와 무관하게 함께 무효화해야 한다.
 */
 export function useUpdateWorkspaceMutation() {
   const queryClient = useQueryClient();
@@ -41,10 +38,16 @@ export function useUpdateWorkspaceMutation() {
 
       /*
       목록은 이름만 고쳐 넣지 않는다. 수정 시각이 바뀌어 수정 시각 내림차순인 목록의 순서도 달라진다.
+      최신순 목록도 같은 이유로, 폴더와 무관하게 이 워크스페이스가 맨 위로 올라온다.
       */
-      return queryClient.invalidateQueries({
-        queryKey: workspaceQueryKeys.listByFolder(variables.folderId),
-      });
+      return Promise.all([
+        queryClient.invalidateQueries({
+          queryKey: workspaceQueryKeys.listByFolder(variables.folderId),
+        }),
+        queryClient.invalidateQueries({
+          queryKey: workspaceQueryKeys.recent(),
+        }),
+      ]);
     },
   });
 }

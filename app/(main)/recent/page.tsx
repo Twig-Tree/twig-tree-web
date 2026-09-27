@@ -1,17 +1,20 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { useGetRecentWorkspaceListQuery } from "@/src/entities/workspace";
 import { useCreateWorkspace } from "@/src/features/workspace/create-workspace";
 import { routes } from "@/src/shared/config/routes";
-import { RecentHeader } from "@/src/widgets/recent";
+import { RecentHeader, RecentWorkspaceGrid } from "@/src/widgets/recent";
 
 export default function RecentPage() {
   const router = useRouter();
+  const recentWorkspaceListQuery = useGetRecentWorkspaceListQuery();
   const { createWorkspace, isCreateWorkspaceDisabled } = useCreateWorkspace();
 
   /*
-  최신순 화면에는 아직 워크스페이스 목록이 없어(#62 대기) 생성 결과가 이 화면에
-  남지 않는다. 만든 것이 보이는 그 폴더의 디렉토리 화면으로 옮겨 확인시킨다.
+  만든 워크스페이스는 이 화면 목록 맨 위에도 생기지만, 최신순 카드에는 이름 수정 메뉴가 없다(#90).
+  기본 이름으로 만들어져 바로 고치는 경우가 많으므로, 메뉴가 있는 그 폴더의 디렉토리 화면으로 옮긴다.
+  #90으로 메뉴가 붙으면 이동을 걷어내고 이 화면에 머무른다.
   */
   const handleSelectFolderPath = async (folderParentId: string | null) => {
     try {
@@ -34,6 +37,13 @@ export default function RecentPage() {
             void handleSelectFolderPath(folderParentId)
           }
           isCreateWorkspaceDisabled={isCreateWorkspaceDisabled}
+        />
+
+        <RecentWorkspaceGrid
+          isError={recentWorkspaceListQuery.isError}
+          isLoaded={recentWorkspaceListQuery.isSuccess}
+          isLoading={recentWorkspaceListQuery.isLoading}
+          workspaces={recentWorkspaceListQuery.data ?? []}
         />
       </div>
     </div>
