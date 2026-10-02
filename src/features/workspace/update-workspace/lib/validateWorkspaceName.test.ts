@@ -6,8 +6,18 @@ import {
 import { validateWorkspaceName } from "./validateWorkspaceName";
 
 const workspaces: WorkspaceItem[] = [
-  { id: "1", name: "Research", updatedAt: "2026-08-31T21:00:00" },
-  { id: "2", name: "재즈 역사", updatedAt: "2026-08-30T09:00:00" },
+  {
+    id: "1",
+    name: "Research",
+    folderId: "3",
+    updatedAt: "2026-08-31T21:00:00",
+  },
+  {
+    id: "2",
+    name: "재즈 역사",
+    folderId: "3",
+    updatedAt: "2026-08-30T09:00:00",
+  },
 ];
 
 const validate = (name: string, workspaceId = "1") =>

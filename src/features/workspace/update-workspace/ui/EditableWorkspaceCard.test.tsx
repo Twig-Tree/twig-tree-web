@@ -10,6 +10,7 @@ import { EditableWorkspaceCard } from "./EditableWorkspaceCard";
 const WORKSPACE: WorkspaceItem = {
   id: "2",
   name: "Workspace In Folder",
+  folderId: "3",
   updatedAt: "2026-08-30T09:00:00",
 };
 

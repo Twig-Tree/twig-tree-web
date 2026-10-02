@@ -19,6 +19,7 @@ describe("useCreateWorkspaceMutation", () => {
     expect(result.current.data).toEqual({
       id: "999",
       name: "Workspace",
+      folderId: null,
       updatedAt: "2026-09-07T00:00:00",
     });
   });

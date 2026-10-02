@@ -7,8 +7,13 @@ import { server } from "@/src/tests/mocks/server";
 import { useUpdateWorkspace } from "./useUpdateWorkspace";
 
 const WORKSPACES_IN_FOLDER: WorkspaceItem[] = [
-  { id: "2", name: "Workspace In Folder", updatedAt: "2026-08-30T09:00:00" },
-  { id: "5", name: "Sibling", updatedAt: "2026-08-29T09:00:00" },
+  {
+    id: "2",
+    name: "Workspace In Folder",
+    folderId: "3",
+    updatedAt: "2026-08-30T09:00:00",
+  },
+  { id: "5", name: "Sibling", folderId: "3", updatedAt: "2026-08-29T09:00:00" },
 ];
 
 const renderUseUpdateWorkspace = (workspaces: WorkspaceItem[] | undefined) => {

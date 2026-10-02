@@ -32,6 +32,7 @@ const folder = { id: "1", name: "기획 폴더" };
 const workspace = {
   id: "2",
   name: "리서치",
+  folderId: null,
   updatedAt: "2026-08-31T21:00:00",
 };
 

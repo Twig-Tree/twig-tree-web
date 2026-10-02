@@ -20,8 +20,18 @@ const renderGrid = (
   );
 
 const workspaces = [
-  { id: "1", name: "최근 수정", updatedAt: "2026-08-31T21:00:00" },
-  { id: "2", name: "예전 수정", updatedAt: "2026-08-30T09:00:00" },
+  {
+    id: "1",
+    name: "최근 수정",
+    folderId: null,
+    updatedAt: "2026-08-31T21:00:00",
+  },
+  {
+    id: "2",
+    name: "예전 수정",
+    folderId: "3",
+    updatedAt: "2026-08-30T09:00:00",
+  },
 ];
 
 describe("RecentWorkspaceGrid", () => {

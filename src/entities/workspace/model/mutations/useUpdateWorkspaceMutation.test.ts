@@ -24,6 +24,7 @@ describe("useUpdateWorkspaceMutation", () => {
     expect(result.current.data).toEqual({
       id: "1",
       name: "새 이름",
+      folderId: null,
       updatedAt: "2026-09-22T00:00:00",
       treeId: "10",
     });
@@ -51,6 +52,7 @@ describe("useUpdateWorkspaceMutation", () => {
     queryClient.setQueryData<WorkspaceDetail>(workspaceQueryKeys.detail("1"), {
       id: "1",
       name: "Root Workspace",
+      folderId: null,
       updatedAt: "2026-08-31T21:00:00",
       treeId: "10",
     });
@@ -70,6 +72,7 @@ describe("useUpdateWorkspaceMutation", () => {
     expect(queryClient.getQueryData(workspaceQueryKeys.detail("1"))).toEqual({
       id: "1",
       name: "새 이름",
+      folderId: null,
       updatedAt: "2026-09-22T00:00:00",
       treeId: "10",
     });
