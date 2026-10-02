@@ -28,6 +28,9 @@ interface RecentWorkspaceSectionProps {
 카드는 디렉터리 화면과 같은 WorkspaceCard를 사용한다.
 다만 여기서는 섹션 제목 아래에 놓이므로 카드 제목을 h3으로 낮춘다.
 
+카드에 이름 수정·삭제 메뉴는 붙이지 않는다. 최근 몇 개만 보여주는 요약 영역이라 편집은 전체 보기로
+연결된 최신순 화면에 맡긴다. 붙이려면 대시보드 페이지도 편집 상태를 가져야 한다.
+
 제목과 전체 보기 링크는 상태와 무관하게 둔다. 조회에 실패해도 최신순 화면으로 이동할 길은 남긴다.
 */
 export function RecentWorkspaceSection({
