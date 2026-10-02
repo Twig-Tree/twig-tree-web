@@ -115,8 +115,6 @@ export function DirectoryContentsGrid({
           <EditableWorkspaceCard
             key={workspace.id}
             workspace={workspace}
-            workspaces={workspaces}
-            folderId={folderParentId}
             onEditingEnd={onEditingEnd}
           />
         ) : (
