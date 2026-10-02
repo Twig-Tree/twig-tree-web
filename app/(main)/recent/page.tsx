@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useGetRecentWorkspaceListQuery } from "@/src/entities/workspace";
 import { useCreateWorkspace } from "@/src/features/workspace/create-workspace";
@@ -8,6 +9,9 @@ import { RecentHeader, RecentWorkspaceGrid } from "@/src/widgets/recent";
 
 export default function RecentPage() {
   const router = useRouter();
+  const [editingWorkspaceId, setEditingWorkspaceId] = useState<string | null>(
+    null,
+  );
   const recentWorkspaceListQuery = useGetRecentWorkspaceListQuery();
   const { createWorkspace, isCreateWorkspaceDisabled } = useCreateWorkspace();
 
@@ -40,9 +44,12 @@ export default function RecentPage() {
         />
 
         <RecentWorkspaceGrid
+          editingWorkspaceId={editingWorkspaceId}
           isError={recentWorkspaceListQuery.isError}
           isLoaded={recentWorkspaceListQuery.isSuccess}
           isLoading={recentWorkspaceListQuery.isLoading}
+          onEditingEnd={() => setEditingWorkspaceId(null)}
+          onWorkspaceEditingStart={setEditingWorkspaceId}
           workspaces={recentWorkspaceListQuery.data ?? []}
         />
       </div>

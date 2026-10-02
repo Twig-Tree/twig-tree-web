@@ -1,5 +1,8 @@
-import { render, screen } from "@testing-library/react";
-import { describe, it, expect } from "vitest";
+import { render, screen, waitFor } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import { afterEach, describe, it, expect, vi } from "vitest";
+import { workspaceApi } from "@/src/entities/workspace";
+import { createQueryWrapper } from "@/src/tests/helpers/createQueryWrapper";
 import { RecentWorkspaceGrid } from "./RecentWorkspaceGrid";
 
 const ERROR_MESSAGE = "목록을 불러오지 못했습니다.";
@@ -11,12 +14,16 @@ const renderGrid = (
 ) =>
   render(
     <RecentWorkspaceGrid
+      editingWorkspaceId={null}
       isError={false}
       isLoaded={true}
       isLoading={false}
+      onEditingEnd={vi.fn()}
+      onWorkspaceEditingStart={vi.fn()}
       workspaces={[]}
       {...overrides}
     />,
+    { wrapper: createQueryWrapper().wrapper },
   );
 
 const workspaces = [
@@ -35,6 +42,10 @@ const workspaces = [
 ];
 
 describe("RecentWorkspaceGrid", () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
   it("받은 순서대로 워크스페이스 카드를 그린다", () => {
     renderGrid({ workspaces });
 
@@ -46,15 +57,51 @@ describe("RecentWorkspaceGrid", () => {
     ]);
   });
 
-  /*
-  폴더를 가로지르는 목록이라 수정·삭제에 필요한 folderId를 모른다. 동작하지 않는 메뉴를 두지 않는다.
-  */
-  it("카드에 메뉴를 붙이지 않는다", () => {
-    renderGrid({ workspaces });
+  it("메뉴에서 이름 수정하기를 고르면 그 워크스페이스의 편집을 시작한다", async () => {
+    const user = userEvent.setup();
+    const onWorkspaceEditingStart = vi.fn();
+    renderGrid({ onWorkspaceEditingStart, workspaces });
+
+    await user.click(
+      screen.getByRole("button", { name: "예전 수정 워크스페이스 메뉴" }),
+    );
+    await user.click(screen.getByRole("menuitem", { name: "이름 수정하기" }));
+
+    expect(onWorkspaceEditingStart).toHaveBeenCalledWith("2");
+  });
+
+  it("편집 중인 워크스페이스만 편집 카드로 그린다", () => {
+    renderGrid({ editingWorkspaceId: "2", workspaces });
 
     expect(
-      screen.queryByRole("button", { name: /워크스페이스 메뉴/ }),
-    ).not.toBeInTheDocument();
+      screen.getByRole("textbox", { name: "워크스페이스 이름" }),
+    ).toHaveValue("예전 수정");
+    expect(
+      screen.getByRole("link", { name: "최근 수정 워크스페이스 열기" }),
+    ).toBeInTheDocument();
+  });
+
+  /*
+  폴더를 가로지르는 목록이라 항목마다 속한 폴더가 다르다. 각 항목의 folderId로 삭제해야
+  그 폴더의 목록 캐시가 갱신된다.
+  */
+  it("서로 다른 폴더의 워크스페이스를 삭제할 수 있다", async () => {
+    const user = userEvent.setup();
+    vi.spyOn(window, "confirm").mockReturnValue(true);
+    const deleteWorkspaceSpy = vi.spyOn(workspaceApi, "deleteWorkspace");
+    renderGrid({ workspaces });
+
+    await user.click(
+      screen.getByRole("button", { name: "최근 수정 워크스페이스 메뉴" }),
+    );
+    await user.click(screen.getByRole("menuitem", { name: "삭제하기" }));
+    await waitFor(() => expect(deleteWorkspaceSpy).toHaveBeenCalledWith(1));
+
+    await user.click(
+      screen.getByRole("button", { name: "예전 수정 워크스페이스 메뉴" }),
+    );
+    await user.click(screen.getByRole("menuitem", { name: "삭제하기" }));
+    await waitFor(() => expect(deleteWorkspaceSpy).toHaveBeenCalledWith(2));
   });
 
   it("목록이 비면 빈 상태를 알린다", () => {
