@@ -122,15 +122,8 @@ export function useCreateFolder({
 }: UseCreateFolderParams) {
   const { mutateAsync, isPending } = useCreateFolderMutation();
 
-  const numericFolderParentId =
-    folderParentId === null ? null : Number(folderParentId);
-
-  const isValidFolderParentId =
-    numericFolderParentId === null ||
-    (Number.isSafeInteger(numericFolderParentId) && numericFolderParentId > 0);
-
   const isCreateFolderDisabled =
-    isPending || !isValidFolderParentId || folders === undefined;
+    isPending || !isValidFolderId(folderParentId) || folders === undefined;
 
   const createFolder = async () => {
     if (isCreateFolderDisabled || !folders) return;
@@ -156,7 +149,7 @@ export function useCreateFolder({
 - 요청 중 중복 실행 방지
 - 버튼 비활성화 상태
 
-ID를 실제 API 요청 타입으로 변환하는 작업은 entity mutation이 담당한다. Feature는 검증을 위해 숫자로 해석할 수 있지만 mutation에는 프론트엔드 ID를 전달한다.
+ID를 실제 API 요청 타입으로 변환하는 작업은 entity mutation이 담당한다. Feature는 `isValidFolderId`처럼 entity가 공개한 검사 함수로 형식만 확인하고, mutation에는 프론트엔드 ID를 전달한다.
 
 ### 복합 Feature의 model 구성
 
@@ -164,7 +157,7 @@ ID를 실제 API 요청 타입으로 변환하는 작업은 entity mutation이 �
 
 ## Widget과 Page 계층
 
-Widget은 여러 entity와 feature UI를 조합한다. Page는 라우트 파라미터와 페이지 데이터를 준비하고 widget과 feature hook을 연결한다.
+Widget은 여러 entity와 feature UI를 조합한다. Page는 라우트 파라미터와 페이지 데이터를 준비하고 widget과 feature hook을 연결한다. 라우트 파라미터의 형식 검증도 page가 맡는다. 잘못되면 하위 화면을 렌더하지 않는다([API 타입 경계 규칙](./api-type-boundaries.md#유효성-검사)).
 
 ```ts
 const folderListQuery = useGetFolderListQuery(folderParentId);
@@ -383,5 +376,5 @@ feature는 여러 entity를 import할 수 있으므로, 화살표는 feature에�
 5. 부모 entity의 변경이 자식 entity 캐시를 낡게 하는가? → 자식 entity가 hook을 공개하고 `features`에서 호출
 6. query와 mutation에 검증·입력·UI 조건을 결합하는가? → `features`
 7. 여러 entity와 feature를 하나의 화면 영역으로 조합하는가? → `widgets`
-8. 라우트 파라미터를 해석하고 페이지를 구성하는가? → `app`
+8. 라우트 파라미터를 해석·검증하고 페이지를 구성하는가? → `app`
 9. 특정 도메인에 속하지 않는 공통 기능인가? → `shared`
