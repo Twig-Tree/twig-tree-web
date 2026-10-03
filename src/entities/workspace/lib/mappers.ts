@@ -5,13 +5,16 @@ import {
 } from "@/src/entities/workspace/model/types";
 
 /*
-folderId는 도메인 모델에 옮기지 않는다. 목록이 이미 폴더 기준으로 조회되므로 화면이 쓸 일이 없다.
-treeId도 목록 카드는 쓰지 않으므로 상세 모델에만 싣는다.
+folderId는 목록 카드에도 싣는다. 최신순 목록은 폴더를 가로지르므로, 이름 수정·삭제가 갱신할
+폴더 목록 캐시를 항목마다 알아야 한다. null 확인이 문자열 변환보다 먼저다. String(null)은 "null"이라
+루트의 워크스페이스가 "null"이라는 폴더에 든 것처럼 된다.
+treeId는 목록 카드가 쓰지 않으므로 상세 모델에만 싣는다.
 */
 export const mapWorkspaceDtoToDomain = (dto: WorkspaceDTO): WorkspaceItem => {
   return {
     id: String(dto.workspaceId),
     name: dto.name,
+    folderId: dto.folderId === null ? null : String(dto.folderId),
     updatedAt: dto.updatedAt,
   };
 };

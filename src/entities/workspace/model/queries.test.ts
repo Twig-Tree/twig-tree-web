@@ -19,7 +19,12 @@ describe("useGetWorkspaceListQuery", () => {
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
 
     expect(result.current.data).toEqual([
-      { id: "1", name: "Root Workspace", updatedAt: "2026-08-31T21:00:00" },
+      {
+        id: "1",
+        name: "Root Workspace",
+        folderId: null,
+        updatedAt: "2026-08-31T21:00:00",
+      },
     ]);
   });
 
@@ -35,6 +40,7 @@ describe("useGetWorkspaceListQuery", () => {
       {
         id: "2",
         name: "Workspace In Folder",
+        folderId: "3",
         updatedAt: "2026-08-30T09:00:00",
       },
     ]);
@@ -87,6 +93,7 @@ describe("useGetWorkspaceQuery", () => {
     expect(result.current.data).toEqual({
       id: "1",
       name: "Root Workspace",
+      folderId: null,
       updatedAt: "2026-08-31T21:00:00",
       treeId: "10",
     });
@@ -125,10 +132,16 @@ describe("useGetRecentWorkspaceListQuery", () => {
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
 
     expect(result.current.data).toEqual([
-      { id: "1", name: "Root Workspace", updatedAt: "2026-08-31T21:00:00" },
+      {
+        id: "1",
+        name: "Root Workspace",
+        folderId: null,
+        updatedAt: "2026-08-31T21:00:00",
+      },
       {
         id: "2",
         name: "Workspace In Folder",
+        folderId: "3",
         updatedAt: "2026-08-30T09:00:00",
       },
     ]);

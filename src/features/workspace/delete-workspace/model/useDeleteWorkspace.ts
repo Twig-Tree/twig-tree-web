@@ -2,31 +2,28 @@
 
 import { useCallback } from "react";
 import { isValidFolderId } from "@/src/entities/folder";
-import { useDeleteWorkspaceMutation } from "@/src/entities/workspace";
-
-interface UseDeleteWorkspaceParams {
-  folderId: string | null; // 삭제할 워크스페이스들이 속한 폴더 ID. 삭제 후 이 폴더의 목록 캐시를 갱신한다. 루트는 null
-}
-
-interface DeleteWorkspaceInput {
-  workspaceId: string; // 삭제할 워크스페이스 ID
-  name: string; // 확인 문구에 보여줄 워크스페이스 이름
-}
+import {
+  type WorkspaceItem,
+  useDeleteWorkspaceMutation,
+} from "@/src/entities/workspace";
 
 /*
 함수 이름 : useDeleteWorkspace
 기능 : 사용자에게 삭제 여부를 확인받은 뒤 워크스페이스 삭제 요청을 보내고, 실패하면 알린다.
-인자 : UseDeleteWorkspaceParams
+인자 : 없음
 반환값 : 워크스페이스 삭제 핸들러, 삭제 요청 중 여부
+
+폴더 ID는 hook 인자가 아니라 삭제할 항목에서 읽는다. 최신순 화면처럼 폴더를 가로지르는 목록에서는
+항목마다 갱신할 폴더 목록 캐시가 다르다.
 */
-export function useDeleteWorkspace({ folderId }: UseDeleteWorkspaceParams) {
+export function useDeleteWorkspace() {
   const { mutateAsync, isPending } = useDeleteWorkspaceMutation();
 
   /*
   삭제에 성공하면 true를 돌려준다. 취소했거나 요청하지 못했으면 false다.
   */
   const deleteWorkspace = useCallback(
-    async ({ workspaceId, name }: DeleteWorkspaceInput): Promise<boolean> => {
+    async ({ id, name, folderId }: WorkspaceItem): Promise<boolean> => {
       if (isPending || !isValidFolderId(folderId)) {
         return false;
       }
@@ -43,7 +40,7 @@ export function useDeleteWorkspace({ folderId }: UseDeleteWorkspaceParams) {
       }
 
       try {
-        await mutateAsync({ workspaceId, folderId });
+        await mutateAsync({ workspaceId: id, folderId });
         return true;
       } catch (error) {
         alert("워크스페이스를 삭제하지 못했습니다. 다시 시도해 주세요.");
@@ -51,7 +48,7 @@ export function useDeleteWorkspace({ folderId }: UseDeleteWorkspaceParams) {
         return false;
       }
     },
-    [folderId, isPending, mutateAsync],
+    [isPending, mutateAsync],
   );
 
   return {

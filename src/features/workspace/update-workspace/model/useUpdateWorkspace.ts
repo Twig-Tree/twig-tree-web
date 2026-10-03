@@ -3,14 +3,13 @@
 import { useCallback } from "react";
 import { isValidFolderId } from "@/src/entities/folder";
 import {
-  type WorkspaceItem,
+  useGetWorkspaceListQuery,
   useUpdateWorkspaceMutation,
 } from "@/src/entities/workspace";
 import { validateWorkspaceName } from "../lib/validateWorkspaceName";
 
 interface UseUpdateWorkspaceParams {
-  folderId: string | null; // 수정할 워크스페이스들이 속한 폴더 ID. 수정 후 이 폴더의 목록 캐시를 갱신한다. 루트는 null
-  workspaces: WorkspaceItem[] | undefined; // 위 폴더의 형제 워크스페이스 목록. 아직 조회 전이면 undefined
+  folderId: string | null; // 수정할 워크스페이스가 속한 폴더 ID. 형제 목록을 조회하고, 수정 후 이 폴더의 목록 캐시를 갱신한다. 루트는 null
 }
 
 interface UpdateWorkspaceInput {
@@ -24,12 +23,14 @@ interface UpdateWorkspaceInput {
 백엔드가 같은 위치의 이름 중복을 거절하므로 형제 목록을 모르면 검증을 통과시키지 않는다.
 인자 : UseUpdateWorkspaceParams
 반환값 : 이름 검증 함수, 이름 수정 핸들러, 수정 요청 중 여부
+
+형제 목록은 호출부에서 받지 않고 그 폴더의 목록을 직접 조회한다. 최신순 목록은 폴더를 가로지르고
+페이지 단위로 일부만 오므로 거기서 골라내면 형제를 놓친다. 디렉토리 화면은 같은 query key로
+이미 조회해 두었으므로 요청이 늘지 않는다.
 */
-export function useUpdateWorkspace({
-  folderId,
-  workspaces,
-}: UseUpdateWorkspaceParams) {
+export function useUpdateWorkspace({ folderId }: UseUpdateWorkspaceParams) {
   const { mutateAsync, isPending } = useUpdateWorkspaceMutation();
+  const { data: workspaces } = useGetWorkspaceListQuery(folderId);
 
   const isUpdateWorkspaceDisabled =
     isPending || !isValidFolderId(folderId) || workspaces === undefined;

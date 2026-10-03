@@ -38,9 +38,7 @@ export function DirectoryContentsGrid({
   const { deleteFolder, isDeletingFolder } = useDeleteFolder({
     folderParentId,
   });
-  const { deleteWorkspace, isDeletingWorkspace } = useDeleteWorkspace({
-    folderId: folderParentId,
-  });
+  const { deleteWorkspace, isDeletingWorkspace } = useDeleteWorkspace();
 
   /*
   한쪽만 실패해도 아무것도 그리지 않는다. 성공한 쪽만 그리면 실패한 쪽이
@@ -117,8 +115,6 @@ export function DirectoryContentsGrid({
           <EditableWorkspaceCard
             key={workspace.id}
             workspace={workspace}
-            workspaces={workspaces}
-            folderId={folderParentId}
             onEditingEnd={onEditingEnd}
           />
         ) : (
@@ -127,10 +123,7 @@ export function DirectoryContentsGrid({
             workspace={workspace}
             isDeleteDisabled={isDeletingWorkspace}
             onDelete={() => {
-              void deleteWorkspace({
-                workspaceId: workspace.id,
-                name: workspace.name,
-              });
+              void deleteWorkspace(workspace);
             }}
             onRename={() => onWorkspaceEditingStart(workspace.id)}
           />

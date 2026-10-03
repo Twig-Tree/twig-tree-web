@@ -1,10 +1,17 @@
+"use client";
+
 import { WorkspaceCard, type WorkspaceItem } from "@/src/entities/workspace";
+import { useDeleteWorkspace } from "@/src/features/workspace/delete-workspace";
+import { EditableWorkspaceCard } from "@/src/features/workspace/update-workspace";
 import { CardGridSkeleton } from "@/src/shared/ui/card-grid-skeleton";
 
 interface RecentWorkspaceGridProps {
+  editingWorkspaceId: string | null; // 이름을 수정 중인 워크스페이스 ID
   isError: boolean; // 최신순 목록 조회에 실패했는지 여부
   isLoading: boolean; // 최신순 목록을 처음 조회하는 중인지 여부
   isLoaded: boolean; // 최신순 목록이 도착했는지 여부. 빈 상태 안내를 언제 보여줄지 정한다
+  onEditingEnd: () => void; // 이름 저장 또는 취소 후 편집을 끝낼 때 부른다
+  onWorkspaceEditingStart: (workspaceId: string) => void;
   workspaces: WorkspaceItem[];
 }
 
@@ -14,15 +21,20 @@ interface RecentWorkspaceGridProps {
 인자 : RecentWorkspaceGridProps
 반환값 : 최신순 워크스페이스 목록 영역
 
-카드에는 메뉴를 붙이지 않는다. 폴더를 가로지르는 목록이라 이름 수정·삭제 mutation이 요구하는
-folderId를 항목마다 알 수 없다(#90).
+폴더를 가로지르는 목록이라 삭제와 이름 수정은 항목의 folderId로 갱신할 폴더 목록을 찾는다.
+편집 카드는 그 폴더의 형제 목록을 직접 조회해 이름 중복을 검사한다.
 */
 export function RecentWorkspaceGrid({
+  editingWorkspaceId,
   isError,
   isLoaded,
   isLoading,
+  onEditingEnd,
+  onWorkspaceEditingStart,
   workspaces,
 }: RecentWorkspaceGridProps) {
+  const { deleteWorkspace, isDeletingWorkspace } = useDeleteWorkspace();
+
   /*
   재조회에 실패해도 이전 목록이 남아 있지만 그리지 않는다. 옛 목록을 그리면 조회가 실패한 사실이 화면에서 사라진다.
   */
@@ -57,9 +69,23 @@ export function RecentWorkspaceGrid({
       className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4"
       aria-label="Recent workspaces"
     >
-      {workspaces.map((workspace) => (
-        <WorkspaceCard key={workspace.id} workspace={workspace} />
-      ))}
+      {workspaces.map((workspace) =>
+        workspace.id === editingWorkspaceId ? (
+          <EditableWorkspaceCard
+            key={workspace.id}
+            workspace={workspace}
+            onEditingEnd={onEditingEnd}
+          />
+        ) : (
+          <WorkspaceCard
+            key={workspace.id}
+            workspace={workspace}
+            isDeleteDisabled={isDeletingWorkspace}
+            onDelete={() => void deleteWorkspace(workspace)}
+            onRename={() => onWorkspaceEditingStart(workspace.id)}
+          />
+        ),
+      )}
     </section>
   );
 }

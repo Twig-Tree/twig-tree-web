@@ -13,9 +13,7 @@ import { useIsMounted } from "@/src/shared/lib/react/useIsMounted";
 import { useUpdateWorkspace } from "../model/useUpdateWorkspace";
 
 interface EditableWorkspaceCardProps {
-  workspace: WorkspaceItem; // 이름을 수정할 워크스페이스
-  workspaces: WorkspaceItem[]; // 이름 중복을 검사할 형제 워크스페이스 목록
-  folderId: string | null; // 수정 후 목록 cache를 갱신할 폴더 ID. 루트는 null
+  workspace: WorkspaceItem; // 이름을 수정할 워크스페이스. 속한 폴더의 형제 목록으로 이름 중복을 검사한다
   onEditingEnd: () => void; // 저장 또는 취소 후 편집 상태를 종료하는 callback
 }
 
@@ -29,8 +27,6 @@ interface EditableWorkspaceCardProps {
 */
 export function EditableWorkspaceCard({
   workspace,
-  workspaces,
-  folderId,
   onEditingEnd,
 }: EditableWorkspaceCardProps) {
   const [name, setName] = useState(workspace.name);
@@ -40,10 +36,7 @@ export function EditableWorkspaceCard({
   const isCancellingRef = useRef(false);
   const isMounted = useIsMounted();
   const { getWorkspaceNameError, isUpdatingWorkspace, updateWorkspace } =
-    useUpdateWorkspace({
-      folderId,
-      workspaces,
-    });
+    useUpdateWorkspace({ folderId: workspace.folderId });
 
   /*
   편집 카드로 전환되면 기존 이름을 바로 덮어쓸 수 있도록 입력값 전체를 선택한다.

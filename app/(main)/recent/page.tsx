@@ -1,29 +1,25 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { useGetRecentWorkspaceListQuery } from "@/src/entities/workspace";
 import { useCreateWorkspace } from "@/src/features/workspace/create-workspace";
-import { routes } from "@/src/shared/config/routes";
 import { RecentHeader, RecentWorkspaceGrid } from "@/src/widgets/recent";
 
 export default function RecentPage() {
-  const router = useRouter();
+  const [editingWorkspaceId, setEditingWorkspaceId] = useState<string | null>(
+    null,
+  );
   const recentWorkspaceListQuery = useGetRecentWorkspaceListQuery();
   const { createWorkspace, isCreateWorkspaceDisabled } = useCreateWorkspace();
 
   /*
-  만든 워크스페이스는 이 화면 목록 맨 위에도 생기지만, 최신순 카드에는 이름 수정 메뉴가 없다(#90).
-  기본 이름으로 만들어져 바로 고치는 경우가 많으므로, 메뉴가 있는 그 폴더의 디렉토리 화면으로 옮긴다.
-  #90으로 메뉴가 붙으면 이동을 걷어내고 이 화면에 머무른다.
+  만든 워크스페이스는 기본 이름이라 바로 고치는 경우가 많으므로 편집 상태로 둔다.
+  생성 mutation이 최신순 목록 재조회까지 기다린 뒤 끝나므로, 이 시점에는 목록 맨 위에 새 카드가 있다.
   */
   const handleSelectFolderPath = async (folderParentId: string | null) => {
     try {
-      await createWorkspace(folderParentId);
-      router.push(
-        folderParentId === null
-          ? routes.directoryRoot
-          : routes.directory(folderParentId),
-      );
+      const createdWorkspace = await createWorkspace(folderParentId);
+      setEditingWorkspaceId(createdWorkspace.id);
     } catch {
       // 생성 실패 알림은 useCreateWorkspace에서 처리한다.
     }
@@ -40,9 +36,12 @@ export default function RecentPage() {
         />
 
         <RecentWorkspaceGrid
+          editingWorkspaceId={editingWorkspaceId}
           isError={recentWorkspaceListQuery.isError}
           isLoaded={recentWorkspaceListQuery.isSuccess}
           isLoading={recentWorkspaceListQuery.isLoading}
+          onEditingEnd={() => setEditingWorkspaceId(null)}
+          onWorkspaceEditingStart={setEditingWorkspaceId}
           workspaces={recentWorkspaceListQuery.data ?? []}
         />
       </div>

@@ -6,6 +6,7 @@ import { WorkspaceCard } from "./WorkspaceCard";
 const WORKSPACE = {
   id: "2",
   name: "리서치",
+  folderId: null,
   updatedAt: "2026-08-31T21:00:00",
 };
 
@@ -16,6 +17,7 @@ describe("WorkspaceCard", () => {
         workspace={{
           id: "2",
           name: "리서치",
+          folderId: null,
           updatedAt: "2026-08-31T21:00:00",
         }}
       />,
