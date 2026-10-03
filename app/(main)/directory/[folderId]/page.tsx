@@ -9,10 +9,12 @@ import { useGetWorkspaceListQuery } from "@/src/entities/workspace";
 import { useCreateFolder } from "@/src/features/folder/create-folder";
 import { useCreateWorkspace } from "@/src/features/workspace/create-workspace";
 import { routes } from "@/src/shared/config/routes";
+import { isValidApiId } from "@/src/shared/lib/validation/isValidApiId";
 import type { BreadcrumbItem } from "@/src/shared/ui/breadcrumb";
 import {
   DirectoryContentsGrid,
   DirectoryHeader,
+  DirectoryNotFound,
 } from "@/src/widgets/directory";
 
 // 경로 조회에 실패해 폴더 이름을 알 수 없을 때 제목 자리에 표시할 이름
@@ -24,6 +26,13 @@ interface DirectoryPageProps {
 
 export default function DirectoryPage({ params }: DirectoryPageProps) {
   const { folderId } = use(params);
+
+  /*
+  주소창에서 온 ID라 형식부터 검사한다. 잘못되면 하위 화면을 그리지 않아 조회 요청 자체가 만들어지지 않는다.
+  */
+  if (!isValidApiId(folderId)) {
+    return <DirectoryNotFound />;
+  }
 
   return (
     // App Router의 클라이언트 내비게이션에서는 컴포넌트 상태가 보존될 수 있다.

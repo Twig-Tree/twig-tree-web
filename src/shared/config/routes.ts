@@ -4,7 +4,6 @@ export const routes = {
   directoryRoot: "/directory",
   directory: (folderId: string) => `/directory/${folderId}`,
   recent: "/recent",
-  workspaceDefault: "/workspace/default",
   workspaceRoot: "/workspace",
   workspace: (workspaceId: string) => `/workspace/${workspaceId}`,
 } as const;

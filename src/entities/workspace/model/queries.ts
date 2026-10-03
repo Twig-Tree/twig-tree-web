@@ -12,8 +12,9 @@ const MAX_WORKSPACE_RETRY_COUNT = 1; // 전역 QueryClient의 retry와 같은 �
 인자 : string workspaceId -> 조회할 워크스페이스 ID
 반환값 : 워크스페이스 조회 query
 
-URL에서 온 ID를 검증하지 않고 그대로 요청한다. enabled로 막으면 query가 로딩도 오류도 아닌 상태로 남아
-잘못된 링크를 안내할 수 없기 때문이다. 검증 경계는 #53에서 정한다.
+ID 형식은 검사하지 않는다. URL에서 온 ID는 라우트 파라미터를 읽는 페이지가 먼저 걸러 잘못된 링크를 안내한다.
+enabled로 막지 않는 것은 그 옵션이 "아직 조회할 때가 아님"을 위한 것이기 때문이다. 검증에 쓰면 query가
+로딩도 오류도 아닌 상태로 멈춰, 검사를 빠뜨린 호출부의 실수가 드러나지 않는다.
 */
 export function useGetWorkspaceQuery(workspaceId: string) {
   return useQuery({
