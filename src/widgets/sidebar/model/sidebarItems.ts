@@ -14,7 +14,7 @@ export const sidebarItems: SidebarItem[] = [
   {
     icon: Archive,
     label: "Workspace",
-    href: routes.workspaceDefault,
+    href: routes.workspaceRoot,
     activePrefix: routes.workspaceRoot,
   },
 ];
