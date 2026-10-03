@@ -18,6 +18,14 @@ describe("WorkspaceLoadError", () => {
     ).not.toBeInTheDocument();
   });
 
+  it("다시 요청할 query가 없는 없음 안내는 onRetry 없이 그린다", () => {
+    render(<WorkspaceLoadError isNotFound />);
+
+    expect(
+      screen.getByRole("heading", { name: "워크스페이스를 찾을 수 없습니다" }),
+    ).toBeInTheDocument();
+  });
+
   it("그 외 오류면 다시 시도 버튼으로 onRetry를 호출한다", async () => {
     const onRetry = vi.fn();
     render(<WorkspaceLoadError isNotFound={false} onRetry={onRetry} />);

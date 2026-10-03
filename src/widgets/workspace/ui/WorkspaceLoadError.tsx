@@ -2,10 +2,19 @@ import Link from "next/link";
 import { routes } from "@/src/shared/config/routes";
 import { Button } from "@/src/shared/ui/button";
 
-export interface WorkspaceLoadErrorProps {
-  isNotFound: boolean; // 다시 요청해도 결과가 같은 오류(404·403)인지 여부. 안내 문구와 버튼을 정한다
-  onRetry: () => void;
-}
+/*
+없음 안내에는 다시 시도 버튼이 없으므로 onRetry를 요구하지 않는다. 요청 전에 ID 형식으로 걸러진 경우처럼
+다시 요청할 query가 없는 호출부도 있다.
+*/
+export type WorkspaceLoadErrorProps =
+  | {
+      isNotFound: true; // 다시 요청해도 결과가 같은 오류(404·403)이거나 형식이 잘못된 ID
+      onRetry?: () => void;
+    }
+  | {
+      isNotFound: false;
+      onRetry: () => void; // 다시 시도 버튼에 연결한다
+    };
 
 /*
 함수 이름 : WorkspaceLoadError
