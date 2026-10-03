@@ -7,7 +7,7 @@ const WORKSPACE = {
   id: "2",
   name: "리서치",
   folderId: null,
-  updatedAt: "2026-08-31T21:00:00",
+  updatedAt: "2026-08-31T12:00:00.000000Z",
 };
 
 describe("WorkspaceCard", () => {
@@ -18,7 +18,7 @@ describe("WorkspaceCard", () => {
           id: "2",
           name: "리서치",
           folderId: null,
-          updatedAt: "2026-08-31T21:00:00",
+          updatedAt: "2026-08-31T12:00:00.000000Z",
         }}
       />,
     );
@@ -26,6 +26,15 @@ describe("WorkspaceCard", () => {
     expect(
       screen.getByRole("link", { name: "리서치 워크스페이스 열기" }),
     ).toHaveAttribute("href", "/workspace/2");
+  });
+
+  /*
+  서버는 UTC 시각을 준다. vitest.config.ts가 TZ를 Asia/Seoul로 고정하므로 9시간 뒤로 표시된다.
+  */
+  it("수정 시각을 사용자 시간대로 표시한다", () => {
+    render(<WorkspaceCard workspace={WORKSPACE} />);
+
+    expect(screen.getByText("Modified 2026-08-31 21:00")).toBeInTheDocument();
   });
 
   /*

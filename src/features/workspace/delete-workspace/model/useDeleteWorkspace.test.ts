@@ -14,14 +14,14 @@ const WORKSPACE_IN_FOLDER: WorkspaceItem = {
   id: "2",
   name: "Workspace In Folder",
   folderId: "3",
-  updatedAt: "2026-08-30T09:00:00",
+  updatedAt: "2026-08-30T00:00:00.000000Z",
 };
 
 const ROOT_WORKSPACE: WorkspaceItem = {
   id: "1",
   name: "Root Workspace",
   folderId: null,
-  updatedAt: "2026-08-31T21:00:00",
+  updatedAt: "2026-08-31T12:00:00.000000Z",
 };
 
 const renderUseDeleteWorkspace = () => {
