@@ -13,7 +13,7 @@ const createWorkspaceDto = (
   name: "Workspace",
   folderId: 3,
   treeId: 7,
-  updatedAt: "2026-08-31T21:00:00",
+  updatedAt: "2026-08-31T12:00:00.000000Z",
   ...overrides,
 });
 
@@ -23,10 +23,12 @@ describe("mapWorkspaceDtoToDomain", () => {
   });
 
   it("updatedAt은 서버 값을 그대로 싣는다", () => {
-    const dto = createWorkspaceDto({ updatedAt: "2026-01-05T09:07:00.123" });
+    const dto = createWorkspaceDto({
+      updatedAt: "2026-10-03T07:10:15.471525587Z",
+    });
 
     expect(mapWorkspaceDtoToDomain(dto).updatedAt).toBe(
-      "2026-01-05T09:07:00.123",
+      "2026-10-03T07:10:15.471525587Z",
     );
   });
 
@@ -38,7 +40,7 @@ describe("mapWorkspaceDtoToDomain", () => {
       id: "12",
       name: "Workspace",
       folderId: "3",
-      updatedAt: "2026-08-31T21:00:00",
+      updatedAt: "2026-08-31T12:00:00.000000Z",
     });
   });
 
@@ -58,7 +60,7 @@ describe("mapWorkspaceDetailDtoToDomain", () => {
       id: "12",
       name: "Workspace",
       folderId: "3",
-      updatedAt: "2026-08-31T21:00:00",
+      updatedAt: "2026-08-31T12:00:00.000000Z",
       treeId: "7",
     });
   });

@@ -60,13 +60,13 @@ export const RAW_WORKSPACE_DATA: WorkspaceDTO[] = [
     name: "Root Workspace",
     folderId: null,
     treeId: 10,
-    updatedAt: "2026-08-31T21:00:00",
+    updatedAt: "2026-08-31T12:00:00.000000Z",
   },
   {
     workspaceId: 2,
     name: "Workspace In Folder",
     folderId: 3,
     treeId: null,
-    updatedAt: "2026-08-30T09:00:00",
+    updatedAt: "2026-08-30T00:00:00.000000Z",
   },
 ];

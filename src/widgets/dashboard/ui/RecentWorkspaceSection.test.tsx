@@ -24,7 +24,7 @@ const workspace = {
   id: "1",
   name: "최근 수정",
   folderId: null,
-  updatedAt: "2026-08-31T21:00:00",
+  updatedAt: "2026-08-31T12:00:00.000000Z",
 };
 
 describe("RecentWorkspaceSection", () => {

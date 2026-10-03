@@ -20,7 +20,7 @@ describe("useCreateWorkspaceMutation", () => {
       id: "999",
       name: "Workspace",
       folderId: null,
-      updatedAt: "2026-09-07T00:00:00",
+      updatedAt: "2026-09-06T15:00:00.000000Z",
     });
   });
 

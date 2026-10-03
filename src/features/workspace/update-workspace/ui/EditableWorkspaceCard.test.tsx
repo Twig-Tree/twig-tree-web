@@ -14,7 +14,7 @@ const WORKSPACE: WorkspaceItem = {
   id: "2",
   name: "Workspace In Folder",
   folderId: "3",
-  updatedAt: "2026-08-30T09:00:00",
+  updatedAt: "2026-08-30T00:00:00.000000Z",
 };
 
 /*
@@ -72,14 +72,14 @@ describe("EditableWorkspaceCard", () => {
                 name: "Workspace In Folder",
                 folderId: 3,
                 treeId: null,
-                updatedAt: "2026-08-30T09:00:00",
+                updatedAt: "2026-08-30T00:00:00.000000Z",
               },
               {
                 workspaceId: 5,
                 name: "Sibling",
                 folderId: 3,
                 treeId: null,
-                updatedAt: "2026-08-29T09:00:00",
+                updatedAt: "2026-08-29T00:00:00.000000Z",
               },
             ],
           },
@@ -117,7 +117,7 @@ describe("EditableWorkspaceCard", () => {
               name: "새 이름",
               folderId: 3,
               treeId: null,
-              updatedAt: "2026-09-24T00:00:00",
+              updatedAt: "2026-09-23T15:00:00.000000Z",
             },
           },
           { status: 200 },

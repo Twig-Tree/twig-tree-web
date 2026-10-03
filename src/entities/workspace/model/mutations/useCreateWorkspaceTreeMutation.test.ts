@@ -38,7 +38,7 @@ describe("useCreateWorkspaceTreeMutation", () => {
     queryClient.setQueryData(workspaceQueryKeys.detail("1"), {
       id: "1",
       name: "Root Workspace",
-      updatedAt: "2026-08-31T21:00:00",
+      updatedAt: "2026-08-31T12:00:00.000000Z",
       treeId: null,
     });
 
@@ -65,7 +65,7 @@ describe("useCreateWorkspaceTreeMutation", () => {
     const workspace = {
       id: "2",
       name: "Workspace In Folder",
-      updatedAt: "2026-08-30T09:00:00",
+      updatedAt: "2026-08-30T00:00:00.000000Z",
       treeId: null,
     };
     queryClient.setQueryData(workspaceQueryKeys.detail("2"), workspace);

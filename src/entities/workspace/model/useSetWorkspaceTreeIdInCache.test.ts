@@ -10,7 +10,7 @@ describe("useSetWorkspaceTreeIdInCache", () => {
     queryClient.setQueryData(workspaceQueryKeys.detail("2"), {
       id: "2",
       name: "Workspace In Folder",
-      updatedAt: "2026-08-30T09:00:00",
+      updatedAt: "2026-08-30T00:00:00.000000Z",
       treeId: null,
     });
 
@@ -23,7 +23,7 @@ describe("useSetWorkspaceTreeIdInCache", () => {
     expect(queryClient.getQueryData(workspaceQueryKeys.detail("2"))).toEqual({
       id: "2",
       name: "Workspace In Folder",
-      updatedAt: "2026-08-30T09:00:00",
+      updatedAt: "2026-08-30T00:00:00.000000Z",
       treeId: "20",
     });
   });

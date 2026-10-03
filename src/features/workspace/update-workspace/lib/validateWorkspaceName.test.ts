@@ -10,13 +10,13 @@ const workspaces: WorkspaceItem[] = [
     id: "1",
     name: "Research",
     folderId: "3",
-    updatedAt: "2026-08-31T21:00:00",
+    updatedAt: "2026-08-31T12:00:00.000000Z",
   },
   {
     id: "2",
     name: "재즈 역사",
     folderId: "3",
-    updatedAt: "2026-08-30T09:00:00",
+    updatedAt: "2026-08-30T00:00:00.000000Z",
   },
 ];
 

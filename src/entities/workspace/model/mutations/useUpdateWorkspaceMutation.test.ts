@@ -25,7 +25,7 @@ describe("useUpdateWorkspaceMutation", () => {
       id: "1",
       name: "새 이름",
       folderId: null,
-      updatedAt: "2026-09-22T00:00:00",
+      updatedAt: "2026-09-21T15:00:00.000000Z",
       treeId: "10",
     });
   });
@@ -53,7 +53,7 @@ describe("useUpdateWorkspaceMutation", () => {
       id: "1",
       name: "Root Workspace",
       folderId: null,
-      updatedAt: "2026-08-31T21:00:00",
+      updatedAt: "2026-08-31T12:00:00.000000Z",
       treeId: "10",
     });
 
@@ -73,7 +73,7 @@ describe("useUpdateWorkspaceMutation", () => {
       id: "1",
       name: "새 이름",
       folderId: null,
-      updatedAt: "2026-09-22T00:00:00",
+      updatedAt: "2026-09-21T15:00:00.000000Z",
       treeId: "10",
     });
   });

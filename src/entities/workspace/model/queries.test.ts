@@ -23,7 +23,7 @@ describe("useGetWorkspaceListQuery", () => {
         id: "1",
         name: "Root Workspace",
         folderId: null,
-        updatedAt: "2026-08-31T21:00:00",
+        updatedAt: "2026-08-31T12:00:00.000000Z",
       },
     ]);
   });
@@ -41,7 +41,7 @@ describe("useGetWorkspaceListQuery", () => {
         id: "2",
         name: "Workspace In Folder",
         folderId: "3",
-        updatedAt: "2026-08-30T09:00:00",
+        updatedAt: "2026-08-30T00:00:00.000000Z",
       },
     ]);
   });
@@ -94,7 +94,7 @@ describe("useGetWorkspaceQuery", () => {
       id: "1",
       name: "Root Workspace",
       folderId: null,
-      updatedAt: "2026-08-31T21:00:00",
+      updatedAt: "2026-08-31T12:00:00.000000Z",
       treeId: "10",
     });
   });
@@ -136,13 +136,13 @@ describe("useGetRecentWorkspaceListQuery", () => {
         id: "1",
         name: "Root Workspace",
         folderId: null,
-        updatedAt: "2026-08-31T21:00:00",
+        updatedAt: "2026-08-31T12:00:00.000000Z",
       },
       {
         id: "2",
         name: "Workspace In Folder",
         folderId: "3",
-        updatedAt: "2026-08-30T09:00:00",
+        updatedAt: "2026-08-30T00:00:00.000000Z",
       },
     ]);
   });
