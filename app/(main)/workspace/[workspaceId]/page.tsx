@@ -7,6 +7,7 @@ import {
   useEditorLayout,
   useInitializeTree,
   useReactFlowStoreSetters,
+  useSyncCollapseAcrossTabs,
   useTreeEditorActions,
   useTreeHistory,
   useTreeStore,
@@ -65,6 +66,8 @@ function LayoutFlow({ workspaceId, treeId }: LayoutFlowProps) {
     treeData,
     clear,
   });
+
+  useSyncCollapseAcrossTabs();
 
   useEditorLayout(nodes, edges, setNodes);
 
