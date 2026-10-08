@@ -16,6 +16,7 @@ import { use, useEffect, useState } from "react";
 import { useGetTreeQuery } from "@/src/entities/tree/model/queries";
 import { useGetWorkspaceQuery } from "@/src/entities/workspace";
 import { isClientError } from "@/src/shared/api/httpErrors";
+import { isValidApiId } from "@/src/shared/lib/validation/isValidApiId";
 import { WorkspaceHeader, WorkspaceLoadError } from "@/src/widgets/workspace";
 
 interface LayoutFlowProps {
@@ -171,6 +172,14 @@ interface WorkspacePageProps {
 
 export default function WorkspacePage({ params }: WorkspacePageProps) {
   const { workspaceId } = use(params);
+
+  /*
+  주소창에서 온 ID라 형식부터 검사한다. 잘못되면 하위 화면을 그리지 않아 조회 요청 자체가 만들어지지 않는다.
+  형식이 틀린 ID도 사용자에게는 없는 워크스페이스와 같으므로 서버 404와 같은 안내를 쓴다.
+  */
+  if (!isValidApiId(workspaceId)) {
+    return <WorkspaceLoadError isNotFound />;
+  }
 
   return (
     // App Router의 클라이언트 내비게이션에서는 컴포넌트 상태가 보존될 수 있다.

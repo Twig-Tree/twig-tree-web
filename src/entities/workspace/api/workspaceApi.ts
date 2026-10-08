@@ -3,8 +3,12 @@ import {
   CreateWorkspaceRequest,
   CreateWorkspaceResponse,
   CreateWorkspaceTreeResponse,
+  DeleteWorkspaceResponse,
+  GetRecentWorkspaceListResponse,
   GetWorkspaceListResponse,
   GetWorkspaceResponse,
+  UpdateWorkspaceRequest,
+  UpdateWorkspaceResponse,
 } from "@/src/entities/workspace/api/types";
 import {
   mapWorkspaceDetailDtoToDomain,
@@ -38,6 +42,22 @@ export const workspaceApi = {
   },
 
   /*
+  함수 이름 : getRecentWorkspaceList
+  기능 : 폴더와 무관하게 내 워크스페이스 전체를 조회한다. 정렬은 서버가 수정 시각 내림차순으로 해 준다.
+  인자 : 없음
+  반환값 : 워크스페이스 목록
+
+  지금은 개수 제한 없이 전체를 받는다. 백엔드에 페이지네이션이 붙으면 인자와 응답 모양이 바뀐다(#91).
+  */
+  getRecentWorkspaceList: async (): Promise<WorkspaceItem[]> => {
+    const response =
+      await axiosInstance.get<GetRecentWorkspaceListResponse>(
+        "/workspaces/recent",
+      );
+    return mapWorkspaceListDtoToDomain(response.data.data);
+  },
+
+  /*
   함수 이름 : getWorkspace
   기능 : 워크스페이스 ID로 워크스페이스 하나를 조회한다. 목록과 같은 DTO지만 treeId까지 싣는 상세 mapper를 쓴다.
   인자 : number workspaceId -> 조회할 워크스페이스 ID
@@ -64,6 +84,36 @@ export const workspaceApi = {
       body,
     );
     return mapWorkspaceDtoToDomain(response.data.data);
+  },
+
+  /*
+  함수 이름 : updateWorkspace
+  기능 : 워크스페이스 이름을 수정한다. 응답이 조회와 같은 DTO라 treeId까지 싣는 상세 mapper를 쓴다.
+  인자 : number workspaceId -> 수정할 워크스페이스 ID
+  UpdateWorkspaceRequest body -> 바꿀 이름
+  반환값 : 수정된 워크스페이스
+  */
+  updateWorkspace: async (
+    workspaceId: number,
+    body: UpdateWorkspaceRequest,
+  ): Promise<WorkspaceDetail> => {
+    const response = await axiosInstance.patch<UpdateWorkspaceResponse>(
+      `/workspaces/${workspaceId}`,
+      body,
+    );
+    return mapWorkspaceDetailDtoToDomain(response.data.data);
+  },
+
+  /*
+  함수 이름 : deleteWorkspace
+  기능 : 워크스페이스를 삭제한다. 워크스페이스에 속한 트리와 노드도 서버에서 함께 삭제된다.
+  인자 : number workspaceId -> 삭제할 워크스페이스 ID
+  반환값 : 없음
+  */
+  deleteWorkspace: async (workspaceId: number): Promise<void> => {
+    await axiosInstance.delete<DeleteWorkspaceResponse>(
+      `/workspaces/${workspaceId}`,
+    );
   },
 
   /*

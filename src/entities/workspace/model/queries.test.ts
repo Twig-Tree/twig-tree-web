@@ -1,7 +1,11 @@
 import { renderHook, waitFor } from "@testing-library/react";
 import { describe, it, expect } from "vitest";
 import { createQueryWrapper } from "@/src/tests/helpers/createQueryWrapper";
-import { useGetWorkspaceListQuery, useGetWorkspaceQuery } from "./queries";
+import {
+  useGetRecentWorkspaceListQuery,
+  useGetWorkspaceListQuery,
+  useGetWorkspaceQuery,
+} from "./queries";
 
 const renderWorkspaceListQuery = (folderId: string | null) =>
   renderHook(() => useGetWorkspaceListQuery(folderId), {
@@ -15,7 +19,12 @@ describe("useGetWorkspaceListQuery", () => {
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
 
     expect(result.current.data).toEqual([
-      { id: "1", name: "Root Workspace", updatedAt: "2026-08-31T21:00:00" },
+      {
+        id: "1",
+        name: "Root Workspace",
+        folderId: null,
+        updatedAt: "2026-08-31T12:00:00.000000Z",
+      },
     ]);
   });
 
@@ -31,7 +40,8 @@ describe("useGetWorkspaceListQuery", () => {
       {
         id: "2",
         name: "Workspace In Folder",
-        updatedAt: "2026-08-30T09:00:00",
+        folderId: "3",
+        updatedAt: "2026-08-30T00:00:00.000000Z",
       },
     ]);
   });
@@ -83,7 +93,8 @@ describe("useGetWorkspaceQuery", () => {
     expect(result.current.data).toEqual({
       id: "1",
       name: "Root Workspace",
-      updatedAt: "2026-08-31T21:00:00",
+      folderId: null,
+      updatedAt: "2026-08-31T12:00:00.000000Z",
       treeId: "10",
     });
   });
@@ -106,5 +117,33 @@ describe("useGetWorkspaceQuery", () => {
     await waitFor(() => expect(result.current.isError).toBe(true));
 
     expect(result.current.failureCount).toBe(1);
+  });
+});
+
+describe("useGetRecentWorkspaceListQuery", () => {
+  /*
+  폴더별 목록 핸들러는 folderId가 없으면 루트 것만 돌려주므로, 엔드포인트를 잘못 부르면 폴더 안의 항목이 빠져 이 검사가 실패한다.
+  */
+  it("폴더와 무관하게 전체를 서버가 준 순서대로 돌려준다", async () => {
+    const { result } = renderHook(() => useGetRecentWorkspaceListQuery(), {
+      wrapper: createQueryWrapper().wrapper,
+    });
+
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+
+    expect(result.current.data).toEqual([
+      {
+        id: "1",
+        name: "Root Workspace",
+        folderId: null,
+        updatedAt: "2026-08-31T12:00:00.000000Z",
+      },
+      {
+        id: "2",
+        name: "Workspace In Folder",
+        folderId: "3",
+        updatedAt: "2026-08-30T00:00:00.000000Z",
+      },
+    ]);
   });
 });

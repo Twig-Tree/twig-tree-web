@@ -1,26 +1,21 @@
 "use client";
 
-import type { WorkspaceItem } from "@/src/entities/workspace";
+import { useGetRecentWorkspaceListQuery } from "@/src/entities/workspace";
 import { PromptComposer } from "@/src/features/prompt/compose-prompt";
 import { useCreateWorkspaceFromPrompt } from "@/src/features/prompt/create-workspace-from-prompt";
 import { routes } from "@/src/shared/config/routes";
 import {
   DashboardHero,
+  RECENT_WORKSPACE_DISPLAY_COUNT,
   RecentWorkspaceSection,
   TreeCreatingNotice,
 } from "@/src/widgets/dashboard";
 
-/*
-최근 워크스페이스 조회 API를 연동하기 전까지 사용하는 임시 목록.
-연동 시 useGetRecentWorkspaceListQuery의 결과로 교체한다.
-*/
-const recentWorkspaces: WorkspaceItem[] = [
-  { id: "1", name: "Recent Workspace 1", updatedAt: "2026-08-31T21:00:00" },
-  { id: "2", name: "Recent Workspace 2", updatedAt: "2026-08-31T18:00:00" },
-  { id: "3", name: "Recent Workspace 3", updatedAt: "2026-08-30T09:00:00" },
-];
-
 export default function DashboardPage() {
+  /*
+  최신순 화면과 같은 query라 캐시를 함께 쓴다. 두 화면을 오가도 조회가 겹치지 않는다.
+  */
+  const recentWorkspaceListQuery = useGetRecentWorkspaceListQuery();
   const { createWorkspaceFromPrompt, isCreatingWorkspaceFromPrompt } =
     useCreateWorkspaceFromPrompt();
 
@@ -30,8 +25,14 @@ export default function DashboardPage() {
         <DashboardHero />
 
         <RecentWorkspaceSection
-          workspaces={recentWorkspaces}
+          isError={recentWorkspaceListQuery.isError}
+          isLoaded={recentWorkspaceListQuery.isSuccess}
+          isLoading={recentWorkspaceListQuery.isLoading}
           viewAllHref={routes.recent}
+          workspaces={(recentWorkspaceListQuery.data ?? []).slice(
+            0,
+            RECENT_WORKSPACE_DISPLAY_COUNT,
+          )}
         />
       </div>
 

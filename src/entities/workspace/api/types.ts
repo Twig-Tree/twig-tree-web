@@ -20,9 +20,22 @@ export interface CreateWorkspaceRequest {
 }
 
 /**
+ * 워크스페이스 이름 수정 요청 body type
+ */
+export interface UpdateWorkspaceRequest {
+  name: string;
+}
+
+/**
  * 워크스페이스 목록 조회 응답 type
  */
 export type GetWorkspaceListResponse = ApiResponse<WorkspaceDTO[]>;
+
+/**
+ * 최신순 워크스페이스 목록 조회 응답 type
+ * 지금은 폴더별 목록과 모양이 같지만, 페이지네이션(#91)이 붙으면 이 응답만 래퍼로 바뀐다.
+ */
+export type GetRecentWorkspaceListResponse = ApiResponse<WorkspaceDTO[]>;
 
 /**
  * 워크스페이스 상세 조회 응답 type
@@ -33,6 +46,18 @@ export type GetWorkspaceResponse = ApiResponse<WorkspaceDTO>;
  * 워크스페이스 생성 응답 type
  */
 export type CreateWorkspaceResponse = ApiResponse<WorkspaceDTO>;
+
+/**
+ * 워크스페이스 이름 수정 응답 type
+ * 조회와 같은 DTO라 treeId까지 모두 담겨 온다.
+ */
+export type UpdateWorkspaceResponse = ApiResponse<WorkspaceDTO>;
+
+/**
+ * 워크스페이스 삭제 응답 type
+ * 본문에 데이터가 없다.
+ */
+export type DeleteWorkspaceResponse = ApiResponse<void>;
 
 /**
  * 워크스페이스 트리 생성 응답 type

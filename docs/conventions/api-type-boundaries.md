@@ -11,6 +11,7 @@
 - API 함수의 인자와 요청 DTO는 백엔드 타입만 사용한다.
 - query와 mutation의 공개 인자는 프론트엔드 타입을 사용한다.
 - query와 mutation은 API 호출 직전에 프론트엔드 타입을 백엔드 타입으로 변환한다.
+- ID 형식 검증은 신뢰할 수 없는 값이 들어오는 경계에서 한다. 라우트 파라미터는 페이지, mutation 입력은 feature hook이 검사한다.
 - API 응답은 mapper를 통해 백엔드 DTO에서 프론트엔드 도메인 모델로 변환한다.
 - query key에는 프론트엔드 타입을 사용한다.
 
@@ -113,16 +114,53 @@ export const mapFolderDtoToDomain = (dto: FolderDTO): FolderItem => ({
 
 ## 유효성 검사
 
-문자열을 숫자로 변환한 후 API를 호출하기 전에 유효성을 검사한다.
+검증은 신뢰할 수 없는 문자열이 들어오는 경계에서 한다. 사용자가 주소창에 아무 값이나 넣을 수 있는 라우트 파라미터가 그 경계다.
+
+| ID 출처                      | 검증 위치                           |
+| ---------------------------- | ----------------------------------- |
+| 라우트 파라미터              | 파라미터를 읽는 페이지              |
+| mutation에 넘기는 화면 상태  | 그 mutation을 호출하는 feature hook |
+| mapper가 만든 ID (서버 응답) | 다시 검증하지 않는다                |
+
+### 페이지
+
+페이지는 `use(params)` 직후 형식을 검사하고, 잘못되면 하위 화면을 렌더하지 않는다. 하위 화면이 없으면 query도 만들어지지 않아 요청이 나가지 않는다. 형식이 틀린 ID도 사용자에게는 없는 리소스와 같으므로 서버 404와 같은 안내를 보여준다.
+
+```tsx
+const { workspaceId } = use(params);
+
+if (!isValidApiId(workspaceId)) {
+  return <WorkspaceLoadError isNotFound />;
+}
+```
+
+### Query와 mutation
+
+Query는 형식을 검사하지 않는다. `enabled`와 `skipToken`은 앞선 조회 결과를 기다리는 것처럼 "아직 조회할 때가 아님"을 표현할 때만 쓴다. 검증에 쓰면 query가 로딩도 오류도 아닌 상태로 멈춰, 검사를 빠뜨린 호출부의 실수가 드러나지 않는다.
+
+폴더 query들의 `enabled: isValidFolderId`는 이 규칙보다 먼저 있던 코드다. 디렉토리 페이지가 검사를 맡았으므로 #73에서 `useSuspenseQuery`로 바꿀 때 함께 걷어낸다.
+
+Mutation도 변환만 한다. 입력 검증은 feature hook이 맡는다. 앞의 [Mutation](#mutation) 절과 같다.
+
+### 형식 기준
+
+ID는 `shared/lib/validation`의 `isValidApiId`로 검사한다. 문자열이 그대로 0으로 시작하지 않는 10진수 양의 안전정수일 때만 통과한다.
+
+`Number()`의 결과로 판단하지 않는다. `Number()`는 `"1e3"`, `"0x10"`, `"012"`, `" 12"`를 모두 정수로 읽는다. 이런 값이 통과하면 URL과 다른 ID로 요청이 나가고, 같은 리소스가 다른 query key로 캐시에 갈린다.
 
 ```ts
-const apiFolderParentId =
-  folderParentId === null ? null : Number(folderParentId);
-
-const isValidFolderParentId =
-  apiFolderParentId === null ||
-  (Number.isSafeInteger(apiFolderParentId) && apiFolderParentId > 0);
+isValidApiId("12"); // true
+isValidApiId("1e3"); // false — Number("1e3")은 1000
 ```
+
+부모 없음을 `null`로 표현하는 ID는 `null` 확인을 먼저 한다.
+
+```ts
+export const isValidFolderId = (folderId: string | null): boolean =>
+  folderId === null || isValidApiId(folderId);
+```
+
+### `null`과 숫자 변환
 
 `null` 여부를 반드시 숫자 변환보다 먼저 확인한다.
 
@@ -175,13 +213,13 @@ memo: dto.memo;
 
 ## 책임 요약
 
-| 계층              | 사용하는 ID 타입 | 책임                           |
-| ----------------- | ---------------- | ------------------------------ |
-| 페이지·피처       | `string \| null` | URL 및 화면 상태 사용          |
-| Query key         | `string \| null` | 프론트 캐시 식별               |
-| Query·Mutation    | 양쪽 타입        | 검증 및 요청 직전 변환         |
-| API 함수·요청 DTO | `number \| null` | 백엔드 계약 표현               |
-| 응답 DTO          | `number \| null` | 백엔드 응답 표현               |
-| Mapper            | 양쪽 타입        | DTO를 도메인 모델로 변환       |
-| 도메인 모델       | `string \| null` | 프론트엔드에서 사용            |
-| 화면 전용 타입    | `string \| null` | 도메인 데이터에 화면 상태 결합 |
+| 계층              | 사용하는 ID 타입 | 책임                             |
+| ----------------- | ---------------- | -------------------------------- |
+| 페이지·피처       | `string \| null` | URL 및 화면 상태 사용, 입력 검증 |
+| Query key         | `string \| null` | 프론트 캐시 식별                 |
+| Query·Mutation    | 양쪽 타입        | 요청 직전 변환                   |
+| API 함수·요청 DTO | `number \| null` | 백엔드 계약 표현                 |
+| 응답 DTO          | `number \| null` | 백엔드 응답 표현                 |
+| Mapper            | 양쪽 타입        | DTO를 도메인 모델로 변환         |
+| 도메인 모델       | `string \| null` | 프론트엔드에서 사용              |
+| 화면 전용 타입    | `string \| null` | 도메인 데이터에 화면 상태 결합   |

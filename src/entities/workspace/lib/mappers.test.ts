@@ -13,7 +13,7 @@ const createWorkspaceDto = (
   name: "Workspace",
   folderId: 3,
   treeId: 7,
-  updatedAt: "2026-08-31T21:00:00",
+  updatedAt: "2026-08-31T12:00:00.000000Z",
   ...overrides,
 });
 
@@ -23,23 +23,34 @@ describe("mapWorkspaceDtoToDomain", () => {
   });
 
   it("updatedAt은 서버 값을 그대로 싣는다", () => {
-    const dto = createWorkspaceDto({ updatedAt: "2026-01-05T09:07:00.123" });
+    const dto = createWorkspaceDto({
+      updatedAt: "2026-10-03T07:10:15.471525587Z",
+    });
 
     expect(mapWorkspaceDtoToDomain(dto).updatedAt).toBe(
-      "2026-01-05T09:07:00.123",
+      "2026-10-03T07:10:15.471525587Z",
     );
   });
 
   /*
-  목록이 이미 폴더 기준으로 조회되므로 화면이 folderId를 쓸 일이 없다.
-  도메인 모델에 넣지 않기로 한 결정을 여기서 고정한다.
+  treeId는 목록 카드가 쓰지 않으므로 상세 모델에만 싣는다.
   */
-  it("folderId와 treeId는 도메인 모델로 옮기지 않는다", () => {
+  it("folderId를 문자열로 바꿔 싣고 treeId는 옮기지 않는다", () => {
     expect(mapWorkspaceDtoToDomain(createWorkspaceDto())).toEqual({
       id: "12",
       name: "Workspace",
-      updatedAt: "2026-08-31T21:00:00",
+      folderId: "3",
+      updatedAt: "2026-08-31T12:00:00.000000Z",
     });
+  });
+
+  /*
+  String(null)은 "null"이라, null 확인이 빠지면 루트의 워크스페이스가 "null" 폴더에 든 것처럼 된다.
+  */
+  it("루트에 있으면 folderId를 null로 둔다", () => {
+    const dto = createWorkspaceDto({ folderId: null });
+
+    expect(mapWorkspaceDtoToDomain(dto).folderId).toBeNull();
   });
 });
 
@@ -48,7 +59,8 @@ describe("mapWorkspaceDetailDtoToDomain", () => {
     expect(mapWorkspaceDetailDtoToDomain(createWorkspaceDto())).toEqual({
       id: "12",
       name: "Workspace",
-      updatedAt: "2026-08-31T21:00:00",
+      folderId: "3",
+      updatedAt: "2026-08-31T12:00:00.000000Z",
       treeId: "7",
     });
   });

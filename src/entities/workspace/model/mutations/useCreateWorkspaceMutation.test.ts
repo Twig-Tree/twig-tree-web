@@ -19,7 +19,8 @@ describe("useCreateWorkspaceMutation", () => {
     expect(result.current.data).toEqual({
       id: "999",
       name: "Workspace",
-      updatedAt: "2026-09-07T00:00:00",
+      folderId: null,
+      updatedAt: "2026-09-06T15:00:00.000000Z",
     });
   });
 
@@ -82,5 +83,26 @@ describe("useCreateWorkspaceMutation", () => {
       queryClient.getQueryState(workspaceQueryKeys.listByFolder(null))
         ?.isInvalidated,
     ).toBe(false);
+  });
+
+  /*
+  최신순 목록은 폴더를 가리지 않으므로 폴더 안에 만들어도 낡는다.
+  */
+  it("최신순 워크스페이스 목록 캐시를 무효화한다", async () => {
+    const { queryClient, wrapper } = createQueryWrapper();
+    queryClient.setQueryData(workspaceQueryKeys.recent(), []);
+
+    const { result } = renderHook(() => useCreateWorkspaceMutation(), {
+      wrapper,
+    });
+
+    result.current.mutate({ name: "Workspace", folderId: "3" });
+
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+    await waitFor(() =>
+      expect(
+        queryClient.getQueryState(workspaceQueryKeys.recent())?.isInvalidated,
+      ).toBe(true),
+    );
   });
 });

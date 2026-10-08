@@ -92,4 +92,25 @@ describe("useCreateTreeFromPromptMutation", () => {
         ?.isInvalidated,
     ).toBe(false);
   });
+
+  /*
+  프롬프트로 만든 워크스페이스도 최신순 목록 맨 위에 생긴다.
+  */
+  it("최신순 워크스페이스 목록 캐시를 무효화한다", async () => {
+    const { queryClient, wrapper } = createQueryWrapper();
+    queryClient.setQueryData(workspaceQueryKeys.recent(), []);
+
+    const { result } = renderHook(() => useCreateTreeFromPromptMutation(), {
+      wrapper,
+    });
+
+    result.current.mutate({ message: "자료구조 트리 만들어줘" });
+
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+    await waitFor(() =>
+      expect(
+        queryClient.getQueryState(workspaceQueryKeys.recent())?.isInvalidated,
+      ).toBe(true),
+    );
+  });
 });

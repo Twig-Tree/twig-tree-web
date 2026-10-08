@@ -4,34 +4,41 @@ import { FolderCard, type FolderItem } from "@/src/entities/folder";
 import { useDeleteFolder } from "@/src/features/folder/delete-folder";
 import { EditableFolderCard } from "@/src/features/folder/update-folder";
 import { WorkspaceCard, type WorkspaceItem } from "@/src/entities/workspace";
-import { DirectoryContentsSkeleton } from "./DirectoryContentsSkeleton";
+import { useDeleteWorkspace } from "@/src/features/workspace/delete-workspace";
+import { EditableWorkspaceCard } from "@/src/features/workspace/update-workspace";
+import { CardGridSkeleton } from "@/src/shared/ui/card-grid-skeleton";
 
 interface DirectoryContentsGridProps {
   editingFolderId: string | null;
+  editingWorkspaceId: string | null; // 이름을 수정 중인 워크스페이스 ID. 폴더 ID와 값이 겹칠 수 있어 따로 받는다
   folderParentId: string | null;
   folders: FolderItem[];
   isError: boolean; // 폴더와 워크스페이스 목록 중 하나라도 조회에 실패했는지 여부
   isLoading: boolean; // 두 목록 중 하나라도 조회 중인지 여부
   isLoaded: boolean; // 두 목록이 모두 도착했는지 여부. 빈 상태 안내를 언제 보여줄지 정한다
-  onEditingStart: (folderId: string) => void;
-  onEditingEnd: () => void;
+  onFolderEditingStart: (folderId: string) => void;
+  onEditingEnd: () => void; // 폴더와 워크스페이스 편집 모두 끝낼 때 부른다
+  onWorkspaceEditingStart: (workspaceId: string) => void;
   workspaces: WorkspaceItem[];
 }
 
 export function DirectoryContentsGrid({
   editingFolderId,
+  editingWorkspaceId,
   folderParentId,
   folders,
   isError,
   isLoaded,
   isLoading,
-  onEditingStart,
+  onFolderEditingStart: onEditingStart,
   onEditingEnd,
+  onWorkspaceEditingStart,
   workspaces,
 }: DirectoryContentsGridProps) {
   const { deleteFolder, isDeletingFolder } = useDeleteFolder({
     folderParentId,
   });
+  const { deleteWorkspace, isDeletingWorkspace } = useDeleteWorkspace();
 
   /*
   한쪽만 실패해도 아무것도 그리지 않는다. 성공한 쪽만 그리면 실패한 쪽이
@@ -54,7 +61,7 @@ export function DirectoryContentsGrid({
   isLoaded만 보면 조회를 시작하지도 않은 화면에 자리표시자가 계속 남는다.
   */
   if (isLoading) {
-    return <DirectoryContentsSkeleton />;
+    return <CardGridSkeleton ariaLabel="Directory contents" />;
   }
 
   /*
@@ -92,23 +99,36 @@ export function DirectoryContentsGrid({
           <FolderCard
             key={folder.id}
             folder={folder}
-            onDelete={
-              isDeletingFolder
-                ? undefined
-                : () => {
-                    void deleteFolder({
-                      folderId: folder.id,
-                      name: folder.name,
-                    });
-                  }
-            }
+            isDeleteDisabled={isDeletingFolder}
+            onDelete={() => {
+              void deleteFolder({
+                folderId: folder.id,
+                name: folder.name,
+              });
+            }}
             onRename={() => onEditingStart(folder.id)}
           />
         ),
       )}
-      {workspaces.map((workspace) => (
-        <WorkspaceCard key={workspace.id} workspace={workspace} />
-      ))}
+      {workspaces.map((workspace) =>
+        workspace.id === editingWorkspaceId ? (
+          <EditableWorkspaceCard
+            key={workspace.id}
+            workspace={workspace}
+            onEditingEnd={onEditingEnd}
+          />
+        ) : (
+          <WorkspaceCard
+            key={workspace.id}
+            workspace={workspace}
+            isDeleteDisabled={isDeletingWorkspace}
+            onDelete={() => {
+              void deleteWorkspace(workspace);
+            }}
+            onRename={() => onWorkspaceEditingStart(workspace.id)}
+          />
+        ),
+      )}
     </section>
   );
 }

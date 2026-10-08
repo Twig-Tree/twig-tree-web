@@ -1,6 +1,7 @@
 export type WorkspaceItem = {
   id: string;
   name: string;
+  folderId: string | null; // 속한 폴더 ID. 루트에 있으면 null
   updatedAt: string; // 서버가 준 ISO 문자열. 표시 형식은 UI 경계에서 만든다
 };
 

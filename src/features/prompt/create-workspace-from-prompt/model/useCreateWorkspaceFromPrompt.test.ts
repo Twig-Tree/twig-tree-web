@@ -107,7 +107,7 @@ describe("useCreateWorkspaceFromPrompt", () => {
     const alertSpy = vi.spyOn(window, "alert").mockImplementation(() => {});
     respondWithError(
       400,
-      "파일 크기가 상한을 초과했습니다. (txt·md 1MB, pdf·docx·hwp·hwpx 10MB)",
+      "파일 크기가 상한을 초과했습니다. 모든 지원 형식은 25MB까지 업로드할 수 있습니다.",
     );
 
     const { wrapper } = createQueryWrapper();
@@ -120,7 +120,7 @@ describe("useCreateWorkspaceFromPrompt", () => {
     ).rejects.toThrow();
 
     expect(alertSpy).toHaveBeenCalledWith(
-      "파일 크기가 상한을 초과했습니다. (txt·md 1MB, pdf·docx·hwp·hwpx 10MB)",
+      "파일 크기가 상한을 초과했습니다. 모든 지원 형식은 25MB까지 업로드할 수 있습니다.",
     );
   });
 

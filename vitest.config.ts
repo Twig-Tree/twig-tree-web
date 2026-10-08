@@ -23,10 +23,16 @@ export default defineConfig({
 
     각자의 .env나 셸 상태에 따라 결과가 달라지지 않도록 셸 환경을 읽지 않고 여기에 고정한다.
     msw 핸들러가 경로를 와일드카드로 받으므로 실제 주소일 필요는 없다.
+
+    TZ도 같은 이유로 고정한다. 서버 시각은 UTC로 오고 화면은 실행 환경의 시간대로
+    표시하므로, 고정하지 않으면 표시 값을 단정하는 테스트가 기기마다 다르게 끝난다.
+    UTC가 아니라 Asia/Seoul인 것은 변환이 실제로 일어나는지 드러내기 위해서다.
+    일광절약시간이 없어 날짜와 무관하게 결과가 정해진다.
     */
     env: {
       NEXT_PUBLIC_API_BASE_URL: "http://localhost/api",
       NEXT_PUBLIC_AUTH_MODE: "optional",
+      TZ: "Asia/Seoul",
     },
   },
   resolve: {

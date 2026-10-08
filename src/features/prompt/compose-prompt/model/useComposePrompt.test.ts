@@ -1,6 +1,6 @@
 import { act, renderHook } from "@testing-library/react";
 import { describe, it, expect, vi } from "vitest";
-import { MAX_DOCUMENT_ATTACHMENT_SIZE_BYTES } from "@/src/entities/attachment";
+import { MAX_ATTACHMENT_SIZE_BYTES } from "@/src/entities/attachment";
 import { MAX_PROMPT_MESSAGE_LENGTH } from "@/src/entities/tree";
 import { createFile, createFileOfSize } from "@/src/tests/helpers/createFile";
 import { useComposePrompt } from "./useComposePrompt";
@@ -83,7 +83,7 @@ describe("useComposePrompt", () => {
     act(() =>
       result.current.addFiles([
         createFile("shot.png"),
-        createFileOfSize("too_big.pdf", MAX_DOCUMENT_ATTACHMENT_SIZE_BYTES + 1),
+        createFileOfSize("too_big.pdf", MAX_ATTACHMENT_SIZE_BYTES + 1),
       ]),
     );
 

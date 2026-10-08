@@ -16,7 +16,8 @@ import { useAddRootNode } from "./useAddRootNode";
 const EMPTY_WORKSPACE: WorkspaceDetail = {
   id: "2",
   name: "Workspace In Folder",
-  updatedAt: "2026-08-30T09:00:00",
+  folderId: "3",
+  updatedAt: "2026-08-30T00:00:00.000000Z",
   treeId: null,
 };
 

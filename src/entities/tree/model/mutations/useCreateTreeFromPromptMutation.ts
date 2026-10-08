@@ -9,10 +9,8 @@ import { treeQueryKeys } from "../queryKeys";
 인자 : 없음
 반환값 : 프롬프트 트리 생성 mutation. 성공 데이터는 워크스페이스 ID, 트리 ID, 노드 목록
 
-컨벤션 예외 : 이 mutation은 트리 캐시뿐 아니라 워크스페이스 목록 캐시도 건드리므로
-entities/tree가 entities/workspace의 query key를 가져온다. entity 사이의 import다.
-fsd-layers.md가 캐시 소유권에서 나오는 entity 간 import를 허용하는 것과 같은 이유이며,
-목록 캐시의 키 모양을 아는 것은 entities/workspace다.
+이 mutation은 트리 캐시뿐 아니라 워크스페이스 목록 캐시도 건드리므로 entities/workspace의 query key를 가져온다.
+트리는 워크스페이스의 자식이라 이 방향의 import는 허용된다(fsd-layers.md "Entity 사이의 의존 방향").
 */
 export const useCreateTreeFromPromptMutation = () => {
   const queryClient = useQueryClient();
@@ -28,12 +26,18 @@ export const useCreateTreeFromPromptMutation = () => {
       queryClient.setQueryData(treeQueryKeys.detail(treeId), nodes);
 
       /*
-      백엔드가 새 워크스페이스를 항상 루트에 만들므로 루트 목록만 낡는다.
+      백엔드가 새 워크스페이스를 항상 루트에 만들므로 폴더별 목록은 루트 것만 낡는다.
       응답에 folderId가 없지만 위치가 확정되어 있어 무효화 대상을 좁힐 수 있다.
+      최신순 목록은 폴더를 가리지 않으므로 함께 낡는다.
       */
-      return queryClient.invalidateQueries({
-        queryKey: workspaceQueryKeys.listByFolder(null),
-      });
+      return Promise.all([
+        queryClient.invalidateQueries({
+          queryKey: workspaceQueryKeys.listByFolder(null),
+        }),
+        queryClient.invalidateQueries({
+          queryKey: workspaceQueryKeys.recent(),
+        }),
+      ]);
     },
   });
 };
