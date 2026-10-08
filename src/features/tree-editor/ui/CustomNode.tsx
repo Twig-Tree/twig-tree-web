@@ -10,6 +10,7 @@ import { Handle, NodeProps, Position } from "@xyflow/react";
 import { CustomEditorNode } from "@/src/features/tree-editor/model/types";
 import { useUpdateNodeName } from "@/src/features/tree-editor/model/actions/update-node-name/useUpdateNodeName";
 import { useTreeStore } from "@/src/features/tree-editor/model/treeStore";
+import { CollapseToggleButton } from "./CollapseToggleButton";
 
 export function CustomNode({
   id,
@@ -198,6 +199,8 @@ export function CustomNode({
         position={sourcePosition ?? Position.Bottom}
         id="output"
       />
+
+      <CollapseToggleButton clientId={id} serverId={data.serverId} />
     </div>
   );
 }

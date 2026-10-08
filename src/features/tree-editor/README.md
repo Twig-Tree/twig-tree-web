@@ -6,6 +6,7 @@ Tree Editor는 사용자 행동, 서버 상태 동기화, 편집기 초기화, �
 
 - `actions`: 노드 추가·삭제 같은 사용자 행동을 mutation과 editor store에 연결한다. 페이지에는 개별 행동 훅 대신 `useTreeEditorActions` facade를 제공한다.
 - `initialization`: 서버에서 조회한 트리 데이터를 editor store의 초기 상태로 반영한다.
+- `collapse`: 서브트리 접힘 상태를 관리한다. 접힘 store, 화면에 보일 노드·엣지 계산, 다른 탭과의 동기화를 담는다.
 - `layout`: 노드와 edge의 배치를 계산하고 편집기 viewport를 조정한다.
 - `react-flow`: React Flow가 요구하는 인터페이스와 Tree Editor store 사이를 연결한다.
 - `treeStore.ts`: 편집 중인 노드, edge 및 history를 관리한다.
@@ -40,10 +41,31 @@ editor store 초기화는 트리당 한 번만 수행한다. `useInitializeTree`
 
 여러 변경을 묶어 저장하는 방식이 도입되면 언마운트가 곧 미저장 편집 폐기가 되므로 이 규칙을 재검토한다.
 
+## 접힘 상태
+
+접힌 노드는 `serverId` 집합으로 `collapse/collapseStore`에 두고, 트리마다 `localStorage`의 `twig-tree:collapsed-nodes:{treeId}` 키에 저장한다. 편집기 노드 `id`는 초기화 때마다 새로 만들어지므로 새로고침 뒤에도 같은 노드를 가리키는 값은 `serverId`뿐이다.
+
+### editor store와 따로 두는 이유
+
+접힘 상태를 editor store에 넣고 `partialize`에서 빼도 지금은 동작한다. 토글은 노드·엣지 개수와 `orderIndex`를 바꾸지 않아 `handleSet`의 기록 조건에 걸리지 않기 때문이다. 그래도 따로 둔다.
+
+- **토글이 undo history에 들어가지 않는다는 보장이 `handleSet` 조건 하나에 기대지 않는다.** 조건이 바뀌거나 zundo의 `equality`·`diff` 옵션이 추가되면 토글이 기록될 수 있다. 별도 store는 zundo를 거치지 않는다.
+- **생명주기와 부수효과가 다르다.** 접힘 상태는 `localStorage`와 다른 탭의 `storage` 이벤트를 따라 바뀐다. editor store는 서버 데이터와 맞춰 가는 편집 상태다.
+- **토글할 때 `handleSet`의 비교 비용이 들지 않는다.** `handleSet`은 editor store의 `set`마다 노드를 짝지어 비교한다.
+
+같은 이유로 React Flow 노드의 `hidden` 속성도 쓰지 않는다. `nodes`는 history 기록 대상이라 `hidden`이 스냅숏에 들어가고, undo가 접힘 상태까지 되돌린다. 숨길 노드는 `useVisibleElements`가 배열에서 걸러 내고, 걸러 낸 배열을 레이아웃 계산과 화면 표시에 함께 넘긴다.
+
+### 삭제된 노드의 ID는 복원할 때만 정리한다
+
+저장된 접힘 목록에는 그 사이 삭제된 노드의 `serverId`가 남을 수 있다. 편집기에 들어와 `restoreCollapse`로 복원할 때, 조회한 트리에 있는 노드만 남기고 줄었으면 다시 저장한다.
+
+- **세션 중 노드를 삭제할 때는 정리하지 않는다.** 삭제를 undo하면 노드가 돌아오는데, 목록에서 이미 지웠다면 펼쳐진 채로 돌아온다.
+- **다른 탭에서 받은 목록도 정리하지 않는다.** 이 탭에 없는 `serverId`는 다른 탭에서 방금 만든 노드일 수 있다. 걸러 낸 채로 이 탭이 저장하면 그 탭의 접힘을 덮어쓴다. 이 탭의 어떤 노드와도 맞지 않는 ID는 화면에 영향이 없고, 정말 삭제된 노드라면 다음 복원 때 걸러진다.
+
 ## 레이어 선택 배경
 
 Tree Editor는 여러 UI 요소와 편집 기능을 조합해 하나의 큰 화면 영역을 구성하므로 역할만 보면 `widgets` 레이어가 자연스럽다. 하지만 편집기 전용 상태와 노드 추가·삭제 같은 행동이 서로 긴밀하게 의존한다. 이를 Widget과 여러 Feature로 분리하면 Feature가 Widget의 상태나 로직을 참조할 수 없어 FSD의 하위 레이어 참조 규칙을 위반하거나, 규칙을 지키기 위해 상태와 인터페이스를 여러 슬라이스로 나누어 전달해야 한다.
 
-현재는 참조 규칙을 지키면서 불필요한 경계와 연결 복잡도를 늘리지 않기 위해 Tree Editor 전체를 하나의 Feature로 두었다. 대신 규모가 큰 내부 로직은 `model` 아래에서 `actions`, `initialization`, `layout`, `react-flow` 책임으로 구분한다. 이는 모든 Feature에 적용하는 공통 규칙이 아니라 Tree Editor의 응집도와 레이어 의존성을 고려한 예외적인 선택이다.
+현재는 참조 규칙을 지키면서 불필요한 경계와 연결 복잡도를 늘리지 않기 위해 Tree Editor 전체를 하나의 Feature로 두었다. 대신 규모가 큰 내부 로직은 `model` 아래에서 `actions`, `initialization`, `collapse`, `layout`, `react-flow` 책임으로 구분한다. 이는 모든 Feature에 적용하는 공통 규칙이 아니라 Tree Editor의 응집도와 레이어 의존성을 고려한 예외적인 선택이다.
 
 외부 레이어는 내부 경로를 직접 참조하지 않고 루트 `index.ts`의 공개 API를 사용한다.

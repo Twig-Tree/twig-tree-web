@@ -192,28 +192,31 @@ export const useTreeStore = create<TreeState>()(
         edges: state.edges,
       }),
       // 히스토리 기록 조건 설정
+      /*
+      zundo는 set으로 상태를 바꾼 뒤에 이 함수를 부르고, 인자로는 바뀌기 전 상태를 partialize로 고른 값을 넘긴다.
+      따라서 인자가 이전 상태이고 getState()가 이미 바뀐 현재 상태다. 기록하는 값도 이 이전 상태이며, undo가 이 값으로 되돌린다.
+      */
       handleSet: (handleSetAction) => {
         return (state) => {
-          const currentStore = useTreeStore.getState();
-
-          // state가 함수형 업데이터인지, 순수 객체인지 판별하여 최종 넥스트 상태를 안전하게 추출
-          const partialNextState =
-            (typeof state === "function" ? state(currentStore) : state) ?? {};
-          const nextNodes = partialNextState.nodes ?? currentStore.nodes;
-          const nextEdges = partialNextState.edges ?? currentStore.edges;
+          /*
+          zundo 타입은 인자를 setState의 인자 타입으로 선언해 함수형 업데이터까지 포함하지만,
+          실제로는 항상 partialize가 고른 { nodes, edges } 객체다.
+          */
+          const pastState = state as Pick<TreeState, "nodes" | "edges">;
+          const currentState = useTreeStore.getState();
 
           // 조건 1: 노드나 엣지의 개수가 달라졌을 때 (추가 / 삭제)
           const isCountChanged =
-            nextNodes.length !== currentStore.nodes.length ||
-            nextEdges.length !== currentStore.edges.length;
+            currentState.nodes.length !== pastState.nodes.length ||
+            currentState.edges.length !== pastState.edges.length;
 
           // 조건 2: 노드 내부 데이터 중 orderIndex(순서 값)가 실제로 변했을 때 (이동)
-          const isOrderChanged = nextNodes.some((nextNode) => {
-            const currentNode = currentStore.nodes.find(
-              (n) => n.id === nextNode.id,
+          const isOrderChanged = currentState.nodes.some((currentNode) => {
+            const pastNode = pastState.nodes.find(
+              (n) => n.id === currentNode.id,
             );
-            if (!currentNode) return false; // 새로 추가된 노드는 countsChanged에서 걸러짐
-            return nextNode.data?.orderIndex !== currentNode.data?.orderIndex;
+            if (!pastNode) return false; // 새로 추가된 노드는 isCountChanged에서 걸러짐
+            return currentNode.data?.orderIndex !== pastNode.data?.orderIndex;
           });
 
           // 의미 있는 비즈니스 변화일 때만 히스토리 기록
