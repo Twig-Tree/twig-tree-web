@@ -13,7 +13,7 @@ import {
   useTreeStore,
   useVisibleElements,
 } from "@/src/features/tree-editor";
-import { use, useEffect, useState } from "react";
+import { use, useCallback, useEffect, useState } from "react";
 import { useGetTreeQuery } from "@/src/entities/tree/model/queries";
 import { useGetWorkspaceQuery } from "@/src/entities/workspace";
 import { isClientError } from "@/src/shared/api/httpErrors";
@@ -27,6 +27,7 @@ interface LayoutFlowProps {
 
 function LayoutFlow({ workspaceId, treeId }: LayoutFlowProps) {
   const [isMemoPanelOpen, setIsMemoPanelOpen] = useState(false);
+  const closeMemoPanel = useCallback(() => setIsMemoPanelOpen(false), []); // 렌더마다 새 함수가 되면 useVisibleElements의 effect가 매번 다시 돈다.
   // todo: React Server Component 사용
   const {
     data: treeData,
@@ -74,7 +75,11 @@ function LayoutFlow({ workspaceId, treeId }: LayoutFlowProps) {
   /*
   접힌 노드의 하위 노드는 레이아웃 계산과 화면 표시에서 함께 뺀다. 레이아웃에 남기면 접힌 자리가 빈 공간으로 남는다.
   */
-  const { visibleNodes, visibleEdges } = useVisibleElements({ nodes, edges });
+  const { visibleNodes, visibleEdges } = useVisibleElements({
+    nodes,
+    edges,
+    onSelectedNodeHidden: closeMemoPanel,
+  });
 
   useEditorLayout(visibleNodes, visibleEdges, setNodes);
 
