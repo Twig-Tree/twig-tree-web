@@ -11,6 +11,7 @@ import {
   useTreeEditorActions,
   useTreeHistory,
   useTreeStore,
+  useVisibleElements,
 } from "@/src/features/tree-editor";
 import { use, useEffect, useState } from "react";
 import { useGetTreeQuery } from "@/src/entities/tree/model/queries";
@@ -70,7 +71,12 @@ function LayoutFlow({ workspaceId, treeId }: LayoutFlowProps) {
 
   useSyncCollapseAcrossTabs();
 
-  useEditorLayout(nodes, edges, setNodes);
+  /*
+  접힌 노드의 하위 노드는 레이아웃 계산과 화면 표시에서 함께 뺀다. 레이아웃에 남기면 접힌 자리가 빈 공간으로 남는다.
+  */
+  const { visibleNodes, visibleEdges } = useVisibleElements({ nodes, edges });
+
+  useEditorLayout(visibleNodes, visibleEdges, setNodes);
 
   // 2. React Flow가 초기 노드들의 뷰포트 정렬(fitView)까지 마쳤을 때 히스토리 기록 재개
   const handleInit = () => {
@@ -92,8 +98,8 @@ function LayoutFlow({ workspaceId, treeId }: LayoutFlowProps) {
     <div className="flex h-full min-h-0 w-full">
       <div className="min-h-0 min-w-0 flex-1">
         <ReactFlow
-          nodes={nodes}
-          edges={edges}
+          nodes={visibleNodes}
+          edges={visibleEdges}
           onInit={handleInit}
           nodeTypes={nodeTypes}
           edgeTypes={edgeTypes}
