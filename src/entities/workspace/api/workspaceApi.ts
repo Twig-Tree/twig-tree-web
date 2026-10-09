@@ -4,6 +4,7 @@ import {
   CreateWorkspaceResponse,
   CreateWorkspaceTreeResponse,
   DeleteWorkspaceResponse,
+  GetRecentWorkspaceListParams,
   GetRecentWorkspaceListResponse,
   GetWorkspaceListResponse,
   GetWorkspaceResponse,
@@ -11,11 +12,13 @@ import {
   UpdateWorkspaceResponse,
 } from "@/src/entities/workspace/api/types";
 import {
+  mapRecentWorkspaceSliceDtoToDomain,
   mapWorkspaceDetailDtoToDomain,
   mapWorkspaceDtoToDomain,
   mapWorkspaceListDtoToDomain,
 } from "@/src/entities/workspace/lib/mappers";
 import {
+  RecentWorkspacePage,
   WorkspaceDetail,
   WorkspaceItem,
 } from "@/src/entities/workspace/model/types";
@@ -43,18 +46,24 @@ export const workspaceApi = {
 
   /*
   함수 이름 : getRecentWorkspaceList
-  기능 : 폴더와 무관하게 내 워크스페이스 전체를 조회한다. 정렬은 서버가 수정 시각 내림차순으로 해 준다.
-  인자 : 없음
-  반환값 : 워크스페이스 목록
-
-  지금은 개수 제한 없이 전체를 받는다. 백엔드에 페이지네이션이 붙으면 인자와 응답 모양이 바뀐다(#91).
+  기능 : 폴더와 무관하게 내 워크스페이스를 커서 기반으로 한 페이지씩 조회한다. 정렬은 서버가 수정 시각 내림차순으로 해 준다.
+  인자 : GetRecentWorkspaceListParams params -> 직전 응답의 커서와 페이지 크기
+  반환값 : 워크스페이스 한 페이지와 다음 페이지 커서
   */
-  getRecentWorkspaceList: async (): Promise<WorkspaceItem[]> => {
-    const response =
-      await axiosInstance.get<GetRecentWorkspaceListResponse>(
-        "/workspaces/recent",
-      );
-    return mapWorkspaceListDtoToDomain(response.data.data);
+  getRecentWorkspaceList: async ({
+    cursor,
+    size,
+  }: GetRecentWorkspaceListParams): Promise<RecentWorkspacePage> => {
+    const response = await axiosInstance.get<GetRecentWorkspaceListResponse>(
+      "/workspaces/recent",
+      {
+        params: {
+          cursor: cursor === null ? undefined : cursor,
+          size,
+        },
+      },
+    );
+    return mapRecentWorkspaceSliceDtoToDomain(response.data.data);
   },
 
   /*

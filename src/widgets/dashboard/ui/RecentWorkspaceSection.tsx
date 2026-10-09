@@ -4,7 +4,7 @@ import { CardGridSkeleton } from "@/src/shared/ui/card-grid-skeleton";
 
 /*
 대시보드에 보여줄 최근 워크스페이스 개수. 넓은 화면 그리드 한 줄(lg:grid-cols-3)에 맞춘 값이다.
-목록을 자르는 것은 페이지지만, 자리표시자 개수도 이 값을 따라야 해서 그리드를 아는 여기서 정한다.
+페이지는 이 값을 조회 개수로 쓰고, 자리표시자 개수도 이 값을 따른다. 그리드를 아는 여기서 정한다.
 */
 export const RECENT_WORKSPACE_DISPLAY_COUNT = 3;
 
@@ -16,7 +16,7 @@ interface RecentWorkspaceSectionProps {
   isLoading: boolean; // 최신순 목록을 처음 조회하는 중인지 여부
   isLoaded: boolean; // 최신순 목록이 도착했는지 여부. 빈 상태 안내를 언제 보여줄지 정한다
   viewAllHref: string; // 전체 목록으로 이동할 경로
-  workspaces: WorkspaceItem[]; // 보여줄 워크스페이스. RECENT_WORKSPACE_DISPLAY_COUNT개까지 잘라서 넘긴다
+  workspaces: WorkspaceItem[]; // 보여줄 워크스페이스. RECENT_WORKSPACE_DISPLAY_COUNT개까지만 조회해서 넘긴다
 }
 
 /*
