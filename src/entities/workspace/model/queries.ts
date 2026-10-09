@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
 import { getApiFolderId, isValidFolderId } from "@/src/entities/folder";
 import { isClientError } from "@/src/shared/api/httpErrors";
 import { workspaceApi } from "../api/workspaceApi";
@@ -43,18 +43,39 @@ export function useGetWorkspaceListQuery(folderId: string | null) {
 }
 
 /*
-함수 이름 : useGetRecentWorkspaceListQuery
-기능 : 폴더와 무관하게 내 워크스페이스를 수정 시각 내림차순으로 조회한다.
-인자 : 없음
+함수 이름 : useGetRecentWorkspaceFirstPageQuery
+기능 : 폴더와 무관하게 내 워크스페이스를 수정 시각 내림차순으로 첫 페이지만 조회한다.
+인자 : number size -> 받을 개수
 반환값 : 최신순 워크스페이스 목록 query
 
-응답이 페이지 단위로 바뀌어 지금은 첫 페이지만 받는다. 화면별 첫 페이지 query와 infinite query로 나누면서 지운다(#91).
+다음 페이지가 필요 없는 요약 화면용이다. 최신순 화면의 infinite query와 캐시가 갈리므로 두 화면을 오가면 조회가 한 번씩 나간다.
 */
-export function useGetRecentWorkspaceListQuery() {
+export function useGetRecentWorkspaceFirstPageQuery(size: number) {
   return useQuery({
-    queryKey: workspaceQueryKeys.recent(),
-    queryFn: () =>
-      workspaceApi.getRecentWorkspaceList({ cursor: null, size: 20 }),
+    queryKey: workspaceQueryKeys.recentFirstPage(size),
+    queryFn: () => workspaceApi.getRecentWorkspaceList({ cursor: null, size }),
     select: (page) => page.workspaces,
+  });
+}
+
+/*
+함수 이름 : useGetRecentWorkspaceInfiniteQuery
+기능 : 폴더와 무관하게 내 워크스페이스를 수정 시각 내림차순으로 커서를 이어 가며 한 페이지씩 조회한다.
+인자 : number size -> 한 페이지에 받을 개수
+반환값 : 불러온 페이지를 순서대로 펼친 워크스페이스 목록 infinite query
+
+무효화되면 TanStack Query가 불러온 페이지 수만큼 첫 페이지부터 다시 조회하고, 다음 커서도 새로 받은 페이지에서 다시 구한다.
+낡은 커서를 재사용하지 않으므로 그 사이 순서가 바뀌어도 목록이 맞는다.
+커서 방식이라 수정되어 앞으로 간 항목이 뒤 페이지에 다시 나오지 않으므로 ID 중복은 제거하지 않는다.
+*/
+export function useGetRecentWorkspaceInfiniteQuery(size: number) {
+  return useInfiniteQuery({
+    queryKey: workspaceQueryKeys.recentInfinite(size),
+    queryFn: ({ pageParam }) =>
+      workspaceApi.getRecentWorkspaceList({ cursor: pageParam, size }),
+    initialPageParam: null as string | null,
+    getNextPageParam: (lastPage) =>
+      lastPage.hasNext ? lastPage.nextCursor : undefined,
+    select: (data) => data.pages.flatMap((page) => page.workspaces),
   });
 }

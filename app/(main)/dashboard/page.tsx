@@ -1,6 +1,6 @@
 "use client";
 
-import { useGetRecentWorkspaceListQuery } from "@/src/entities/workspace";
+import { useGetRecentWorkspaceFirstPageQuery } from "@/src/entities/workspace";
 import { PromptComposer } from "@/src/features/prompt/compose-prompt";
 import { useCreateWorkspaceFromPrompt } from "@/src/features/prompt/create-workspace-from-prompt";
 import { routes } from "@/src/shared/config/routes";
@@ -12,10 +12,9 @@ import {
 } from "@/src/widgets/dashboard";
 
 export default function DashboardPage() {
-  /*
-  최신순 화면과 같은 query라 캐시를 함께 쓴다. 두 화면을 오가도 조회가 겹치지 않는다.
-  */
-  const recentWorkspaceListQuery = useGetRecentWorkspaceListQuery();
+  const recentWorkspaceListQuery = useGetRecentWorkspaceFirstPageQuery(
+    RECENT_WORKSPACE_DISPLAY_COUNT,
+  );
   const { createWorkspaceFromPrompt, isCreatingWorkspaceFromPrompt } =
     useCreateWorkspaceFromPrompt();
 
@@ -29,10 +28,7 @@ export default function DashboardPage() {
           isLoaded={recentWorkspaceListQuery.isSuccess}
           isLoading={recentWorkspaceListQuery.isLoading}
           viewAllHref={routes.recent}
-          workspaces={(recentWorkspaceListQuery.data ?? []).slice(
-            0,
-            RECENT_WORKSPACE_DISPLAY_COUNT,
-          )}
+          workspaces={recentWorkspaceListQuery.data ?? []}
         />
       </div>
 

@@ -5,6 +5,11 @@ import { useDeleteWorkspace } from "@/src/features/workspace/delete-workspace";
 import { EditableWorkspaceCard } from "@/src/features/workspace/update-workspace";
 import { CardGridSkeleton } from "@/src/shared/ui/card-grid-skeleton";
 
+/*
+최신순 화면이 한 번에 불러올 워크스페이스 개수. 가장 넓은 그리드(2xl:grid-cols-4)에서 다섯 줄이다.
+*/
+export const RECENT_WORKSPACE_PAGE_SIZE = 20;
+
 interface RecentWorkspaceGridProps {
   editingWorkspaceId: string | null; // 이름을 수정 중인 워크스페이스 ID
   isError: boolean; // 최신순 목록 조회에 실패했는지 여부

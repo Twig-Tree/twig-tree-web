@@ -1,15 +1,21 @@
 "use client";
 
 import { useState } from "react";
-import { useGetRecentWorkspaceListQuery } from "@/src/entities/workspace";
+import { useGetRecentWorkspaceInfiniteQuery } from "@/src/entities/workspace";
 import { useCreateWorkspace } from "@/src/features/workspace/create-workspace";
-import { RecentHeader, RecentWorkspaceGrid } from "@/src/widgets/recent";
+import {
+  RECENT_WORKSPACE_PAGE_SIZE,
+  RecentHeader,
+  RecentWorkspaceGrid,
+} from "@/src/widgets/recent";
 
 export default function RecentPage() {
   const [editingWorkspaceId, setEditingWorkspaceId] = useState<string | null>(
     null,
   );
-  const recentWorkspaceListQuery = useGetRecentWorkspaceListQuery();
+  const recentWorkspaceListQuery = useGetRecentWorkspaceInfiniteQuery(
+    RECENT_WORKSPACE_PAGE_SIZE,
+  );
   const { createWorkspace, isCreateWorkspaceDisabled } = useCreateWorkspace();
 
   /*
