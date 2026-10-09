@@ -44,13 +44,17 @@ export function useGetWorkspaceListQuery(folderId: string | null) {
 
 /*
 함수 이름 : useGetRecentWorkspaceListQuery
-기능 : 폴더와 무관하게 내 워크스페이스 전체를 수정 시각 내림차순으로 조회한다.
+기능 : 폴더와 무관하게 내 워크스페이스를 수정 시각 내림차순으로 조회한다.
 인자 : 없음
 반환값 : 최신순 워크스페이스 목록 query
+
+응답이 페이지 단위로 바뀌어 지금은 첫 페이지만 받는다. 화면별 첫 페이지 query와 infinite query로 나누면서 지운다(#91).
 */
 export function useGetRecentWorkspaceListQuery() {
   return useQuery({
     queryKey: workspaceQueryKeys.recent(),
-    queryFn: workspaceApi.getRecentWorkspaceList,
+    queryFn: () =>
+      workspaceApi.getRecentWorkspaceList({ cursor: null, size: 20 }),
+    select: (page) => page.workspaces,
   });
 }
