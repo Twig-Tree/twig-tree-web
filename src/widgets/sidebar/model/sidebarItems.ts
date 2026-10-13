@@ -1,4 +1,4 @@
-import { CircleStar, Clock, Copy, Archive } from "lucide-react";
+import { CircleStar, Clock, Copy } from "lucide-react";
 import { routes } from "@/src/shared/config/routes";
 import type { SidebarItem } from "./types";
 
@@ -11,10 +11,4 @@ export const sidebarItems: SidebarItem[] = [
     activePrefix: routes.directoryRoot,
   },
   { icon: Clock, label: "Recent", href: routes.recent },
-  {
-    icon: Archive,
-    label: "Workspace",
-    href: routes.workspaceRoot,
-    activePrefix: routes.workspaceRoot,
-  },
 ];
