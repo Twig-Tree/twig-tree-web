@@ -30,10 +30,7 @@ describe("Sidebar", () => {
       "href",
       "/recent",
     );
-    expect(screen.getByRole("link", { name: "Workspace" })).toHaveAttribute(
-      "href",
-      "/workspace",
-    );
+    expect(screen.getAllByRole("link")).toHaveLength(3);
   });
 
   it("현재 경로의 링크만 현재 페이지로 표시한다", () => {
@@ -49,11 +46,11 @@ describe("Sidebar", () => {
   });
 
   it("하위 경로에서도 상위 아이템을 현재 페이지로 표시한다", () => {
-    mockUsePathname.mockReturnValue("/workspace/12");
+    mockUsePathname.mockReturnValue("/directory/12");
 
     render(<Sidebar />);
 
-    expect(screen.getByRole("link", { name: "Workspace" })).toHaveAttribute(
+    expect(screen.getByRole("link", { name: "Directory" })).toHaveAttribute(
       "aria-current",
       "page",
     );
