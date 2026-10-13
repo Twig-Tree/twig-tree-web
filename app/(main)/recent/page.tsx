@@ -1,15 +1,21 @@
 "use client";
 
 import { useState } from "react";
-import { useGetRecentWorkspaceListQuery } from "@/src/entities/workspace";
+import { useGetRecentWorkspaceInfiniteQuery } from "@/src/entities/workspace";
 import { useCreateWorkspace } from "@/src/features/workspace/create-workspace";
-import { RecentHeader, RecentWorkspaceGrid } from "@/src/widgets/recent";
+import {
+  RECENT_WORKSPACE_PAGE_SIZE,
+  RecentHeader,
+  RecentWorkspaceGrid,
+} from "@/src/widgets/recent";
 
 export default function RecentPage() {
   const [editingWorkspaceId, setEditingWorkspaceId] = useState<string | null>(
     null,
   );
-  const recentWorkspaceListQuery = useGetRecentWorkspaceListQuery();
+  const recentWorkspaceListQuery = useGetRecentWorkspaceInfiniteQuery(
+    RECENT_WORKSPACE_PAGE_SIZE,
+  );
   const { createWorkspace, isCreateWorkspaceDisabled } = useCreateWorkspace();
 
   /*
@@ -37,10 +43,22 @@ export default function RecentPage() {
 
         <RecentWorkspaceGrid
           editingWorkspaceId={editingWorkspaceId}
-          isError={recentWorkspaceListQuery.isError}
+          hasNextPage={recentWorkspaceListQuery.hasNextPage}
+          /*
+          infinite query는 다음 페이지 조회만 실패해도 isError가 된다. 그대로 넘기면 이미 불러온 목록이 오류 문구로
+          바뀌므로, 다음 페이지 실패는 따로 넘겨 목록 아래에서 알린다.
+          */
+          isError={
+            recentWorkspaceListQuery.isError &&
+            !recentWorkspaceListQuery.isFetchNextPageError
+          }
+          isFetching={recentWorkspaceListQuery.isFetching}
+          isFetchingNextPage={recentWorkspaceListQuery.isFetchingNextPage}
+          isFetchNextPageError={recentWorkspaceListQuery.isFetchNextPageError}
           isLoaded={recentWorkspaceListQuery.isSuccess}
           isLoading={recentWorkspaceListQuery.isLoading}
           onEditingEnd={() => setEditingWorkspaceId(null)}
+          onLoadMore={() => void recentWorkspaceListQuery.fetchNextPage()}
           onWorkspaceEditingStart={setEditingWorkspaceId}
           workspaces={recentWorkspaceListQuery.data ?? []}
         />

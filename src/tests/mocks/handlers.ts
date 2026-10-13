@@ -7,6 +7,8 @@ import {
 } from "@/src/tests/mocks/data";
 import { http, HttpResponse } from "msw";
 
+const DEFAULT_RECENT_PAGE_SIZE = 20; // 서버가 size를 생략한 요청에 쓰는 기본값
+
 export const handlers = [
   /*
   폴더 목록 조회 GET 요청 핸들러.
@@ -130,20 +132,45 @@ export const handlers = [
 
   /*
   최신순 워크스페이스 목록 조회 GET 요청 핸들러.
-  백엔드처럼 폴더와 무관하게 전체를 수정 시각 내림차순으로 돌려준다.
+  백엔드처럼 폴더와 무관하게 수정 시각 내림차순으로, size와 cursor에 따라 한 페이지씩 돌려준다.
   상세 조회 핸들러보다 앞에 둔다. 뒤에 두면 recent가 :workspaceId로 잡혀 404가 된다.
   */
-  http.get("*/api/workspaces/recent", () => {
-    const data = [...RAW_WORKSPACE_DATA].sort((a, b) =>
-      b.updatedAt.localeCompare(a.updatedAt),
+  http.get("*/api/workspaces/recent", ({ request }) => {
+    const searchParams = new URL(request.url).searchParams;
+    const cursor = searchParams.get("cursor");
+    const size = Number(searchParams.get("size") ?? DEFAULT_RECENT_PAGE_SIZE);
+
+    /*
+    서버와 같은 순서로 정렬한다. 수정 시각이 같으면 ID가 큰 것이 먼저다.
+    */
+    const sorted = [...RAW_WORKSPACE_DATA].sort(
+      (a, b) =>
+        b.updatedAt.localeCompare(a.updatedAt) || b.workspaceId - a.workspaceId,
     );
+
+    /*
+    서버 커서는 (updatedAt, workspaceId)를 인코딩한 불투명 문자열이다. 프론트는 내용을 읽지 않으므로
+    목에서는 직전 페이지 마지막 항목의 ID를 커서로 쓴다.
+    */
+    const startIndex =
+      cursor === null
+        ? 0
+        : sorted.findIndex(
+            ({ workspaceId }) => String(workspaceId) === cursor,
+          ) + 1;
+    const workspaces = sorted.slice(startIndex, startIndex + size);
+    const hasNext = startIndex + size < sorted.length;
 
     return HttpResponse.json(
       {
         isSuccess: true,
         code: "WORKSPACES_FOUND",
         message: "워크스페이스 목록이 조회되었습니다.",
-        data,
+        data: {
+          workspaces,
+          nextCursor: hasNext ? String(workspaces.at(-1)?.workspaceId) : null,
+          hasNext,
+        },
       },
       { status: 200 },
     );

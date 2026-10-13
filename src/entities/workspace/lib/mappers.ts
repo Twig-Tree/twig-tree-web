@@ -1,5 +1,9 @@
-import { WorkspaceDTO } from "@/src/entities/workspace/api/types";
 import {
+  RecentWorkspaceSliceDTO,
+  WorkspaceDTO,
+} from "@/src/entities/workspace/api/types";
+import {
+  RecentWorkspacePage,
   WorkspaceDetail,
   WorkspaceItem,
 } from "@/src/entities/workspace/model/types";
@@ -35,4 +39,14 @@ export const mapWorkspaceListDtoToDomain = (
   dtos: WorkspaceDTO[],
 ): WorkspaceItem[] => {
   return dtos.map((dto) => mapWorkspaceDtoToDomain(dto));
+};
+
+export const mapRecentWorkspaceSliceDtoToDomain = (
+  dto: RecentWorkspaceSliceDTO,
+): RecentWorkspacePage => {
+  return {
+    workspaces: mapWorkspaceListDtoToDomain(dto.workspaces),
+    nextCursor: dto.nextCursor,
+    hasNext: dto.hasNext,
+  };
 };

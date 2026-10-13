@@ -32,10 +32,29 @@ export interface UpdateWorkspaceRequest {
 export type GetWorkspaceListResponse = ApiResponse<WorkspaceDTO[]>;
 
 /**
- * 최신순 워크스페이스 목록 조회 응답 type
- * 지금은 폴더별 목록과 모양이 같지만, 페이지네이션(#91)이 붙으면 이 응답만 래퍼로 바뀐다.
+ * 최신순 워크스페이스 목록 한 페이지 DTO type
+ * nextCursor는 마지막 페이지에서 null이다. Swagger 스키마에는 nullable 표시가 없지만 서버 코드가 null을 넣는다.
  */
-export type GetRecentWorkspaceListResponse = ApiResponse<WorkspaceDTO[]>;
+export interface RecentWorkspaceSliceDTO {
+  workspaces: WorkspaceDTO[];
+  nextCursor: string | null; // 다음 페이지 요청에 그대로 돌려보낼 불투명 문자열
+  hasNext: boolean;
+}
+
+/**
+ * 최신순 워크스페이스 목록 조회 요청 query parameter type
+ */
+export interface GetRecentWorkspaceListParams {
+  cursor: string | null; // 직전 응답의 nextCursor. 첫 페이지는 null
+  size: number; // 한 페이지에 받을 개수. 서버가 1~50으로 보정한다
+}
+
+/**
+ * 최신순 워크스페이스 목록 조회 응답 type
+ * 폴더별 목록과 달리 커서 기반 페이지 래퍼로 온다.
+ */
+export type GetRecentWorkspaceListResponse =
+  ApiResponse<RecentWorkspaceSliceDTO>;
 
 /**
  * 워크스페이스 상세 조회 응답 type

@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import type { WorkspaceDTO } from "../api/types";
 import {
+  mapRecentWorkspaceSliceDtoToDomain,
   mapWorkspaceDetailDtoToDomain,
   mapWorkspaceDtoToDomain,
   mapWorkspaceListDtoToDomain,
@@ -90,5 +91,38 @@ describe("mapWorkspaceListDtoToDomain", () => {
 
   it("빈 목록은 빈 배열로 돌려준다", () => {
     expect(mapWorkspaceListDtoToDomain([])).toEqual([]);
+  });
+});
+
+describe("mapRecentWorkspaceSliceDtoToDomain", () => {
+  it("워크스페이스를 도메인 모델로 바꾸고 커서와 hasNext는 그대로 싣는다", () => {
+    const dto = {
+      workspaces: [createWorkspaceDto()],
+      nextCursor: "MjAyNi0xMC0wM1QwODoxMjozMFpfMTI",
+      hasNext: true,
+    };
+
+    expect(mapRecentWorkspaceSliceDtoToDomain(dto)).toEqual({
+      workspaces: [
+        {
+          id: "12",
+          name: "Workspace",
+          folderId: "3",
+          updatedAt: "2026-08-31T12:00:00.000000Z",
+        },
+      ],
+      nextCursor: "MjAyNi0xMC0wM1QwODoxMjozMFpfMTI",
+      hasNext: true,
+    });
+  });
+
+  it("마지막 페이지의 null 커서를 그대로 둔다", () => {
+    const dto = {
+      workspaces: [],
+      nextCursor: null,
+      hasNext: false,
+    };
+
+    expect(mapRecentWorkspaceSliceDtoToDomain(dto).nextCursor).toBeNull();
   });
 });

@@ -1,8 +1,9 @@
-import { renderHook, waitFor } from "@testing-library/react";
+import { act, renderHook, waitFor } from "@testing-library/react";
 import { describe, it, expect } from "vitest";
 import { createQueryWrapper } from "@/src/tests/helpers/createQueryWrapper";
 import {
-  useGetRecentWorkspaceListQuery,
+  useGetRecentWorkspaceFirstPageQuery,
+  useGetRecentWorkspaceInfiniteQuery,
   useGetWorkspaceListQuery,
   useGetWorkspaceQuery,
 } from "./queries";
@@ -120,30 +121,93 @@ describe("useGetWorkspaceQuery", () => {
   });
 });
 
-describe("useGetRecentWorkspaceListQuery", () => {
+const ROOT_WORKSPACE = {
+  id: "1",
+  name: "Root Workspace",
+  folderId: null,
+  updatedAt: "2026-08-31T12:00:00.000000Z",
+};
+
+const WORKSPACE_IN_FOLDER = {
+  id: "2",
+  name: "Workspace In Folder",
+  folderId: "3",
+  updatedAt: "2026-08-30T00:00:00.000000Z",
+};
+
+describe("useGetRecentWorkspaceFirstPageQuery", () => {
   /*
   폴더별 목록 핸들러는 folderId가 없으면 루트 것만 돌려주므로, 엔드포인트를 잘못 부르면 폴더 안의 항목이 빠져 이 검사가 실패한다.
   */
-  it("폴더와 무관하게 전체를 서버가 준 순서대로 돌려준다", async () => {
-    const { result } = renderHook(() => useGetRecentWorkspaceListQuery(), {
-      wrapper: createQueryWrapper().wrapper,
-    });
+  it("폴더와 무관하게 서버가 준 순서대로 워크스페이스만 돌려준다", async () => {
+    const { result } = renderHook(
+      () => useGetRecentWorkspaceFirstPageQuery(20),
+      { wrapper: createQueryWrapper().wrapper },
+    );
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
 
-    expect(result.current.data).toEqual([
-      {
-        id: "1",
-        name: "Root Workspace",
-        folderId: null,
-        updatedAt: "2026-08-31T12:00:00.000000Z",
-      },
-      {
-        id: "2",
-        name: "Workspace In Folder",
-        folderId: "3",
-        updatedAt: "2026-08-30T00:00:00.000000Z",
-      },
-    ]);
+    expect(result.current.data).toEqual([ROOT_WORKSPACE, WORKSPACE_IN_FOLDER]);
+  });
+
+  /*
+  핸들러가 size만큼 잘라 주므로, 파라미터가 빠지면 기본값 20으로 둘 다 돌아와 이 검사가 실패한다.
+  */
+  it("size를 쿼리 파라미터로 실어 보낸다", async () => {
+    const { result } = renderHook(
+      () => useGetRecentWorkspaceFirstPageQuery(1),
+      { wrapper: createQueryWrapper().wrapper },
+    );
+
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+
+    expect(result.current.data).toEqual([ROOT_WORKSPACE]);
+  });
+});
+
+describe("useGetRecentWorkspaceInfiniteQuery", () => {
+  const renderRecentWorkspaceInfiniteQuery = (size: number) =>
+    renderHook(() => useGetRecentWorkspaceInfiniteQuery(size), {
+      wrapper: createQueryWrapper().wrapper,
+    });
+
+  it("첫 페이지를 조회하고 다음 페이지가 있음을 알린다", async () => {
+    const { result } = renderRecentWorkspaceInfiniteQuery(1);
+
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+
+    expect(result.current.data).toEqual([ROOT_WORKSPACE]);
+    expect(result.current.hasNextPage).toBe(true);
+  });
+
+  /*
+  핸들러는 커서 뒤의 항목부터 돌려준다. 커서가 빠지면 첫 페이지가 다시 와 같은 항목이 두 번 붙는다.
+
+  다음 페이지를 부르기 전에 data를 한 번 읽는다. TanStack Query는 결과에서 읽은 속성이 바뀔 때만 다시 그리므로,
+  읽지 않은 속성은 이후에 바뀌어도 result.current에 반영되지 않는다.
+  */
+  it("직전 응답의 커서로 다음 페이지를 조회해 뒤에 이어 붙인다", async () => {
+    const { result } = renderRecentWorkspaceInfiniteQuery(1);
+
+    await waitFor(() => expect(result.current.data).toEqual([ROOT_WORKSPACE]));
+
+    await act(() => result.current.fetchNextPage());
+
+    await waitFor(() =>
+      expect(result.current.data).toEqual([
+        ROOT_WORKSPACE,
+        WORKSPACE_IN_FOLDER,
+      ]),
+    );
+  });
+
+  it("마지막 페이지를 받으면 다음 페이지가 없다고 알린다", async () => {
+    const { result } = renderRecentWorkspaceInfiniteQuery(1);
+
+    await waitFor(() => expect(result.current.hasNextPage).toBe(true));
+
+    await act(() => result.current.fetchNextPage());
+
+    await waitFor(() => expect(result.current.hasNextPage).toBe(false));
   });
 });
