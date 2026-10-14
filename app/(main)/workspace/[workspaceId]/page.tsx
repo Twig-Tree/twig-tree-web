@@ -18,7 +18,11 @@ import { useGetTreeQuery } from "@/src/entities/tree/model/queries";
 import { useGetWorkspaceQuery } from "@/src/entities/workspace";
 import { isClientError } from "@/src/shared/api/httpErrors";
 import { isValidApiId } from "@/src/shared/lib/validation/isValidApiId";
-import { WorkspaceHeader, WorkspaceLoadError } from "@/src/widgets/workspace";
+import {
+  WorkspaceHeader,
+  WorkspaceLoadError,
+  WorkspacePanel,
+} from "@/src/widgets/workspace";
 
 interface LayoutFlowProps {
   workspaceId: string;
@@ -101,6 +105,14 @@ function LayoutFlow({ workspaceId, treeId }: LayoutFlowProps) {
 
   return (
     <div className="flex h-full min-h-0 w-full">
+      {/*
+      결과 항목 클릭(포커싱과 메모 패널 열기)은 아직 연결하지 않았다.
+      */}
+      <WorkspacePanel
+        onSelectResult={() => {}}
+        isResultSelectDisabled={isMutating}
+      />
+
       <div className="min-h-0 min-w-0 flex-1">
         <ReactFlow
           nodes={visibleNodes}

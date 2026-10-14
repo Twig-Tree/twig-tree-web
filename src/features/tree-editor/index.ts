@@ -5,10 +5,12 @@ export { useInitializeTree } from "./model/initialization/useInitializeTree";
 export { useSyncCollapseAcrossTabs } from "./model/collapse/useSyncCollapseAcrossTabs";
 export { useVisibleElements } from "./model/collapse/useVisibleElements";
 export { useEditorLayout } from "./model/layout/useEditorLayout";
+export { useNodeSearch } from "./model/search/useNodeSearch";
 export { useReactFlowStoreSetters } from "./model/react-flow/useReactFlowStoreSetters";
 export { useTreeHistory, useTreeStore } from "./model/treeStore";
 export type {
   CustomEditorEdge,
   CustomEditorNode,
   Direction,
+  NodeResult,
 } from "./model/types";
