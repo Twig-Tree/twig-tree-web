@@ -25,3 +25,12 @@ export type EditorNodeData = Omit<TreeNode, "id" | "parentId"> & {
 
 export type CustomEditorNode = Node<EditorNodeData, "custom">;
 export type CustomEditorEdge = Edge;
+
+/*
+결과 목록에 보여 주고 강조·포커싱할 노드 하나. 검색과 태그가 같은 목록을 쓰므로 검색에 묶이지 않은 이름으로 둔다.
+*/
+export type NodeResult = {
+  clientId: string; // 강조·포커싱할 편집기 노드 ID
+  label: string; // 목록에 보여 줄 노드 이름
+  isMemoMatched: boolean; // 메모에서 일치했는지. 태그 결과는 false
+};
