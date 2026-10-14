@@ -5,7 +5,7 @@ import {
   Dispatch,
   SetStateAction,
 } from "react";
-import { useReactFlow } from "@xyflow/react";
+import { type FitViewOptions, useReactFlow } from "@xyflow/react";
 import {
   CustomEditorNode,
   CustomEditorEdge,
@@ -18,7 +18,20 @@ import {
 } from "@/src/features/tree-editor/lib/layout";
 import { Direction } from "@/src/features/tree-editor/model/types";
 
-// ELK 레이아웃을 언제 정렬할지 결정하고, 실제로 화면에 적용하는 커스텀 훅
+/*
+노드가 한두 개뿐인 트리에 맞추면 기본 최대 배율(2)까지 확대되므로 100%보다 크게 확대하지 않는다.
+*/
+const FIT_TREE_VIEW_OPTIONS: FitViewOptions = { maxZoom: 1 };
+
+/*
+함수 이름 : useEditorLayout
+기능 : 노드·엣지 구조가 바뀔 때마다 ELK로 배치를 다시 계산해 store에 얹는다. 트리 전체를 화면에 맞추는 것은
+트리를 처음 열었을 때의 첫 배치 뒤에만 하고, 그 뒤에는 사용자가 요청할 때만 한다.
+인자 : CustomEditorNode[] nodes -> 배치를 계산할 노드 목록(화면에 보이는 노드)
+CustomEditorEdge[] edges -> 배치를 계산할 엣지 목록(화면에 보이는 엣지)
+Dispatch<SetStateAction<CustomEditorNode[]>> setNodes -> 계산 결과를 얹을 store setter
+반환값 : 배치를 다시 계산하는 함수와 트리 전체를 화면에 맞추는 함수
+*/
 export function useEditorLayout(
   nodes: CustomEditorNode[],
   edges: CustomEditorEdge[],
@@ -39,6 +52,17 @@ export function useEditorLayout(
   */
   const latestLayoutRunIdRef = useRef(0);
 
+  /*
+  트리 전체를 화면에 맞추는 것은 처음 열 때 한 번뿐이다. 레이아웃이 다시 돌 때마다 맞추면 노드를 추가하거나
+  접을 때마다 배율과 위치가 바뀌어 사용자가 보던 지점을 잃는다. 다른 워크스페이스로 이동하면 페이지가 새로
+  마운트되므로 이 기록도 새로 시작한다.
+  */
+  const hasFittedTreeViewRef = useRef(false);
+
+  const fitTreeView = useCallback(() => {
+    void fitView(FIT_TREE_VIEW_OPTIONS);
+  }, [fitView]);
+
   const onLayout = useCallback(
     ({ direction }: { direction: Direction }) => {
       const opts = { "elk.direction": direction, ...elkOptions };
@@ -46,7 +70,7 @@ export function useEditorLayout(
       latestLayoutRunIdRef.current += 1;
       const runId = latestLayoutRunIdRef.current; // 이 계산이 최신인지 판단할 때 사용한다.
 
-      // ELK 레이아웃 계산 후 노드 위치를 업데이트하고, 화면에 맞게 뷰를 조정
+      // ELK 레이아웃 계산 후 노드 위치를 업데이트한다.
       getLayoutedElements(nodes, edges, opts)
         .then(({ nodes: layoutedNodes }) => {
           if (runId !== latestLayoutRunIdRef.current) return;
@@ -61,9 +85,15 @@ export function useEditorLayout(
             mergeLayoutResult(currentNodes, layoutedNodes),
           );
 
-          window.requestAnimationFrame(() => {
-            fitView();
-          });
+          /*
+          노드가 없는 첫 계산(트리 조회 전, 빈 워크스페이스)은 맞출 대상이 없으므로 건너뛴다. 빈 워크스페이스에서
+          루트를 처음 추가하면 그때가 첫 배치가 되어, 원점 근처에 놓인 루트가 화면 밖에 남지 않는다.
+          React Flow가 새 좌표로 노드를 그린 뒤에 맞추도록 다음 프레임으로 미룬다.
+          */
+          if (!hasFittedTreeViewRef.current && layoutedNodes.length > 0) {
+            hasFittedTreeViewRef.current = true;
+            window.requestAnimationFrame(fitTreeView);
+          }
         })
         .catch((error) => {
           console.error(error);
@@ -74,7 +104,7 @@ export function useEditorLayout(
           requestedStructureRef.current = null;
         });
     },
-    [nodes, edges, setNodes, fitView],
+    [nodes, edges, setNodes, fitTreeView],
   );
 
   /*
@@ -93,5 +123,5 @@ export function useEditorLayout(
     onLayout({ direction: "RIGHT" });
   }, [nodes, edges, onLayout]);
 
-  return { onLayout };
+  return { onLayout, fitTreeView };
 }
