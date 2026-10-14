@@ -10,6 +10,7 @@ import { Handle, NodeProps, Position } from "@xyflow/react";
 import { CustomEditorNode } from "@/src/features/tree-editor/model/types";
 import { useUpdateNodeName } from "@/src/features/tree-editor/model/actions/update-node-name/useUpdateNodeName";
 import { useTreeStore } from "@/src/features/tree-editor/model/treeStore";
+import { useHighlightStore } from "@/src/features/tree-editor/model/highlight/highlightStore";
 import { CollapseToggleButton } from "./CollapseToggleButton";
 
 export function CustomNode({
@@ -22,6 +23,13 @@ export function CustomNode({
   const isRoot = parentId === null;
 
   const treeId = useTreeStore((state) => state.treeId);
+
+  /*
+  셀렉터가 boolean을 돌려주므로, 강조 집합이 바뀌어도 이 노드의 강조 여부가 같으면 다시 그려지지 않는다.
+  */
+  const isHighlighted = useHighlightStore((state) =>
+    state.highlightedClientIds.has(id),
+  );
 
   const [isEditing, setIsEditing] = useState(false);
   const [name, setName] = useState(data.label);
@@ -146,8 +154,11 @@ export function CustomNode({
     [startEditing],
   );
 
+  /*
+  테두리는 React Flow가 감싸는 .react-flow__node가 그리므로, 강조 여부를 속성으로만 알리고 스타일은 xy-theme.css가 바깥 요소에 입힌다.
+  */
   return (
-    <div className="custom-node">
+    <div className="custom-node" data-highlighted={isHighlighted}>
       <Handle
         type="target"
         position={targetPosition ?? Position.Top}

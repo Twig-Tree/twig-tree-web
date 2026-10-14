@@ -5,6 +5,7 @@ import {
   edgeTypes,
   nodeTypes,
   useEditorLayout,
+  useFocusNode,
   useInitializeTree,
   useReactFlowStoreSetters,
   useSyncCollapseAcrossTabs,
@@ -12,13 +13,18 @@ import {
   useTreeHistory,
   useTreeStore,
   useVisibleElements,
+  type NodeResult,
 } from "@/src/features/tree-editor";
 import { use, useCallback, useEffect, useState } from "react";
 import { useGetTreeQuery } from "@/src/entities/tree/model/queries";
 import { useGetWorkspaceQuery } from "@/src/entities/workspace";
 import { isClientError } from "@/src/shared/api/httpErrors";
 import { isValidApiId } from "@/src/shared/lib/validation/isValidApiId";
-import { WorkspaceHeader, WorkspaceLoadError } from "@/src/widgets/workspace";
+import {
+  WorkspaceHeader,
+  WorkspaceLoadError,
+  WorkspacePanel,
+} from "@/src/widgets/workspace";
 
 interface LayoutFlowProps {
   workspaceId: string;
@@ -81,7 +87,26 @@ function LayoutFlow({ workspaceId, treeId }: LayoutFlowProps) {
     onSelectedNodeHidden: closeMemoPanel,
   });
 
-  const { fitTreeView } = useEditorLayout(visibleNodes, visibleEdges, setNodes);
+  const { fitTreeView, runAfterNextLayout, isLayoutRunning } = useEditorLayout(
+    visibleNodes,
+    visibleEdges,
+    setNodes,
+  );
+
+  const { focusNode } = useFocusNode({
+    visibleNodes,
+    runAfterNextLayout,
+    isLayoutRunning,
+  });
+
+  /*
+  결과로 고른 노드를 선택하고 화면 가운데로 옮긴다. 메모에서 일치한 노드는 일치한 내용을 바로 볼 수 있도록 메모 패널도 연다.
+  */
+  const handleSelectResult = (result: NodeResult) => {
+    focusNode(result.clientId);
+
+    if (result.isMemoMatched) setIsMemoPanelOpen(true);
+  };
 
   // 2. React Flow 초기화가 끝났을 때 히스토리 기록 재개
   const handleInit = () => {
@@ -101,6 +126,11 @@ function LayoutFlow({ workspaceId, treeId }: LayoutFlowProps) {
 
   return (
     <div className="flex h-full min-h-0 w-full">
+      <WorkspacePanel
+        onSelectResult={handleSelectResult}
+        isResultSelectDisabled={isMutating}
+      />
+
       <div className="min-h-0 min-w-0 flex-1">
         <ReactFlow
           nodes={visibleNodes}

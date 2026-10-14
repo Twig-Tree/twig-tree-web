@@ -20,6 +20,7 @@ interface CollapseState {
   restoreCollapse: (params: RestoreCollapseParams) => void;
   toggleCollapse: (treeId: string, serverId: string) => void;
   expand: (treeId: string, serverId: string) => void;
+  expandAll: (treeId: string, serverIds: string[]) => void;
   applyExternalCollapse: (serverIds: string[]) => void;
   resetCollapse: () => void;
 }
@@ -112,12 +113,20 @@ export const useCollapseStore = create<CollapseState>()((set, get) => {
     },
 
     expand: (treeId, serverId) => {
+      get().expandAll(treeId, [serverId]);
+    },
+
+    /*
+    여러 노드를 한 번에 펼친다. 노드마다 expand를 부르면 그때마다 localStorage에 쓰고 다른 탭에 storage 이벤트를 일으키므로,
+    한 번만 저장한다.
+    */
+    expandAll: (treeId, serverIds) => {
       const currentServerIds = getCollapsedServerIdsOf(treeId);
-
-      if (!currentServerIds.has(serverId)) return; // 이미 펼쳐져 있으면 저장할 변화가 없다.
-
       const collapsedServerIds = new Set(currentServerIds);
-      collapsedServerIds.delete(serverId);
+
+      serverIds.forEach((serverId) => collapsedServerIds.delete(serverId));
+
+      if (collapsedServerIds.size === currentServerIds.size) return; // 모두 이미 펼쳐져 있으면 저장할 변화가 없다.
 
       saveCollapse(treeId, collapsedServerIds);
     },

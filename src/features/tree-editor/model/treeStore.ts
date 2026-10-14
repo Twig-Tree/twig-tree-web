@@ -38,6 +38,7 @@ interface TreeState {
   deleteNodeFromStore: (clientIdsToDelete: string[]) => void;
   updateNodeMemoInStore: (clientId: string, memo: string | null) => void;
   updateNodeLabelInStore: (clientId: string, label: string) => void;
+  selectOnlyNodeInStore: (clientId: string) => void;
 }
 
 export const useTreeStore = create<TreeState>()(
@@ -182,6 +183,26 @@ export const useTreeStore = create<TreeState>()(
               ? { ...node, data: { ...node.data, label } }
               : node,
           ),
+        });
+      },
+
+      /*
+      대상 노드 하나만 선택하고 나머지 노드의 선택을 푼다. 선택된 노드는 selected가 true인 첫 노드로 찾으므로,
+      대상만 켜고 나머지를 그대로 두면 이전에 선택된 노드가 기준으로 남을 수 있다.
+      selected만 바꾸고 노드·엣지 개수와 orderIndex는 그대로라 handleSet의 history 기록 조건에 걸리지 않는다.
+      */
+      selectOnlyNodeInStore: (clientId: string) => {
+        const { nodes } = get();
+
+        set({
+          nodes: nodes.map((node) => {
+            const selected = node.id === clientId;
+
+            // 선택 상태가 그대로인 노드는 객체를 재사용해 다시 그려지지 않게 한다.
+            return (node.selected ?? false) === selected
+              ? node
+              : { ...node, selected };
+          }),
         });
       },
     }),
