@@ -76,7 +76,7 @@ export const mapToVisualEdges = (
 
 /*
 함수 이름 : transformToFlowElements
-기능 : 도메인 노드 목록을 React Flow가 사용하는 노드·엣지 배열로 변환한다. ELK의 considerModelOrder가 배열 순서로 형제 노드의 배치 순서를 정하므로, 화면에 넘기기 직전인 여기서 orderIndex 정렬을 보장한다.
+기능 : 도메인 노드 목록을 React Flow가 사용하는 노드·엣지 배열로 변환한다. 노드 배열 순서가 형제 노드의 배치 순서를 정하므로(레이아웃의 sortEdgesByTargetOrder), 화면에 넘기기 직전인 여기서 orderIndex 정렬을 보장한다.
 인자 : TreeNode[] nodes -> 트리 조회 캐시의 노드 목록
 반환값 : React Flow 노드 배열과 엣지 배열
 */

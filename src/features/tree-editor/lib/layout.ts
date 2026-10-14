@@ -7,11 +7,36 @@ import ELK from "elkjs/lib/elk.bundled.js";
 
 const elk = new ELK();
 
+/*
+mrtree는 트리 전용 알고리즘이라 모든 부모를 자식들의 가운데에 둔다. 서브트리를 접어도 나머지 노드는
+접힌 높이만큼 함께 움직일 뿐 서로의 위치 관계가 유지된다. layered는 부모 위치를 보장하지 않아
+접기 하나로 루트가 맨 위에서 맨 아래로 튈 수 있었다.
+*/
 export const elkOptions = {
-  "elk.algorithm": "layered", // 노드들을 층(layer)별로 나누어 배치하는 알고리즘
-  "elk.layered.spacing.nodeNodeBetweenLayers": "100", // 층 사이의 간격
-  "elk.spacing.nodeNode": "80", // 노드 간의 간격
-  "elk.layered.considerModelOrder.strategy": "NODES_AND_EDGES", // 모델 데이터의 인덱스 순서 유지
+  "elk.algorithm": "mrtree",
+  "elk.spacing.nodeNode": "80", // mrtree는 이 값 하나를 층 사이 간격과 형제 간격에 함께 쓴다.
+  "elk.mrtree.weighting": "MODEL_ORDER", // 형제를 입력 순서대로 놓는다. 형제 순서가 기본값에 기대지 않도록 명시한다.
+};
+
+/*
+함수 이름 : sortEdgesByTargetOrder
+기능 : 엣지를 자식(target) 노드의 배열 순서대로 정렬한다. mrtree는 형제 순서를 엣지 입력 순서로 정하는데,
+편집기에서 형제 순서를 정하는 것은 노드 배열이므로 ELK에 넘기기 직전에 엣지를 노드 순서에 맞춘다.
+엣지 배열은 reconnect가 옮긴 엣지를 끝에 붙이는 식으로 노드 배열과 어긋날 수 있다.
+인자 : CustomEditorNode[] nodes -> 형제 순서를 정하는 노드 목록
+CustomEditorEdge[] edges -> 정렬할 엣지 목록
+반환값 : 자식 노드의 배열 순서로 정렬한 새 엣지 목록
+*/
+const sortEdgesByTargetOrder = (
+  nodes: CustomEditorNode[],
+  edges: CustomEditorEdge[],
+): CustomEditorEdge[] => {
+  const indexByClientId = new Map(nodes.map((node, index) => [node.id, index]));
+
+  const getTargetIndex = (edge: CustomEditorEdge) =>
+    indexByClientId.get(edge.target) ?? nodes.length; // 노드 목록에 없는 target은 뒤로 보낸다.
+
+  return [...edges].sort((a, b) => getTargetIndex(a) - getTargetIndex(b));
 };
 
 // ELK 레이아웃을 적용하여 노드와 엣지의 위치를 계산하는 함수
@@ -31,7 +56,7 @@ export const getLayoutedElements = async (
       width: 150,
       height: 50,
     })),
-    edges: edges.map((edge) => ({
+    edges: sortEdgesByTargetOrder(nodes, edges).map((edge) => ({
       ...edge,
       sources: [edge.source],
       targets: [edge.target],
@@ -119,7 +144,7 @@ export const getLayoutStructureSignature = (
   /*
   노드 ID 목록은 추가·삭제·트리 전환처럼 배치가 달라지는 변화를 잡는다. 노드의 신원은 편집기가
   정해 세션 동안 바뀌지 않으므로, 여기에 담긴 ID가 달라졌다는 것은 노드 구성이 달라졌다는 뜻이다.
-  배열 순서까지 담는 것은 ELK의 considerModelOrder가 순서로 형제 배치를 정하기 때문이다.
+  배열 순서까지 담는 것은 노드 배열 순서가 형제 배치를 정하기 때문이다(sortEdgesByTargetOrder).
 
   ID를 빼고 개수만 담으면 개수가 같은 채로 구성이 바뀌는 경우(트리 전환)를 놓치므로 빼지 않는다.
   */

@@ -27,7 +27,9 @@ Tree Editor는 사용자 행동, 서버 상태 동기화, 편집기 초기화, �
 
 ## 배열 순서와 레이아웃
 
-`elkOptions`의 `considerModelOrder`가 `NODES_AND_EDGES`이므로 **노드와 엣지 배열의 순서가 형제 노드의 배치 순서를 결정한다.** 배열 순서는 단순 정렬 취향이 아니라 화면에 직접 드러나는 값이다.
+**노드 배열의 순서가 형제 노드의 배치 순서를 결정한다.** 배열 순서는 단순 정렬 취향이 아니라 화면에 직접 드러나는 값이다.
+
+레이아웃 알고리즘 `mrtree`는 `weighting: MODEL_ORDER`에서 형제를 엣지 입력 순서대로 놓는다. 엣지 배열은 reconnect가 옮긴 엣지를 끝에 붙이는 식으로 노드 배열과 어긋날 수 있으므로, `getLayoutedElements`가 ELK에 넘기기 직전에 엣지를 자식 노드의 배열 순서로 정렬한다. 그래서 형제 순서를 바꾸려면 노드 배열만 바꾸면 된다.
 
 정렬은 `transformToFlowElements`에서 `orderIndex` 기준으로 한 번만 수행한다. query cache는 순서를 약속하지 않으므로 mutation이 노드를 어느 위치에 넣어도 무방하다. 화면에 넘기기 직전에만 보장하면 되기 때문이다.
 
