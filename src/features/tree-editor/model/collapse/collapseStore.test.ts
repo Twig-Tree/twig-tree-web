@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, it, expect } from "vitest";
+import { afterEach, beforeEach, describe, it, expect, vi } from "vitest";
 import { useCollapseStore } from "./collapseStore";
 import { createEditorNode } from "../../lib/add-node/createEditorNode";
 import { createEditorEdge } from "../../lib/add-node/createEditorEdge";
@@ -136,6 +136,37 @@ describe("expand", () => {
     useCollapseStore.getState().expand("5", "s1");
 
     expect(useCollapseStore.getState().collapsedServerIds).toBe(before);
+  });
+});
+
+describe("expandAll", () => {
+  beforeEach(() => {
+    saveToStorage("5", ["s1", "s2", "s3"]);
+    useCollapseStore.getState().restoreCollapse({ treeId: "5", nodes, edges });
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it("여러 노드를 한 번에 펼치고 localStorage에는 한 번만 저장한다", () => {
+    const setItemSpy = vi.spyOn(Storage.prototype, "setItem");
+
+    useCollapseStore.getState().expandAll("5", ["s1", "s3"]);
+
+    expect(getCollapsedServerIds()).toEqual(["s2"]);
+    expect(readCollapsedServerIds("5")).toEqual(["s2"]);
+    expect(setItemSpy).toHaveBeenCalledTimes(1);
+  });
+
+  it("이미 펼쳐진 노드만 넘기면 저장하지 않는다", () => {
+    const setItemSpy = vi.spyOn(Storage.prototype, "setItem");
+    const before = useCollapseStore.getState().collapsedServerIds;
+
+    useCollapseStore.getState().expandAll("5", ["s4"]);
+
+    expect(useCollapseStore.getState().collapsedServerIds).toBe(before);
+    expect(setItemSpy).not.toHaveBeenCalled();
   });
 });
 

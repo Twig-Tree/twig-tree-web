@@ -30,7 +30,7 @@ const FIT_TREE_VIEW_OPTIONS: FitViewOptions = { maxZoom: 1 };
 인자 : CustomEditorNode[] nodes -> 배치를 계산할 노드 목록(화면에 보이는 노드)
 CustomEditorEdge[] edges -> 배치를 계산할 엣지 목록(화면에 보이는 엣지)
 Dispatch<SetStateAction<CustomEditorNode[]>> setNodes -> 계산 결과를 얹을 store setter
-반환값 : 배치를 다시 계산하는 함수, 트리 전체를 화면에 맞추는 함수, 다음 레이아웃 결과를 얹은 뒤 실행할 함수를 맡기는 함수
+반환값 : 배치를 다시 계산하는 함수, 트리 전체를 화면에 맞추는 함수, 다음 레이아웃 결과를 얹은 뒤 실행할 함수를 맡기는 함수, 계산 중인지 확인하는 함수
 */
 export function useEditorLayout(
   nodes: CustomEditorNode[],
@@ -69,6 +69,14 @@ export function useEditorLayout(
     afterNextLayoutRef.current = callback;
   }, []);
 
+  /*
+  최신 계산이 아직 끝나지 않았는지. 보이는 노드라도 계산 중에는 결과를 얹을 때 움직일 수 있으므로,
+  화면을 옮기는 쪽이 바로 옮길지 결과를 기다릴지 정할 때 쓴다.
+  */
+  const isLayoutRunningRef = useRef(false);
+
+  const isLayoutRunning = useCallback(() => isLayoutRunningRef.current, []);
+
   const fitTreeView = useCallback(() => {
     void fitView(FIT_TREE_VIEW_OPTIONS);
   }, [fitView]);
@@ -79,11 +87,14 @@ export function useEditorLayout(
 
       latestLayoutRunIdRef.current += 1;
       const runId = latestLayoutRunIdRef.current; // 이 계산이 최신인지 판단할 때 사용한다.
+      isLayoutRunningRef.current = true;
 
       // ELK 레이아웃 계산 후 노드 위치를 업데이트한다.
       getLayoutedElements(nodes, edges, opts)
         .then(({ nodes: layoutedNodes }) => {
           if (runId !== latestLayoutRunIdRef.current) return;
+
+          isLayoutRunningRef.current = false;
 
           /*
           ELK 계산은 비동기라, 계산이 끝나는 사이에 서버 응답에 따른 serverId 채움이나
@@ -115,6 +126,7 @@ export function useEditorLayout(
           // 이미 더 새로운 계산이 시작되었다면 그쪽이 결과를 책임진다.
           if (runId !== latestLayoutRunIdRef.current) return;
 
+          isLayoutRunningRef.current = false;
           requestedStructureRef.current = null;
           afterNextLayoutRef.current = null; // 좌표가 확정되지 않았으므로 맡긴 함수도 버린다. 남기면 나중의 관계없는 레이아웃 뒤에 실행된다.
         });
@@ -138,5 +150,5 @@ export function useEditorLayout(
     onLayout({ direction: "RIGHT" });
   }, [nodes, edges, onLayout]);
 
-  return { onLayout, fitTreeView, runAfterNextLayout };
+  return { onLayout, fitTreeView, runAfterNextLayout, isLayoutRunning };
 }

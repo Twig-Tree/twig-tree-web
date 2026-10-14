@@ -87,13 +87,17 @@ function LayoutFlow({ workspaceId, treeId }: LayoutFlowProps) {
     onSelectedNodeHidden: closeMemoPanel,
   });
 
-  const { fitTreeView, runAfterNextLayout } = useEditorLayout(
+  const { fitTreeView, runAfterNextLayout, isLayoutRunning } = useEditorLayout(
     visibleNodes,
     visibleEdges,
     setNodes,
   );
 
-  const { focusNode } = useFocusNode({ visibleNodes, runAfterNextLayout });
+  const { focusNode } = useFocusNode({
+    visibleNodes,
+    runAfterNextLayout,
+    isLayoutRunning,
+  });
 
   /*
   결과로 고른 노드를 선택하고 화면 가운데로 옮긴다. 메모에서 일치한 노드는 일치한 내용을 바로 볼 수 있도록 메모 패널도 연다.
