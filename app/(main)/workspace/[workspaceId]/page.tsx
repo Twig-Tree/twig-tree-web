@@ -81,9 +81,9 @@ function LayoutFlow({ workspaceId, treeId }: LayoutFlowProps) {
     onSelectedNodeHidden: closeMemoPanel,
   });
 
-  useEditorLayout(visibleNodes, visibleEdges, setNodes);
+  const { fitTreeView } = useEditorLayout(visibleNodes, visibleEdges, setNodes);
 
-  // 2. React Flow가 초기 노드들의 뷰포트 정렬(fitView)까지 마쳤을 때 히스토리 기록 재개
+  // 2. React Flow 초기화가 끝났을 때 히스토리 기록 재개
   const handleInit = () => {
     clear();
     resume();
@@ -117,7 +117,6 @@ function LayoutFlow({ workspaceId, treeId }: LayoutFlowProps) {
           nodesConnectable={!isMutating}
           edgesReconnectable={!isMutating}
           elementsSelectable={!isMutating}
-          fitView
         >
           <Panel position="top-right">
             <button
@@ -134,6 +133,10 @@ function LayoutFlow({ workspaceId, treeId }: LayoutFlowProps) {
               disabled={!canRedo || isMutating}
             >
               Redo
+            </button>
+
+            <button className="xy-theme__button" onClick={fitTreeView}>
+              Fit View
             </button>
 
             <button

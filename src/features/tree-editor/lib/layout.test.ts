@@ -1,7 +1,15 @@
 import { describe, it, expect } from "vitest";
-import { getLayoutStructureSignature, mergeLayoutResult } from "./layout";
+import {
+  elkOptions,
+  getLayoutedElements,
+  getLayoutStructureSignature,
+  mergeLayoutResult,
+} from "./layout";
 import { Position } from "@xyflow/react";
-import { CustomEditorNode } from "@/src/features/tree-editor/model/types";
+import {
+  CustomEditorEdge,
+  CustomEditorNode,
+} from "@/src/features/tree-editor/model/types";
 
 const createNode = (
   id: string,
@@ -221,7 +229,7 @@ describe("getLayoutStructureSignature", () => {
   });
 
   /*
-  ELK의 considerModelOrder가 배열 순서로 형제 배치를 정하므로, 순서 변경도 재계산 대상이다.
+  노드 배열 순서가 형제 배치를 정하므로, 순서 변경도 재계산 대상이다.
   */
   it("노드 배열 순서가 바뀌면 다른 시그니처를 낸다", () => {
     const reorderedNodes = [nodes[1], nodes[0]];
@@ -268,5 +276,157 @@ describe("getLayoutStructureSignature", () => {
     expect(getLayoutStructureSignature(threeNodes, reconnectedEdges)).not.toBe(
       getLayoutStructureSignature(threeNodes, edges),
     );
+  });
+});
+
+describe("getLayoutedElements", () => {
+  const layoutOptions = { "elk.direction": "RIGHT", ...elkOptions };
+
+  const createEdge = (source: string, target: string): CustomEditorEdge => ({
+    id: `e-${source}-${target}`,
+    source,
+    target,
+  });
+
+  /*
+  노드 배열 순서대로 parentId 표를 엣지로 바꾼다. 실제 편집기의 엣지도 노드 순서로 만들어진다.
+  */
+  const createTree = (parentById: Record<string, string | null>) => {
+    const ids = Object.keys(parentById);
+
+    return {
+      nodes: ids.map((id) => createNode(id, { x: 0, y: 0 })),
+      edges: ids.flatMap((id) => {
+        const parentId = parentById[id];
+        return parentId === null ? [] : [createEdge(parentId, id)];
+      }),
+    };
+  };
+
+  const getCenterY = (node: CustomEditorNode) =>
+    node.position.y + (node.height ?? 0) / 2;
+
+  const layout = async (
+    nodes: CustomEditorNode[],
+    edges: CustomEditorEdge[],
+  ) => {
+    const { nodes: layoutedNodes } = await getLayoutedElements(
+      nodes,
+      edges,
+      layoutOptions,
+    );
+
+    return new Map(layoutedNodes.map((node) => [node.id, node]));
+  };
+
+  /*
+  형제가 많을수록 배치 단계가 순서를 바꿀 여지가 커지므로 형제를 넉넉히 둔다.
+  */
+  const siblingIds = Array.from({ length: 12 }, (_, index) => `c${index}`);
+  const fanTree = createTree({
+    root: null,
+    ...Object.fromEntries(siblingIds.map((id) => [id, "root"])),
+  });
+
+  const getIdsFromTop = (
+    layouted: Map<string, CustomEditorNode>,
+    ids: string[],
+  ) =>
+    [...ids].sort(
+      (a, b) => getCenterY(layouted.get(a)!) - getCenterY(layouted.get(b)!),
+    );
+
+  it("형제를 노드 배열 순서대로 위에서부터 놓는다", async () => {
+    const layouted = await layout(fanTree.nodes, fanTree.edges);
+
+    expect(getIdsFromTop(layouted, siblingIds)).toEqual(siblingIds);
+  });
+
+  it("노드 배열 순서를 바꾸면 형제 순서도 따라 바뀐다", async () => {
+    const [root, ...siblings] = fanTree.nodes;
+    const reversedNodes = [root, ...[...siblings].reverse()];
+
+    const layouted = await layout(reversedNodes, fanTree.edges);
+
+    expect(getIdsFromTop(layouted, siblingIds)).toEqual(
+      [...siblingIds].reverse(),
+    );
+  });
+
+  /*
+  mrtree는 형제 순서를 엣지 입력 순서로 정한다. reconnect는 옮긴 엣지를 배열 끝에 붙이므로
+  엣지 배열이 노드 배열과 어긋날 수 있는데, 그래도 형제 순서는 노드 배열을 따라야 한다.
+  */
+  it("엣지 배열 순서가 노드 배열 순서와 달라도 노드 배열 순서를 따른다", async () => {
+    const layouted = await layout(fanTree.nodes, [...fanTree.edges].reverse());
+
+    expect(getIdsFromTop(layouted, siblingIds)).toEqual(siblingIds);
+  });
+
+  /*
+  자식 수가 서로 다른 서브트리를 섞어, 한쪽이 무거워도 부모가 자식들의 가운데에 오는지 본다.
+  */
+  const unevenTree = createTree({
+    root: null,
+    a: "root",
+    b: "root",
+    c: "root",
+    a1: "a",
+    b1: "b",
+    b2: "b",
+    b3: "b",
+    b4: "b",
+    b5: "b",
+    b11: "b1",
+    b12: "b1",
+    c1: "c",
+  });
+
+  it("모든 부모를 자식들의 세로 가운데에 놓는다", async () => {
+    const layouted = await layout(unevenTree.nodes, unevenTree.edges);
+
+    const childIdsByParent = new Map<string, string[]>();
+    unevenTree.edges.forEach((edge) => {
+      childIdsByParent.set(edge.source, [
+        ...(childIdsByParent.get(edge.source) ?? []),
+        edge.target,
+      ]);
+    });
+
+    childIdsByParent.forEach((childIds, parentId) => {
+      const childCenters = childIds.map((id) => getCenterY(layouted.get(id)!));
+      const middle =
+        (Math.min(...childCenters) + Math.max(...childCenters)) / 2;
+
+      expect(getCenterY(layouted.get(parentId)!)).toBeCloseTo(middle);
+    });
+  });
+
+  it("어떤 두 노드의 배치 상자도 겹치지 않는다", async () => {
+    const layouted = [
+      ...(await layout(unevenTree.nodes, unevenTree.edges)).values(),
+    ];
+
+    const overlaps = (a: CustomEditorNode, b: CustomEditorNode) =>
+      a.position.x < b.position.x + b.width! &&
+      b.position.x < a.position.x + a.width! &&
+      a.position.y < b.position.y + b.height! &&
+      b.position.y < a.position.y + a.height!;
+
+    layouted.forEach((a, i) => {
+      layouted.slice(i + 1).forEach((b) => {
+        expect(overlaps(a, b), `${a.id}와 ${b.id}가 겹친다`).toBe(false);
+      });
+    });
+  });
+
+  it("자식을 부모보다 오른쪽 층에 놓는다", async () => {
+    const layouted = await layout(unevenTree.nodes, unevenTree.edges);
+
+    unevenTree.edges.forEach((edge) => {
+      expect(layouted.get(edge.target)!.position.x).toBeGreaterThan(
+        layouted.get(edge.source)!.position.x,
+      );
+    });
   });
 });

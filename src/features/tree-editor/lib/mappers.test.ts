@@ -56,7 +56,7 @@ describe("transformToFlowElements", () => {
   });
 
   /*
-  ELK의 considerModelOrder가 배열 순서로 형제 배치를 정하므로, 정렬은 화면에 넘기기 직전인
+  노드 배열 순서가 형제 배치를 정하므로, 정렬은 화면에 넘기기 직전인
   여기서 보장한다. 캐시는 순서를 약속하지 않는다.
   */
   it("orderIndex 순으로 정렬한다", () => {
