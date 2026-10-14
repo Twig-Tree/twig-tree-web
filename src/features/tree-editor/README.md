@@ -8,6 +8,9 @@ Tree Editor는 사용자 행동, 서버 상태 동기화, 편집기 초기화, �
 - `initialization`: 서버에서 조회한 트리 데이터를 editor store의 초기 상태로 반영한다.
 - `collapse`: 서브트리 접힘 상태를 관리한다. 접힘 store, 화면에 보일 노드·엣지 계산, 다른 탭과의 동기화를 담는다.
 - `layout`: 노드와 edge의 배치를 계산하고 편집기 viewport를 조정한다.
+- `search`: 검색어로 editor store의 노드를 찾아 결과 목록을 만들고 강조 store에 반영한다.
+- `highlight`: 검색어·태그에 일치한 노드의 강조 상태를 관리한다.
+- `focus`: 결과 목록에서 고른 노드의 접힌 조상을 펼치고, 그 노드를 선택해 화면 가운데로 옮긴다.
 - `react-flow`: React Flow가 요구하는 인터페이스와 Tree Editor store 사이를 연결한다.
 - `treeStore.ts`: 편집 중인 노드, edge 및 history를 관리한다.
 - `types.ts`: Tree Editor에서 사용하는 node와 edge 타입을 정의한다.
@@ -64,10 +67,46 @@ editor store 초기화는 트리당 한 번만 수행한다. `useInitializeTree`
 - **세션 중 노드를 삭제할 때는 정리하지 않는다.** 삭제를 undo하면 노드가 돌아오는데, 목록에서 이미 지웠다면 펼쳐진 채로 돌아온다.
 - **다른 탭에서 받은 목록도 정리하지 않는다.** 이 탭에 없는 `serverId`는 다른 탭에서 방금 만든 노드일 수 있다. 걸러 낸 채로 이 탭이 저장하면 그 탭의 접힘을 덮어쓴다. 이 탭의 어떤 노드와도 맞지 않는 ID는 화면에 영향이 없고, 정말 삭제된 노드라면 다음 복원 때 걸러진다.
 
+## 강조와 포커싱
+
+검색 결과와 태그는 "결과 목록 → 강조 → 포커싱"이라는 같은 흐름을 쓴다. 세 개념은 서로 다르다.
+
+| 개념   | 의미                                   | 대상 개수 | 구현                                       |
+| ------ | -------------------------------------- | --------- | ------------------------------------------ |
+| 선택   | 메모 패널과 노드 추가·삭제의 기준 노드 | 1개       | React Flow의 `node.selected`               |
+| 강조   | 검색어·태그에 일치한 노드 표시         | 여러 개   | `highlight/highlightStore`, 선택과 다른 색 |
+| 포커싱 | 해당 노드로 화면 이동                  | —         | 상태가 아닌 동작. `focus/useFocusNode`     |
+
+다중 선택으로 강조를 대신하지 않는다. 선택 노드는 `selected`가 `true`인 첫 노드 하나로 읽으므로, 여러 개가 선택되면 메모 패널과 노드 추가·삭제가 그중 맨 앞 노드를 기준으로 동작한다.
+
+### 강조를 editor store와 따로 두는 이유
+
+접힘 상태와 같은 이유다. 강조는 undo 대상이 아니고, editor store의 `set`마다 도는 `handleSet` 비교를 거칠 이유도 없다. React Flow 노드의 `className`에 써 넣는 방식도 `nodes`가 history 스냅숏에 들어가므로 쓰지 않는다.
+
+`CustomNode`는 자기 `id`가 강조 집합에 있는지만 boolean으로 구독한다. 강조 집합이 바뀌어도 결과가 같은 노드는 다시 그려지지 않는다. 테두리는 래퍼 `.react-flow__node`가 그리므로 `.custom-node`의 `data-highlighted`를 `:has()`로 읽어 래퍼에 `outline`을 그린다. 선택은 `border-color`를 바꾸므로 강조된 노드를 선택해도 둘 다 보인다.
+
+편집기를 벗어날 때 `useInitializeTree`의 언마운트 effect가 `resetTree`·`resetCollapse`와 함께 강조를 비운다.
+
+### 펼치기와 선택은 한 렌더에 반영한다
+
+`focusNode`는 접힌 조상 펼치기와 선택을 같은 이벤트 handler 안에서 동기로 한다. 선택만 먼저 반영되면 대상이 아직 숨겨진 상태라, `useVisibleElements`가 "선택된 노드가 숨겨졌다"고 보고 선택을 풀고 메모 패널을 닫는다.
+
+여러 조상은 `expandAll`로 한 번에 펼친다. `expand`를 조상마다 부르면 그때마다 `localStorage`에 쓰고 다른 탭에 `storage` 이벤트를 일으킨다.
+
+선택은 `selectOnlyNodeInStore`로 바꾼다. `selected`만 바뀌므로 `handleSet`의 기록 조건에 걸리지 않아 undo history에 들어가지 않는다.
+
+### 화면 이동은 레이아웃 뒤에 한다
+
+숨겨져 있던 노드는 펼친 뒤의 레이아웃이 끝나야 좌표가 생긴다. 그 전의 store 좌표는 숨기기 전 좌표거나 원점이다.
+
+- `useEditorLayout`은 `runAfterNextLayout(callback)`으로 "다음 레이아웃 결과를 얹은 뒤 함수 하나를 실행"하는 것만 맡는다. 맡긴 함수는 하나만 두고, 기다리는 사이 새로 맡기면 나중 것으로 덮는다. 최신 계산이 실패하면 버린다. 남겨 두면 나중의 관계없는 레이아웃 뒤에 실행된다.
+- `useFocusNode`는 대상이 보이는 노드이고 레이아웃 계산 중이 아닐 때만 바로 옮긴다. 계산 중이면 보이는 노드도 기다린다. 그렇지 않으면 접힌 형제 둘을 연달아 눌렀을 때, 두 번째 노드는 바로 옮겨지고 첫 클릭이 미뤄 둔 이동이 레이아웃 뒤에 실행되어 마지막 클릭을 덮는다.
+- 이동은 다음 프레임에 렌더된 노드의 상자를 읽어 그 가운데로 `setCenter`를 부른다. `setCenter`는 `zoom`을 빼면 `maxZoom`으로 확대하므로 현재 배율을 넘긴다.
+
 ## 레이어 선택 배경
 
 Tree Editor는 여러 UI 요소와 편집 기능을 조합해 하나의 큰 화면 영역을 구성하므로 역할만 보면 `widgets` 레이어가 자연스럽다. 하지만 편집기 전용 상태와 노드 추가·삭제 같은 행동이 서로 긴밀하게 의존한다. 이를 Widget과 여러 Feature로 분리하면 Feature가 Widget의 상태나 로직을 참조할 수 없어 FSD의 하위 레이어 참조 규칙을 위반하거나, 규칙을 지키기 위해 상태와 인터페이스를 여러 슬라이스로 나누어 전달해야 한다.
 
-현재는 참조 규칙을 지키면서 불필요한 경계와 연결 복잡도를 늘리지 않기 위해 Tree Editor 전체를 하나의 Feature로 두었다. 대신 규모가 큰 내부 로직은 `model` 아래에서 `actions`, `initialization`, `collapse`, `layout`, `react-flow` 책임으로 구분한다. 이는 모든 Feature에 적용하는 공통 규칙이 아니라 Tree Editor의 응집도와 레이어 의존성을 고려한 예외적인 선택이다.
+현재는 참조 규칙을 지키면서 불필요한 경계와 연결 복잡도를 늘리지 않기 위해 Tree Editor 전체를 하나의 Feature로 두었다. 대신 규모가 큰 내부 로직은 `model` 아래에서 `actions`, `initialization`, `collapse`, `layout`, `react-flow`, `search`, `highlight`, `focus` 책임으로 구분한다. 이는 모든 Feature에 적용하는 공통 규칙이 아니라 Tree Editor의 응집도와 레이어 의존성을 고려한 예외적인 선택이다.
 
 외부 레이어는 내부 경로를 직접 참조하지 않고 루트 `index.ts`의 공개 API를 사용한다.
