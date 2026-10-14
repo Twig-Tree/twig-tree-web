@@ -2,6 +2,7 @@
   --xy-background-color: #f7f9fb;
   /* Custom Variables */
   --xy-theme-selected: #f57dbd;
+  --xy-theme-highlighted: #f59e0b;
   --xy-theme-hover: #c5c5c5;
   --xy-theme-edge-hover: black;
   --xy-theme-color-focus: #e8e8e8;
@@ -63,6 +64,14 @@
 .react-flow__node.selectable.selected {
   border-color: var(--xy-theme-selected);
   box-shadow: var(--xy-node-boxshadow-default);
+}
+
+/*
+검색어·태그에 일치한 노드를 강조한다. 선택은 border, 강조는 outline으로 그려 두 상태가 겹쳐도 둘 다 보인다.
+*/
+.react-flow__node:has(> .custom-node[data-highlighted="true"]) {
+  outline: 2px solid var(--xy-theme-highlighted);
+  outline-offset: 2px;
 }
 
 .react-flow__node-group {
