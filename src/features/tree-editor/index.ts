@@ -5,6 +5,7 @@ export { useInitializeTree } from "./model/initialization/useInitializeTree";
 export { useSyncCollapseAcrossTabs } from "./model/collapse/useSyncCollapseAcrossTabs";
 export { useVisibleElements } from "./model/collapse/useVisibleElements";
 export { useEditorLayout } from "./model/layout/useEditorLayout";
+export { useFocusNode } from "./model/focus/useFocusNode";
 export { useNodeSearch } from "./model/search/useNodeSearch";
 export { useReactFlowStoreSetters } from "./model/react-flow/useReactFlowStoreSetters";
 export { useTreeHistory, useTreeStore } from "./model/treeStore";
