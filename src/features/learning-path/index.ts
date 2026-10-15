@@ -1,6 +1,7 @@
 export { sampleLearningPath } from "./mock/sampleLearningPath";
 export { useLearningProgressStore } from "./model/learningProgressStore";
 export { LearningPathGraph } from "./ui/LearningPathGraph";
+export { LearningSlidePanel } from "./ui/LearningSlidePanel";
 export {
   getLearningCheckpointStatus,
   getMainPathProgress,
