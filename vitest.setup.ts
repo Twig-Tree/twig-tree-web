@@ -25,6 +25,19 @@ if (!HTMLDialogElement.prototype.close) {
   };
 }
 
+/*
+jsdom은 요소 크기 관찰 API를 구현하지 않는다. React Flow는 캔버스와 노드의 크기를
+관찰하기 위해 마운트 시 ResizeObserver를 만들므로, 레이아웃 계산 자체를 검증하지 않는
+컴포넌트 테스트에서는 생명주기 메서드만 가진 대체 구현을 사용한다.
+*/
+if (!globalThis.ResizeObserver) {
+  globalThis.ResizeObserver = class ResizeObserver {
+    observe() {}
+    unobserve() {}
+    disconnect() {}
+  };
+}
+
 // Start server before all tests
 beforeAll(() => server.listen({ onUnhandledRequest: "error" }));
 

@@ -131,6 +131,7 @@ function LearningPathGraphCanvas({
         nodesConnectable={false}
         edgesReconnectable={false}
         elementsSelectable={false}
+        onNodeClick={(_, node) => node.data.onSelect(node.id)}
         deleteKeyCode={null}
         selectionKeyCode={null}
         multiSelectionKeyCode={null}

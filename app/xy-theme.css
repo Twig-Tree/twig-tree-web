@@ -118,6 +118,7 @@
   width: 224px;
   height: 124px;
   overflow: hidden;
+  pointer-events: all;
   padding: 0;
   border-color: #cbd5e1;
   background: #ffffff;
