@@ -113,6 +113,92 @@
   height: 5px;
 }
 
+/* 학습 경로는 편집 노드와 달리 상태를 전달하는 읽기 전용 내비게이션 카드다. */
+.learning-path-flow .react-flow__node-learningCheckpoint {
+  width: 224px;
+  height: 124px;
+  overflow: hidden;
+  padding: 0;
+  border-color: #cbd5e1;
+  background: #ffffff;
+  text-align: left;
+}
+
+.learning-path-flow
+  .react-flow__node-learningCheckpoint:has(
+    .learning-path-node[data-status="current"]
+  ) {
+  border-color: #6366f1;
+  box-shadow:
+    0 0 0 3px rgb(99 102 241 / 14%),
+    var(--xy-node-boxshadow-default);
+}
+
+.learning-path-flow
+  .react-flow__node-learningCheckpoint:has(
+    .learning-path-node[data-status="completed"]
+  ) {
+  border-color: #86efac;
+  background: #f0fdf4;
+}
+
+.learning-path-flow
+  .react-flow__node-learningCheckpoint:has(
+    .learning-path-node[data-status="locked"]
+  ) {
+  border-color: #e2e8f0;
+  background: #f8fafc;
+  box-shadow: none;
+}
+
+.learning-path-node:focus-visible {
+  outline: 3px solid rgb(99 102 241 / 28%);
+  outline-offset: -3px;
+}
+
+.learning-path-node[data-status="locked"] {
+  color: #94a3b8;
+}
+
+.learning-path-node[data-status="locked"] > span:last-child {
+  color: #64748b;
+}
+
+.learning-path-node__kind {
+  background: #eef2ff;
+  color: #4f46e5;
+}
+
+.learning-path-node[data-kind="supplemental"] .learning-path-node__kind {
+  background: #f0fdfa;
+  color: #0f766e;
+}
+
+.learning-path-node[data-kind="advanced"] .learning-path-node__kind {
+  background: #f5f3ff;
+  color: #7c3aed;
+}
+
+.learning-path-node__status {
+  color: #64748b;
+}
+
+.learning-path-node[data-status="current"] .learning-path-node__status {
+  color: #4f46e5;
+}
+
+.learning-path-node[data-status="completed"] .learning-path-node__status {
+  color: #15803d;
+}
+
+.learning-path-node__handle {
+  visibility: hidden;
+}
+
+.learning-path-flow .learning-path-edge--optional .react-flow__edge-path {
+  stroke-dasharray: 6 5;
+}
+
 /* 
   Custom Example CSS  - This CSS is to improve the example experience.
   You can remove it if you want to use the default styles.
