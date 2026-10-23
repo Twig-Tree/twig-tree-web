@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { type ReactNode, useState } from "react";
 import { MAX_MEMO_LENGTH } from "@/src/entities/tree";
 import { validateMemoContent } from "../lib/save-memo/validateMemoContent";
 
@@ -6,12 +6,14 @@ type MemoEditorProps = {
   initialMemo: string;
   onSave: (content: string) => void; // 저장 버튼 클릭 시 현재 편집 중인 내용을 전달한다
   isSaving: boolean; // 저장 요청이 진행 중인 동안 편집/저장 UI를 잠글지 여부
+  children?: ReactNode; // 메모 본문과 되돌리기·저장 버튼 사이에 놓을 내용. 노드 태그 영역이 들어온다
 };
 
 export const MemoEditor = ({
   initialMemo,
   onSave,
   isSaving,
+  children,
 }: MemoEditorProps) => {
   const [memo, setMemo] = useState(initialMemo);
 
@@ -58,6 +60,8 @@ export const MemoEditor = ({
           </span>
         </div>
       </div>
+
+      {children}
 
       <footer className="flex h-16 shrink-0 items-center justify-end gap-2 border-t border-slate-200 px-5">
         <button
