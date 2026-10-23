@@ -1,5 +1,9 @@
 import { MemoEditor } from "./MemoEditor";
+import { TagChipList } from "./TagChipList";
+import { getTagsByIds } from "../lib/tag/getTagsByIds";
+import { useDetachNodeTag } from "../model/actions/detach-node-tag/useDetachNodeTag";
 import { useSaveMemo } from "../model/actions/save-memo/useSaveMemo";
+import { useTreeTags } from "../model/tag/useTreeTags";
 import type { CustomEditorNode } from "../model/types";
 
 type MemoSidePanelProps = {
@@ -20,6 +24,12 @@ export const MemoSidePanel = ({
     clientId: selectedNode?.id,
     serverId: selectedNode?.data.serverId ?? null,
     savedMemo,
+  });
+
+  const { tags } = useTreeTags();
+
+  const { handleDetachNodeTag } = useDetachNodeTag({
+    clientId: selectedNode?.id,
   });
 
   return (
@@ -44,12 +54,20 @@ export const MemoSidePanel = ({
       </header>
 
       {selectedNode ? (
-        <MemoEditor
-          key={selectedNode.id}
-          initialMemo={savedMemo ?? ""}
-          onSave={(content) => void handleSaveMemo(content)}
-          isSaving={isSaving}
-        />
+        <>
+          <MemoEditor
+            key={selectedNode.id}
+            initialMemo={savedMemo ?? ""}
+            onSave={(content) => void handleSaveMemo(content)}
+            isSaving={isSaving}
+          />
+
+          <TagChipList
+            key={selectedNode.id}
+            nodeTags={getTagsByIds(tags, selectedNode.data.tagIds)}
+            onDetach={handleDetachNodeTag}
+          />
+        </>
       ) : (
         <>
           <div className="min-h-0 flex-1 p-5">
