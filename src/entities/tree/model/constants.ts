@@ -11,6 +11,14 @@ export const MAX_NODE_NAME_LENGTH = 30;
 export const MAX_MEMO_LENGTH = 500;
 
 /*
+태그 이름 길이와 노드당 태그 개수의 상한. 백엔드 TagReqDTO의 @Size(max = 30)와
+TagService.MAX_NODE_TAG_COUNT가 출처다. 개수를 넘기면 409 TAG409-3으로 거절된다.
+*/
+export const MAX_TAG_NAME_LENGTH = 30;
+
+export const MAX_NODE_TAG_COUNT = 10;
+
+/*
 노드 요청에서 분기에 필요한 백엔드 에러 코드. 백엔드 NodeErrorCode.java가 출처다.
 ONE_ROOT_PER_TREE는 서비스 코드가 아니라 DB 유니크 인덱스 uk_nodes_root_per_tree 위반을 옮긴 코드다.
 */
