@@ -21,6 +21,13 @@ export type EditorNodeData = Omit<TreeNode, "id" | "parentId"> & {
   값의 유무로 판별할 수 있다.
   */
   serverId: string | null;
+
+  /*
+  노드에 붙은 트리 태그의 ID 목록. 붙인 순서대로 둔다.
+  백엔드는 트리 조회 응답에 노드별 tagIds를 싣기로 했지만 아직 주지 않는다. TreeNode에 먼저 두면
+  mapper가 없는 값을 기본값으로 지어내야 하므로, 응답에 실릴 때까지 편집기 타입에만 두고 초기화 때 비워 둔다.
+  */
+  tagIds: string[];
 };
 
 export type CustomEditorNode = Node<EditorNodeData, "custom">;
