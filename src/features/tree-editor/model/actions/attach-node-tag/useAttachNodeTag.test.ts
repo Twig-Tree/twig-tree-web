@@ -6,8 +6,11 @@ import { useTreeTagStore } from "../../tag/treeTagStore";
 import { useTreeStore } from "../../treeStore";
 import { useAttachNodeTag } from "./useAttachNodeTag";
 
+const NO_TAG_IDS: string[] = []; // 노드가 없을 때의 값. 셀렉터가 매번 새 배열을 돌려주면 store를 읽을 때마다 다시 렌더되어 끝나지 않는다.
+
 /*
 노드의 tagIds를 store에서 읽어 넘겨, 붙인 결과가 다음 호출의 attachedTagIds에 반영되게 한다.
+afterEach가 store를 비울 때 hook이 아직 그려져 있으므로, 노드가 없는 경우에도 같은 배열을 돌려준다.
 */
 const renderAttachNodeTag = () =>
   renderHook(() =>
@@ -15,7 +18,8 @@ const renderAttachNodeTag = () =>
       clientId: "c1",
       attachedTagIds: useTreeStore(
         (state) =>
-          state.nodes.find((node) => node.id === "c1")?.data.tagIds ?? [],
+          state.nodes.find((node) => node.id === "c1")?.data.tagIds ??
+          NO_TAG_IDS,
       ),
     }),
   );
