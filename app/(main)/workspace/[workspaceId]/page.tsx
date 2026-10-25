@@ -93,7 +93,7 @@ function LayoutFlow({ workspaceId, treeId }: LayoutFlowProps) {
     setNodes,
   );
 
-  const { focusNode } = useFocusNode({
+  const { focusNode, fitNodes } = useFocusNode({
     visibleNodes,
     runAfterNextLayout,
     isLayoutRunning,
@@ -129,6 +129,7 @@ function LayoutFlow({ workspaceId, treeId }: LayoutFlowProps) {
       <WorkspacePanel
         onSelectResult={handleSelectResult}
         isResultSelectDisabled={isMutating}
+        onFitNodes={fitNodes}
       />
 
       <div className="min-h-0 min-w-0 flex-1">

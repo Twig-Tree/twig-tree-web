@@ -2,10 +2,12 @@
 
 import { useState } from "react";
 import {
+  getTaggedNodeResults,
   type NodeResult,
   useHighlightResults,
   useNodeSearch,
   useTagResults,
+  useTreeStore,
   useTreeTags,
 } from "@/src/features/tree-editor";
 import { NodeResultList } from "./NodeResultList";
@@ -15,6 +17,7 @@ import { WorkspaceTagList } from "./WorkspaceTagList";
 export interface WorkspacePanelProps {
   onSelectResult: (result: NodeResult) => void; // 결과 항목을 눌렀을 때 페이지가 할 일. 포커싱과 메모 패널 열기
   isResultSelectDisabled: boolean; // 노드 추가·삭제 요청 중이면 true
+  onFitNodes: (clientIds: string[]) => void; // 태그를 골랐을 때 그 태그가 붙은 노드들을 한 화면에 모은다
 }
 
 /*
@@ -27,6 +30,7 @@ export interface WorkspacePanelProps {
 export function WorkspacePanel({
   onSelectResult,
   isResultSelectDisabled,
+  onFitNodes,
 }: WorkspacePanelProps) {
   const [keyword, setKeyword] = useState("");
   const [selectedTagId, setSelectedTagId] = useState<string | null>(null);
@@ -54,11 +58,24 @@ export function WorkspacePanel({
   };
 
   /*
-  같은 태그를 다시 누르면 선택을 풀어 결과와 강조를 지운다.
+  같은 태그를 다시 누르면 선택을 풀어 결과와 강조를 지운다. 화면은 되돌리지 않는다.
+  새 태그를 고르면 그 태그가 붙은 노드들을 한 화면에 모은다. 선택은 바꾸지 않는다.
+  결과는 다음 렌더에 만들어지므로, 모을 노드는 이 순간의 store에서 바로 찾는다.
   */
   const handleSelectTag = (tagId: string) => {
     setKeyword("");
-    setSelectedTagId((currentTagId) => (currentTagId === tagId ? null : tagId));
+
+    if (tagId === activeTagId) {
+      setSelectedTagId(null);
+      return;
+    }
+
+    setSelectedTagId(tagId);
+
+    const { nodes } = useTreeStore.getState();
+    onFitNodes(
+      getTaggedNodeResults(nodes, tagId).map((result) => result.clientId),
+    );
   };
 
   return (

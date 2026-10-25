@@ -10,6 +10,7 @@ export { useNodeSearch } from "./model/search/useNodeSearch";
 export { useHighlightResults } from "./model/highlight/useHighlightResults";
 export { useTagResults } from "./model/tag/useTagResults";
 export { useTreeTags } from "./model/tag/useTreeTags";
+export { getTaggedNodeResults } from "./lib/tag/getTaggedNodeResults";
 export { useReactFlowStoreSetters } from "./model/react-flow/useReactFlowStoreSetters";
 export { useTreeHistory, useTreeStore } from "./model/treeStore";
 export type {
