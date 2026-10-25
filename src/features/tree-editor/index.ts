@@ -1,6 +1,7 @@
 export { nodeTypes, edgeTypes } from "./constants/flowConfig";
 export { MemoSidePanel } from "./ui/MemoSidePanel";
 export { useTreeEditorActions } from "./model/actions/useTreeEditorActions";
+export { useDeleteTreeTag } from "./model/actions/delete-tree-tag/useDeleteTreeTag";
 export { useInitializeTree } from "./model/initialization/useInitializeTree";
 export { useSyncCollapseAcrossTabs } from "./model/collapse/useSyncCollapseAcrossTabs";
 export { useVisibleElements } from "./model/collapse/useVisibleElements";

@@ -4,6 +4,7 @@ import { useState } from "react";
 import {
   getTaggedNodeResults,
   type NodeResult,
+  useDeleteTreeTag,
   useHighlightResults,
   useNodeSearch,
   useTagResults,
@@ -36,6 +37,7 @@ export function WorkspacePanel({
   const [selectedTagId, setSelectedTagId] = useState<string | null>(null);
 
   const { tags } = useTreeTags();
+  const { handleDeleteTreeTag } = useDeleteTreeTag();
 
   /*
   고른 태그가 트리 태그 목록에서 사라졌으면 고르지 않은 것으로 본다. 태그를 지울 때 이 state를 따로 비우지 않아도 결과와 강조가 함께 풀린다.
@@ -114,6 +116,7 @@ export function WorkspacePanel({
         tags={tags}
         selectedTagId={activeTagId}
         onSelectTag={handleSelectTag}
+        onDeleteTag={handleDeleteTreeTag}
       />
     </aside>
   );
