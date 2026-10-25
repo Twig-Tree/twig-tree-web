@@ -117,36 +117,35 @@
 .learning-path-flow .react-flow__node-learningCheckpoint {
   width: 224px;
   height: 124px;
-  overflow: hidden;
+  overflow: visible;
   pointer-events: all;
   padding: 0;
-  border-color: #cbd5e1;
-  background: #ffffff;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
   text-align: left;
 }
 
-.learning-path-flow
-  .react-flow__node-learningCheckpoint:has(
-    .learning-path-node[data-status="current"]
-  ) {
+.learning-path-card {
+  overflow: hidden;
+  border: 1px solid #cbd5e1;
+  background: #ffffff;
+  box-shadow: var(--xy-node-boxshadow-default);
+}
+
+.learning-path-card[data-status="current"] {
   border-color: #6366f1;
   box-shadow:
     0 0 0 3px rgb(99 102 241 / 14%),
     var(--xy-node-boxshadow-default);
 }
 
-.learning-path-flow
-  .react-flow__node-learningCheckpoint:has(
-    .learning-path-node[data-status="completed"]
-  ) {
+.learning-path-card[data-status="completed"] {
   border-color: #86efac;
   background: #f0fdf4;
 }
 
-.learning-path-flow
-  .react-flow__node-learningCheckpoint:has(
-    .learning-path-node[data-status="locked"]
-  ) {
+.learning-path-card[data-status="locked"] {
   border-color: #e2e8f0;
   background: #f8fafc;
   box-shadow: none;

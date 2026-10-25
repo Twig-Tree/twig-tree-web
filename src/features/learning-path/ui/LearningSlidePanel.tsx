@@ -36,6 +36,42 @@ interface LearningSlidePanelProps {
   onClose?: () => void;
 }
 
+interface LearningProgressBarProps {
+  completed: number;
+  total: number;
+  percentage: number;
+}
+
+export function LearningProgressBar({
+  completed,
+  total,
+  percentage,
+}: LearningProgressBarProps) {
+  return (
+    <div>
+      <div className="flex items-center justify-between text-xs">
+        <span className="font-medium text-slate-500">핵심 경로 진행률</span>
+        <span className="font-semibold text-slate-700">
+          {completed}/{total} · {percentage}%
+        </span>
+      </div>
+      <div
+        role="progressbar"
+        aria-label="핵심 경로 진행률"
+        aria-valuemin={0}
+        aria-valuemax={100}
+        aria-valuenow={percentage}
+        className="mt-2 h-2 overflow-hidden rounded-full bg-slate-100"
+      >
+        <div
+          className="h-full rounded-full bg-indigo-600 transition-[width]"
+          style={{ width: `${percentage}%` }}
+        />
+      </div>
+    </div>
+  );
+}
+
 const getCheckpointById = (
   learningPath: LearningPath,
   checkpointId: string | null,
@@ -206,26 +242,7 @@ export function LearningSlidePanel({
 
       <div className="min-h-0 flex-1 overflow-y-auto">
         <div className="border-b border-slate-100 px-6 py-5">
-          <div className="flex items-center justify-between text-xs">
-            <span className="font-medium text-slate-500">핵심 경로 진행률</span>
-            <span className="font-semibold text-slate-700">
-              {mainProgress.completed}/{mainProgress.total} ·{" "}
-              {mainProgress.percentage}%
-            </span>
-          </div>
-          <div
-            role="progressbar"
-            aria-label="핵심 경로 진행률"
-            aria-valuemin={0}
-            aria-valuemax={100}
-            aria-valuenow={mainProgress.percentage}
-            className="mt-2 h-2 overflow-hidden rounded-full bg-slate-100"
-          >
-            <div
-              className="h-full rounded-full bg-indigo-600 transition-[width]"
-              style={{ width: `${mainProgress.percentage}%` }}
-            />
-          </div>
+          <LearningProgressBar {...mainProgress} />
         </div>
 
         <article className="px-6 py-7">

@@ -103,6 +103,10 @@ describe("LearningPathPage", () => {
       "href",
       "/workspace/42/learning-path",
     );
+    expect(screen.getByRole("link", { name: "UI 팔레트" })).toHaveAttribute(
+      "href",
+      "/prototype/learning-path-palette",
+    );
   });
 
   it("첫 단계를 시작하고 완료하면 그래프와 슬라이드가 다음 단계로 함께 이동한다", async () => {

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { use, useCallback, useEffect, useMemo, useState } from "react";
-import { RotateCcw } from "lucide-react";
+import { RotateCcw, Shapes } from "lucide-react";
 import {
   getLearningCheckpointStatus,
   LearningPathGraph,
@@ -150,6 +150,13 @@ function LearningPathPageContent({
                 학습 경로
               </Link>
             </nav>
+            <Link
+              href={routes.learningPathPalette}
+              className="inline-flex h-8 items-center gap-1.5 rounded-lg px-2.5 text-xs font-medium text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-900 focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none"
+            >
+              <Shapes aria-hidden="true" className="size-3.5" />
+              UI 팔레트
+            </Link>
             <button
               type="button"
               onClick={handleResetProgress}

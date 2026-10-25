@@ -7,4 +7,5 @@ export const routes = {
   workspace: (workspaceId: string) => `/workspace/${workspaceId}`,
   learningPath: (workspaceId: string) =>
     `/workspace/${workspaceId}/learning-path`,
+  learningPathPalette: "/prototype/learning-path-palette",
 } as const;
