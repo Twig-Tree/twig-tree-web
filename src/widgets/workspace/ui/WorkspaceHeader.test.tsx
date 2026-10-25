@@ -20,4 +20,17 @@ describe("WorkspaceHeader", () => {
       }),
     ).toBeInTheDocument();
   });
+
+  it("화면별 동작을 제목 오른쪽에 표시한다", () => {
+    render(
+      <WorkspaceHeader
+        name="기획 회의"
+        actions={<button type="button">학습 경로</button>}
+      />,
+    );
+
+    expect(
+      screen.getByRole("button", { name: "학습 경로" }),
+    ).toBeInTheDocument();
+  });
 });

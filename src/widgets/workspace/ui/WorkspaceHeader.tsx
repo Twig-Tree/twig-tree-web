@@ -1,14 +1,18 @@
+import type { ReactNode } from "react";
+
 export interface WorkspaceHeaderProps {
   name: string | undefined; // 조회가 끝나기 전에는 undefined
   isNameLoading?: boolean; // 이름을 처음 불러오는 중이라 자리표시자를 보여줄지 여부
+  actions?: ReactNode; // 제목 오른쪽에 표시할 화면별 동작이나 내비게이션
 }
 
 export function WorkspaceHeader({
   name,
   isNameLoading = false,
+  actions,
 }: WorkspaceHeaderProps) {
   return (
-    <header className="flex h-14 shrink-0 items-center border-b border-slate-200 bg-white px-5">
+    <header className="flex h-14 shrink-0 items-center gap-4 border-b border-slate-200 bg-white px-5">
       <h1 className="min-w-0 truncate text-base font-semibold text-slate-900">
         {isNameLoading ? (
           <>
@@ -27,6 +31,7 @@ export function WorkspaceHeader({
           name
         )}
       </h1>
+      {actions ? <div className="ml-auto shrink-0">{actions}</div> : null}
     </header>
   );
 }
