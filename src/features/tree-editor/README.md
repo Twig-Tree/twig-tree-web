@@ -8,9 +8,10 @@ Tree Editor는 사용자 행동, 서버 상태 동기화, 편집기 초기화, �
 - `initialization`: 서버에서 조회한 트리 데이터를 editor store의 초기 상태로 반영한다.
 - `collapse`: 서브트리 접힘 상태를 관리한다. 접힘 store, 화면에 보일 노드·엣지 계산, 다른 탭과의 동기화를 담는다.
 - `layout`: 노드와 edge의 배치를 계산하고 편집기 viewport를 조정한다.
-- `search`: 검색어로 editor store의 노드를 찾아 결과 목록을 만들고 강조 store에 반영한다.
-- `highlight`: 검색어·태그에 일치한 노드의 강조 상태를 관리한다.
-- `focus`: 결과 목록에서 고른 노드의 접힌 조상을 펼치고, 그 노드를 선택해 화면 가운데로 옮긴다.
+- `search`: 검색어로 editor store의 노드를 찾아 결과 목록을 만든다.
+- `tag`: 트리 태그 목록(지금은 임시 store)과, 고른 태그가 붙은 노드의 결과 목록을 만든다.
+- `highlight`: 검색어·태그에 일치한 노드의 강조 상태를 관리하고, 지금 보이는 결과를 강조에 반영한다.
+- `focus`: 결과 목록에서 고른 노드의 접힌 조상을 펼치고, 그 노드를 선택해 화면 가운데로 옮긴다. 태그를 고르면 보이는 태그 노드들을 한 화면에 모은다.
 - `react-flow`: React Flow가 요구하는 인터페이스와 Tree Editor store 사이를 연결한다.
 - `treeStore.ts`: 편집 중인 노드, edge 및 history를 관리한다.
 - `types.ts`: Tree Editor에서 사용하는 node와 edge 타입을 정의한다.
@@ -87,6 +88,14 @@ editor store 초기화는 트리당 한 번만 수행한다. `useInitializeTree`
 
 편집기를 벗어날 때 `useInitializeTree`의 언마운트 effect가 `resetTree`·`resetCollapse`와 함께 강조를 비운다.
 
+### 검색과 태그는 결과 영역을 번갈아 쓴다
+
+강조 집합과 결과 목록은 하나뿐이므로 둘이 동시에 켜지지 않는다. 워크스페이스 패널은 태그를 고르면 검색어를 지우고, 검색어를 입력하면 태그 선택을 푼다.
+
+강조는 패널이 지금 보이는 결과를 `useHighlightResults` 하나에 넘겨 반영한다. 검색과 태그가 각자 effect로 강조를 쓰면 결과가 빈 쪽의 effect가 다른 쪽의 강조를 지운다. 검색어가 비면 검색 결과는 `[]`이므로, 태그를 고르는 순간 태그 강조가 사라진다.
+
+고른 태그가 트리 태그 목록에서 사라지면 고르지 않은 것으로 본다. 태그를 지울 때 패널의 선택 state를 따로 비우지 않아도 결과와 강조가 함께 풀린다.
+
 ### 펼치기와 선택은 한 렌더에 반영한다
 
 `focusNode`는 접힌 조상 펼치기와 선택을 같은 이벤트 handler 안에서 동기로 한다. 선택만 먼저 반영되면 대상이 아직 숨겨진 상태라, `useVisibleElements`가 "선택된 노드가 숨겨졌다"고 보고 선택을 풀고 메모 패널을 닫는다.
@@ -103,10 +112,28 @@ editor store 초기화는 트리당 한 번만 수행한다. `useInitializeTree`
 - `useFocusNode`는 대상이 보이는 노드이고 레이아웃 계산 중이 아닐 때만 바로 옮긴다. 계산 중이면 보이는 노드도 기다린다. 그렇지 않으면 접힌 형제 둘을 연달아 눌렀을 때, 두 번째 노드는 바로 옮겨지고 첫 클릭이 미뤄 둔 이동이 레이아웃 뒤에 실행되어 마지막 클릭을 덮는다.
 - 이동은 다음 프레임에 렌더된 노드의 상자를 읽어 그 가운데로 `setCenter`를 부른다. `setCenter`는 `zoom`을 빼면 `maxZoom`으로 확대하므로 현재 배율을 넘긴다.
 
+### 태그로 모을 때는 펼치지 않는다
+
+태그를 고르면 `fitNodes`가 그 태그가 붙은 노드들을 `fitView`로 한 화면에 모은다. 선택은 바꾸지 않는다. 최대 배율은 트리 맞춤과 같은 1로 둔다. 노드가 하나뿐이면 `maxZoom`까지 확대되기 때문이다.
+
+접혀서 숨겨진 노드는 펼치지 않고 대상에서 뺀다. 태그를 둘러보는 것만으로 사용자의 접힘 상태(`localStorage`, 다른 탭)를 바꾸지 않기 위해서다. 숨겨진 노드는 결과 목록에 남아 있고, 누르면 `focusNode`가 조상을 펼쳐 찾아간다. 보이는 노드가 하나도 없으면 화면을 옮기지 않는다.
+
+## 노드 태그
+
+노드에 붙은 태그는 편집기 노드의 `data.tagIds`에 붙인 순서대로 둔다. 메모 패널은 선택 노드의 `tagIds`를 읽고, 태그 결과는 store 전체 노드에서 그 ID를 가진 노드를 찾는다. 노드마다 태그를 따로 조회하지 않는다.
+
+백엔드는 트리 조회 응답에 노드별 `tagIds`를 싣기로 했지만 아직 주지 않는다. `TreeNode`에 먼저 두면 mapper가 없는 값을 기본값으로 지어내야 하므로, 응답에 실릴 때까지 `EditorNodeData`에만 두고 초기화와 노드 추가 때 `[]`로 채운다. API를 붙이면 `TreeNode`로 옮긴다.
+
+트리 태그 목록은 화면이 `useTreeTags`로만 읽고 쓴다. 지금은 임시 store(`tag/treeTagStore`)가 메모리에 들고 있어 새로고침하면 사라진다. 노드의 `tagIds`도 초기화 때 비워지므로 둘이 어긋나지 않는다. API를 붙이면 `useTreeTags`의 내부만 트리 태그 query와 mutation으로 바꾸고 임시 store를 지운다.
+
+태그 store action은 `tagIds`만 바꾸므로 `handleSet`의 기록 조건에 걸리지 않는다. 요청이 실패하면 `undo()`가 아니라 반대 action으로 되돌린다(actions README의 "예외: history에 기록되지 않는 action"). 반대로 노드 추가·삭제를 undo하면 스냅숏의 `nodes`로 통째로 돌아가, 그 뒤에 바꾼 `tagIds`도 되돌아간다. `label`·`memo`에도 있는 한계다.
+
+태그 이름이 같은지는 앞뒤 공백을 지우고 대소문자를 무시해 비교한다(`getNormalizedTagName`). 백엔드의 이름 유니크 제약은 DB collation을 따르는데, 대소문자를 구분하지 않는 collation이면 `React`와 `react`를 같은 이름으로 보고 거절한다.
+
 ## 레이어 선택 배경
 
 Tree Editor는 여러 UI 요소와 편집 기능을 조합해 하나의 큰 화면 영역을 구성하므로 역할만 보면 `widgets` 레이어가 자연스럽다. 하지만 편집기 전용 상태와 노드 추가·삭제 같은 행동이 서로 긴밀하게 의존한다. 이를 Widget과 여러 Feature로 분리하면 Feature가 Widget의 상태나 로직을 참조할 수 없어 FSD의 하위 레이어 참조 규칙을 위반하거나, 규칙을 지키기 위해 상태와 인터페이스를 여러 슬라이스로 나누어 전달해야 한다.
 
-현재는 참조 규칙을 지키면서 불필요한 경계와 연결 복잡도를 늘리지 않기 위해 Tree Editor 전체를 하나의 Feature로 두었다. 대신 규모가 큰 내부 로직은 `model` 아래에서 `actions`, `initialization`, `collapse`, `layout`, `react-flow`, `search`, `highlight`, `focus` 책임으로 구분한다. 이는 모든 Feature에 적용하는 공통 규칙이 아니라 Tree Editor의 응집도와 레이어 의존성을 고려한 예외적인 선택이다.
+현재는 참조 규칙을 지키면서 불필요한 경계와 연결 복잡도를 늘리지 않기 위해 Tree Editor 전체를 하나의 Feature로 두었다. 대신 규모가 큰 내부 로직은 `model` 아래에서 `actions`, `initialization`, `collapse`, `layout`, `react-flow`, `search`, `tag`, `highlight`, `focus` 책임으로 구분한다. 이는 모든 Feature에 적용하는 공통 규칙이 아니라 Tree Editor의 응집도와 레이어 의존성을 고려한 예외적인 선택이다.
 
 외부 레이어는 내부 경로를 직접 참조하지 않고 루트 `index.ts`의 공개 API를 사용한다.

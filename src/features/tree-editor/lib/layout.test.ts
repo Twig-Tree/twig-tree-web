@@ -19,7 +19,7 @@ const createNode = (
   id,
   type: "custom",
   // 레이아웃은 serverId를 읽지 않으므로 저장 여부를 구분하지 않는다.
-  data: { serverId: null, label, orderIndex: 0, memo: null },
+  data: { serverId: null, label, orderIndex: 0, memo: null, tagIds: [] },
   position,
 });
 

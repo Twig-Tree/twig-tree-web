@@ -6,6 +6,7 @@ import { useTreeStore } from "../treeStore";
 import { CustomEditorNode } from "../types";
 
 const CENTER_NODE_DURATION_MS = 300; // 노드로 화면을 옮기는 애니메이션 시간
+const FIT_NODES_MAX_ZOOM = 1; // 여러 노드를 모을 때의 최대 배율. 노드가 하나뿐이면 maxZoom까지 확대되므로 트리 맞춤과 같은 값으로 막는다
 
 type UseFocusNodeParams = {
   visibleNodes: CustomEditorNode[]; // 화면에 보이는 노드 목록. 대상이 없으면 레이아웃이 끝난 뒤에 옮긴다
@@ -15,16 +16,17 @@ type UseFocusNodeParams = {
 
 /*
 함수 이름 : useFocusNode
-기능 : 결과 목록에서 고른 노드의 접힌 조상을 펼치고, 그 노드를 선택해 현재 배율 그대로 화면 가운데로 옮기는 핸들러를 만든다.
+기능 : 결과 목록에서 고른 노드의 접힌 조상을 펼치고, 그 노드를 선택해 현재 배율 그대로 화면 가운데로 옮기는 핸들러와,
+여러 노드를 선택은 그대로 둔 채 한 화면에 모으는 함수를 만든다.
 인자 : UseFocusNodeParams
-반환값 : 노드로 이동하는 핸들러
+반환값 : 노드로 이동하는 핸들러와 여러 노드를 한 화면에 모으는 함수
 */
 export const useFocusNode = ({
   visibleNodes,
   runAfterNextLayout,
   isLayoutRunning,
 }: UseFocusNodeParams) => {
-  const { getInternalNode, getNodesBounds, getZoom, setCenter } =
+  const { fitView, getInternalNode, getNodesBounds, getZoom, setCenter } =
     useReactFlow();
   const selectOnlyNodeInStore = useTreeStore(
     (state) => state.selectOnlyNodeInStore,
@@ -107,5 +109,38 @@ export const useFocusNode = ({
     ],
   );
 
-  return { focusNode };
+  /*
+  태그를 고르면 그 태그가 붙은 노드들을 한 화면에 모은다. 접혀서 숨겨진 노드는 펼치지 않고 대상에서 뺀다.
+  태그를 고르는 것만으로 사용자의 접힘 상태(localStorage, 다른 탭)를 바꾸지 않기 위해서다. 숨겨진 노드는 결과 목록에서 눌러 focusNode로 찾아간다.
+  보이는 노드가 없으면 화면을 옮기지 않는다. 레이아웃 계산 중이면 focusNode와 같은 이유로 결과를 얹은 뒤에 모은다.
+  */
+  const fitNodes = useCallback(
+    (clientIds: string[]) => {
+      const fitRenderedNodes = () => {
+        window.requestAnimationFrame(() => {
+          const renderedNodes = clientIds.flatMap((clientId) =>
+            getInternalNode(clientId) ? [{ id: clientId }] : [],
+          ); // 화면에 그려진 노드만 남긴다. 숨겨진 노드는 React Flow에 없다.
+
+          if (renderedNodes.length === 0) return;
+
+          void fitView({
+            nodes: renderedNodes,
+            maxZoom: FIT_NODES_MAX_ZOOM,
+            duration: CENTER_NODE_DURATION_MS,
+          });
+        });
+      };
+
+      if (isLayoutRunning()) {
+        runAfterNextLayout(fitRenderedNodes);
+        return;
+      }
+
+      fitRenderedNodes();
+    },
+    [fitView, getInternalNode, isLayoutRunning, runAfterNextLayout],
+  );
+
+  return { focusNode, fitNodes };
 };

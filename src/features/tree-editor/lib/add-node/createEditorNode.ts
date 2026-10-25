@@ -32,6 +32,7 @@ export const createEditorNode = ({
       label,
       orderIndex,
       memo: null, // 새 노드는 메모 없이 만들어진다.
+      tagIds: [], // 새 노드는 태그 없이 만들어진다.
     },
     position: {
       x,

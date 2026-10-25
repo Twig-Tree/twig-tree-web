@@ -14,11 +14,13 @@ export type {
   UpdateMemoRequest,
   UpdateMemoResponse,
 } from "./api/types";
-export type { CreatedTree, TreeNode } from "./model/types";
+export type { CreatedTree, TreeNode, TreeTag } from "./model/types";
 export {
   LLM_PROVIDER,
   MAX_MEMO_LENGTH,
   MAX_NODE_NAME_LENGTH,
+  MAX_NODE_TAG_COUNT,
+  MAX_TAG_NAME_LENGTH,
   MAX_PROMPT_MESSAGE_LENGTH,
   NODE_ERROR_CODE,
 } from "./model/constants";

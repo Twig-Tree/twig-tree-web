@@ -39,6 +39,9 @@ interface TreeState {
   updateNodeMemoInStore: (clientId: string, memo: string | null) => void;
   updateNodeLabelInStore: (clientId: string, label: string) => void;
   selectOnlyNodeInStore: (clientId: string) => void;
+  addTagToNodeInStore: (clientId: string, tagId: string) => void;
+  removeTagFromNodeInStore: (clientId: string, tagId: string) => void;
+  removeTagFromAllNodesInStore: (tagId: string) => void;
 }
 
 export const useTreeStore = create<TreeState>()(
@@ -203,6 +206,64 @@ export const useTreeStore = create<TreeState>()(
               ? node
               : { ...node, selected };
           }),
+        });
+      },
+
+      /*
+      태그 action은 handleSet의 history 기록 조건에 걸리지 않으므로, 요청이 실패하면 undo()가 아니라 반대 action으로 되돌린다.
+      */
+      addTagToNodeInStore: (clientId: string, tagId: string) => {
+        const { nodes } = get();
+
+        set({
+          nodes: nodes.map((node) =>
+            // 이미 붙은 태그를 다시 붙이면 같은 ID가 두 번 들어가 칩이 겹치므로 그대로 둔다.
+            node.id === clientId && !node.data.tagIds.includes(tagId)
+              ? {
+                  ...node,
+                  data: { ...node.data, tagIds: [...node.data.tagIds, tagId] },
+                }
+              : node,
+          ),
+        });
+      },
+
+      removeTagFromNodeInStore: (clientId: string, tagId: string) => {
+        const { nodes } = get();
+
+        set({
+          nodes: nodes.map((node) =>
+            node.id === clientId && node.data.tagIds.includes(tagId)
+              ? {
+                  ...node,
+                  data: {
+                    ...node.data,
+                    tagIds: node.data.tagIds.filter((id) => id !== tagId),
+                  },
+                }
+              : node,
+          ),
+        });
+      },
+
+      /*
+      트리 태그를 지우면 그 태그가 붙은 모든 노드에서도 빠진다. 붙어 있지 않은 노드는 객체를 재사용해 다시 그려지지 않게 한다.
+      */
+      removeTagFromAllNodesInStore: (tagId: string) => {
+        const { nodes } = get();
+
+        set({
+          nodes: nodes.map((node) =>
+            node.data.tagIds.includes(tagId)
+              ? {
+                  ...node,
+                  data: {
+                    ...node.data,
+                    tagIds: node.data.tagIds.filter((id) => id !== tagId),
+                  },
+                }
+              : node,
+          ),
         });
       },
     }),

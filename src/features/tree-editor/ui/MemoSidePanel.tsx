@@ -1,5 +1,11 @@
 import { MemoEditor } from "./MemoEditor";
+import { TagChipList } from "./TagChipList";
+import { TagInput } from "./TagInput";
+import { getTagsByIds } from "../lib/tag/getTagsByIds";
+import { useAttachNodeTag } from "../model/actions/attach-node-tag/useAttachNodeTag";
+import { useDetachNodeTag } from "../model/actions/detach-node-tag/useDetachNodeTag";
 import { useSaveMemo } from "../model/actions/save-memo/useSaveMemo";
+import { useTreeTags } from "../model/tag/useTreeTags";
 import type { CustomEditorNode } from "../model/types";
 
 type MemoSidePanelProps = {
@@ -20,6 +26,16 @@ export const MemoSidePanel = ({
     clientId: selectedNode?.id,
     serverId: selectedNode?.data.serverId ?? null,
     savedMemo,
+  });
+
+  const { tags } = useTreeTags();
+  const attachedTagIds = selectedNode?.data.tagIds ?? [];
+
+  const { attachTag, attachTagByName, remainingTagCount, tagLimitMessage } =
+    useAttachNodeTag({ clientId: selectedNode?.id, attachedTagIds });
+
+  const { handleDetachNodeTag } = useDetachNodeTag({
+    clientId: selectedNode?.id,
   });
 
   return (
@@ -44,12 +60,30 @@ export const MemoSidePanel = ({
       </header>
 
       {selectedNode ? (
+        /*
+        노드를 바꾸면 편집 중이던 메모와 태그 입력을 함께 버리도록 노드 ID를 key로 준다.
+        태그 영역은 MemoEditor 안에 들어가므로 key 하나로 둘 다 새로 그려진다.
+        */
         <MemoEditor
           key={selectedNode.id}
           initialMemo={savedMemo ?? ""}
           onSave={(content) => void handleSaveMemo(content)}
           isSaving={isSaving}
-        />
+        >
+          <TagChipList
+            nodeTags={getTagsByIds(tags, attachedTagIds)}
+            onDetach={handleDetachNodeTag}
+          >
+            <TagInput
+              tags={tags}
+              attachedTagIds={attachedTagIds}
+              remainingTagCount={remainingTagCount}
+              tagLimitMessage={tagLimitMessage}
+              onAttachTag={attachTag}
+              onAttachTagByName={attachTagByName}
+            />
+          </TagChipList>
+        </MemoEditor>
       ) : (
         <>
           <div className="min-h-0 flex-1 p-5">

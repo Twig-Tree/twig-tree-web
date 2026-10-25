@@ -71,7 +71,13 @@ describe("useAddRootNode", () => {
       expect(createTreeSpy).not.toHaveBeenCalled();
       expect(treeId).toBe("20");
       expect(nodes.map((node) => node.data)).toEqual([
-        { serverId: "500", label: "Root Node", orderIndex: 1, memo: null },
+        {
+          serverId: "500",
+          label: "Root Node",
+          orderIndex: 1,
+          memo: null,
+          tagIds: [],
+        },
       ]);
       expect(edges).toEqual([]);
     });
