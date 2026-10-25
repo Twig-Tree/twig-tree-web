@@ -190,10 +190,10 @@ const handleAddRootNode = async () => {
 
 이름은 어떤 계층의 동작인지 드러나야 한다.
 
-- 사용자 이벤트 handler: `handleAddNode`, `handleDeleteNode`, `handleSaveMemo`
-- Action hook: `useAddNode`, `useDeleteNode`, `useUpdateNodeName`
+- 사용자 이벤트 handler: `handleAddNode`, `handleDeleteNode`, `handleSaveMemo`, `handleDetachNodeTag`, `handleDeleteTreeTag`
+- Action hook: `useAddNode`, `useDeleteNode`, `useUpdateNodeName`, `useAttachNodeTag`, `useDetachNodeTag`, `useDeleteTreeTag`
 - Server mutation hook: `useAddNodeMutation`, `useDeleteNodeMutation`, `useEditNodeNameMutation`
-- Store action: `addNodeToStore`, `deleteNodeFromStore`, `updateNodeLabelInStore`
+- Store action: `addNodeToStore`, `deleteNodeFromStore`, `updateNodeLabelInStore`, `addTagToNodeInStore`, `removeTagFromNodeInStore`, `removeTagFromAllNodesInStore`
 
 `handle*`을 붙이는 기준은 인자 유무가 아니라 **이벤트나 콜백 prop에 연결되어 그 자체로 완결되는가**다. `handleSaveMemo(content)`처럼 인자를 받아도 호출부가 결과를 쓰지 않고 그대로 넘기면 handler다.
 
@@ -339,3 +339,15 @@ treeId가 있음 →            루트 노드 생성 → store 초기화(treeId 
 - Editor store는 보관해 둔 이전 label만 직접 되돌린다. `undo()`를 쓰지 않는다(위 "예외: history에 기록되지 않는 action" 참고).
 
 이 action은 노드마다 다른 대상에 적용되므로 `useTreeEditorActions` facade에 넣지 않고 `CustomNode`가 직접 호출한다. 검증 메시지와 저장 실패 메시지도 alert이 아니라 노드 안의 문구로 보여주므로, action hook은 성공 여부만 반환하고 메시지 표시는 UI가 결정한다.
+
+## 예시: Node Tag
+
+노드 태그 action은 태그 API(#106)를 붙이기 전이라 editor store와 임시 트리 태그 store만 바꾼다. 서버 요청이 없으므로 실패 복구도 아직 없다.
+
+- `useAttachNodeTag`: 자동완성에서 고른 태그는 `attachTag(tagId)`로, 입력한 이름은 `attachTagByName(name)`으로 붙인다. 같은 이름의 트리 태그가 있으면 그것을, 없으면 새로 만들어 붙인다. 두 함수는 실패 안내 문구(`string | null`)를 돌려주고, 입력창을 비울지 남길지는 호출부가 그 결과로 정하므로 `handle*`이 아니라 동사형이다.
+- `useDetachNodeTag`: `handleDetachNodeTag(tagId)`로 노드와 태그의 연결만 끊는다. 트리 태그는 남는다.
+- `useDeleteTreeTag`: `handleDeleteTreeTag(tagId)`로 붙은 노드 수를 알리고 확인을 받은 뒤, 트리 태그 목록과 모든 노드에서 태그를 뺀다.
+
+태그 store action은 `data.tagIds`만 바꾸므로 history에 기록되지 않는다. API를 붙이면 노드 이름 수정처럼 직접 복구를 쓴다. 붙이기가 실패하면 그 태그를 떼고, 떼기가 실패하면 다시 붙인다. `undo()`는 쓰지 않는다(위 "예외: history에 기록되지 않는 action" 참고).
+
+이 action들은 메모 패널과 워크스페이스 패널이 직접 호출하므로 `useTreeEditorActions` facade에 넣지 않는다.
