@@ -1,5 +1,5 @@
 import { FolderDTO } from "@/src/entities/folder/api/types";
-import { NodeDTO } from "@/src/entities/tree/api/types";
+import { NodeDTO, TagDTO } from "@/src/entities/tree/api/types";
 import { WorkspaceDTO } from "@/src/entities/workspace/api/types";
 
 export const RAW_TREE_DATA: NodeDTO[] = [
@@ -137,6 +137,14 @@ export const RAW_TREE_DATA_WITH_CYCLE: NodeDTO[] = [
     orderId: 2,
     tagIds: [],
   },
+];
+
+/*
+트리 태그 목록 응답 데이터. 이름 중복 거절을 확인할 수 있도록 생성 핸들러가 이 목록과 이름을 비교한다.
+*/
+export const RAW_TREE_TAG_DATA: TagDTO[] = [
+  { tagId: 1, name: "React" },
+  { tagId: 2, name: "TypeScript" },
 ];
 
 /*

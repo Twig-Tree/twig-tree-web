@@ -3,6 +3,7 @@ import {
   RAW_FOLDER_DATA,
   RAW_TREE_DATA,
   RAW_TREE_DATA_WITH_CYCLE,
+  RAW_TREE_TAG_DATA,
   RAW_WORKSPACE_DATA,
 } from "@/src/tests/mocks/data";
 import { http, HttpResponse } from "msw";
@@ -440,6 +441,107 @@ export const handlers = [
         data: RAW_CREATED_TREE_DATA,
       },
       { status: 201 },
+    );
+  }),
+
+  // 트리 태그 목록 조회 GET 요청 핸들러
+  http.get("*/api/trees/:treeId/tags", () => {
+    return HttpResponse.json(
+      {
+        isSuccess: true,
+        code: "TAG200-4",
+        message: "태그 목록을 조회했습니다.",
+        data: RAW_TREE_TAG_DATA,
+      },
+      { status: 200 },
+    );
+  }),
+
+  /*
+  트리 태그 생성 POST 요청 핸들러.
+  백엔드의 uk_tag_name처럼 이미 있는 이름과 글자가 똑같으면 409로 거절한다.
+  */
+  http.post("*/api/trees/:treeId/tags", async ({ request }) => {
+    const body = (await request.json()) as { name: string };
+
+    if (RAW_TREE_TAG_DATA.some(({ name }) => name === body.name)) {
+      return HttpResponse.json(
+        {
+          isSuccess: false,
+          code: "TAG409-1",
+          message: "같은 트리에서 동일한 이름의 태그는 만들 수 없습니다.",
+          data: null,
+        },
+        { status: 409 },
+      );
+    }
+
+    return HttpResponse.json(
+      {
+        isSuccess: true,
+        code: "TAG201-1",
+        message: "태그를 생성했습니다.",
+        data: { tagId: 600, name: body.name },
+      },
+      { status: 201 },
+    );
+  }),
+
+  // 트리 태그 삭제 DELETE 요청 핸들러
+  http.delete("*/api/trees/:treeId/tags/:tagId", () => {
+    return HttpResponse.json(
+      {
+        isSuccess: true,
+        code: "TAG200-3",
+        message: "태그를 삭제했습니다.",
+        data: null,
+      },
+      { status: 200 },
+    );
+  }),
+
+  /*
+  노드 태그 추가 POST 요청 핸들러.
+  목록에 없는 태그는 백엔드처럼 404로 거절한다.
+  */
+  http.post("*/api/nodes/:nodeId/tags/:tagId", ({ params }) => {
+    const tag = RAW_TREE_TAG_DATA.find(
+      ({ tagId }) => String(tagId) === params.tagId,
+    );
+
+    if (!tag) {
+      return HttpResponse.json(
+        {
+          isSuccess: false,
+          code: "TAG404-1",
+          message: "해당 태그가 존재하지 않습니다.",
+          data: null,
+        },
+        { status: 404 },
+      );
+    }
+
+    return HttpResponse.json(
+      {
+        isSuccess: true,
+        code: "TAG200-5",
+        message: "노드에 태그를 추가했습니다.",
+        data: tag,
+      },
+      { status: 200 },
+    );
+  }),
+
+  // 노드 태그 제거 DELETE 요청 핸들러
+  http.delete("*/api/nodes/:nodeId/tags/:tagId", () => {
+    return HttpResponse.json(
+      {
+        isSuccess: true,
+        code: "TAG200-6",
+        message: "노드에서 태그를 제거했습니다.",
+        data: null,
+      },
+      { status: 200 },
     );
   }),
 
