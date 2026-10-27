@@ -116,7 +116,7 @@ export function WorkspacePanel({
         tags={tags}
         selectedTagId={activeTagId}
         onSelectTag={handleSelectTag}
-        onDeleteTag={handleDeleteTreeTag}
+        onDeleteTag={(tagId) => void handleDeleteTreeTag(tagId)}
       />
     </aside>
   );

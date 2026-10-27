@@ -15,7 +15,7 @@ const TAG_LIMIT_MESSAGE = `태그는 노드당 최대 ${MAX_NODE_TAG_COUNT}개�
 함수 이름 : useAttachNodeTag
 기능 : 노드에 트리 태그를 붙이는 함수를 만든다. 자동완성에서 고른 태그는 그대로 붙이고, 입력한 이름은 같은 이름의 트리 태그가 있으면 그것을,
 없으면 트리 태그를 새로 만들어 붙인다. 이름 길이와 노드당 개수 상한은 요청 전에 걸러 안내 문구로 돌려준다.
-지금은 태그 API가 없어 임시 트리 태그 store와 editor store만 바꾼다.
+트리 태그는 서버에 만들지만, 노드에 붙이는 일은 아직 노드 태그 API 없이 editor store만 바꾼다.
 인자 : UseAttachNodeTagParams
 반환값 : 고른 태그를 붙이는 함수, 이름으로 태그를 붙이는 함수, 더 붙일 수 있는 태그 개수, 개수 상한 안내 문구
 */
@@ -63,9 +63,19 @@ export const useAttachNodeTag = ({
 
     if (remainingTagCount === 0) return TAG_LIMIT_MESSAGE;
 
-    const tag = existingTag ?? createTag(name);
+    if (existingTag) {
+      addTagToNodeInStore(clientId, existingTag.id);
 
-    addTagToNodeInStore(clientId, tag.id);
+      return null;
+    }
+
+    /*
+    새 태그는 서버가 ID를 정해야 붙일 수 있으므로 생성 응답을 받은 뒤에 노드에 붙인다.
+    입력 단계의 검증은 위에서 끝났으므로 입력창은 바로 비우고, 생성 실패는 알림으로 알린다.
+    */
+    void createTag(name)
+      .then((tag) => addTagToNodeInStore(clientId, tag.id))
+      .catch(() => alert("태그 추가에 실패했습니다."));
 
     return null;
   };
