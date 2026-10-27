@@ -42,6 +42,7 @@ describe("useCreateTreeFromPromptMutation", () => {
         label: "컴퓨터 사이언스",
         orderIndex: 1,
         memo: "전공 기초",
+        tagIds: [],
       },
       {
         id: "41",
@@ -49,6 +50,7 @@ describe("useCreateTreeFromPromptMutation", () => {
         label: "자료구조",
         orderIndex: 1,
         memo: null,
+        tagIds: [],
       },
     ]);
   });

@@ -385,6 +385,7 @@ export const handlers = [
           parentId: body.parentId,
           orderId: body.orderId,
           memo: null,
+          tagIds: [],
         },
       },
       { status: 201 },

@@ -12,6 +12,7 @@ const createTreeNode = (
   label: `node ${id}`,
   orderIndex,
   memo: null,
+  tagIds: [],
 });
 
 describe("transformToFlowElements", () => {

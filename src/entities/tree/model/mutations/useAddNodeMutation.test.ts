@@ -33,6 +33,7 @@ describe("useAddNodeMutation", () => {
       label: "Root Node",
       orderIndex: 1,
       memo: null,
+      tagIds: [],
     });
   });
 

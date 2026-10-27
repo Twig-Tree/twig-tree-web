@@ -71,6 +71,7 @@ describe("treeApi.createTreeFromPrompt", () => {
         label: "컴퓨터 사이언스",
         orderIndex: 1,
         memo: "전공 기초",
+        tagIds: [],
       },
       {
         id: "41",
@@ -78,6 +79,7 @@ describe("treeApi.createTreeFromPrompt", () => {
         label: "자료구조",
         orderIndex: 1,
         memo: null,
+        tagIds: [],
       },
     ]);
   });

@@ -9,6 +9,7 @@ export interface NodeDTO {
   parentId: number | null;
   orderId: number;
   memo: string | null;
+  tagIds: number[]; // 노드에 붙은 트리 태그 ID 목록
 }
 
 /*

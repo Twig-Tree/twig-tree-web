@@ -11,6 +11,7 @@ export interface TreeNode {
   label: string;
   orderIndex: number;
   memo: string | null; // 백엔드는 빈 문자열을 주고받지 않으므로 메모 없음은 null로만 표현한다.
+  tagIds: string[]; // 노드에 붙은 트리 태그 ID 목록. 붙인 순서대로 둔다
 }
 
 /**

@@ -10,6 +10,7 @@ export const mapNodeDtoToDomain = (dto: NodeDTO): TreeNode => ({
   label: dto.name, // 백엔드 name을 label로 매핑
   orderIndex: dto.orderId ?? 0, // orderId를 orderIndex로 매핑
   memo: dto.memo, // 메모 없음(null)을 그대로 유지한다.
+  tagIds: dto.tagIds.map(String),
 });
 
 /*
