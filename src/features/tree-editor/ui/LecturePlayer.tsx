@@ -81,8 +81,8 @@ export function LecturePlayer({ lecture, onRevealNodes }: LecturePlayerProps) {
               id="lecture-unavailable-reason"
               className="text-xs text-slate-500"
             >
-              이 트리에는 데모 강의가 없습니다. 고정 트리(mock=small)에서 볼 수
-              있습니다.
+              이 트리에는 데모 강의가 없습니다. 데모 강의와 같은 구조의 트리에서
+              볼 수 있습니다.
             </p>
           ) : (
             <p className="text-xs text-slate-500">

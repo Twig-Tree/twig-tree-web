@@ -5,8 +5,9 @@ const DATA_STRUCTURE = "자료구조";
 const ALGORITHM = "알고리즘";
 
 /*
-서버 없이 강의 재생을 확인하기 위한 데모 강의.
-백엔드 고정 트리(POST /tree-request?mock=small)의 노드 이름 경로에 맞춰 두었다.
+서버 없이 강의 재생을 확인하기 위한 데모 강의. 아래 구조의 트리에서 재생된다.
+백엔드 개발용 시나리오(POST /tree-request?mock=small)와 같은 구조지만, 그 응답은 DB에 저장되지 않으므로
+트리는 편집기에서 직접 만들어야 한다.
 
 컴퓨터 사이언스
 ├─ 자료구조

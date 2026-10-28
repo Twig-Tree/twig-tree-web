@@ -18,7 +18,7 @@ const createEdge = (sourceClientId: string, targetClientId: string) =>
   createEditorEdge({ sourceClientId, targetClientId });
 
 /*
-백엔드 고정 트리(mock=small)와 같은 모양이다.
+데모 강의(DEMO_LECTURE)가 가리키는 트리와 같은 모양이다.
 */
 const nodes = [
   createNode("c1", "컴퓨터 사이언스"),
@@ -67,7 +67,7 @@ describe("getEditorLectureSegments", () => {
     ]);
   });
 
-  it("데모 강의의 모든 구간을 고정 트리에 연결한다", () => {
+  it("데모 강의의 모든 구간을 데모 트리에 연결한다", () => {
     const segments = getEditorLectureSegments(
       DEMO_LECTURE.segments,
       nodes,

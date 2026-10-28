@@ -22,7 +22,7 @@ const createEdge = (sourceClientId: string, targetClientId: string) =>
   createEditorEdge({ sourceClientId, targetClientId });
 
 /*
-백엔드 고정 트리(mock=small)와 같은 모양이다.
+데모 강의(DEMO_LECTURE)가 가리키는 트리와 같은 모양이다.
 */
 const setDemoTree = () =>
   useTreeStore.setState({
