@@ -20,6 +20,20 @@ interface LectureState {
   resetLecture: () => void;
 }
 
+/*
+함수 이름 : getCurrentLectureSegment
+기능 : 지금 설명 중인 강의 구간을 고른다. 시작 전과 끝난 뒤에는 설명 중인 구간이 없다.
+인자 : LectureState state -> 강의 store 상태
+반환값 : 지금 구간. 재생 중이나 일시정지 중이 아니면 null
+*/
+export const getCurrentLectureSegment = (
+  state: Pick<LectureState, "status" | "segments" | "segmentIndex">,
+): EditorLectureSegment | null => {
+  if (state.status !== "playing" && state.status !== "paused") return null;
+
+  return state.segments[state.segmentIndex] ?? null;
+};
+
 const initialState = {
   segments: [],
   status: "idle",

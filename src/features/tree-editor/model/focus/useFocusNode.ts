@@ -14,12 +14,17 @@ type UseFocusNodeParams = {
   isLayoutRunning: () => boolean; // 레이아웃 계산이 진행 중인지. 진행 중이면 보이는 노드라도 결과를 기다린다
 };
 
+type RevealNodesOptions = {
+  maxZoom: number; // 대상이 적어도 이 배율을 넘겨 확대하지 않는다
+  duration: number; // 화면 이동 애니메이션 시간
+};
+
 /*
 함수 이름 : useFocusNode
 기능 : 결과 목록에서 고른 노드의 접힌 조상을 펼치고, 그 노드를 선택해 현재 배율 그대로 화면 가운데로 옮기는 핸들러와,
-여러 노드를 선택은 그대로 둔 채 한 화면에 모으는 함수를 만든다.
+여러 노드를 선택은 그대로 둔 채 한 화면에 모으는 함수를 만든다. 강의용 함수는 숨겨진 대상의 조상까지 펼쳐 모은다.
 인자 : UseFocusNodeParams
-반환값 : 노드로 이동하는 핸들러와 여러 노드를 한 화면에 모으는 함수
+반환값 : 노드로 이동하는 핸들러, 보이는 노드만 한 화면에 모으는 함수, 숨겨진 노드까지 펼쳐 모으는 함수
 */
 export const useFocusNode = ({
   visibleNodes,
@@ -34,17 +39,20 @@ export const useFocusNode = ({
   const expandAll = useCollapseStore((state) => state.expandAll);
 
   /*
-  접힌 조상을 모두 펼친다. 접힘 상태는 serverId로 저장되므로 조상의 clientId를 serverId로 바꿔 넘기고,
+  대상 노드들의 접힌 조상을 모두 펼친다. 접힘 상태는 serverId로 저장되므로 조상의 clientId를 serverId로 바꿔 넘기고,
   serverId가 없는 조상은 접혀 있을 수 없으므로 건너뛴다. 이미 펼쳐진 조상은 expandAll이 걸러 낸다.
+  여러 대상의 조상을 모아 expandAll을 한 번만 부른다. 대상마다 부르면 그때마다 localStorage에 쓴다.
   노드와 엣지는 렌더에 쓰지 않고 이 순간에만 필요하므로 구독하지 않고 store에서 바로 읽는다.
   */
   const expandAncestors = useCallback(
-    (clientId: string) => {
+    (clientIds: string[]) => {
       const { treeId, nodes, edges } = useTreeStore.getState();
 
       if (treeId === null) return;
 
-      const ancestorClientIds = new Set(getAncestorClientIds(edges, clientId));
+      const ancestorClientIds = new Set(
+        clientIds.flatMap((clientId) => getAncestorClientIds(edges, clientId)),
+      );
       const ancestorServerIds = nodes.flatMap((node) =>
         ancestorClientIds.has(node.id) && node.data.serverId !== null
           ? [node.data.serverId]
@@ -87,7 +95,7 @@ export const useFocusNode = ({
   */
   const focusNode = useCallback(
     (clientId: string) => {
-      expandAncestors(clientId);
+      expandAncestors([clientId]);
       selectOnlyNodeInStore(clientId);
 
       const isVisible = visibleNodes.some((node) => node.id === clientId);
@@ -142,5 +150,50 @@ export const useFocusNode = ({
     [fitView, getInternalNode, isLayoutRunning, runAfterNextLayout],
   );
 
-  return { focusNode, fitNodes };
+  /*
+  강의 구간이 시작될 때 설명할 노드들을 한 화면에 모은다. 태그와 달리 숨겨진 대상도 조상을 펼쳐 보여 준다.
+  강의가 가리키는 노드가 화면에 없으면 자막과 강조가 가리킬 대상이 사라지기 때문이다. 선택은 바꾸지 않는다.
+
+  펼친 노드는 다음 레이아웃이 끝나야 좌표가 생기므로, 대상이 모두 보이고 계산 중이 아닐 때만 바로 모은다.
+  그 사이 삭제된 노드는 React Flow에 없으므로 빼고, 남은 노드가 없으면 화면을 옮기지 않는다.
+  */
+  const revealNodes = useCallback(
+    (clientIds: string[], { maxZoom, duration }: RevealNodesOptions) => {
+      expandAncestors(clientIds);
+
+      const fitRenderedNodes = () => {
+        window.requestAnimationFrame(() => {
+          const renderedNodes = clientIds.flatMap((clientId) =>
+            getInternalNode(clientId) ? [{ id: clientId }] : [],
+          );
+
+          if (renderedNodes.length === 0) return;
+
+          void fitView({ nodes: renderedNodes, maxZoom, duration });
+        });
+      };
+
+      const visibleClientIds = new Set(visibleNodes.map((node) => node.id));
+      const isAllVisible = clientIds.every((clientId) =>
+        visibleClientIds.has(clientId),
+      );
+
+      if (isAllVisible && !isLayoutRunning()) {
+        fitRenderedNodes();
+        return;
+      }
+
+      runAfterNextLayout(fitRenderedNodes);
+    },
+    [
+      visibleNodes,
+      expandAncestors,
+      fitView,
+      getInternalNode,
+      isLayoutRunning,
+      runAfterNextLayout,
+    ],
+  );
+
+  return { focusNode, fitNodes, revealNodes };
 };

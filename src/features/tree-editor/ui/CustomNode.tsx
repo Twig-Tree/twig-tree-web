@@ -11,6 +11,10 @@ import { CustomEditorNode } from "@/src/features/tree-editor/model/types";
 import { useUpdateNodeName } from "@/src/features/tree-editor/model/actions/update-node-name/useUpdateNodeName";
 import { useTreeStore } from "@/src/features/tree-editor/model/treeStore";
 import { useHighlightStore } from "@/src/features/tree-editor/model/highlight/highlightStore";
+import {
+  getCurrentLectureSegment,
+  useLectureStore,
+} from "@/src/features/tree-editor/model/lecture/lectureStore";
 import { CollapseToggleButton } from "./CollapseToggleButton";
 
 export function CustomNode({
@@ -29,6 +33,13 @@ export function CustomNode({
   */
   const isHighlighted = useHighlightStore((state) =>
     state.highlightedClientIds.has(id),
+  );
+
+  /*
+  강의가 지금 설명하는 노드인지. 검색·태그 강조와 따로 표시해 강의 중에 검색해도 서로 지우지 않는다.
+  */
+  const isLectureCurrent = useLectureStore(
+    (state) => getCurrentLectureSegment(state)?.clientId === id,
   );
 
   const [isEditing, setIsEditing] = useState(false);
@@ -158,7 +169,11 @@ export function CustomNode({
   테두리는 React Flow가 감싸는 .react-flow__node가 그리므로, 강조 여부를 속성으로만 알리고 스타일은 xy-theme.css가 바깥 요소에 입힌다.
   */
   return (
-    <div className="custom-node" data-highlighted={isHighlighted}>
+    <div
+      className="custom-node"
+      data-highlighted={isHighlighted}
+      data-lecture-current={isLectureCurrent}
+    >
       <Handle
         type="target"
         position={targetPosition ?? Position.Top}

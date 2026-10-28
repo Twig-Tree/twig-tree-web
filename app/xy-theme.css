@@ -3,6 +3,7 @@
   /* Custom Variables */
   --xy-theme-selected: #f57dbd;
   --xy-theme-highlighted: #f59e0b;
+  --xy-theme-lecture-current: #4f46e5;
   --xy-theme-hover: #c5c5c5;
   --xy-theme-edge-hover: black;
   --xy-theme-color-focus: #e8e8e8;
@@ -72,6 +73,18 @@
 .react-flow__node:has(> .custom-node[data-highlighted="true"]) {
   outline: 2px solid var(--xy-theme-highlighted);
   outline-offset: 2px;
+}
+
+/*
+강의가 지금 설명하는 노드를 표시한다. 선택(border)·강조(outline)와 겹쳐도 셋 다 보이도록 box-shadow로 그린다.
+선택 규칙이 box-shadow를 기본값으로 되돌리므로 같은 명시도의 그 규칙보다 뒤에 둔다.
+*/
+.react-flow__node:has(> .custom-node[data-lecture-current="true"]) {
+  box-shadow:
+    0 0 0 3px var(--xy-theme-lecture-current),
+    0 0 18px 2px
+      color-mix(in srgb, var(--xy-theme-lecture-current) 35%, transparent);
+  transition: box-shadow 200ms ease-out;
 }
 
 .react-flow__node-group {
