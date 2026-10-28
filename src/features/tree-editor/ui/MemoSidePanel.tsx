@@ -32,7 +32,12 @@ export const MemoSidePanel = ({
   const attachedTagIds = selectedNode?.data.tagIds ?? [];
 
   const { attachTag, attachTagByName, remainingTagCount, tagLimitMessage } =
-    useAttachNodeTag({ clientId: selectedNode?.id, attachedTagIds });
+    useAttachNodeTag({
+      treeId,
+      clientId: selectedNode?.id,
+      serverId: selectedNode?.data.serverId ?? null,
+      attachedTagIds,
+    });
 
   const { handleDetachNodeTag } = useDetachNodeTag({
     clientId: selectedNode?.id,

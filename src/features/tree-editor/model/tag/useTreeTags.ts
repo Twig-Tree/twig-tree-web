@@ -16,13 +16,21 @@ const EMPTY_TAGS: TreeTag[] = []; // 조회 전 렌더마다 새 배열이 되�
 태그 목록은 query cache가 원본이고, 만들기·지우기는 서버 응답을 받은 뒤에 cache에 반영된다.
 이름 검증과 같은 이름 확인은 호출부가 먼저 한다. 노드에서 태그를 빼는 일은 트리 태그 삭제 action이 맡는다.
 인자 : 없음
-반환값 : 트리 태그 목록, 태그를 만들어 돌려주는 함수, 태그를 지우는 함수
+반환값 : 트리 태그 목록, 목록을 다시 받아 돌려주는 함수, 태그를 만들어 돌려주는 함수, 태그를 지우는 함수
 */
 export const useTreeTags = () => {
   const treeId = useTreeStore((state) => state.treeId);
-  const { data: tags = EMPTY_TAGS } = useGetTreeTagsQuery(treeId);
+  const { data: tags = EMPTY_TAGS, refetch } = useGetTreeTagsQuery(treeId);
   const { mutateAsync: createTreeTag } = useCreateTreeTagMutation();
   const { mutateAsync: deleteTreeTag } = useDeleteTreeTagMutation();
+
+  /*
+  다른 탭에서 만든 태그처럼 cache에 없는 태그를 서버가 알려 줄 때 목록을 맞춘다. 실패하면 이전 목록을 돌려준다.
+  */
+  const refetchTags = useCallback(
+    async (): Promise<TreeTag[]> => (await refetch()).data ?? EMPTY_TAGS,
+    [refetch],
+  );
 
   /*
   태그를 고르는 입력은 편집기 안에만 있어 treeId가 null일 때 호출되지 않는다. 호출되면 요청할 트리가 없으므로 실패로 돌려준다.
@@ -45,5 +53,5 @@ export const useTreeTags = () => {
     [treeId, deleteTreeTag],
   );
 
-  return { tags, createTag, deleteTag };
+  return { tags, refetchTags, createTag, deleteTag };
 };
