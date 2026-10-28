@@ -1,5 +1,6 @@
 export { nodeTypes, edgeTypes } from "./constants/flowConfig";
 export { MemoSidePanel } from "./ui/MemoSidePanel";
+export { LecturePlayer } from "./ui/LecturePlayer";
 export { useTreeEditorActions } from "./model/actions/useTreeEditorActions";
 export { useDeleteTreeTag } from "./model/actions/delete-tree-tag/useDeleteTreeTag";
 export { useInitializeTree } from "./model/initialization/useInitializeTree";

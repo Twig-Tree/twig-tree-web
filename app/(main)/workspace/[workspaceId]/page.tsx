@@ -1,6 +1,8 @@
 "use client";
 import { ReactFlow, ReactFlowProvider, Panel } from "@xyflow/react";
+import { DEMO_LECTURE } from "@/src/entities/lecture";
 import {
+  LecturePlayer,
   MemoSidePanel,
   edgeTypes,
   nodeTypes,
@@ -93,7 +95,7 @@ function LayoutFlow({ workspaceId, treeId }: LayoutFlowProps) {
     setNodes,
   );
 
-  const { focusNode, fitNodes } = useFocusNode({
+  const { focusNode, fitNodes, revealNodes } = useFocusNode({
     visibleNodes,
     runAfterNextLayout,
     isLayoutRunning,
@@ -193,6 +195,13 @@ function LayoutFlow({ workspaceId, treeId }: LayoutFlowProps) {
             >
               Add Memo
             </button>
+          </Panel>
+
+          {/*
+          강의는 목데이터로 재생하는 데모다. 서버가 강의를 내려주게 되면 조회 결과로 바꾼다.
+          */}
+          <Panel position="bottom-center">
+            <LecturePlayer lecture={DEMO_LECTURE} onRevealNodes={revealNodes} />
           </Panel>
         </ReactFlow>
       </div>
