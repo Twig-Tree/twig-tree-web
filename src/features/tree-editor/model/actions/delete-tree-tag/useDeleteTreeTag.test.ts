@@ -94,6 +94,37 @@ describe("useDeleteTreeTag", () => {
     expect(getTagIdsByClientId()).toEqual({ c1: ["1"], c2: ["1"], c3: [] });
   });
 
+  it("같은 태그의 삭제 요청 중에 다시 누르면 묻지도 요청하지도 않는다", async () => {
+    const confirmSpy = vi.spyOn(window, "confirm").mockReturnValue(true);
+    const deleteTreeTagSpy = vi.spyOn(tagApi, "deleteTreeTag");
+    const alertSpy = vi.spyOn(window, "alert").mockImplementation(() => {});
+    const { result, getTreeTagIds } = await renderDeleteTreeTag();
+
+    await act(() =>
+      Promise.all([
+        result.current.handleDeleteTreeTag("1"),
+        result.current.handleDeleteTreeTag("1"),
+      ]),
+    );
+
+    expect(confirmSpy).toHaveBeenCalledOnce();
+    expect(deleteTreeTagSpy).toHaveBeenCalledOnce();
+    expect(alertSpy).not.toHaveBeenCalled();
+    expect(getTreeTagIds()).toEqual(["2"]);
+  });
+
+  it("삭제 요청이 끝나면 다른 삭제를 다시 받는다", async () => {
+    vi.spyOn(window, "confirm").mockReturnValue(true);
+    vi.spyOn(tagApi, "deleteTreeTag").mockRejectedValueOnce(new Error());
+    vi.spyOn(window, "alert").mockImplementation(() => {});
+    const { result, getTreeTagIds } = await renderDeleteTreeTag();
+
+    await act(() => result.current.handleDeleteTreeTag("1"));
+    await act(() => result.current.handleDeleteTreeTag("1"));
+
+    expect(getTreeTagIds()).toEqual(["2"]);
+  });
+
   it("삭제 요청이 실패하면 알리고 트리 태그와 노드를 그대로 둔다", async () => {
     vi.spyOn(window, "confirm").mockReturnValue(true);
     vi.spyOn(tagApi, "deleteTreeTag").mockRejectedValueOnce(new Error());
