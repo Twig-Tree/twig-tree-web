@@ -1,4 +1,5 @@
 import { type Node, type Edge } from "@xyflow/react";
+import { type LectureSegment } from "@/src/entities/lecture";
 import { TreeNode } from "@/src/entities/tree/model/types";
 
 // 트리 정렬 방향
@@ -33,4 +34,18 @@ export type NodeResult = {
   clientId: string; // 강조·포커싱할 편집기 노드 ID
   label: string; // 목록에 보여 줄 노드 이름
   isMemoMatched: boolean; // 메모에서 일치했는지. 태그 결과는 false
+};
+
+/*
+지금 편집기의 노드에 연결한 강의 구간. 강의가 이름 경로로 가리키는 노드를 편집기 노드 ID로 바꿔 둔다.
+편집기 노드 ID는 세션마다 새로 만들어지므로 강의를 시작할 때마다 다시 연결한다.
+*/
+export type EditorLectureSegment = Omit<
+  LectureSegment,
+  "nodePath" | "camera"
+> & {
+  clientId: string; // 이 구간이 설명하는 노드
+  camera: Omit<LectureSegment["camera"], "targetNodePaths"> & {
+    targetClientIds: string[]; // 한 화면에 모을 노드
+  };
 };
