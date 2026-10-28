@@ -1,5 +1,5 @@
-import { NodeDTO, TreeDTO } from "@/src/entities/tree/api/types";
-import { CreatedTree, TreeNode } from "../model/types";
+import { NodeDTO, TagDTO, TreeDTO } from "@/src/entities/tree/api/types";
+import { CreatedTree, TreeNode, TreeTag } from "../model/types";
 
 /**
  * 단일 NodeDTO를 TreeNode(Domain Entity)로 변환합니다.
@@ -10,6 +10,7 @@ export const mapNodeDtoToDomain = (dto: NodeDTO): TreeNode => ({
   label: dto.name, // 백엔드 name을 label로 매핑
   orderIndex: dto.orderId ?? 0, // orderId를 orderIndex로 매핑
   memo: dto.memo, // 메모 없음(null)을 그대로 유지한다.
+  tagIds: dto.tagIds.map(String),
 });
 
 /*
@@ -28,4 +29,15 @@ export const mapCreatedTreeDtoToDomain = (dto: TreeDTO): CreatedTree => ({
   workspaceId: String(dto.workspaceId),
   treeId: String(dto.treeId),
   nodes: mapNodesDtoToDomain(dto.nodes),
+});
+
+/*
+함수 이름 : mapTagDtoToDomain
+기능 : 트리 태그 DTO를 도메인 모델로 변환한다.
+인자 : TagDTO dto -> 서버가 돌려준 트리 태그
+반환값 : 트리 태그 도메인 모델
+*/
+export const mapTagDtoToDomain = (dto: TagDTO): TreeTag => ({
+  id: String(dto.tagId),
+  name: dto.name,
 });

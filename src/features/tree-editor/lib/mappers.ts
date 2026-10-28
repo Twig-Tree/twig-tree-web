@@ -35,7 +35,7 @@ export const mapToVisualNodes = (
       label: node.label,
       orderIndex: node.orderIndex,
       memo: node.memo,
-      tagIds: [], // 트리 조회 응답에 아직 노드 태그가 없다.
+      tagIds: node.tagIds,
     },
     position: { x: 0, y: 0 }, // 초기 위치는 ELK 레이아웃 엔진 등이 계산하도록 위임
   }));

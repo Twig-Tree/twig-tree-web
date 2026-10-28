@@ -1,5 +1,6 @@
+import { tagApi } from "@/src/entities/tree/api/tagApi";
 import { treeApi } from "@/src/entities/tree/api/treeApi";
-import { TreeNode } from "@/src/entities/tree/model/types";
+import { TreeNode, TreeTag } from "@/src/entities/tree/model/types";
 import { treeQueryKeys } from "@/src/entities/tree/model/queryKeys";
 import { skipToken, useQuery } from "@tanstack/react-query";
 
@@ -17,5 +18,21 @@ export const useGetTreeQuery = (treeId: string | null) => {
     queryKey: treeQueryKeys.detail(treeId),
     queryFn:
       treeId === null ? skipToken : () => treeApi.getTree(Number(treeId)),
+  });
+};
+
+/*
+함수 이름 : useGetTreeTagsQuery
+기능 : 트리에 속한 태그 목록을 조회한다. 트리가 없는 워크스페이스는 조회하지 않는다.
+인자 : string | null treeId -> 조회할 트리 ID. 트리가 없으면 null
+반환값 : 트리 태그 목록 query
+
+useGetTreeQuery와 같은 이유로 skipToken으로 막는다.
+*/
+export const useGetTreeTagsQuery = (treeId: string | null) => {
+  return useQuery<TreeTag[]>({
+    queryKey: treeQueryKeys.tags(treeId),
+    queryFn:
+      treeId === null ? skipToken : () => tagApi.getTreeTags(Number(treeId)),
   });
 };

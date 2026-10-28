@@ -32,10 +32,17 @@ export const MemoSidePanel = ({
   const attachedTagIds = selectedNode?.data.tagIds ?? [];
 
   const { attachTag, attachTagByName, remainingTagCount, tagLimitMessage } =
-    useAttachNodeTag({ clientId: selectedNode?.id, attachedTagIds });
+    useAttachNodeTag({
+      treeId,
+      clientId: selectedNode?.id,
+      serverId: selectedNode?.data.serverId ?? null,
+      attachedTagIds,
+    });
 
   const { handleDetachNodeTag } = useDetachNodeTag({
+    treeId,
     clientId: selectedNode?.id,
+    serverId: selectedNode?.data.serverId ?? null,
   });
 
   return (
@@ -72,7 +79,7 @@ export const MemoSidePanel = ({
         >
           <TagChipList
             nodeTags={getTagsByIds(tags, attachedTagIds)}
-            onDetach={handleDetachNodeTag}
+            onDetach={(tagId) => void handleDetachNodeTag(tagId)}
           >
             <TagInput
               tags={tags}

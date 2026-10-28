@@ -225,6 +225,8 @@ Mutation 호출부의 callback은 action-specific editor store 동작을 담당�
 
 mutation 선언부에는 `onError`를 두지 않는다. cache를 미리 바꾸지 않았으므로 복구할 것이 없다.
 
+예외는 실패 응답이 서버 상태를 확정해 주는 경우다. 노드 태그 추가의 `TAG409-2`(이미 붙어 있음)와 제거의 `TAG404-2`(연결 없음)는 요청은 실패했지만 서버가 원하던 상태에 있다는 뜻이다. 이때는 선언부 `onError`가 그 코드만 골라 `onSuccess`와 같은 cache 갱신을 한다. 복구가 아니라 확정된 상태의 반영이다. 반영하지 않으면 편집기를 다시 열 때 낡은 cache로 store를 채워, 붙인 태그가 사라지거나 뗀 태그가 되살아난다.
+
 노드 삭제처럼 응답 본문이 없어 cache를 직접 확정할 수 없다면 `invalidateQueries`로 다시 조회한다. 이때 `onSettled`가 아니라 `onSuccess`에 둔다. 실패한 경우에는 cache를 건드린 적이 없어 재조회할 이유가 없다.
 
 ## 새 Action Hook 추가 체크리스트
@@ -342,12 +344,23 @@ treeId가 있음 →            루트 노드 생성 → store 초기화(treeId 
 
 ## 예시: Node Tag
 
-노드 태그 action은 태그 API(#106)를 붙이기 전이라 editor store와 임시 트리 태그 store만 바꾼다. 서버 요청이 없으므로 실패 복구도 아직 없다.
+노드 태그 action은 노드와 태그의 연결을 editor store에 먼저 반영하고 서버에 요청한다. 트리 태그 목록은 query cache가 원본이라 생성·삭제는 응답을 받은 뒤에 반영한다.
 
-- `useAttachNodeTag`: 자동완성에서 고른 태그는 `attachTag(tagId)`로, 입력한 이름은 `attachTagByName(name)`으로 붙인다. 같은 이름의 트리 태그가 있으면 그것을, 없으면 새로 만들어 붙인다. 두 함수는 실패 안내 문구(`string | null`)를 돌려주고, 입력창을 비울지 남길지는 호출부가 그 결과로 정하므로 `handle*`이 아니라 동사형이다.
+- `useAttachNodeTag`: 자동완성에서 고른 태그는 `attachTag(tagId)`로, 입력한 이름은 `attachTagByName(name)`으로 붙인다. 같은 이름의 트리 태그가 있으면 그것을, 없으면 서버에 새로 만든 뒤 응답의 ID로 붙인다. 두 함수는 요청 전에 거를 수 있는 실패(이름 길이, 개수 상한, 저장 전 노드)의 안내 문구(`string | null`)를 돌려주고, 입력창을 비울지 남길지는 호출부가 그 결과로 정하므로 `handle*`이 아니라 동사형이다. 서버 실패는 요청이 끝난 뒤에 알 수 있으므로 alert로 알린다.
 - `useDetachNodeTag`: `handleDetachNodeTag(tagId)`로 노드와 태그의 연결만 끊는다. 트리 태그는 남는다.
-- `useDeleteTreeTag`: `handleDeleteTreeTag(tagId)`로 붙은 노드 수를 알리고 확인을 받은 뒤, 트리 태그 목록과 모든 노드에서 태그를 뺀다.
+- `useDeleteTreeTag`: `handleDeleteTreeTag(tagId)`로 붙은 노드 수를 알리고 확인을 받은 뒤 서버에서 지운다. 응답을 받으면 트리 태그 목록 cache와 트리 조회 cache는 mutation이, editor store의 모든 노드는 handler가 태그를 뺀다.
 
-태그 store action은 `data.tagIds`만 바꾸므로 history에 기록되지 않는다. API를 붙이면 노드 이름 수정처럼 직접 복구를 쓴다. 붙이기가 실패하면 그 태그를 떼고, 떼기가 실패하면 다시 붙인다. `undo()`는 쓰지 않는다(위 "예외: history에 기록되지 않는 action" 참고).
+태그 store action은 `data.tagIds`만 바꾸므로 history에 기록되지 않는다. 그래서 노드 이름 수정처럼 직접 복구를 쓴다. 붙이기가 실패하면 그 태그를 떼고, 떼기가 실패하면 다시 붙인다. `undo()`는 쓰지 않는다(위 "예외: history에 기록되지 않는 action" 참고). 다시 붙인 태그는 원래 자리가 아니라 끝에 놓이고, 새로고침하면 서버 순서로 돌아온다.
+
+서버의 거절은 에러 코드에 따라 나눠 처리한다. 서버가 이미 화면과 같은 상태라는 거절이면 되돌리지 않는다.
+
+| 에러 코드  | 의미                           | 처리                                                                   |
+| ---------- | ------------------------------ | ---------------------------------------------------------------------- |
+| `TAG409-1` | 트리에 같은 이름의 태그가 있음 | 다른 곳에서 만든 태그이므로 목록을 다시 받아 그 태그를 붙인다          |
+| `TAG409-2` | 노드에 이미 붙어 있음          | 되돌리지 않고, 트리 조회 cache는 mutation이 성공처럼 갱신한다          |
+| `TAG409-3` | 노드당 태그 개수 초과          | 떼고 개수 상한을 안내한다                                              |
+| `TAG404-2` | 노드에 연결되어 있지 않음      | 떼기에서 되돌리지 않고, 트리 조회 cache는 mutation이 성공처럼 갱신한다 |
+
+새 태그 생성과 트리 태그 삭제는 연타하면 같은 대상을 노리므로 `useRef` 동기 가드를 둔다(위 "pending 값은 연타를 막지 못한다"). 삭제 가드는 다른 태그의 삭제를 막지 않도록 태그별로 둔다.
 
 이 action들은 메모 패널과 워크스페이스 패널이 직접 호출하므로 `useTreeEditorActions` facade에 넣지 않는다.

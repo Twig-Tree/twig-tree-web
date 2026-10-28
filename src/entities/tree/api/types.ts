@@ -9,6 +9,7 @@ export interface NodeDTO {
   parentId: number | null;
   orderId: number;
   memo: string | null;
+  tagIds: number[]; // 노드에 붙은 트리 태그 ID 목록
 }
 
 /*
@@ -97,3 +98,35 @@ export interface UpdateMemoRequest {
 메모 생성/수정 응답 type
 */
 export type UpdateMemoResponse = ApiResponse<MemoDTO>;
+
+/*
+트리 태그 DTO type
+트리 태그 생성·목록 조회와 노드 태그 추가가 같은 모양으로 돌려준다.
+*/
+export interface TagDTO {
+  tagId: number;
+  name: string;
+}
+
+/*
+트리 태그 생성 요청 body type
+*/
+export interface CreateTagRequest {
+  name: string;
+}
+
+/*
+트리 태그 생성 응답 type
+*/
+export type CreateTagResponse = ApiResponse<TagDTO>;
+
+/*
+트리 태그 목록 조회 응답 type
+*/
+export type GetTreeTagsResponse = ApiResponse<TagDTO[]>;
+
+/*
+노드 태그 추가 응답 type
+서버는 노드에 붙인 트리 태그를 돌려준다.
+*/
+export type AddNodeTagResponse = ApiResponse<TagDTO>;
