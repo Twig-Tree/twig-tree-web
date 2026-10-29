@@ -1,4 +1,7 @@
-import { type EditorLectureAnimation } from "../types";
+import {
+  type EditorLectureAnimation,
+  type EditorLectureAnimationAction,
+} from "../types";
 import {
   getLectureEdgeKey,
   type LectureVisualLayer,
@@ -12,6 +15,9 @@ type RunLectureAnimationContext = {
   ) => void; // 접힌 조상을 펼치고 대상 노드로 카메라를 이동한다
   resetCamera?: () => void; // 카메라를 강의 시작 전 상태로 되돌린다
   signal?: AbortSignal; // 중단되면 대기 중인 동작과 이후 조합을 실행하지 않는다
+  sequenceGapMs?: number; // 순차 그룹의 동작 사이에 둘 전환 간격
+  onActionStart?: (animation: EditorLectureAnimationAction) => void; // 단위 동작이 시작될 때 현재 단계를 알린다
+  onActionEnd?: (animation: EditorLectureAnimationAction) => void; // 단위 동작이 끝날 때 전환 상태를 알린다
 };
 
 let nextLayerId = 0;
@@ -141,7 +147,9 @@ export const runLectureAnimation = async (
   if (context.signal?.aborted) return;
 
   if (animation.type !== "group") {
+    context.onActionStart?.(animation);
     await runLectureAnimationAction(animation, context);
+    if (!context.signal?.aborted) context.onActionEnd?.(animation);
     return;
   }
 
@@ -152,8 +160,17 @@ export const runLectureAnimation = async (
     return;
   }
 
-  for (const child of animation.children) {
+  for (const [index, child] of animation.children.entries()) {
     if (context.signal?.aborted) return;
     await runLectureAnimation(child, context);
+
+    const hasNextChild = index < animation.children.length - 1;
+    if (!hasNextChild || !context.sequenceGapMs) continue;
+
+    const completed = await waitForLectureAnimation(
+      context.sequenceGapMs,
+      context.signal,
+    );
+    if (!completed) return;
   }
 };

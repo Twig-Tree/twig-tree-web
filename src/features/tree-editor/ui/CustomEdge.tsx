@@ -1,5 +1,5 @@
 import { CustomEditorEdge } from "@/src/features/tree-editor/model/types";
-import { getStraightPath, BaseEdge, type EdgeProps } from "@xyflow/react";
+import { getSmoothStepPath, BaseEdge, type EdgeProps } from "@xyflow/react";
 import {
   isLectureEdgeTraced,
   useLectureAnimationStore,
@@ -13,8 +13,21 @@ export function CustomEdge({
   sourceY,
   targetX,
   targetY,
+  sourcePosition,
+  targetPosition,
+  markerStart,
+  markerEnd,
+  interactionWidth,
+  style,
 }: EdgeProps<CustomEditorEdge>) {
-  const [edgePath] = getStraightPath({ sourceX, sourceY, targetX, targetY });
+  const [edgePath] = getSmoothStepPath({
+    sourceX,
+    sourceY,
+    targetX,
+    targetY,
+    sourcePosition,
+    targetPosition,
+  });
   const isTraced = useLectureAnimationStore((state) =>
     isLectureEdgeTraced(state, source, target),
   );
@@ -23,6 +36,10 @@ export function CustomEdge({
     <BaseEdge
       id={id}
       path={edgePath}
+      markerStart={markerStart}
+      markerEnd={markerEnd}
+      interactionWidth={interactionWidth}
+      style={style}
       className={isTraced ? "lecture-edge-traced" : undefined}
     />
   );

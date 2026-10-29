@@ -63,6 +63,44 @@ describe("runLectureAnimation", () => {
     ).toBe(false);
   });
 
+  it("sequence는 설정한 전환 간격 뒤에 다음 동작을 실행한다", async () => {
+    const onActionStart = vi.fn();
+    const animation: EditorLectureAnimation = {
+      type: "group",
+      mode: "sequence",
+      children: [
+        {
+          type: "highlight",
+          targetClientIds: ["c1"],
+          style: "steady",
+          durationMs: 300,
+        },
+        {
+          type: "dim",
+          exceptClientIds: ["c1"],
+          durationMs: 300,
+        },
+      ],
+    };
+
+    const completed = runLectureAnimation(animation, {
+      revealNodes,
+      sequenceGapMs: 160,
+      onActionStart,
+    });
+
+    expect(onActionStart).toHaveBeenCalledTimes(1);
+    await vi.advanceTimersByTimeAsync(300);
+    expect(onActionStart).toHaveBeenCalledTimes(1);
+    await vi.advanceTimersByTimeAsync(159);
+    expect(onActionStart).toHaveBeenCalledTimes(1);
+    await vi.advanceTimersByTimeAsync(1);
+    expect(onActionStart).toHaveBeenCalledTimes(2);
+
+    await vi.advanceTimersByTimeAsync(300);
+    await completed;
+  });
+
   it("parallel은 여러 시각 동작을 동시에 적용한다", async () => {
     const animation: EditorLectureAnimation = {
       type: "group",

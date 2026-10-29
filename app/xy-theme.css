@@ -109,24 +109,36 @@
 
 .react-flow__edge-path.lecture-edge-traced {
   stroke: var(--xy-theme-lecture-animation);
-  stroke-width: 3;
-  stroke-dasharray: 8 6;
-  animation: lecture-edge-trace 500ms linear infinite;
+  stroke-width: 4;
+  stroke-linecap: round;
+  stroke-dasharray: 12 8;
+  filter: drop-shadow(0 0 4px var(--xy-theme-lecture-animation));
+  animation: lecture-edge-trace 400ms linear infinite;
 }
 
 @keyframes lecture-node-pulse {
   from {
-    transform: scale(1);
+    box-shadow:
+      0 0 0 3px var(--xy-theme-lecture-animation),
+      0 0 14px 2px
+        color-mix(in srgb, var(--xy-theme-lecture-animation) 35%, transparent);
   }
 
   to {
-    transform: scale(1.06);
+    box-shadow:
+      0 0 0 5px var(--xy-theme-lecture-animation),
+      0 0 32px 8px
+        color-mix(in srgb, var(--xy-theme-lecture-animation) 65%, transparent);
   }
 }
 
 @keyframes lecture-edge-trace {
+  from {
+    stroke-dashoffset: 0;
+  }
+
   to {
-    stroke-dashoffset: -14;
+    stroke-dashoffset: -20;
   }
 }
 

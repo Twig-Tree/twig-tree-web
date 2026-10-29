@@ -3,6 +3,7 @@ import { ReactFlow, ReactFlowProvider, Panel } from "@xyflow/react";
 import { DEMO_LECTURE } from "@/src/entities/lecture";
 import {
   LecturePlayer,
+  LectureAnimationDevPanel,
   MemoSidePanel,
   edgeTypes,
   nodeTypes,
@@ -195,6 +196,14 @@ function LayoutFlow({ workspaceId, treeId }: LayoutFlowProps) {
             >
               Add Memo
             </button>
+          </Panel>
+
+          <Panel position="top-left">
+            <LectureAnimationDevPanel
+              selectedNode={selectedNode}
+              onRevealNodes={revealNodes}
+              onResetCamera={fitTreeView}
+            />
           </Panel>
 
           {/*
