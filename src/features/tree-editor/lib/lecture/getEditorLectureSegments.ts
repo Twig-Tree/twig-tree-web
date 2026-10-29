@@ -1,12 +1,10 @@
-import {
-  type LectureNodePath,
-  type LectureSegment,
-} from "@/src/entities/lecture";
+import { type LectureSegment } from "@/src/entities/lecture";
 import {
   CustomEditorEdge,
   CustomEditorNode,
   EditorLectureSegment,
 } from "../../model/types";
+import { createLectureNodePathResolver } from "./createLectureNodePathResolver";
 
 /*
 함수 이름 : getEditorLectureSegments
@@ -24,49 +22,7 @@ export const getEditorLectureSegments = (
   nodes: CustomEditorNode[],
   edges: CustomEditorEdge[],
 ): EditorLectureSegment[] | null => {
-  const labelByClientId = new Map(
-    nodes.map((node) => [node.id, node.data.label]),
-  );
-  const childClientIds = new Set(edges.map((edge) => edge.target));
-  const rootClientIds = nodes
-    .filter((node) => !childClientIds.has(node.id))
-    .map((node) => node.id);
-
-  /*
-  자식 순서를 노드 배열 순서로 맞춘다. 엣지 배열은 reconnect로 순서가 노드 배열과 어긋날 수 있다.
-  */
-  const orderByClientId = new Map(nodes.map((node, index) => [node.id, index]));
-  const childrenByParent = new Map<string, string[]>();
-
-  for (const edge of edges) {
-    const children = childrenByParent.get(edge.source) ?? [];
-    children.push(edge.target);
-    childrenByParent.set(edge.source, children);
-  }
-
-  for (const children of childrenByParent.values()) {
-    children.sort(
-      (a, b) => (orderByClientId.get(a) ?? 0) - (orderByClientId.get(b) ?? 0),
-    );
-  }
-
-  const findClientId = (path: LectureNodePath): string | null => {
-    let candidates = rootClientIds;
-    let foundClientId: string | null = null;
-
-    for (const label of path) {
-      foundClientId =
-        candidates.find(
-          (clientId) => labelByClientId.get(clientId) === label,
-        ) ?? null;
-
-      if (foundClientId === null) return null;
-
-      candidates = childrenByParent.get(foundClientId) ?? [];
-    }
-
-    return foundClientId;
-  };
+  const findClientId = createLectureNodePathResolver(nodes, edges);
 
   const editorSegments: EditorLectureSegment[] = [];
 

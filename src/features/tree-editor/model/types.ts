@@ -1,5 +1,12 @@
 import { type Node, type Edge } from "@xyflow/react";
-import { type LectureSegment } from "@/src/entities/lecture";
+import {
+  type LectureAnimationAction,
+  type LectureAnimationGroup,
+  type LectureBeat,
+  type LectureScene,
+  type LectureScript,
+  type LectureSegment,
+} from "@/src/entities/lecture";
 import { TreeNode } from "@/src/entities/tree/model/types";
 
 // 트리 정렬 방향
@@ -49,3 +56,57 @@ export type EditorLectureSegment = Omit<
     targetClientIds: string[]; // 한 화면에 모을 노드
   };
 };
+
+type EditorLectureNodeAction =
+  | (Omit<
+      Extract<LectureAnimationAction, { type: "focus" }>,
+      "targetNodePaths"
+    > & {
+      targetClientIds: string[];
+    })
+  | (Omit<
+      Extract<LectureAnimationAction, { type: "highlight" }>,
+      "targetNodePaths"
+    > & {
+      targetClientIds: string[];
+    })
+  | (Omit<
+      Extract<LectureAnimationAction, { type: "dim" }>,
+      "exceptNodePaths"
+    > & {
+      exceptClientIds: string[];
+    })
+  | (Omit<Extract<LectureAnimationAction, { type: "trace" }>, "nodePaths"> & {
+      clientIds: string[];
+    });
+
+export type EditorLectureAnimationAction =
+  | EditorLectureNodeAction
+  | Extract<LectureAnimationAction, { type: "reset" }>;
+
+export interface EditorLectureAnimationGroup extends Omit<
+  LectureAnimationGroup,
+  "children"
+> {
+  children: EditorLectureAnimation[];
+}
+
+export type EditorLectureAnimation =
+  | EditorLectureAnimationAction
+  | EditorLectureAnimationGroup;
+
+export interface EditorLectureBeat extends Omit<LectureBeat, "animation"> {
+  animation: EditorLectureAnimation;
+}
+
+export interface EditorLectureScene extends Omit<
+  LectureScene,
+  "nodePath" | "beats"
+> {
+  clientId: string;
+  beats: EditorLectureBeat[];
+}
+
+export interface EditorLectureScript extends Omit<LectureScript, "scenes"> {
+  scenes: EditorLectureScene[];
+}

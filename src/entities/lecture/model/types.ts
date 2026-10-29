@@ -40,3 +40,87 @@ export interface Lecture {
   title: string;
   segments: LectureSegment[];
 }
+
+/*
+LLM이 생성하고 플레이어가 읽는 문장 하나. 실제 음성이 없을 때만 fallbackDurationMs를 재생 시간으로 쓴다.
+*/
+export interface LectureNarration {
+  text: string;
+  fallbackDurationMs: number;
+}
+
+export interface LectureFocusAction {
+  type: "focus";
+  targetNodePaths: LectureNodePath[]; // 한 화면에 모을 노드
+  maxZoom: number;
+  durationMs: number;
+}
+
+export interface LectureHighlightAction {
+  type: "highlight";
+  targetNodePaths: LectureNodePath[];
+  style: "steady" | "pulse";
+  persist?: boolean; // true이면 다음 reset 전까지 강조를 유지한다
+}
+
+export interface LectureDimAction {
+  type: "dim";
+  exceptNodePaths: LectureNodePath[]; // 흐리지 않고 남겨 둘 노드
+  persist?: boolean; // true이면 다음 reset 전까지 흐림을 유지한다
+}
+
+export interface LectureTraceAction {
+  type: "trace";
+  nodePaths: LectureNodePath[]; // 연결선을 따라갈 순서로 나열한 노드
+  durationMs: number;
+}
+
+export interface LectureResetAction {
+  type: "reset";
+  scope: "visual" | "camera" | "all";
+}
+
+export type LectureAnimationAction =
+  | LectureFocusAction
+  | LectureHighlightAction
+  | LectureDimAction
+  | LectureTraceAction
+  | LectureResetAction;
+
+/*
+그룹은 원자 동작과 다른 그룹을 재귀적으로 묶는다. LLM은 이 구조만 조합하고 임의의 실행 코드는 만들지 않는다.
+*/
+export interface LectureAnimationGroup {
+  type: "group";
+  mode: "sequence" | "parallel";
+  children: LectureAnimation[];
+}
+
+export type LectureAnimation = LectureAnimationAction | LectureAnimationGroup;
+
+/*
+비트 하나가 음성·자막·연출의 동기화 경계다. animation을 먼저 시작하고 narration이 끝나면 다음 비트로 넘어간다.
+*/
+export interface LectureBeat {
+  id: string;
+  narration: LectureNarration;
+  animation: LectureAnimation;
+}
+
+/*
+장면은 하나의 중심 노드를 설명하는 연속된 비트다.
+*/
+export interface LectureScene {
+  id: string;
+  nodePath: LectureNodePath;
+  beats: LectureBeat[];
+}
+
+/*
+기존 Lecture 플레이어를 새 실행기로 옮기는 동안 병행해서 쓰는 동적 강의 계약이다.
+*/
+export interface LectureScript {
+  id: string;
+  title: string;
+  scenes: LectureScene[];
+}
