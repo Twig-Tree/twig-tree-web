@@ -19,7 +19,7 @@ export const sampleLearningPath: LearningPath = {
         "세부 기술을 배우기 전에 전환의 목적과 주요 구성 요소를 알면 이후 개념의 위치를 쉽게 파악할 수 있습니다.",
       kind: "core",
       prerequisiteIds: [],
-      sourceNodeIds: ["energy-transition", "climate-goals"],
+      sourceNodeIds: ["1", "2"],
       recommendedNextId: "renewable-fundamentals",
     },
     {
@@ -31,7 +31,7 @@ export const sampleLearningPath: LearningPath = {
         "발전원의 특성을 알아야 전력망에서 생기는 변동성과 공급 문제를 이해할 수 있습니다.",
       kind: "core",
       prerequisiteIds: ["transition-overview"],
-      sourceNodeIds: ["solar-power", "wind-power"],
+      sourceNodeIds: ["3", "4"],
       recommendedNextId: "variable-generation",
     },
     {
@@ -43,7 +43,7 @@ export const sampleLearningPath: LearningPath = {
         "변동성은 저장 장치와 유연한 전력망이 필요한 직접적인 이유입니다.",
       kind: "core",
       prerequisiteIds: ["renewable-fundamentals"],
-      sourceNodeIds: ["intermittency", "demand-supply-balance"],
+      sourceNodeIds: ["5", "6"],
       recommendedNextId: "grid-flexibility",
     },
     {
@@ -55,7 +55,7 @@ export const sampleLearningPath: LearningPath = {
         "저장 기술을 더 자세히 알면 변동성 대응 수단의 장단점을 구체적으로 이해할 수 있습니다.",
       kind: "supplemental",
       prerequisiteIds: ["variable-generation"],
-      sourceNodeIds: ["battery-storage", "hydrogen-storage"],
+      sourceNodeIds: ["7", "8"],
       recommendedNextId: "grid-flexibility",
     },
     {
@@ -67,7 +67,7 @@ export const sampleLearningPath: LearningPath = {
         "발전 기술이 실제 시스템에서 작동하려면 변동성을 흡수하는 운영 전략이 필요합니다.",
       kind: "core",
       prerequisiteIds: ["variable-generation"],
-      sourceNodeIds: ["smart-grid", "demand-response", "interconnection"],
+      sourceNodeIds: ["9", "10", "11"],
       recommendedNextId: "transition-strategy",
     },
     {
@@ -79,7 +79,7 @@ export const sampleLearningPath: LearningPath = {
         "기술적으로 가능한 전환이 실제로 일어나려면 제도와 경제적 유인이 어떻게 맞물리는지 이해해야 합니다.",
       kind: "advanced",
       prerequisiteIds: ["grid-flexibility"],
-      sourceNodeIds: ["carbon-pricing", "electricity-market"],
+      sourceNodeIds: ["12", "13"],
       recommendedNextId: "transition-strategy",
     },
     {
@@ -91,7 +91,7 @@ export const sampleLearningPath: LearningPath = {
         "앞서 배운 개념을 하나의 시스템 관점으로 묶어야 실제 사례를 평가하고 대안을 비교할 수 있습니다.",
       kind: "core",
       prerequisiteIds: ["grid-flexibility"],
-      sourceNodeIds: ["transition-roadmap", "case-studies"],
+      sourceNodeIds: ["14", "15"],
       recommendedNextId: null,
     },
   ],
