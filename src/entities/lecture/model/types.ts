@@ -60,12 +60,14 @@ export interface LectureHighlightAction {
   type: "highlight";
   targetNodePaths: LectureNodePath[];
   style: "steady" | "pulse";
+  durationMs: number;
   persist?: boolean; // true이면 다음 reset 전까지 강조를 유지한다
 }
 
 export interface LectureDimAction {
   type: "dim";
   exceptNodePaths: LectureNodePath[]; // 흐리지 않고 남겨 둘 노드
+  durationMs: number;
   persist?: boolean; // true이면 다음 reset 전까지 흐림을 유지한다
 }
 

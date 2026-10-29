@@ -62,6 +62,7 @@ const getEditorLectureAnimation = (
             type: animation.type,
             targetClientIds,
             style: animation.style,
+            durationMs: animation.durationMs,
             ...(animation.persist === undefined
               ? {}
               : { persist: animation.persist }),
@@ -74,6 +75,7 @@ const getEditorLectureAnimation = (
       return {
         type: animation.type,
         exceptClientIds,
+        durationMs: animation.durationMs,
         ...(animation.persist === undefined
           ? {}
           : { persist: animation.persist }),

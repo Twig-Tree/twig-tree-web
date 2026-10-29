@@ -4,6 +4,7 @@ import { transformToFlowElements } from "../../lib/mappers";
 import { useCollapseStore } from "../collapse/collapseStore";
 import { useHighlightStore } from "../highlight/highlightStore";
 import { useLectureStore } from "../lecture/lectureStore";
+import { useLectureAnimationStore } from "../lecture/lectureAnimationStore";
 import { useTreeStore } from "../treeStore";
 
 type UseInitializeTreeParams = {
@@ -30,6 +31,9 @@ export const useInitializeTree = ({
   const resetCollapse = useCollapseStore((state) => state.resetCollapse);
   const clearHighlight = useHighlightStore((state) => state.clearHighlight);
   const resetLecture = useLectureStore((state) => state.resetLecture);
+  const resetLectureVisual = useLectureAnimationStore(
+    (state) => state.resetVisual,
+  );
 
   /*
   초기화는 트리당 한 번만 수행한다. 재초기화는 모든 노드의 position을 원점으로 되돌리고
@@ -73,7 +77,14 @@ export const useInitializeTree = ({
       resetCollapse();
       clearHighlight();
       resetLecture();
+      resetLectureVisual();
     },
-    [resetTree, resetCollapse, clearHighlight, resetLecture],
+    [
+      resetTree,
+      resetCollapse,
+      clearHighlight,
+      resetLecture,
+      resetLectureVisual,
+    ],
   );
 };

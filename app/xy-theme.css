@@ -4,6 +4,7 @@
   --xy-theme-selected: #f57dbd;
   --xy-theme-highlighted: #f59e0b;
   --xy-theme-lecture-current: #4f46e5;
+  --xy-theme-lecture-animation: #06b6d4;
   --xy-theme-hover: #c5c5c5;
   --xy-theme-edge-hover: black;
   --xy-theme-color-focus: #e8e8e8;
@@ -85,6 +86,55 @@
     0 0 18px 2px
       color-mix(in srgb, var(--xy-theme-lecture-current) 35%, transparent);
   transition: box-shadow 200ms ease-out;
+}
+
+.react-flow__node:has(> .custom-node[data-lecture-highlighted="true"]) {
+  box-shadow:
+    0 0 0 3px var(--xy-theme-lecture-animation),
+    0 0 20px 3px
+      color-mix(in srgb, var(--xy-theme-lecture-animation) 40%, transparent);
+  transition:
+    box-shadow 180ms ease-out,
+    opacity 180ms ease-out;
+}
+
+.react-flow__node:has(> .custom-node[data-lecture-pulsing="true"]) {
+  animation: lecture-node-pulse 700ms ease-in-out infinite alternate;
+}
+
+.react-flow__node:has(> .custom-node[data-lecture-dimmed="true"]) {
+  opacity: 0.22;
+  transition: opacity 180ms ease-out;
+}
+
+.react-flow__edge-path.lecture-edge-traced {
+  stroke: var(--xy-theme-lecture-animation);
+  stroke-width: 3;
+  stroke-dasharray: 8 6;
+  animation: lecture-edge-trace 500ms linear infinite;
+}
+
+@keyframes lecture-node-pulse {
+  from {
+    transform: scale(1);
+  }
+
+  to {
+    transform: scale(1.06);
+  }
+}
+
+@keyframes lecture-edge-trace {
+  to {
+    stroke-dashoffset: -14;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .react-flow__node:has(> .custom-node[data-lecture-pulsing="true"]),
+  .react-flow__edge-path.lecture-edge-traced {
+    animation: none;
+  }
 }
 
 .react-flow__node-group {

@@ -154,6 +154,14 @@ editor store 초기화는 트리당 한 번만 수행한다. `useInitializeTree`
 
 서버가 강의를 내려주게 되면 경로 대신 노드 ID를 받으므로 연결 함수만 바뀐다.
 
+### 동적 연출은 제한된 동작을 조합한다
+
+`LectureScript`는 장면(`scene`) 아래에 음성·자막·연출의 동기화 경계인 `beat`를 두고, 각 비트가 `focus`·`highlight`·`dim`·`trace`·`reset` 동작을 갖는다. `group`은 이 동작들을 `sequence` 또는 `parallel`로 재귀 조합한다. LLM은 이 데이터 계약만 생성하고 브라우저에서 실행할 코드를 만들지 않는다.
+
+`getEditorLectureScript`는 실행 전에 대본 안의 모든 이름 경로를 편집기 clientId로 바꾼다. 경로 하나라도 현재 트리에 없으면 대본 전체를 거부한다. 변환 뒤에는 `runLectureAnimation`이 조합을 해석하고, `lectureAnimationStore`가 강조·흐림·연결선 추적을 동작별 레이어로 관리한다. 병렬 동작이 각각 자기 레이어만 제거하므로 같은 종류의 효과를 서로 덮어쓰지 않는다.
+
+`persist`가 없는 시각 동작은 `durationMs` 뒤에 자기 레이어를 제거한다. `persist: true`인 동작은 즉시 다음 동작으로 진행하면서 효과를 유지하고 이후 `reset`이 정리한다. 실행 신호가 중단되면 대기 중인 일회성 동작을 정리하고 이후 순차 동작은 실행하지 않는다. 현재 기존 `Lecture` 플레이어는 그대로이며, 동적 목 대본과 비트 재생 연결은 다음 단계에서 붙인다.
+
 ### 상태는 위치 하나에서 파생한다
 
 `lecture/lectureStore`는 재생 상태(`idle`·`playing`·`paused`·`ended`)와 구간·문장 위치만 갖는다. 음성, 자막, 노드 강조, 카메라는 각자 상태를 두지 않고 이 위치를 읽는다. 따로 두면 서로 어긋날 수 있다. 접힘·강조 store와 같은 이유로 treeStore와 분리해 undo history에 들어가지 않는다.

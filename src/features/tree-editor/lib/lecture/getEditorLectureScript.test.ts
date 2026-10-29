@@ -62,6 +62,7 @@ const script: LectureScript = {
                     type: "highlight",
                     targetNodePaths: [["컴퓨터 사이언스", "자료구조", "배열"]],
                     style: "pulse",
+                    durationMs: 700,
                   },
                   {
                     type: "dim",
@@ -69,6 +70,7 @@ const script: LectureScript = {
                       ["컴퓨터 사이언스", "자료구조", "배열"],
                       ["컴퓨터 사이언스", "자료구조", "스택"],
                     ],
+                    durationMs: 700,
                   },
                   {
                     type: "trace",
@@ -123,10 +125,12 @@ describe("getEditorLectureScript", () => {
                         type: "highlight",
                         targetClientIds: ["c3"],
                         style: "pulse",
+                        durationMs: 700,
                       },
                       {
                         type: "dim",
                         exceptClientIds: ["c3", "c4"],
+                        durationMs: 700,
                       },
                       {
                         type: "trace",
@@ -160,6 +164,7 @@ describe("getEditorLectureScript", () => {
                   ["컴퓨터 사이언스", "자료구조", "연결 리스트"],
                 ],
                 style: "steady",
+                durationMs: 500,
               },
             },
           ],
