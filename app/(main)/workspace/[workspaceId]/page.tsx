@@ -1,4 +1,5 @@
 "use client";
+import Link from "next/link";
 import { ReactFlow, ReactFlowProvider, Panel } from "@xyflow/react";
 import {
   MemoSidePanel,
@@ -19,6 +20,7 @@ import { use, useCallback, useEffect, useState } from "react";
 import { useGetTreeQuery } from "@/src/entities/tree/model/queries";
 import { useGetWorkspaceQuery } from "@/src/entities/workspace";
 import { isClientError } from "@/src/shared/api/httpErrors";
+import { routes } from "@/src/shared/config/routes";
 import { isValidApiId } from "@/src/shared/lib/validation/isValidApiId";
 import {
   WorkspaceHeader,
@@ -265,7 +267,36 @@ function WorkspacePageContent({ workspaceId }: WorkspacePageContentProps) {
   */
   return (
     <div className="flex h-full w-full flex-col">
-      <WorkspaceHeader name={workspace?.name} isNameLoading={isPending} />
+      <WorkspaceHeader
+        name={workspace?.name}
+        isNameLoading={isPending}
+        actions={
+          <nav
+            aria-label="워크스페이스 화면 전환"
+            className="flex rounded-lg bg-slate-100 p-1 text-xs font-semibold"
+          >
+            <Link
+              href={routes.workspace(workspaceId)}
+              aria-current="page"
+              className="rounded-md bg-white px-3 py-1.5 text-indigo-700 shadow-sm"
+            >
+              트리 보기
+            </Link>
+            <Link
+              href={routes.learningPath(workspaceId)}
+              className="rounded-md px-3 py-1.5 text-slate-500 transition-colors hover:text-slate-900"
+            >
+              학습 경로
+            </Link>
+            <Link
+              href={routes.flashcards(workspaceId)}
+              className="rounded-md px-3 py-1.5 text-slate-500 transition-colors hover:text-slate-900"
+            >
+              플래시카드
+            </Link>
+          </nav>
+        }
+      />
 
       <div className="min-h-0 flex-1">
         {isPending ? (

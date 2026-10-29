@@ -149,6 +149,12 @@ function LearningPathPageContent({
               >
                 학습 경로
               </Link>
+              <Link
+                href={routes.flashcards(workspaceId)}
+                className="rounded-md px-3 py-1.5 text-slate-500 transition-colors hover:text-slate-900"
+              >
+                플래시카드
+              </Link>
             </nav>
             <Link
               href={routes.learningPathPalette}

@@ -15,6 +15,8 @@ export type PrototypeFlashcardKind =
   | "sequence"
   | "collection";
 
+export type FlashcardReviewRating = "again" | "hard" | "good" | "easy";
+
 export interface PrototypeTree {
   id: string;
   title: string;
@@ -51,3 +53,16 @@ export interface PrototypeFlashcardScenario {
   relations: PrototypeTreeRelation[];
   cards: PrototypeFlashcard[];
 }
+
+export interface FlashcardReviewRecord {
+  cardId: string;
+  dueAt: string;
+  lastReviewedAt: string;
+  intervalDays: number;
+  easeFactor: number;
+  reviewCount: number;
+  lapseCount: number;
+  lastRating: FlashcardReviewRating;
+}
+
+export type FlashcardReviewRecords = Record<string, FlashcardReviewRecord>;

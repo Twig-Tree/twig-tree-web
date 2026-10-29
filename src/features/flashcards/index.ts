@@ -5,7 +5,11 @@ export {
   sampleFlashcardScenarios,
   worldGeographyFlashcardScenario,
 } from "./mock/sampleFlashcardScenarios";
+export { FlashcardStudySession } from "./ui/FlashcardStudySession";
 export type {
+  FlashcardReviewRating,
+  FlashcardReviewRecord,
+  FlashcardReviewRecords,
   PrototypeFlashcard,
   PrototypeFlashcardKind,
   PrototypeFlashcardScenario,
