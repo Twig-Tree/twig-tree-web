@@ -1,0 +1,319 @@
+.lab {
+  --lab-canvas: #f7f8fa;
+  --lab-surface: #ffffff;
+  --lab-surface-muted: #f8fafc;
+  --lab-border: #dce1e8;
+  --lab-node-text: #172033;
+  --lab-node-muted: #778195;
+  --lab-accent: #4f46e5;
+  --lab-highlight: #f59e0b;
+  --lab-lecture: #06b6d4;
+  --lab-danger: #dc2626;
+  --lab-edge: #a6afbe;
+  --lab-node-radius: 14px;
+  --lab-node-padding-y: 13px;
+  --lab-node-padding-x: 16px;
+  --lab-node-shadow: 0 8px 24px rgb(15 23 42 / 8%);
+}
+
+.lab[data-theme="soft"] {
+  --lab-canvas: #f7f5ff;
+  --lab-surface: #fffafd;
+  --lab-surface-muted: #f7f1fb;
+  --lab-border: #e7dff0;
+  --lab-node-text: #31233d;
+  --lab-node-muted: #8a7895;
+  --lab-accent: #8b5cf6;
+  --lab-highlight: #ec4899;
+  --lab-lecture: #0ea5e9;
+  --lab-edge: #b9a9c6;
+  --lab-node-radius: 20px;
+  --lab-node-shadow: 0 10px 30px rgb(89 64 120 / 11%);
+}
+
+.lab[data-theme="contrast"] {
+  --lab-canvas: #f4f5f7;
+  --lab-surface: #ffffff;
+  --lab-surface-muted: #eef0f3;
+  --lab-border: #111827;
+  --lab-node-text: #030712;
+  --lab-node-muted: #374151;
+  --lab-accent: #4338ca;
+  --lab-highlight: #b45309;
+  --lab-lecture: #0369a1;
+  --lab-edge: #111827;
+  --lab-node-radius: 6px;
+  --lab-node-shadow: 3px 3px 0 rgb(17 24 39 / 88%);
+}
+
+.lab[data-density="compact"] {
+  --lab-node-padding-y: 8px;
+  --lab-node-padding-x: 11px;
+}
+
+.preview {
+  background: #e9edf2;
+  background-image: radial-gradient(#cbd2dc 0.75px, transparent 0.75px);
+  background-size: 12px 12px;
+}
+
+.previewFrame {
+  transition:
+    max-width 180ms ease,
+    border-radius 180ms ease,
+    box-shadow 180ms ease;
+}
+
+.previewFrame[data-viewport="compact"] {
+  max-width: 880px;
+  border-radius: 18px;
+  box-shadow: 0 24px 70px rgb(15 23 42 / 20%);
+}
+
+.canvas {
+  background: var(--lab-canvas);
+}
+
+.canvas :global(.react-flow__renderer) {
+  background: var(--lab-canvas);
+}
+
+.canvas :global(.react-flow__node-workspaceLab) {
+  width: auto;
+  min-width: 148px;
+  max-width: 220px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--lab-node-radius);
+  background: transparent;
+  box-shadow: none;
+  color: var(--lab-node-text);
+}
+
+.canvas :global(.react-flow__node-workspaceLab.selected) .workspace-lab-node {
+  border-color: var(--lab-accent);
+  box-shadow:
+    0 0 0 3px color-mix(in srgb, var(--lab-accent) 18%, transparent),
+    var(--lab-node-shadow);
+}
+
+.canvas :global(.react-flow__edge-path) {
+  stroke: var(--lab-edge);
+  stroke-width: 1.5;
+}
+
+.canvas :global(.react-flow__arrowhead polyline) {
+  stroke: var(--lab-edge);
+  fill: var(--lab-edge);
+}
+
+.canvas :global(.workspace-lab-edge[data-state="active"]) {
+  stroke: var(--lab-accent);
+  stroke-width: 2.5;
+}
+
+.canvas :global(.workspace-lab-edge[data-state="traced"]) {
+  stroke: var(--lab-lecture);
+  stroke-width: 3;
+  stroke-dasharray: 9 7;
+  filter: drop-shadow(
+    0 0 3px color-mix(in srgb, var(--lab-lecture) 55%, transparent)
+  );
+  animation: lab-edge-trace 500ms linear infinite;
+}
+
+.canvas :global(.workspace-lab-node) {
+  position: relative;
+  width: 100%;
+  min-width: 148px;
+  border: 1px solid var(--lab-border);
+  border-radius: var(--lab-node-radius);
+  background: var(--lab-surface);
+  box-shadow: var(--lab-node-shadow);
+  color: var(--lab-node-text);
+  transition:
+    border-color 140ms ease,
+    box-shadow 140ms ease,
+    opacity 140ms ease,
+    transform 140ms ease;
+}
+
+.canvas :global(.workspace-lab-node:hover) {
+  border-color: color-mix(in srgb, var(--lab-accent) 55%, var(--lab-border));
+  transform: translateY(-1px);
+}
+
+.canvas :global(.workspace-lab-node[data-root="true"]) {
+  border-color: color-mix(in srgb, var(--lab-accent) 35%, var(--lab-border));
+}
+
+.canvas :global(.workspace-lab-node[data-state="highlighted"]) {
+  box-shadow:
+    0 0 0 3px color-mix(in srgb, var(--lab-highlight) 55%, transparent),
+    var(--lab-node-shadow);
+}
+
+.canvas :global(.workspace-lab-node[data-state="lecture"]) {
+  box-shadow:
+    0 0 0 3px var(--lab-lecture),
+    0 0 24px color-mix(in srgb, var(--lab-lecture) 38%, transparent);
+}
+
+.canvas :global(.workspace-lab-node[data-state="loading"]) {
+  opacity: 0.68;
+}
+
+.canvas :global(.workspace-lab-node[data-state="error"]) {
+  border-color: var(--lab-danger);
+  box-shadow:
+    0 0 0 3px color-mix(in srgb, var(--lab-danger) 12%, transparent),
+    var(--lab-node-shadow);
+}
+
+.canvas
+  :global(
+    .workspace-lab-node[data-state="collapsed"] .workspace-lab-node__collapse
+  ) {
+  transform: rotate(-90deg);
+}
+
+.canvas :global(.workspace-lab-node__content) {
+  display: flex;
+  min-height: 48px;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: var(--lab-node-padding-y) var(--lab-node-padding-x);
+  text-align: center;
+}
+
+.canvas :global(.workspace-lab-node__label) {
+  display: block;
+  font-size: 13px;
+  font-weight: 650;
+  line-height: 1.35;
+}
+
+.canvas :global(.workspace-lab-node__description) {
+  display: block;
+  margin-top: 2px;
+  font-size: 9px;
+  line-height: 1.3;
+  color: var(--lab-node-muted);
+}
+
+.canvas :global(.workspace-lab-node__editor) {
+  display: flex;
+  width: 100%;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.canvas :global(.workspace-lab-node__editor input) {
+  width: 100%;
+  border: 1px solid var(--lab-accent);
+  border-radius: calc(var(--lab-node-radius) * 0.55);
+  background: var(--lab-surface-muted);
+  padding: 5px 7px;
+  color: var(--lab-node-text);
+  font-size: 12px;
+  outline: none;
+}
+
+.canvas :global(.workspace-lab-node__editor input[aria-invalid="true"]) {
+  border-color: var(--lab-danger);
+}
+
+.canvas :global(.workspace-lab-node__error) {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  color: var(--lab-danger);
+  font-size: 9px;
+  text-align: left;
+}
+
+.canvas :global(.workspace-lab-node__error svg) {
+  width: 10px;
+  height: 10px;
+  flex: none;
+}
+
+.canvas :global(.workspace-lab-node__spinner) {
+  width: 14px;
+  height: 14px;
+  flex: none;
+  color: var(--lab-accent);
+  animation: lab-spin 800ms linear infinite;
+}
+
+.canvas :global(.workspace-lab-node__collapse) {
+  position: absolute;
+  right: -8px;
+  bottom: -8px;
+  display: grid;
+  width: 20px;
+  height: 20px;
+  place-items: center;
+  border: 1px solid var(--lab-border);
+  border-radius: 999px;
+  background: var(--lab-surface);
+  color: var(--lab-node-muted);
+  transition: transform 140ms ease;
+}
+
+.canvas :global(.workspace-lab-node__collapse svg) {
+  width: 11px;
+  height: 11px;
+}
+
+.canvas :global(.workspace-lab-handle) {
+  width: 7px;
+  height: 7px;
+  border: 1px solid var(--lab-edge);
+  background: var(--lab-surface);
+}
+
+.canvas :global(.react-flow__background pattern circle) {
+  fill: color-mix(in srgb, var(--lab-edge) 32%, transparent);
+}
+
+@keyframes lab-edge-trace {
+  to {
+    stroke-dashoffset: -16;
+  }
+}
+
+@keyframes lab-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .canvas :global(.workspace-lab-edge[data-state="traced"]),
+  .canvas :global(.workspace-lab-node__spinner) {
+    animation: none;
+  }
+}
+
+@media (max-width: 900px) {
+  .lab {
+    flex-direction: column;
+  }
+
+  .preview {
+    min-height: 0;
+  }
+
+  .previewFrame {
+    min-height: 420px !important;
+  }
+
+  .lab :global(.workspace-lab-inspector) {
+    width: 100%;
+    height: 280px;
+    border-top: 1px solid #e2e8f0;
+    border-left: 0;
+  }
+}
