@@ -10,6 +10,7 @@ import type {
   LabLayoutSpacing,
   LabNodeShape,
   LabNodeState,
+  LabPanelStyle,
   LabTheme,
   LabViewport,
   WorkspaceLabScenario,
@@ -39,6 +40,16 @@ import {
   getWorkspaceLabNodeShape,
   workspaceLabNodeShapes,
 } from "../model/node-shapes";
+import {
+  getWorkspaceLabPanelBorder,
+  getWorkspaceLabPanelPlacement,
+  getWorkspaceLabPanelSurface,
+  workspaceLabPanelBorders,
+  workspaceLabPanelDensities,
+  workspaceLabPanelPlacements,
+  workspaceLabPanelSurfaces,
+  workspaceLabPanelWidths,
+} from "../model/panels";
 import {
   getWorkspaceLabTheme,
   getWorkspaceLabThemePalette,
@@ -74,6 +85,8 @@ type WorkspaceLabInspectorProps = {
   showRightPanel: boolean;
   showToolbar: boolean;
   showPlayer: boolean;
+  leftPanelStyle: LabPanelStyle;
+  memoPanelStyle: LabPanelStyle;
   onScenarioChange: (value: WorkspaceLabScenario["id"]) => void;
   onNodeStateChange: (value: LabNodeState) => void;
   onEdgeStateChange: (value: LabEdgeState) => void;
@@ -91,6 +104,8 @@ type WorkspaceLabInspectorProps = {
   onShowRightPanelChange: (value: boolean) => void;
   onShowToolbarChange: (value: boolean) => void;
   onShowPlayerChange: (value: boolean) => void;
+  onLeftPanelStyleChange: (value: LabPanelStyle) => void;
+  onMemoPanelStyleChange: (value: LabPanelStyle) => void;
 };
 
 const nodeStates: Array<{ value: LabNodeState; label: string }> = [
@@ -161,6 +176,106 @@ function Toggle({
   );
 }
 
+type PanelStyleSectionProps = {
+  title: string; // Inspector 구획 제목
+  visibleLabel: string; // 패널 표시 토글 이름
+  isVisible: boolean; // 미리보기에 패널을 그리는지 여부
+  panelStyle: LabPanelStyle; // 패널의 현재 디자인 선택값
+  onVisibleChange: (value: boolean) => void;
+  onPanelStyleChange: (value: LabPanelStyle) => void;
+};
+
+function PanelStyleSection({
+  title,
+  visibleLabel,
+  isVisible,
+  panelStyle,
+  onVisibleChange,
+  onPanelStyleChange,
+}: PanelStyleSectionProps) {
+  const currentPlacement = getWorkspaceLabPanelPlacement(panelStyle.placement);
+  const currentSurface = getWorkspaceLabPanelSurface(panelStyle.surface);
+  const currentBorder = getWorkspaceLabPanelBorder(panelStyle.border);
+
+  return (
+    <section className="space-y-3 border-t border-slate-100 pt-5">
+      <h3 className="text-xs font-semibold tracking-wide text-slate-400 uppercase">
+        {title}
+      </h3>
+      <Toggle
+        label={visibleLabel}
+        checked={isVisible}
+        onChange={onVisibleChange}
+      />
+      {isVisible ? (
+        <>
+          <SelectField
+            label="배치"
+            value={panelStyle.placement}
+            options={workspaceLabPanelPlacements.map((item) => ({
+              value: item.id,
+              label: item.name,
+            }))}
+            onChange={(placement) =>
+              onPanelStyleChange({ ...panelStyle, placement })
+            }
+          />
+          <p className="text-[11px] leading-4 text-slate-500">
+            {currentPlacement.description}
+          </p>
+          <div className="grid grid-cols-2 gap-3">
+            <SelectField
+              label="너비"
+              value={panelStyle.width}
+              options={workspaceLabPanelWidths.map((item) => ({
+                value: item.id,
+                label: item.name,
+              }))}
+              onChange={(width) => onPanelStyleChange({ ...panelStyle, width })}
+            />
+            <SelectField
+              label="밀도"
+              value={panelStyle.density}
+              options={workspaceLabPanelDensities.map((item) => ({
+                value: item.id,
+                label: item.name,
+              }))}
+              onChange={(density) =>
+                onPanelStyleChange({ ...panelStyle, density })
+              }
+            />
+            <SelectField
+              label="표면"
+              value={panelStyle.surface}
+              options={workspaceLabPanelSurfaces.map((item) => ({
+                value: item.id,
+                label: item.name,
+              }))}
+              onChange={(surface) =>
+                onPanelStyleChange({ ...panelStyle, surface })
+              }
+            />
+            <SelectField
+              label="경계"
+              value={panelStyle.border}
+              options={workspaceLabPanelBorders.map((item) => ({
+                value: item.id,
+                label: item.name,
+              }))}
+              onChange={(border) =>
+                onPanelStyleChange({ ...panelStyle, border })
+              }
+            />
+          </div>
+          <p className="text-[11px] leading-4 text-slate-500">
+            {currentSurface.description} {currentBorder.description}
+          </p>
+        </>
+      ) : null}
+    </section>
+  );
+}
+
 export function WorkspaceLabInspector({
   scenarios,
   scenarioId,
@@ -180,6 +295,8 @@ export function WorkspaceLabInspector({
   showRightPanel,
   showToolbar,
   showPlayer,
+  leftPanelStyle,
+  memoPanelStyle,
   onScenarioChange,
   onNodeStateChange,
   onEdgeStateChange,
@@ -197,6 +314,8 @@ export function WorkspaceLabInspector({
   onShowRightPanelChange,
   onShowToolbarChange,
   onShowPlayerChange,
+  onLeftPanelStyleChange,
+  onMemoPanelStyleChange,
 }: WorkspaceLabInspectorProps) {
   const [showCustomEdgeStyle, setShowCustomEdgeStyle] = useState(false);
   const currentScenario = scenarios.find((item) => item.id === scenarioId);
@@ -540,16 +659,6 @@ export function WorkspaceLabInspector({
             Regions
           </h3>
           <Toggle
-            label="왼쪽 패널"
-            checked={showLeftPanel}
-            onChange={onShowLeftPanelChange}
-          />
-          <Toggle
-            label="메모 패널"
-            checked={showRightPanel}
-            onChange={onShowRightPanelChange}
-          />
-          <Toggle
             label="플로팅 툴바"
             checked={showToolbar}
             onChange={onShowToolbarChange}
@@ -560,6 +669,24 @@ export function WorkspaceLabInspector({
             onChange={onShowPlayerChange}
           />
         </section>
+
+        <PanelStyleSection
+          title="Left panel"
+          visibleLabel="왼쪽 패널 표시"
+          isVisible={showLeftPanel}
+          panelStyle={leftPanelStyle}
+          onVisibleChange={onShowLeftPanelChange}
+          onPanelStyleChange={onLeftPanelStyleChange}
+        />
+
+        <PanelStyleSection
+          title="Memo panel"
+          visibleLabel="메모 패널 표시"
+          isVisible={showRightPanel}
+          panelStyle={memoPanelStyle}
+          onVisibleChange={onShowRightPanelChange}
+          onPanelStyleChange={onMemoPanelStyleChange}
+        />
       </div>
     </aside>
   );

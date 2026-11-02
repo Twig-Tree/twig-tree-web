@@ -35,6 +35,7 @@ Inspector는 이 조합을 바꾸는 제어판이고, Preview는 선택된 조�
 - 둥근 사각형, `Comfortable` 밀도
 - 레이아웃 기본 형태, 실선, Regular 두께, Theme edge 색상, 100% 투명도, 효과 없음
 - 도트 연결 포인트, 플로팅 원형 접기 버튼
+- 두 패널 모두 고정 배치, 기본 너비, 패널 표면, 구분선, Comfortable 밀도
 - 도트 그리드 캔버스
 
 ## 설계 원칙
@@ -94,7 +95,8 @@ minimum gap = offset × 2 + center clearance
 | Collapse control | 하위 트리 접기 버튼 표현                | 플로팅 원형, 하단 노치, 인라인 미니멀     |
 | Canvas           | 캔버스 패턴과 질감                      | 도트, 라인, 모눈, 크로스, 페이퍼, 무지 등 |
 | State            | 노드와 연결선의 상태 표현               | selected, editing, traced 등              |
-| Regions          | 주변 Workspace UI 노출                  | 좌우 패널, 툴바, 플레이어, viewport       |
+| Panels           | 왼쪽·메모 패널 각각의 표시와 디자인     | 배치, 너비, 표면, 경계, 밀도              |
+| Regions          | 주변 Workspace UI 노출                  | 툴바, 플레이어, viewport                  |
 
 ## 제품 반영 기준
 

@@ -39,6 +39,11 @@ import {
   getWorkspaceLabThemeStyle,
 } from "../model/themes";
 import {
+  getWorkspaceLabPanelStyle,
+  workspaceLabDefaultPanelStyle,
+  type WorkspaceLabPanelKind,
+} from "../model/panels";
+import {
   getWorkspaceLabCanvasStyle,
   getWorkspaceLabNodeDensity,
   getWorkspaceLabNodeDensityStyle,
@@ -55,6 +60,7 @@ import type {
   LabLayoutSpacing,
   LabNodeShape,
   LabNodeState,
+  LabPanelStyle,
   LabTheme,
   LabViewport,
   WorkspaceLabEdge,
@@ -142,31 +148,46 @@ function useWorkspaceLabNodeMeasurements() {
   return { nodeSizes, onNodesChange };
 }
 
-function PreviewLeftPanel() {
+function getPreviewPanelAttributes(
+  kind: WorkspaceLabPanelKind,
+  panelStyle: LabPanelStyle,
+) {
+  return {
+    "data-placement": panelStyle.placement,
+    "data-surface": panelStyle.surface,
+    "data-border": panelStyle.border,
+    style: getWorkspaceLabPanelStyle(kind, panelStyle),
+  };
+}
+
+function PreviewLeftPanel({ panelStyle }: { panelStyle: LabPanelStyle }) {
   return (
-    <aside className="workspace-preview-sidebar flex w-52 shrink-0 flex-col border-r border-slate-200 bg-white">
-      <div className="border-b border-slate-100 p-3">
-        <label className="workspace-preview-search flex h-9 items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 px-3 text-xs text-slate-400">
+    <aside
+      className="workspace-preview-panel workspace-preview-sidebar flex shrink-0 flex-col border-r border-slate-200 bg-white"
+      {...getPreviewPanelAttributes("sidebar", panelStyle)}
+    >
+      <div className="workspace-preview-panel-section border-b border-slate-100">
+        <label className="workspace-preview-search flex h-9 items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 px-3 text-slate-400">
           <Search className="size-3.5" aria-hidden="true" />
           <span>노드 검색</span>
         </label>
       </div>
-      <div className="min-h-0 flex-1 p-3">
+      <div className="workspace-preview-panel-section min-h-0 flex-1">
         <p className="text-[10px] font-semibold tracking-wider text-slate-400 uppercase">
           Outline
         </p>
-        <ul className="mt-3 space-y-1 text-xs text-slate-600">
+        <ul className="mt-3 space-y-1 text-slate-600">
           {["사용자 리서치", "정보 구조", "비주얼 시스템"].map((label) => (
             <li
               key={label}
-              className="workspace-preview-outline-item flex items-center gap-1.5 rounded-md px-2 py-1.5 hover:bg-slate-50"
+              className="workspace-preview-outline-item flex items-center gap-1.5 rounded-md px-2 hover:bg-slate-50"
             >
               <ChevronRight className="size-3 text-slate-400" /> {label}
             </li>
           ))}
         </ul>
       </div>
-      <div className="border-t border-slate-100 p-3">
+      <div className="workspace-preview-panel-section border-t border-slate-100">
         <p className="text-[10px] font-semibold tracking-wider text-slate-400 uppercase">
           Tags
         </p>
@@ -185,10 +206,13 @@ function PreviewLeftPanel() {
   );
 }
 
-function PreviewMemoPanel() {
+function PreviewMemoPanel({ panelStyle }: { panelStyle: LabPanelStyle }) {
   return (
-    <aside className="workspace-preview-memo flex w-64 shrink-0 flex-col border-l border-slate-200 bg-white">
-      <header className="flex h-14 items-center justify-between border-b border-slate-100 px-4">
+    <aside
+      className="workspace-preview-panel workspace-preview-memo flex shrink-0 flex-col border-l border-slate-200 bg-white"
+      {...getPreviewPanelAttributes("memo", panelStyle)}
+    >
+      <header className="workspace-preview-panel-section flex items-center justify-between border-b border-slate-100">
         <div>
           <p className="text-[9px] font-semibold tracking-wider text-indigo-500 uppercase">
             Memo
@@ -202,13 +226,13 @@ function PreviewMemoPanel() {
           <span className="sr-only">메모 패널 닫기</span>
         </button>
       </header>
-      <div className="flex-1 p-4">
-        <div className="h-full rounded-lg border border-slate-200 bg-slate-50 p-3 text-xs leading-5 text-slate-500">
+      <div className="workspace-preview-panel-section flex-1">
+        <div className="workspace-preview-memo-body h-full rounded-lg border border-slate-200 bg-slate-50 p-3 leading-5 text-slate-500">
           선택한 노드의 메모와 태그가 표시되는 영역입니다. 패널의 폭과 정보
           밀도를 함께 검토할 수 있습니다.
         </div>
       </div>
-      <footer className="flex justify-end gap-2 border-t border-slate-100 p-3">
+      <footer className="workspace-preview-panel-section flex justify-end gap-2 border-t border-slate-100">
         <button className="rounded-md border border-slate-200 px-3 py-1.5 text-xs text-slate-600">
           되돌리기
         </button>
@@ -284,6 +308,8 @@ function WorkspacePreview({
   showRightPanel,
   showToolbar,
   showPlayer,
+  leftPanelStyle,
+  memoPanelStyle,
 }: {
   scenario: WorkspaceLabScenario;
   nodeState: LabNodeState;
@@ -301,6 +327,8 @@ function WorkspacePreview({
   showRightPanel: boolean;
   showToolbar: boolean;
   showPlayer: boolean;
+  leftPanelStyle: LabPanelStyle;
+  memoPanelStyle: LabPanelStyle;
 }) {
   const activeLayoutSpacing = getWorkspaceLabLayoutSpacing(layoutSpacing);
   const activeNodeDensity = getWorkspaceLabNodeDensity(density);
@@ -419,8 +447,10 @@ function WorkspacePreview({
             </div>
           </header>
 
-          <div className="flex min-h-0 flex-1">
-            {showLeftPanel ? <PreviewLeftPanel /> : null}
+          <div className="relative flex min-h-0 flex-1">
+            {showLeftPanel ? (
+              <PreviewLeftPanel panelStyle={leftPanelStyle} />
+            ) : null}
 
             <div
               className={`${styles.canvas} relative min-h-0 min-w-0 flex-1`}
@@ -478,7 +508,9 @@ function WorkspacePreview({
               </ReactFlow>
             </div>
 
-            {showRightPanel ? <PreviewMemoPanel /> : null}
+            {showRightPanel ? (
+              <PreviewMemoPanel panelStyle={memoPanelStyle} />
+            ) : null}
           </div>
         </div>
       </section>
@@ -510,6 +542,12 @@ export function WorkspaceLab() {
   const [showRightPanel, setShowRightPanel] = useState(false);
   const [showToolbar, setShowToolbar] = useState(true);
   const [showPlayer, setShowPlayer] = useState(false);
+  const [leftPanelStyle, setLeftPanelStyle] = useState<LabPanelStyle>({
+    ...workspaceLabDefaultPanelStyle,
+  });
+  const [memoPanelStyle, setMemoPanelStyle] = useState<LabPanelStyle>({
+    ...workspaceLabDefaultPanelStyle,
+  });
 
   const scenario =
     workspaceLabScenarios.find((item) => item.id === scenarioId) ??
@@ -544,6 +582,8 @@ export function WorkspaceLab() {
         showRightPanel={showRightPanel}
         showToolbar={showToolbar}
         showPlayer={showPlayer}
+        leftPanelStyle={leftPanelStyle}
+        memoPanelStyle={memoPanelStyle}
       />
 
       <WorkspaceLabInspector
@@ -565,6 +605,8 @@ export function WorkspaceLab() {
         showRightPanel={showRightPanel}
         showToolbar={showToolbar}
         showPlayer={showPlayer}
+        leftPanelStyle={leftPanelStyle}
+        memoPanelStyle={memoPanelStyle}
         onScenarioChange={setScenarioId}
         onNodeStateChange={setNodeState}
         onEdgeStateChange={setEdgeState}
@@ -582,6 +624,8 @@ export function WorkspaceLab() {
         onShowRightPanelChange={setShowRightPanel}
         onShowToolbarChange={setShowToolbar}
         onShowPlayerChange={setShowPlayer}
+        onLeftPanelStyleChange={setLeftPanelStyle}
+        onMemoPanelStyleChange={setMemoPanelStyle}
       />
     </main>
   );

@@ -31,6 +31,14 @@ export type {
   WorkspaceLabConnectionPointStyleId as LabConnectionPointStyle,
   WorkspaceLabNodeDensityId as LabDensity,
 } from "./visual-slots";
+export type {
+  WorkspaceLabPanelBorderId as LabPanelBorder,
+  WorkspaceLabPanelDensityId as LabPanelDensity,
+  WorkspaceLabPanelPlacementId as LabPanelPlacement,
+  WorkspaceLabPanelStyleSelection as LabPanelStyle,
+  WorkspaceLabPanelSurfaceId as LabPanelSurface,
+  WorkspaceLabPanelWidthId as LabPanelWidth,
+} from "./panels";
 export type LabViewport = "desktop" | "compact";
 
 export type WorkspaceLabNodeData = {

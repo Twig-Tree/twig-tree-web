@@ -14,6 +14,7 @@ workspace-lab/
 │   ├── themes.ts          # 테마 token schema와 registry
 │   ├── node-shapes.ts     # 노드 외곽 형태 registry
 │   ├── visual-slots.ts    # edge, port, collapse, canvas, density registry
+│   ├── panels.ts          # 왼쪽·메모 패널의 배치, 너비, 표면, 경계, 밀도 registry
 │   └── types.ts           # Lab에서 공유하는 타입
 ├── ui/
 │   ├── WorkspaceLab.tsx           # 상태 조합과 Preview
@@ -145,6 +146,18 @@ CSS 질감은 viewport와 함께 움직이지 않는다. 이동·확대 기준�
 - `.react-flow__renderer`: 투명 유지
 
 renderer에 불투명 배경을 주면 root의 페이퍼 질감이 가려지므로 추가하지 않는다.
+
+### 패널 슬롯 추가
+
+왼쪽 패널과 메모 패널은 `panels.ts`의 같은 registry를 쓰되 선택값은 각자 가진다. 한 패널을 바꿔도 다른 패널은 바뀌지 않는다.
+
+- `placement`: 고정은 캔버스 옆에서 폭을 나누고, 플로팅은 캔버스 위에 절대 위치로 뜬다.
+- `width`: 단계 이름은 공유하고 실제 px는 `sidebar`와 `memo`에 따로 둔다. 두 패널은 담는 정보가 달라 같은 단계에서도 너비가 다르다.
+- `surface`: 테마 token(`--lab-panel-surface`, `--lab-canvas`, `--lab-surface-muted`)에서만 색을 가져온다.
+- `border`: 구분선, 그림자, 없음. 표면색을 건드리지 않는다.
+- `density`: 구획 여백, 목록 항목 여백, 글자 크기를 `getWorkspaceLabPanelStyle`이 CSS 변수로 만든다.
+
+너비와 밀도는 inline style로, 배치·표면·경계는 패널 root의 `data-placement`, `data-surface`, `data-border`로 전달한다. 슬롯마다 다른 CSS 속성을 맡겨 어떤 조합에서도 앞선 선택을 지우지 않게 한다. 패널 안 여백은 Tailwind 여백 대신 `.workspace-preview-panel-section`이 `--lab-panel-padding`을 소비한다.
 
 ### 시나리오 추가
 

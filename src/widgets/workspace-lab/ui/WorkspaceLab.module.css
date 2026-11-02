@@ -50,6 +50,74 @@
   background: var(--lab-panel-surface);
 }
 
+/*
+패널 슬롯은 위 기본 표면 위에 data 속성으로 덧씌운다.
+배치·표면·경계는 서로 다른 속성을 건드려 어떤 조합에서도 앞선 선택을 지우지 않는다.
+*/
+.lab :global(.workspace-preview-panel) {
+  font-size: var(--lab-panel-font-size);
+  transition:
+    width 180ms ease,
+    background-color 180ms ease,
+    box-shadow 180ms ease;
+}
+
+.lab :global(.workspace-preview-panel-section) {
+  padding: var(--lab-panel-padding);
+}
+
+.lab :global(.workspace-preview-panel .workspace-preview-outline-item) {
+  padding-block: var(--lab-panel-item-padding-y);
+}
+
+.lab :global(.workspace-preview-panel[data-placement="floating"]) {
+  position: absolute;
+  z-index: 10;
+  inset-block: 12px;
+  max-height: calc(100% - 24px);
+  overflow: hidden;
+  border-width: 1px;
+  border-radius: 14px;
+}
+
+.lab :global(.workspace-preview-sidebar[data-placement="floating"]) {
+  left: 12px;
+}
+
+.lab :global(.workspace-preview-memo[data-placement="floating"]) {
+  right: 12px;
+}
+
+.lab :global(.workspace-preview-panel[data-surface="canvas"]) {
+  background: var(--lab-canvas);
+}
+
+.lab :global(.workspace-preview-panel[data-surface="muted"]) {
+  background: var(--lab-surface-muted);
+}
+
+.lab :global(.workspace-preview-panel[data-surface="glass"]) {
+  background: color-mix(in srgb, var(--lab-panel-surface) 68%, transparent);
+  backdrop-filter: blur(14px) saturate(1.2);
+}
+
+.lab :global(.workspace-preview-panel[data-border="shadow"]) {
+  border-color: transparent;
+  box-shadow: 0 12px 32px rgb(15 23 42 / 10%);
+}
+
+.lab :global(.workspace-preview-panel[data-border="none"]) {
+  border-color: transparent;
+}
+
+.lab
+  :global(
+    .workspace-preview-panel[data-border="none"]
+      .workspace-preview-panel-section
+  ) {
+  border-color: transparent;
+}
+
 .lab :global(.workspace-preview-search) {
   border-color: var(--lab-panel-border);
   background: var(--lab-search-surface);
