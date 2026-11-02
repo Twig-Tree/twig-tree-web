@@ -16,15 +16,23 @@ export type WorkspaceLabLayoutNodeSize = {
   height: number;
 };
 
+export type WorkspaceLabLayoutNodeSizes = ReadonlyMap<
+  string,
+  WorkspaceLabLayoutNodeSize
+>;
+
+export interface WorkspaceLabLayoutInput {
+  scenario: WorkspaceLabScenario;
+  spacing: WorkspaceLabLayoutSpacingDefinition;
+  fallbackNodeSize: WorkspaceLabLayoutNodeSize;
+  nodeSizes?: WorkspaceLabLayoutNodeSizes;
+}
+
 export interface WorkspaceLabLayoutDefinition {
   id: string;
   name: string;
   description: string;
-  calculate: (
-    scenario: WorkspaceLabScenario,
-    spacing: WorkspaceLabLayoutSpacingDefinition,
-    nodeSize: WorkspaceLabLayoutNodeSize,
-  ) => LayoutResult;
+  calculate: (input: WorkspaceLabLayoutInput) => LayoutResult;
 }
 
 export interface WorkspaceLabLayoutSpacingDefinition {
@@ -42,6 +50,8 @@ type TreeMetrics = {
   slotById: Map<string, number>;
   leafCount: number;
 };
+
+type NodeSizeAxis = keyof WorkspaceLabLayoutNodeSize;
 
 export const workspaceLabLayoutSpacings = [
   {
@@ -105,6 +115,25 @@ const getChildrenById = (
   for (const edge of edges) childrenById.get(edge.source)?.push(edge.target);
 
   return childrenById;
+};
+
+const getNodeSize = (
+  id: string,
+  nodeSizes: WorkspaceLabLayoutNodeSizes | undefined,
+  fallbackNodeSize: WorkspaceLabLayoutNodeSize,
+): WorkspaceLabLayoutNodeSize => {
+  const measured = nodeSizes?.get(id);
+
+  return {
+    width:
+      measured && Number.isFinite(measured.width) && measured.width > 0
+        ? measured.width
+        : fallbackNodeSize.width,
+    height:
+      measured && Number.isFinite(measured.height) && measured.height > 0
+        ? measured.height
+        : fallbackNodeSize.height,
+  };
 };
 
 /*
@@ -175,6 +204,133 @@ const getTreeMetrics = (
   };
 };
 
+const getDepthOffsets = (
+  nodes: WorkspaceLabNode[],
+  depthById: Map<string, number>,
+  nodeSizes: WorkspaceLabLayoutNodeSizes | undefined,
+  fallbackNodeSize: WorkspaceLabLayoutNodeSize,
+  primaryAxis: NodeSizeAxis,
+  levelGap: number,
+) => {
+  const maximumSizeByDepth = new Map<number, number>();
+  let maximumDepth = 0;
+
+  for (const node of nodes) {
+    const depth = depthById.get(node.id) ?? 0;
+    const size = getNodeSize(node.id, nodeSizes, fallbackNodeSize)[primaryAxis];
+
+    maximumDepth = Math.max(maximumDepth, depth);
+    maximumSizeByDepth.set(
+      depth,
+      Math.max(maximumSizeByDepth.get(depth) ?? 0, size),
+    );
+  }
+
+  const offsets = new Map<number, number>([[0, 0]]);
+
+  for (let depth = 1; depth <= maximumDepth; depth += 1) {
+    const previousDepth = depth - 1;
+    const previousOffset = offsets.get(previousDepth) ?? 0;
+    const previousSize =
+      maximumSizeByDepth.get(previousDepth) ?? fallbackNodeSize[primaryAxis];
+
+    offsets.set(depth, previousOffset + previousSize + levelGap);
+  }
+
+  return offsets;
+};
+
+/*
+각 노드의 실제 크기로 subtree가 차지할 보조축 길이를 계산한다.
+부모는 subtree 중앙에, 자식 subtree는 서로 겹치지 않게 연속 배치한다.
+*/
+const getTreeSecondaryCenters = (
+  nodes: WorkspaceLabNode[],
+  edges: WorkspaceLabEdge[],
+  nodeSizes: WorkspaceLabLayoutNodeSizes | undefined,
+  fallbackNodeSize: WorkspaceLabLayoutNodeSize,
+  secondaryAxis: NodeSizeAxis,
+  siblingGap: number,
+  rootGapSlots: number,
+) => {
+  const childrenById = getChildrenById(nodes, edges);
+  const targetIds = new Set(edges.map((edge) => edge.target));
+  const roots = nodes.filter((node) => !targetIds.has(node.id));
+  const nodeById = new Map(nodes.map((node) => [node.id, node]));
+  const spanById = new Map<string, number>();
+
+  const getSpan = (id: string, lineage: Set<string>): number => {
+    const cached = spanById.get(id);
+    if (cached !== undefined) return cached;
+
+    const ownSize = getNodeSize(id, nodeSizes, fallbackNodeSize)[secondaryAxis];
+    if (lineage.has(id)) return ownSize;
+
+    const nextLineage = new Set(lineage).add(id);
+    const children = (childrenById.get(id) ?? []).filter(
+      (childId) => nodeById.has(childId) && !nextLineage.has(childId),
+    );
+    const childrenSpan = children.reduce(
+      (total, childId, index) =>
+        total + getSpan(childId, nextLineage) + (index > 0 ? siblingGap : 0),
+      0,
+    );
+    const span = Math.max(ownSize, childrenSpan);
+
+    spanById.set(id, span);
+    return span;
+  };
+
+  const centers = new Map<string, number>();
+  const placed = new Set<string>();
+
+  const place = (id: string, start: number, lineage: Set<string>) => {
+    if (placed.has(id)) return;
+
+    placed.add(id);
+    const span = getSpan(id, lineage);
+    centers.set(id, start + span / 2);
+
+    const nextLineage = new Set(lineage).add(id);
+    const children = (childrenById.get(id) ?? []).filter(
+      (childId) =>
+        nodeById.has(childId) &&
+        !nextLineage.has(childId) &&
+        !placed.has(childId),
+    );
+    const childrenSpan = children.reduce(
+      (total, childId, index) =>
+        total + getSpan(childId, nextLineage) + (index > 0 ? siblingGap : 0),
+      0,
+    );
+    let childStart = start + (span - childrenSpan) / 2;
+
+    for (const childId of children) {
+      place(childId, childStart, nextLineage);
+      childStart += getSpan(childId, nextLineage) + siblingGap;
+    }
+  };
+
+  const startNodes = roots.length > 0 ? roots : nodes.slice(0, 1);
+  const rootGap =
+    siblingGap + fallbackNodeSize[secondaryAxis] * Math.max(rootGapSlots, 0);
+  let nextStart = 0;
+
+  for (const root of startNodes) {
+    if (placed.has(root.id)) continue;
+    place(root.id, nextStart, new Set());
+    nextStart += getSpan(root.id, new Set()) + rootGap;
+  }
+
+  for (const node of nodes) {
+    if (placed.has(node.id)) continue;
+    place(node.id, nextStart, new Set());
+    nextStart += getSpan(node.id, new Set()) + rootGap;
+  }
+
+  return centers;
+};
+
 const withDirectionalEdges = (
   edges: WorkspaceLabEdge[],
   sourcePosition: Position,
@@ -188,11 +344,12 @@ const withDirectionalEdges = (
     data: { ...edge.data, path },
   }));
 
-const calculateVerticalLayout = (
-  scenario: WorkspaceLabScenario,
-  spacing: WorkspaceLabLayoutSpacingDefinition,
-  nodeSize: WorkspaceLabLayoutNodeSize,
-): LayoutResult => {
+const calculateVerticalLayout = ({
+  scenario,
+  spacing,
+  fallbackNodeSize,
+  nodeSizes,
+}: WorkspaceLabLayoutInput): LayoutResult => {
   const metrics = getTreeMetrics(
     scenario.nodes,
     scenario.edges,
@@ -202,20 +359,42 @@ const calculateVerticalLayout = (
     spacing.vertical.levelGap,
     workspaceLabSmoothStepMinimumGap,
   );
+  const depthOffsets = getDepthOffsets(
+    scenario.nodes,
+    metrics.depthById,
+    nodeSizes,
+    fallbackNodeSize,
+    "height",
+    levelGap,
+  );
+  const secondaryCenters = getTreeSecondaryCenters(
+    scenario.nodes,
+    scenario.edges,
+    nodeSizes,
+    fallbackNodeSize,
+    "width",
+    spacing.vertical.siblingGap,
+    spacing.rootGapSlots,
+  );
 
   return {
-    nodes: scenario.nodes.map((node) => ({
-      ...node,
-      position: {
-        x:
-          (metrics.slotById.get(node.id) ?? 0) *
-          (nodeSize.width + spacing.vertical.siblingGap),
-        y: (metrics.depthById.get(node.id) ?? 0) * (nodeSize.height + levelGap),
-      },
-      sourcePosition: Position.Bottom,
-      targetPosition: Position.Top,
-      data: { ...node.data, layoutMode: "vertical" },
-    })),
+    nodes: scenario.nodes.map((node) => {
+      const nodeSize = getNodeSize(node.id, nodeSizes, fallbackNodeSize);
+      const depth = metrics.depthById.get(node.id) ?? 0;
+
+      return {
+        ...node,
+        position: {
+          x:
+            (secondaryCenters.get(node.id) ?? nodeSize.width / 2) -
+            nodeSize.width / 2,
+          y: depthOffsets.get(depth) ?? 0,
+        },
+        sourcePosition: Position.Bottom,
+        targetPosition: Position.Top,
+        data: { ...node.data, layoutMode: "vertical" as const },
+      };
+    }),
     edges: withDirectionalEdges(
       scenario.edges,
       Position.Bottom,
@@ -225,11 +404,12 @@ const calculateVerticalLayout = (
   };
 };
 
-const calculateHorizontalLayout = (
-  scenario: WorkspaceLabScenario,
-  spacing: WorkspaceLabLayoutSpacingDefinition,
-  nodeSize: WorkspaceLabLayoutNodeSize,
-): LayoutResult => {
+const calculateHorizontalLayout = ({
+  scenario,
+  spacing,
+  fallbackNodeSize,
+  nodeSizes,
+}: WorkspaceLabLayoutInput): LayoutResult => {
   const metrics = getTreeMetrics(
     scenario.nodes,
     scenario.edges,
@@ -239,20 +419,42 @@ const calculateHorizontalLayout = (
     spacing.horizontal.levelGap,
     workspaceLabSmoothStepMinimumGap,
   );
+  const depthOffsets = getDepthOffsets(
+    scenario.nodes,
+    metrics.depthById,
+    nodeSizes,
+    fallbackNodeSize,
+    "width",
+    levelGap,
+  );
+  const secondaryCenters = getTreeSecondaryCenters(
+    scenario.nodes,
+    scenario.edges,
+    nodeSizes,
+    fallbackNodeSize,
+    "height",
+    spacing.horizontal.siblingGap,
+    spacing.rootGapSlots,
+  );
 
   return {
-    nodes: scenario.nodes.map((node) => ({
-      ...node,
-      position: {
-        x: (metrics.depthById.get(node.id) ?? 0) * (nodeSize.width + levelGap),
-        y:
-          (metrics.slotById.get(node.id) ?? 0) *
-          (nodeSize.height + spacing.horizontal.siblingGap),
-      },
-      sourcePosition: Position.Right,
-      targetPosition: Position.Left,
-      data: { ...node.data, layoutMode: "horizontal" },
-    })),
+    nodes: scenario.nodes.map((node) => {
+      const nodeSize = getNodeSize(node.id, nodeSizes, fallbackNodeSize);
+      const depth = metrics.depthById.get(node.id) ?? 0;
+
+      return {
+        ...node,
+        position: {
+          x: depthOffsets.get(depth) ?? 0,
+          y:
+            (secondaryCenters.get(node.id) ?? nodeSize.height / 2) -
+            nodeSize.height / 2,
+        },
+        sourcePosition: Position.Right,
+        targetPosition: Position.Left,
+        data: { ...node.data, layoutMode: "horizontal" as const },
+      };
+    }),
     edges: withDirectionalEdges(
       scenario.edges,
       Position.Right,
@@ -270,25 +472,59 @@ const getRadialHandlePosition = (deltaX: number, deltaY: number) => {
   return deltaY >= 0 ? Position.Bottom : Position.Top;
 };
 
-const calculateRadialLayout = (
-  scenario: WorkspaceLabScenario,
-  spacing: WorkspaceLabLayoutSpacingDefinition,
-  nodeSize: WorkspaceLabLayoutNodeSize,
-): LayoutResult => {
+const calculateRadialLayout = ({
+  scenario,
+  spacing,
+  fallbackNodeSize,
+  nodeSizes,
+}: WorkspaceLabLayoutInput): LayoutResult => {
   const metrics = getTreeMetrics(
     scenario.nodes,
     scenario.edges,
     spacing.rootGapSlots,
   );
   const positions = new Map<string, { x: number; y: number }>();
+  const maximumDiameterByDepth = new Map<number, number>();
+  let maximumDepth = 0;
+
+  for (const node of scenario.nodes) {
+    const depth = metrics.depthById.get(node.id) ?? 0;
+    const size = getNodeSize(node.id, nodeSizes, fallbackNodeSize);
+    const diameter = Math.max(size.width, size.height);
+
+    maximumDepth = Math.max(maximumDepth, depth);
+    maximumDiameterByDepth.set(
+      depth,
+      Math.max(maximumDiameterByDepth.get(depth) ?? 0, diameter),
+    );
+  }
+
+  const radiusByDepth = new Map<number, number>([[0, 0]]);
+  for (let depth = 1; depth <= maximumDepth; depth += 1) {
+    const previousDepth = depth - 1;
+    const previousRadius = radiusByDepth.get(previousDepth) ?? 0;
+    const previousDiameter =
+      maximumDiameterByDepth.get(previousDepth) ??
+      Math.max(fallbackNodeSize.width, fallbackNodeSize.height);
+    const diameter =
+      maximumDiameterByDepth.get(depth) ??
+      Math.max(fallbackNodeSize.width, fallbackNodeSize.height);
+
+    radiusByDepth.set(
+      depth,
+      previousRadius +
+        previousDiameter / 2 +
+        spacing.radial.ringGap +
+        diameter / 2,
+    );
+  }
 
   const nodes = scenario.nodes.map((node) => {
     const depth = metrics.depthById.get(node.id) ?? 0;
     const slot = metrics.slotById.get(node.id) ?? 0;
     const angle = (slot / metrics.leafCount) * Math.PI * 2 - Math.PI / 2;
-    const radius =
-      depth *
-      (Math.max(nodeSize.width, nodeSize.height) + spacing.radial.ringGap);
+    const radius = radiusByDepth.get(depth) ?? 0;
+    const nodeSize = getNodeSize(node.id, nodeSizes, fallbackNodeSize);
     const center = {
       x: Math.cos(angle) * radius,
       y: Math.sin(angle) * radius,

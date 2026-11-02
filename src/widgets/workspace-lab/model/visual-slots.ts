@@ -26,29 +26,6 @@ export interface WorkspaceLabNodeDensityDefinition extends VisualSlotDefinition 
   circleSize: number;
 }
 
-export const workspaceLabEdgeStyles = [
-  {
-    id: "fine",
-    name: "정밀선",
-    description: "얇고 또렷한 선으로 구조를 방해하지 않습니다.",
-  },
-  {
-    id: "soft",
-    name: "소프트",
-    description: "넓고 옅은 선으로 관계를 부드럽게 연결합니다.",
-  },
-  {
-    id: "dashed",
-    name: "점선",
-    description: "느슨하거나 보조적인 관계를 표현하기 좋습니다.",
-  },
-  {
-    id: "bold",
-    name: "강조선",
-    description: "굵고 대비가 높은 선으로 흐름을 선명하게 보여줍니다.",
-  },
-] as const satisfies readonly VisualSlotDefinition[];
-
 export const workspaceLabConnectionPointStyles = [
   {
     id: "dot",
@@ -167,8 +144,6 @@ export const workspaceLabNodeDensities = [
   },
 ] as const satisfies readonly WorkspaceLabNodeDensityDefinition[];
 
-export type WorkspaceLabEdgeStyleId =
-  (typeof workspaceLabEdgeStyles)[number]["id"];
 export type WorkspaceLabConnectionPointStyleId =
   (typeof workspaceLabConnectionPointStyles)[number]["id"];
 export type WorkspaceLabCollapseControlStyleId =
@@ -188,9 +163,6 @@ function findVisualSlot<T extends VisualSlotDefinition>(
     definitions[fallbackIndex]
   );
 }
-
-export const getWorkspaceLabEdgeStyle = (id: WorkspaceLabEdgeStyleId) =>
-  findVisualSlot(workspaceLabEdgeStyles, id);
 
 export const getWorkspaceLabConnectionPointStyle = (
   id: WorkspaceLabConnectionPointStyleId,

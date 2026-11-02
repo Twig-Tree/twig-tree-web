@@ -7,12 +7,10 @@ import {
   workspaceLabCanvasStyles,
   workspaceLabCollapseControlStyles,
   workspaceLabConnectionPointStyles,
-  workspaceLabEdgeStyles,
   workspaceLabNodeDensities,
 } from "./visual-slots";
 
 const slotCollections = [
-  workspaceLabEdgeStyles,
   workspaceLabConnectionPointStyles,
   workspaceLabCollapseControlStyles,
   workspaceLabCanvasStyles,

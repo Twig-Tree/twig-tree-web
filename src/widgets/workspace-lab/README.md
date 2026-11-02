@@ -10,6 +10,7 @@ workspace-lab/
 │   ├── scenarios.ts       # 재현 가능한 트리 fixture
 │   ├── layouts.ts         # 세로·가로·방사형 좌표와 배치 간격
 │   ├── edge-routing.ts    # 직각 연결선의 기하학적 제약
+│   ├── edge-styles.ts     # 형태, 패턴, 두께, 색상, 투명도, 효과 registry
 │   ├── themes.ts          # 테마 token schema와 registry
 │   ├── node-shapes.ts     # 노드 외곽 형태 registry
 │   ├── visual-slots.ts    # edge, port, collapse, canvas, density registry
@@ -32,11 +33,15 @@ Inspector selection
        ↓
 WorkspaceLab state
        ├── scenario fixture
-       ├── layout + spacing + measured node size
+       ├── fallback node size
        ├── theme CSS variables
        └── visual-slot data attributes
                  ↓
          Preview / React Flow
+                 ↓ dimensions change
+       measured size map (per node)
+                 ↓ requestAnimationFrame
+       layout + spacing 재계산
 ```
 
 Registry 배열에서 literal union 타입과 Inspector 옵션을 파생한다. 새 프리셋을 추가할 때 별도의 문자열 union을 중복 선언하지 않는다.
@@ -77,13 +82,15 @@ Registry 배열에서 literal union 타입과 Inspector 옵션을 파생한다. 
 - `radial`: 깊이별 ring 간격
 - `rootGapSlots`: 여러 root 사이의 추가 slot 간격
 
-좌표 간격은 `node size + external gap`으로 계산한다. 노드 padding이나 글자 크기는 여기서 다루지 않는다.
+좌표 간격은 `node size + external gap`으로 계산한다. 최초 배치는 밀도 프리셋의 fallback 크기를 사용하고, 렌더 후에는 React Flow가 측정한 노드별 실제 크기를 사용한다. 노드 padding이나 글자 크기는 여기서 다루지 않는다.
 
-세로·가로의 단계 간격은 `workspaceLabSmoothStepMinimumGap`보다 작아질 수 없다. SmoothStep의 `offset`이나 `centerClearance`를 바꿀 때 `edge-routing.ts`와 관련 테스트를 함께 수정한다.
+세로·가로 배치는 단계별 최대 실제 크기를 기준으로 다음 단계의 시작 좌표를 계산한다. 단계 간 여백은 `workspaceLabSmoothStepMinimumGap`보다 작아질 수 없다. SmoothStep의 `offset`이나 `centerClearance`를 바꿀 때 `edge-routing.ts`와 관련 테스트를 함께 수정한다.
+
+형제 방향은 고정 slot 크기 대신 각 subtree가 실제로 차지하는 길이를 계산한다. 따라서 콘텐츠가 긴 형제와 짧은 형제를 섞어도 서로 겹치지 않아야 한다.
 
 ### Visual slot 추가
 
-연결선, 연결 포인트, 접기 버튼, 캔버스처럼 독립적으로 교체할 요소는 다음 패턴을 따른다.
+연결 포인트, 접기 버튼, 캔버스처럼 독립적으로 교체할 요소는 다음 패턴을 따른다.
 
 1. `visual-slots.ts`에 definition과 registry를 둔다.
 2. registry에서 ID 타입을 파생한다.
@@ -94,6 +101,19 @@ Registry 배열에서 literal union 타입과 Inspector 옵션을 파생한다. 
 7. CSS와 단위 테스트를 추가한다.
 
 프리셋 정의에는 이름과 설명을 포함해 Inspector가 구현 세부사항 없이 옵션을 그릴 수 있게 한다.
+
+연결선은 하나의 묶음 프리셋으로 만들지 않고 `edge-styles.ts`의 원자 슬롯으로 구성한다.
+
+- `line style`: 레이아웃 기본, 직선, 직각, 둥근 직각, 곡선
+- `pattern`: 실선, 점선, 도트
+- `thickness`: Hairline, Regular, Strong
+- `color`: 테마 token 기반 색상
+- `opacity`: 선 전체의 시각적 강도
+- `effect`: 그림자, 대비선, 방향성 fade처럼 별도 SVG 표현이 필요한 효과
+
+새 연결선 옵션은 다른 다섯 속성을 암묵적으로 변경하지 않아야 한다. 상태 표현인 `active`와 `traced`는 선택된 조합 위에 의미 색상과 최소 두께를 덧씌운다.
+
+`workspaceLabEdgeStylePresets`는 위 원자 속성의 추천 조합이다. Inspector의 제안 스타일 dropdown은 preset 값을 한 번에 적용하지만 별도의 preset 상태를 저장하지 않는다. 현재 원자 속성과 일치하는 preset을 매번 역으로 찾으며, 일치하는 항목이 없으면 `custom`으로 표시한다. 커스텀 제어 영역은 기본적으로 접어두어 Inspector의 정보 밀도를 낮춘다.
 
 ### 노드 밀도 추가
 
@@ -107,6 +127,8 @@ Registry 배열에서 literal union 타입과 Inspector 옵션을 파생한다. 
 - padding과 label font size
 
 밀도 변경으로 노드가 커져도 외부 배치 간격의 의미는 유지되어야 한다.
+
+`getWorkspaceLabNodeSize`의 결과는 실제 렌더 크기가 아니라 측정 전 fallback이다. 콘텐츠 변경과 줄바꿈은 `onNodesChange`의 `dimensions` 신호로 수집하며, 같은 프레임의 여러 측정은 한 번의 layout 갱신으로 합친다.
 
 ### 캔버스 추가
 

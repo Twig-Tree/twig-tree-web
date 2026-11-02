@@ -1,3 +1,4 @@
+import { useState } from "react";
 import type {
   LabCanvasStyle,
   LabCollapseControlStyle,
@@ -13,6 +14,21 @@ import type {
   LabViewport,
   WorkspaceLabScenario,
 } from "../model/types";
+import {
+  getWorkspaceLabEdgeEffect,
+  getWorkspaceLabEdgeLineStyle,
+  getMatchingWorkspaceLabEdgeStylePresetId,
+  getWorkspaceLabEdgeStylePreset,
+  workspaceLabEdgeColors,
+  workspaceLabEdgeEffects,
+  workspaceLabEdgeLineStyles,
+  workspaceLabEdgeOpacities,
+  workspaceLabEdgePatterns,
+  workspaceLabEdgeStylePresets,
+  workspaceLabEdgeThicknesses,
+  type WorkspaceLabEdgeStylePresetId,
+  type WorkspaceLabEdgeStylePresetSelection,
+} from "../model/edge-styles";
 import {
   getWorkspaceLabLayout,
   getWorkspaceLabLayoutSpacing,
@@ -32,12 +48,10 @@ import {
   getWorkspaceLabCanvasStyle,
   getWorkspaceLabCollapseControlStyle,
   getWorkspaceLabConnectionPointStyle,
-  getWorkspaceLabEdgeStyle,
   getWorkspaceLabNodeDensity,
   workspaceLabCanvasStyles,
   workspaceLabCollapseControlStyles,
   workspaceLabConnectionPointStyles,
-  workspaceLabEdgeStyles,
   workspaceLabNodeDensities,
 } from "../model/visual-slots";
 
@@ -184,6 +198,7 @@ export function WorkspaceLabInspector({
   onShowToolbarChange,
   onShowPlayerChange,
 }: WorkspaceLabInspectorProps) {
+  const [showCustomEdgeStyle, setShowCustomEdgeStyle] = useState(false);
   const currentScenario = scenarios.find((item) => item.id === scenarioId);
   const currentTheme = getWorkspaceLabTheme(theme);
   const currentLayout = getWorkspaceLabLayout(layoutMode);
@@ -191,12 +206,36 @@ export function WorkspaceLabInspector({
   const currentNodeShape = getWorkspaceLabNodeShape(nodeShape);
   const currentNodeDensity = getWorkspaceLabNodeDensity(density);
   const currentCanvasStyle = getWorkspaceLabCanvasStyle(canvasStyle);
-  const currentEdgeStyle = getWorkspaceLabEdgeStyle(edgeStyle);
+  const currentEdgeLineStyle = getWorkspaceLabEdgeLineStyle(
+    edgeStyle.lineStyle,
+  );
+  const currentEdgeEffect = getWorkspaceLabEdgeEffect(edgeStyle.effect);
+  const currentEdgePresetId =
+    getMatchingWorkspaceLabEdgeStylePresetId(edgeStyle);
+  const currentEdgePreset =
+    currentEdgePresetId === "custom"
+      ? null
+      : getWorkspaceLabEdgeStylePreset(currentEdgePresetId);
   const currentConnectionPointStyle =
     getWorkspaceLabConnectionPointStyle(connectionPointStyle);
   const currentCollapseControlStyle =
     getWorkspaceLabCollapseControlStyle(collapseControlStyle);
   const themePalette = getWorkspaceLabThemePalette(currentTheme);
+
+  const handleEdgePresetChange = (
+    presetId: WorkspaceLabEdgeStylePresetSelection,
+  ) => {
+    if (presetId === "custom") {
+      setShowCustomEdgeStyle(true);
+      return;
+    }
+
+    onEdgeStyleChange({
+      ...getWorkspaceLabEdgeStylePreset(
+        presetId as WorkspaceLabEdgeStylePresetId,
+      ).values,
+    });
+  };
 
   return (
     <aside className="workspace-lab-inspector flex h-full w-72 shrink-0 flex-col border-l border-slate-200 bg-white">
@@ -371,17 +410,117 @@ export function WorkspaceLabInspector({
             Connection
           </h3>
           <SelectField
-            label="연결선"
-            value={edgeStyle}
-            options={workspaceLabEdgeStyles.map((item) => ({
-              value: item.id,
-              label: item.name,
-            }))}
-            onChange={onEdgeStyleChange}
+            label="제안 스타일"
+            value={currentEdgePresetId}
+            options={[
+              ...workspaceLabEdgeStylePresets.map((item) => ({
+                value: item.id,
+                label: item.name,
+              })),
+              { value: "custom" as const, label: "커스텀" },
+            ]}
+            onChange={handleEdgePresetChange}
           />
           <p className="text-[11px] leading-4 text-slate-500">
-            {currentEdgeStyle.description}
+            {currentEdgePreset?.description ??
+              "세부 속성을 직접 조합한 커스텀 스타일입니다."}
           </p>
+
+          <button
+            type="button"
+            aria-expanded={showCustomEdgeStyle}
+            aria-controls="workspace-lab-edge-custom-controls"
+            onClick={() => setShowCustomEdgeStyle((current) => !current)}
+            className="flex w-full items-center justify-between rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-left text-xs font-medium text-slate-700 transition-colors hover:border-indigo-200 hover:bg-indigo-50"
+          >
+            <span>커스텀 설정</span>
+            <span aria-hidden="true" className="text-slate-400">
+              {showCustomEdgeStyle ? "접기 −" : "열기 +"}
+            </span>
+          </button>
+
+          {showCustomEdgeStyle ? (
+            <div
+              id="workspace-lab-edge-custom-controls"
+              className="space-y-3 rounded-xl border border-slate-200 bg-slate-50/70 p-3"
+            >
+              <SelectField
+                label="선 형태"
+                value={edgeStyle.lineStyle}
+                options={workspaceLabEdgeLineStyles.map((item) => ({
+                  value: item.id,
+                  label: item.name,
+                }))}
+                onChange={(lineStyle) =>
+                  onEdgeStyleChange({ ...edgeStyle, lineStyle })
+                }
+              />
+              <p className="text-[11px] leading-4 text-slate-500">
+                {currentEdgeLineStyle.description}
+              </p>
+              <div className="grid grid-cols-2 gap-3">
+                <SelectField
+                  label="패턴"
+                  value={edgeStyle.pattern}
+                  options={workspaceLabEdgePatterns.map((item) => ({
+                    value: item.id,
+                    label: item.name,
+                  }))}
+                  onChange={(pattern) =>
+                    onEdgeStyleChange({ ...edgeStyle, pattern })
+                  }
+                />
+                <SelectField
+                  label="두께"
+                  value={edgeStyle.thickness}
+                  options={workspaceLabEdgeThicknesses.map((item) => ({
+                    value: item.id,
+                    label: item.name,
+                  }))}
+                  onChange={(thickness) =>
+                    onEdgeStyleChange({ ...edgeStyle, thickness })
+                  }
+                />
+                <SelectField
+                  label="색상"
+                  value={edgeStyle.color}
+                  options={workspaceLabEdgeColors.map((item) => ({
+                    value: item.id,
+                    label: item.name,
+                  }))}
+                  onChange={(color) =>
+                    onEdgeStyleChange({ ...edgeStyle, color })
+                  }
+                />
+                <SelectField
+                  label="투명도"
+                  value={edgeStyle.opacity}
+                  options={workspaceLabEdgeOpacities.map((item) => ({
+                    value: item.id,
+                    label: item.name,
+                  }))}
+                  onChange={(opacity) =>
+                    onEdgeStyleChange({ ...edgeStyle, opacity })
+                  }
+                />
+              </div>
+              <SelectField
+                label="특수 효과"
+                value={edgeStyle.effect}
+                options={workspaceLabEdgeEffects.map((item) => ({
+                  value: item.id,
+                  label: item.name,
+                }))}
+                onChange={(effect) =>
+                  onEdgeStyleChange({ ...edgeStyle, effect })
+                }
+              />
+              <p className="text-[11px] leading-4 text-slate-500">
+                {currentEdgeEffect.description}
+              </p>
+            </div>
+          ) : null}
+
           <SelectField
             label="연결 포인트"
             value={connectionPointStyle}

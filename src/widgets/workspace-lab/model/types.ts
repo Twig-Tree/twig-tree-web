@@ -17,10 +17,18 @@ export type { WorkspaceLabLayoutId as LabLayoutMode } from "./layouts";
 export type { WorkspaceLabLayoutSpacingId as LabLayoutSpacing } from "./layouts";
 export type { WorkspaceLabNodeShapeId as LabNodeShape } from "./node-shapes";
 export type {
+  WorkspaceLabEdgeColorId as LabEdgeColor,
+  WorkspaceLabEdgeEffectId as LabEdgeEffect,
+  WorkspaceLabEdgeLineStyleId as LabEdgeLineStyle,
+  WorkspaceLabEdgeOpacityId as LabEdgeOpacity,
+  WorkspaceLabEdgePatternId as LabEdgePattern,
+  WorkspaceLabEdgeStyleSelection as LabEdgeStyle,
+  WorkspaceLabEdgeThicknessId as LabEdgeThickness,
+} from "./edge-styles";
+export type {
   WorkspaceLabCanvasStyleId as LabCanvasStyle,
   WorkspaceLabCollapseControlStyleId as LabCollapseControlStyle,
   WorkspaceLabConnectionPointStyleId as LabConnectionPointStyle,
-  WorkspaceLabEdgeStyleId as LabEdgeStyle,
   WorkspaceLabNodeDensityId as LabDensity,
 } from "./visual-slots";
 export type LabViewport = "desktop" | "compact";
@@ -40,7 +48,12 @@ export type WorkspaceLabNodeData = {
 export type WorkspaceLabEdgeData = {
   state?: LabEdgeState;
   path?: "smoothstep" | "bezier";
-  edgeStyle?: "fine" | "soft" | "dashed" | "bold";
+  lineStyle?: "layout" | "straight" | "orthogonal" | "rounded" | "curved";
+  pattern?: "solid" | "dashed" | "dotted";
+  thickness?: "hairline" | "regular" | "strong";
+  color?: "theme" | "accent" | "ink" | "highlight";
+  opacity?: "full" | "muted" | "faint";
+  effect?: "none" | "shadow" | "contrast" | "fade";
 };
 
 export type WorkspaceLabNode = Node<WorkspaceLabNodeData, "workspaceLab">;

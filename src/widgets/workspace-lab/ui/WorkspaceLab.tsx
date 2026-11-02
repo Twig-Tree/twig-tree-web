@@ -1,12 +1,13 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   Background,
   Panel,
   ReactFlow,
   type EdgeTypes,
   type NodeTypes,
+  type OnNodesChange,
 } from "@xyflow/react";
 import {
   BookOpen,
@@ -25,7 +26,13 @@ import {
 import {
   getWorkspaceLabLayout,
   getWorkspaceLabLayoutSpacing,
+  type WorkspaceLabLayoutNodeSizes,
 } from "../model/layouts";
+import {
+  getWorkspaceLabEdgeColor,
+  getWorkspaceLabEdgeThickness,
+  workspaceLabEdgeStylePresets,
+} from "../model/edge-styles";
 import { workspaceLabScenarios } from "../model/scenarios";
 import {
   getWorkspaceLabTheme,
@@ -61,6 +68,79 @@ import styles from "./WorkspaceLab.module.css";
 
 const nodeTypes: NodeTypes = { workspaceLab: WorkspaceLabNodeView };
 const edgeTypes: EdgeTypes = { workspaceLab: WorkspaceLabEdgeView };
+const emptyNodeSizes: WorkspaceLabLayoutNodeSizes = new Map();
+
+function useWorkspaceLabNodeMeasurements() {
+  const [nodeSizes, setNodeSizes] =
+    useState<WorkspaceLabLayoutNodeSizes>(emptyNodeSizes);
+  const pendingSizesRef = useRef(
+    new Map<string, { width: number; height: number }>(),
+  );
+  const animationFrameRef = useRef<number | null>(null);
+
+  const flushMeasurements = useCallback(() => {
+    animationFrameRef.current = null;
+    const pendingSizes = new Map(pendingSizesRef.current);
+    pendingSizesRef.current.clear();
+
+    setNodeSizes((currentSizes) => {
+      const nextSizes = new Map(currentSizes);
+      let changed = false;
+
+      for (const [id, size] of pendingSizes) {
+        const previous = currentSizes.get(id);
+        if (
+          previous &&
+          Math.abs(previous.width - size.width) < 0.5 &&
+          Math.abs(previous.height - size.height) < 0.5
+        ) {
+          continue;
+        }
+
+        nextSizes.set(id, size);
+        changed = true;
+      }
+
+      return changed ? nextSizes : currentSizes;
+    });
+  }, []);
+
+  const onNodesChange = useCallback<OnNodesChange<WorkspaceLabNode>>(
+    (changes) => {
+      for (const change of changes) {
+        if (
+          change.type !== "dimensions" ||
+          !change.dimensions ||
+          change.dimensions.width <= 0 ||
+          change.dimensions.height <= 0
+        ) {
+          continue;
+        }
+
+        pendingSizesRef.current.set(change.id, change.dimensions);
+      }
+
+      if (
+        pendingSizesRef.current.size > 0 &&
+        animationFrameRef.current === null
+      ) {
+        animationFrameRef.current = requestAnimationFrame(flushMeasurements);
+      }
+    },
+    [flushMeasurements],
+  );
+
+  useEffect(
+    () => () => {
+      if (animationFrameRef.current !== null) {
+        cancelAnimationFrame(animationFrameRef.current);
+      }
+    },
+    [],
+  );
+
+  return { nodeSizes, onNodesChange };
+}
 
 function PreviewLeftPanel() {
   return (
@@ -224,20 +304,24 @@ function WorkspacePreview({
 }) {
   const activeLayoutSpacing = getWorkspaceLabLayoutSpacing(layoutSpacing);
   const activeNodeDensity = getWorkspaceLabNodeDensity(density);
-  const layoutNodeSize = useMemo(
+  const fallbackNodeSize = useMemo(
     () => getWorkspaceLabNodeSize(activeNodeDensity, nodeShape),
     [activeNodeDensity, nodeShape],
   );
+  const { nodeSizes, onNodesChange } = useWorkspaceLabNodeMeasurements();
   const laidOutScenario = useMemo(
     () =>
-      getWorkspaceLabLayout(layoutMode).calculate(
+      getWorkspaceLabLayout(layoutMode).calculate({
         scenario,
-        activeLayoutSpacing,
-        layoutNodeSize,
-      ),
-    [activeLayoutSpacing, layoutMode, layoutNodeSize, scenario],
+        spacing: activeLayoutSpacing,
+        fallbackNodeSize,
+        nodeSizes,
+      }),
+    [activeLayoutSpacing, fallbackNodeSize, layoutMode, nodeSizes, scenario],
   );
   const activeCanvasStyle = getWorkspaceLabCanvasStyle(canvasStyle);
+  const activeEdgeColor = getWorkspaceLabEdgeColor(edgeStyle.color);
+  const activeEdgeThickness = getWorkspaceLabEdgeThickness(edgeStyle.thickness);
   const nodes = useMemo<WorkspaceLabNode[]>(
     () =>
       laidOutScenario.nodes.map((item, index) => ({
@@ -274,13 +358,32 @@ function WorkspacePreview({
     () =>
       laidOutScenario.edges.map((item, index) => ({
         ...item,
+        markerEnd:
+          typeof item.markerEnd === "object" && item.markerEnd
+            ? {
+                ...item.markerEnd,
+                color:
+                  index === 0 && edgeState === "active"
+                    ? "var(--lab-accent)"
+                    : index === 0 && edgeState === "traced"
+                      ? "var(--lab-lecture)"
+                      : activeEdgeColor.value,
+                strokeWidth: activeEdgeThickness.width,
+              }
+            : item.markerEnd,
         data: {
           ...item.data,
           state: index === 0 ? edgeState : "default",
-          edgeStyle,
+          ...edgeStyle,
         },
       })),
-    [edgeState, edgeStyle, laidOutScenario.edges],
+    [
+      activeEdgeColor.value,
+      activeEdgeThickness.width,
+      edgeState,
+      edgeStyle,
+      laidOutScenario.edges,
+    ],
   );
 
   return (
@@ -340,9 +443,10 @@ function WorkspacePreview({
               ) : null}
 
               <ReactFlow
-                key={`${scenario.id}-${layoutMode}-${layoutSpacing}-${nodeShape}-${density}-${connectionPointStyle}-${collapseControlStyle}-${canvasStyle}-${edgeStyle}`}
+                key={`${scenario.id}-${layoutMode}-${layoutSpacing}-${nodeShape}-${density}-${connectionPointStyle}-${collapseControlStyle}-${canvasStyle}`}
                 nodes={nodes}
                 edges={edges}
+                onNodesChange={onNodesChange}
                 nodeTypes={nodeTypes}
                 edgeTypes={edgeTypes}
                 fitView
@@ -383,7 +487,9 @@ export function WorkspaceLab() {
     useState<WorkspaceLabScenario["id"]>("balanced");
   const [nodeState, setNodeState] = useState<LabNodeState>("selected");
   const [edgeState, setEdgeState] = useState<LabEdgeState>("default");
-  const [edgeStyle, setEdgeStyle] = useState<LabEdgeStyle>("fine");
+  const [edgeStyle, setEdgeStyle] = useState<LabEdgeStyle>({
+    ...workspaceLabEdgeStylePresets[0].values,
+  });
   const [layoutMode, setLayoutMode] = useState<LabLayoutMode>("vertical");
   const [layoutSpacing, setLayoutSpacing] =
     useState<LabLayoutSpacing>("balanced");
