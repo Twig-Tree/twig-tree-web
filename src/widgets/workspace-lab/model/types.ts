@@ -39,6 +39,7 @@ export type {
   WorkspaceLabPanelSurfaceId as LabPanelSurface,
   WorkspaceLabPanelWidthId as LabPanelWidth,
 } from "./panels";
+export type { WorkspaceLabColorRoleSelection as LabColorRoles } from "./color-roles";
 export type LabViewport = "desktop" | "compact";
 
 export type WorkspaceLabNodeData = {

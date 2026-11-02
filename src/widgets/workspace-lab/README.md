@@ -12,6 +12,7 @@ workspace-lab/
 │   ├── edge-routing.ts    # 직각 연결선의 기하학적 제약
 │   ├── edge-styles.ts     # 형태, 패턴, 두께, 색상, 투명도, 효과 registry
 │   ├── themes.ts          # 테마 token schema와 registry
+│   ├── color-roles.ts     # 테마 위에 덧씌우는 역할별 색 선택 registry
 │   ├── node-shapes.ts     # 노드 외곽 형태 registry
 │   ├── visual-slots.ts    # edge, port, collapse, canvas, density registry
 │   ├── panels.ts          # 왼쪽·메모 패널의 배치, 너비, 표면, 경계, 밀도 registry
@@ -58,6 +59,16 @@ Registry 배열에서 literal union 타입과 Inspector 옵션을 파생한다. 
 5. theme 테스트에서 모든 token이 CSS 변수로 변환되는지 확인한다.
 
 테마는 한 화면의 시각 언어를 통째로 바꾸는 단위다. 연결선 종류나 노드 형태처럼 독립적으로 비교할 항목을 테마 안에 숨기지 않는다.
+
+### 색 역할 추가
+
+테마는 색의 출발점이고, `color-roles.ts`의 역할 선택이 그 위에 덧씌워진다. 역할은 중립 톤, 강조색, 루트 노드, 상태 색, 크롬, 대비 여섯 개다. 각 역할의 첫 선택지는 `theme`(테마 기본)이고, 모두 `theme`이면 테마 토큰이 그대로 쓰인다.
+
+- 선택지의 `apply`는 앞선 역할까지 덧씌운 토큰을 받아 바꿀 토큰만 돌려준다.
+- `getWorkspaceLabColorTokens`는 neutral → accent → root → status → chrome → contrast 순서로 적용한다. 루트와 크롬이 새 강조색·중립 톤을 따라가고, 대비가 마지막 결과를 같은 비율로 조정하려면 이 순서를 지켜야 한다.
+- 강조색은 고정 목록 대신 이전 강조색과 같은 값을 쓰던 토큰을 모두 바꾼다. 테마마다 강조색을 쓰는 토큰이 다르기 때문이다.
+- 테마를 바꾸면 역할 선택은 테마 기본으로 돌아간다.
+- 곡률과 그림자는 색이 아니므로 역할에서 다루지 않는다.
 
 ### 노드 모양 추가
 

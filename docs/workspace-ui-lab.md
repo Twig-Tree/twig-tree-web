@@ -88,6 +88,7 @@ minimum gap = offset × 2 + center clearance
 | Layout           | 트리 전개 방향과 연결 방향              | 세로, 가로, 방사형                        |
 | Layout spacing   | 형제·단계·ring 외부 간격                | 촘촘하게, 균형, 넓게                      |
 | Theme            | 전체 화면의 색, 표면, 그림자, 곡률 토큰 | Quiet Focus, Neutral, Soft, High contrast |
+| Color roles      | 테마 위에 덧씌우는 역할별 색            | 중립 톤, 강조색, 루트, 상태, 크롬, 대비   |
 | Node shape       | 노드 외곽 형태                          | 사각형, 둥근 사각형, 원형                 |
 | Node density     | 노드 내부 여백과 실제 크기              | Compact, Comfortable, Spacious            |
 | Edge line        | 연결선의 기하와 표현을 독립적으로 조합  | 형태, 패턴, 두께, 색상, 투명도, 특수 효과 |

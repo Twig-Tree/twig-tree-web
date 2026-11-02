@@ -33,6 +33,10 @@ import {
   getWorkspaceLabEdgeThickness,
   workspaceLabEdgeStylePresets,
 } from "../model/edge-styles";
+import {
+  getWorkspaceLabColorTokens,
+  workspaceLabDefaultColorRoles,
+} from "../model/color-roles";
 import { workspaceLabScenarios } from "../model/scenarios";
 import {
   getWorkspaceLabTheme,
@@ -52,6 +56,7 @@ import {
 import type {
   LabCanvasStyle,
   LabCollapseControlStyle,
+  LabColorRoles,
   LabConnectionPointStyle,
   LabDensity,
   LabEdgeState,
@@ -536,6 +541,9 @@ export function WorkspaceLab() {
     useState<LabCollapseControlStyle>("floating");
   const [canvasStyle, setCanvasStyle] = useState<LabCanvasStyle>("dots");
   const [theme, setTheme] = useState<LabTheme>("quiet");
+  const [colorRoles, setColorRoles] = useState<LabColorRoles>({
+    ...workspaceLabDefaultColorRoles,
+  });
   const [density, setDensity] = useState<LabDensity>("comfortable");
   const [viewport, setViewport] = useState<LabViewport>("desktop");
   const [showLeftPanel, setShowLeftPanel] = useState(true);
@@ -549,10 +557,22 @@ export function WorkspaceLab() {
     ...workspaceLabDefaultPanelStyle,
   });
 
+  /*
+  테마는 색 역할의 출발점이다. 테마를 바꾸면 이전 테마 위에 덧씌운 역할 선택을 버린다.
+  */
+  const handleThemeChange = (nextTheme: LabTheme) => {
+    setTheme(nextTheme);
+    setColorRoles({ ...workspaceLabDefaultColorRoles });
+  };
+
   const scenario =
     workspaceLabScenarios.find((item) => item.id === scenarioId) ??
     workspaceLabScenarios[0];
   const activeTheme = getWorkspaceLabTheme(theme);
+  const activeThemeTokens = useMemo(
+    () => getWorkspaceLabColorTokens(activeTheme.tokens, colorRoles),
+    [activeTheme, colorRoles],
+  );
   const activeNodeDensity = getWorkspaceLabNodeDensity(density);
 
   return (
@@ -561,7 +581,10 @@ export function WorkspaceLab() {
       data-theme={theme}
       data-density={density}
       style={{
-        ...getWorkspaceLabThemeStyle(activeTheme),
+        ...getWorkspaceLabThemeStyle({
+          ...activeTheme,
+          tokens: activeThemeTokens,
+        }),
         ...getWorkspaceLabNodeDensityStyle(activeNodeDensity),
       }}
     >
@@ -617,7 +640,7 @@ export function WorkspaceLab() {
         onConnectionPointStyleChange={setConnectionPointStyle}
         onCollapseControlStyleChange={setCollapseControlStyle}
         onCanvasStyleChange={setCanvasStyle}
-        onThemeChange={setTheme}
+        onThemeChange={handleThemeChange}
         onDensityChange={setDensity}
         onViewportChange={setViewport}
         onShowLeftPanelChange={setShowLeftPanel}
