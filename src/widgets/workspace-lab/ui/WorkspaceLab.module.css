@@ -1,13 +1,3 @@
-.lab {
-  --lab-node-padding-y: 13px;
-  --lab-node-padding-x: 16px;
-}
-
-.lab[data-density="compact"] {
-  --lab-node-padding-y: 8px;
-  --lab-node-padding-x: 11px;
-}
-
 .preview {
   background: var(--lab-preview-background);
   background-image: var(--lab-preview-pattern);
@@ -116,12 +106,31 @@
 }
 
 .canvas :global(.react-flow__renderer) {
-  background: var(--lab-canvas);
+  background: transparent;
+}
+
+.canvas[data-canvas="paper"] :global(.react-flow) {
+  background-color: var(--lab-canvas);
+  background-image:
+    radial-gradient(
+      circle at 18% 22%,
+      color-mix(in srgb, var(--lab-surface) 52%, transparent) 0,
+      transparent 32%
+    ),
+    linear-gradient(
+      118deg,
+      transparent 0 48%,
+      color-mix(in srgb, var(--lab-edge) 5%, transparent) 50%,
+      transparent 52% 100%
+    );
+  background-size:
+    auto,
+    36px 36px;
 }
 
 .canvas :global(.react-flow__node-workspaceLab) {
   width: auto;
-  min-width: 148px;
+  min-width: var(--lab-node-min-width);
   max-width: 220px;
   padding: 0;
   border: 0;
@@ -148,6 +157,20 @@
   fill: var(--lab-edge);
 }
 
+.canvas :global(.workspace-lab-edge[data-style="soft"]) {
+  stroke: color-mix(in srgb, var(--lab-edge) 58%, transparent);
+  stroke-width: 3.5;
+}
+
+.canvas :global(.workspace-lab-edge[data-style="dashed"]) {
+  stroke-dasharray: 7 6;
+}
+
+.canvas :global(.workspace-lab-edge[data-style="bold"]) {
+  stroke: color-mix(in srgb, var(--lab-edge) 82%, var(--lab-node-text));
+  stroke-width: 3;
+}
+
 .canvas :global(.workspace-lab-edge[data-state="active"]) {
   stroke: var(--lab-accent);
   stroke-width: 2.5;
@@ -166,7 +189,7 @@
 .canvas :global(.workspace-lab-node) {
   position: relative;
   width: 100%;
-  min-width: 148px;
+  min-width: var(--lab-node-min-width);
   border: 1px solid var(--lab-border);
   border-radius: var(--lab-node-radius);
   background: var(--lab-surface);
@@ -189,9 +212,9 @@
 }
 
 .canvas :global(.workspace-lab-node[data-shape="circle"]) {
-  width: 112px;
-  height: 112px;
-  min-width: 112px;
+  width: var(--lab-node-circle-size);
+  height: var(--lab-node-circle-size);
+  min-width: var(--lab-node-circle-size);
   border-radius: 999px;
 }
 
@@ -286,7 +309,7 @@
 
 .canvas :global(.workspace-lab-node__content) {
   display: flex;
-  min-height: 48px;
+  min-height: var(--lab-node-content-min-height);
   align-items: center;
   justify-content: center;
   gap: 8px;
@@ -296,7 +319,7 @@
 
 .canvas :global(.workspace-lab-node__label) {
   display: block;
-  font-size: 13px;
+  font-size: var(--lab-node-label-font-size);
   font-weight: 650;
   line-height: 1.35;
 }
@@ -374,6 +397,49 @@
   height: 11px;
 }
 
+.canvas
+  :global(
+    .workspace-lab-node[data-collapse-control="notch"]
+      .workspace-lab-node__collapse
+  ) {
+  right: 50%;
+  bottom: -8px;
+  width: 24px;
+  border-radius: 7px;
+  transform: translateX(50%);
+}
+
+.canvas
+  :global(
+    .workspace-lab-node[data-state="collapsed"][data-collapse-control="notch"]
+      .workspace-lab-node__collapse
+  ) {
+  transform: translateX(50%) rotate(-90deg);
+}
+
+.canvas
+  :global(
+    .workspace-lab-node[data-collapse-control="minimal"]
+      .workspace-lab-node__collapse
+  ) {
+  right: 6px;
+  bottom: 50%;
+  width: 18px;
+  height: 18px;
+  border-color: transparent;
+  background: transparent;
+  box-shadow: none;
+  transform: translateY(50%);
+}
+
+.canvas
+  :global(
+    .workspace-lab-node[data-state="collapsed"][data-collapse-control="minimal"]
+      .workspace-lab-node__collapse
+  ) {
+  transform: translateY(50%) rotate(-90deg);
+}
+
 .canvas :global(.workspace-lab-handle) {
   width: 7px;
   height: 7px;
@@ -381,8 +447,41 @@
   background: var(--lab-surface);
 }
 
+.canvas
+  :global(
+    .workspace-lab-node[data-connection-point="ring"] .workspace-lab-handle
+  ) {
+  width: 10px;
+  height: 10px;
+  border: 2px solid var(--lab-accent);
+  background: var(--lab-canvas);
+}
+
+.canvas
+  :global(
+    .workspace-lab-node[data-connection-point="square"] .workspace-lab-handle
+  ) {
+  width: 8px;
+  height: 8px;
+  border-radius: 1px;
+  border-color: var(--lab-accent);
+  background: var(--lab-surface);
+}
+
+.canvas
+  :global(
+    .workspace-lab-node[data-connection-point="hidden"] .workspace-lab-handle
+  ) {
+  opacity: 0;
+}
+
 .canvas :global(.react-flow__background pattern circle) {
   fill: color-mix(in srgb, var(--lab-edge) 32%, transparent);
+}
+
+.canvas :global(.react-flow__background pattern path) {
+  stroke: color-mix(in srgb, var(--lab-edge) 28%, transparent);
+  fill: color-mix(in srgb, var(--lab-edge) 28%, transparent);
 }
 
 @keyframes lab-edge-trace {

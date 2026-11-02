@@ -1,10 +1,7 @@
-import type { CSSProperties } from "react";
-
 export interface WorkspaceLabNodeShapeDefinition {
   id: string;
   name: string;
   description: string;
-  nodeStyle?: CSSProperties;
 }
 
 /*
@@ -26,11 +23,6 @@ export const workspaceLabNodeShapes = [
     id: "circle",
     name: "원형",
     description: "동일한 직경 안에 내용을 모아 개념과 관계를 강조합니다.",
-    nodeStyle: {
-      width: 112,
-      minWidth: 112,
-      maxWidth: 112,
-    },
   },
 ] as const satisfies readonly WorkspaceLabNodeShapeDefinition[];
 

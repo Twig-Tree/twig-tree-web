@@ -4,17 +4,37 @@ import type {
   WorkspaceLabNode,
   WorkspaceLabScenario,
 } from "./types";
+import { workspaceLabSmoothStepMinimumGap } from "./edge-routing";
 
 type LayoutResult = {
   nodes: WorkspaceLabNode[];
   edges: WorkspaceLabEdge[];
 };
 
+export type WorkspaceLabLayoutNodeSize = {
+  width: number;
+  height: number;
+};
+
 export interface WorkspaceLabLayoutDefinition {
   id: string;
   name: string;
   description: string;
-  calculate: (scenario: WorkspaceLabScenario) => LayoutResult;
+  calculate: (
+    scenario: WorkspaceLabScenario,
+    spacing: WorkspaceLabLayoutSpacingDefinition,
+    nodeSize: WorkspaceLabLayoutNodeSize,
+  ) => LayoutResult;
+}
+
+export interface WorkspaceLabLayoutSpacingDefinition {
+  id: string;
+  name: string;
+  description: string;
+  vertical: { siblingGap: number; levelGap: number };
+  horizontal: { siblingGap: number; levelGap: number };
+  radial: { ringGap: number };
+  rootGapSlots: number;
 }
 
 type TreeMetrics = {
@@ -22,6 +42,48 @@ type TreeMetrics = {
   slotById: Map<string, number>;
   leafCount: number;
 };
+
+export const workspaceLabLayoutSpacings = [
+  {
+    id: "tight",
+    name: "촘촘하게",
+    description: "구조를 빠르게 훑을 수 있도록 단계와 형제 간격을 줄입니다.",
+    vertical: { siblingGap: 12, levelGap: 30 },
+    horizontal: { siblingGap: 10, levelGap: 50 },
+    radial: { ringGap: 40 },
+    rootGapSlots: 0.35,
+  },
+  {
+    id: "balanced",
+    name: "균형",
+    description: "노드 크기와 연결선 가독성의 균형을 맞춘 기본 간격입니다.",
+    vertical: { siblingGap: 42, levelGap: 69 },
+    horizontal: { siblingGap: 19, levelGap: 102 },
+    radial: { ringGap: 82 },
+    rootGapSlots: 0.5,
+  },
+  {
+    id: "airy",
+    name: "넓게",
+    description: "각 가지를 분리해 읽을 수 있도록 충분한 공간을 둡니다.",
+    vertical: { siblingGap: 82, levelGap: 110 },
+    horizontal: { siblingGap: 55, levelGap: 150 },
+    radial: { ringGap: 130 },
+    rootGapSlots: 0.75,
+  },
+] as const satisfies readonly WorkspaceLabLayoutSpacingDefinition[];
+
+export type WorkspaceLabLayoutSpacingId =
+  (typeof workspaceLabLayoutSpacings)[number]["id"];
+
+export function getWorkspaceLabLayoutSpacing(
+  id: WorkspaceLabLayoutSpacingId,
+): WorkspaceLabLayoutSpacingDefinition {
+  return (
+    workspaceLabLayoutSpacings.find((spacing) => spacing.id === id) ??
+    workspaceLabLayoutSpacings[1]
+  );
+}
 
 const oppositePosition: Record<Position, Position> = {
   [Position.Top]: Position.Bottom,
@@ -52,6 +114,7 @@ const getChildrenById = (
 const getTreeMetrics = (
   nodes: WorkspaceLabNode[],
   edges: WorkspaceLabEdge[],
+  rootGapSlots: number,
 ): TreeMetrics => {
   const childrenById = getChildrenById(nodes, edges);
   const targetIds = new Set(edges.map((edge) => edge.target));
@@ -96,9 +159,9 @@ const getTreeMetrics = (
 
   const startNodes = roots.length > 0 ? roots : nodes.slice(0, 1);
 
-  for (const root of startNodes) {
+  for (const [index, root] of startNodes.entries()) {
+    if (index > 0) nextLeafSlot += rootGapSlots;
     visit(root.id, 0, new Set());
-    nextLeafSlot += 0.5;
   }
 
   for (const node of nodes) {
@@ -108,7 +171,7 @@ const getTreeMetrics = (
   return {
     depthById,
     slotById,
-    leafCount: Math.max(nextLeafSlot - 0.5, 1),
+    leafCount: Math.max(nextLeafSlot, 1),
   };
 };
 
@@ -127,15 +190,27 @@ const withDirectionalEdges = (
 
 const calculateVerticalLayout = (
   scenario: WorkspaceLabScenario,
+  spacing: WorkspaceLabLayoutSpacingDefinition,
+  nodeSize: WorkspaceLabLayoutNodeSize,
 ): LayoutResult => {
-  const metrics = getTreeMetrics(scenario.nodes, scenario.edges);
+  const metrics = getTreeMetrics(
+    scenario.nodes,
+    scenario.edges,
+    spacing.rootGapSlots,
+  );
+  const levelGap = Math.max(
+    spacing.vertical.levelGap,
+    workspaceLabSmoothStepMinimumGap,
+  );
 
   return {
     nodes: scenario.nodes.map((node) => ({
       ...node,
       position: {
-        x: (metrics.slotById.get(node.id) ?? 0) * 190,
-        y: (metrics.depthById.get(node.id) ?? 0) * 145,
+        x:
+          (metrics.slotById.get(node.id) ?? 0) *
+          (nodeSize.width + spacing.vertical.siblingGap),
+        y: (metrics.depthById.get(node.id) ?? 0) * (nodeSize.height + levelGap),
       },
       sourcePosition: Position.Bottom,
       targetPosition: Position.Top,
@@ -152,15 +227,27 @@ const calculateVerticalLayout = (
 
 const calculateHorizontalLayout = (
   scenario: WorkspaceLabScenario,
+  spacing: WorkspaceLabLayoutSpacingDefinition,
+  nodeSize: WorkspaceLabLayoutNodeSize,
 ): LayoutResult => {
-  const metrics = getTreeMetrics(scenario.nodes, scenario.edges);
+  const metrics = getTreeMetrics(
+    scenario.nodes,
+    scenario.edges,
+    spacing.rootGapSlots,
+  );
+  const levelGap = Math.max(
+    spacing.horizontal.levelGap,
+    workspaceLabSmoothStepMinimumGap,
+  );
 
   return {
     nodes: scenario.nodes.map((node) => ({
       ...node,
       position: {
-        x: (metrics.depthById.get(node.id) ?? 0) * 250,
-        y: (metrics.slotById.get(node.id) ?? 0) * 95,
+        x: (metrics.depthById.get(node.id) ?? 0) * (nodeSize.width + levelGap),
+        y:
+          (metrics.slotById.get(node.id) ?? 0) *
+          (nodeSize.height + spacing.horizontal.siblingGap),
       },
       sourcePosition: Position.Right,
       targetPosition: Position.Left,
@@ -185,24 +272,30 @@ const getRadialHandlePosition = (deltaX: number, deltaY: number) => {
 
 const calculateRadialLayout = (
   scenario: WorkspaceLabScenario,
+  spacing: WorkspaceLabLayoutSpacingDefinition,
+  nodeSize: WorkspaceLabLayoutNodeSize,
 ): LayoutResult => {
-  const metrics = getTreeMetrics(scenario.nodes, scenario.edges);
+  const metrics = getTreeMetrics(
+    scenario.nodes,
+    scenario.edges,
+    spacing.rootGapSlots,
+  );
   const positions = new Map<string, { x: number; y: number }>();
-  const nodeWidth = 170;
-  const nodeHeight = 56;
 
   const nodes = scenario.nodes.map((node) => {
     const depth = metrics.depthById.get(node.id) ?? 0;
     const slot = metrics.slotById.get(node.id) ?? 0;
     const angle = (slot / metrics.leafCount) * Math.PI * 2 - Math.PI / 2;
-    const radius = depth * 230;
+    const radius =
+      depth *
+      (Math.max(nodeSize.width, nodeSize.height) + spacing.radial.ringGap);
     const center = {
       x: Math.cos(angle) * radius,
       y: Math.sin(angle) * radius,
     };
     const position = {
-      x: center.x - nodeWidth / 2,
-      y: center.y - nodeHeight / 2,
+      x: center.x - nodeSize.width / 2,
+      y: center.y - nodeSize.height / 2,
     };
 
     positions.set(node.id, center);

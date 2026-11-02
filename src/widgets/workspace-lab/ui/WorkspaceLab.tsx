@@ -3,7 +3,6 @@
 import { useMemo, useState } from "react";
 import {
   Background,
-  BackgroundVariant,
   Panel,
   ReactFlow,
   type EdgeTypes,
@@ -23,17 +22,30 @@ import {
   Undo2,
   X,
 } from "lucide-react";
-import { getWorkspaceLabLayout } from "../model/layouts";
-import { getWorkspaceLabNodeShape } from "../model/node-shapes";
+import {
+  getWorkspaceLabLayout,
+  getWorkspaceLabLayoutSpacing,
+} from "../model/layouts";
 import { workspaceLabScenarios } from "../model/scenarios";
 import {
   getWorkspaceLabTheme,
   getWorkspaceLabThemeStyle,
 } from "../model/themes";
+import {
+  getWorkspaceLabCanvasStyle,
+  getWorkspaceLabNodeDensity,
+  getWorkspaceLabNodeDensityStyle,
+  getWorkspaceLabNodeSize,
+} from "../model/visual-slots";
 import type {
+  LabCanvasStyle,
+  LabCollapseControlStyle,
+  LabConnectionPointStyle,
   LabDensity,
   LabEdgeState,
+  LabEdgeStyle,
   LabLayoutMode,
+  LabLayoutSpacing,
   LabNodeShape,
   LabNodeState,
   LabTheme,
@@ -179,8 +191,14 @@ function WorkspacePreview({
   scenario,
   nodeState,
   edgeState,
+  edgeStyle,
   layoutMode,
+  layoutSpacing,
   nodeShape,
+  connectionPointStyle,
+  collapseControlStyle,
+  canvasStyle,
+  density,
   viewport,
   showLeftPanel,
   showRightPanel,
@@ -190,32 +208,67 @@ function WorkspacePreview({
   scenario: WorkspaceLabScenario;
   nodeState: LabNodeState;
   edgeState: LabEdgeState;
+  edgeStyle: LabEdgeStyle;
   layoutMode: LabLayoutMode;
+  layoutSpacing: LabLayoutSpacing;
   nodeShape: LabNodeShape;
+  connectionPointStyle: LabConnectionPointStyle;
+  collapseControlStyle: LabCollapseControlStyle;
+  canvasStyle: LabCanvasStyle;
+  density: LabDensity;
   viewport: LabViewport;
   showLeftPanel: boolean;
   showRightPanel: boolean;
   showToolbar: boolean;
   showPlayer: boolean;
 }) {
-  const laidOutScenario = useMemo(
-    () => getWorkspaceLabLayout(layoutMode).calculate(scenario),
-    [layoutMode, scenario],
+  const activeLayoutSpacing = getWorkspaceLabLayoutSpacing(layoutSpacing);
+  const activeNodeDensity = getWorkspaceLabNodeDensity(density);
+  const layoutNodeSize = useMemo(
+    () => getWorkspaceLabNodeSize(activeNodeDensity, nodeShape),
+    [activeNodeDensity, nodeShape],
   );
-  const activeNodeShape = getWorkspaceLabNodeShape(nodeShape);
+  const laidOutScenario = useMemo(
+    () =>
+      getWorkspaceLabLayout(layoutMode).calculate(
+        scenario,
+        activeLayoutSpacing,
+        layoutNodeSize,
+      ),
+    [activeLayoutSpacing, layoutMode, layoutNodeSize, scenario],
+  );
+  const activeCanvasStyle = getWorkspaceLabCanvasStyle(canvasStyle);
   const nodes = useMemo<WorkspaceLabNode[]>(
     () =>
       laidOutScenario.nodes.map((item, index) => ({
         ...item,
-        style: { ...item.style, ...activeNodeShape.nodeStyle },
+        style: {
+          ...item.style,
+          ...(nodeShape === "circle"
+            ? {
+                width: activeNodeDensity.circleSize,
+                minWidth: activeNodeDensity.circleSize,
+                maxWidth: activeNodeDensity.circleSize,
+              }
+            : {}),
+        },
         selected: index === 0 && nodeState === "selected",
         data: {
           ...item.data,
           state: index === 0 ? nodeState : "default",
           nodeShape,
+          connectionPointStyle,
+          collapseControlStyle,
         },
       })),
-    [activeNodeShape.nodeStyle, laidOutScenario.nodes, nodeShape, nodeState],
+    [
+      activeNodeDensity.circleSize,
+      collapseControlStyle,
+      connectionPointStyle,
+      laidOutScenario.nodes,
+      nodeShape,
+      nodeState,
+    ],
   );
   const edges = useMemo<WorkspaceLabEdge[]>(
     () =>
@@ -224,9 +277,10 @@ function WorkspacePreview({
         data: {
           ...item.data,
           state: index === 0 ? edgeState : "default",
+          edgeStyle,
         },
       })),
-    [edgeState, laidOutScenario.edges],
+    [edgeState, edgeStyle, laidOutScenario.edges],
   );
 
   return (
@@ -265,7 +319,10 @@ function WorkspacePreview({
           <div className="flex min-h-0 flex-1">
             {showLeftPanel ? <PreviewLeftPanel /> : null}
 
-            <div className={`${styles.canvas} relative min-h-0 min-w-0 flex-1`}>
+            <div
+              className={`${styles.canvas} relative min-h-0 min-w-0 flex-1`}
+              data-canvas={canvasStyle}
+            >
               {scenario.nodes.length === 0 ? (
                 <div className="absolute inset-0 z-10 grid place-items-center pointer-events-none">
                   <div className="rounded-2xl border border-dashed border-slate-300 bg-white/80 px-8 py-7 text-center backdrop-blur">
@@ -283,7 +340,7 @@ function WorkspacePreview({
               ) : null}
 
               <ReactFlow
-                key={`${scenario.id}-${layoutMode}-${nodeShape}`}
+                key={`${scenario.id}-${layoutMode}-${layoutSpacing}-${nodeShape}-${density}-${connectionPointStyle}-${collapseControlStyle}-${canvasStyle}-${edgeStyle}`}
                 nodes={nodes}
                 edges={edges}
                 nodeTypes={nodeTypes}
@@ -297,11 +354,9 @@ function WorkspacePreview({
                 zoomOnScroll
                 proOptions={{ hideAttribution: true }}
               >
-                <Background
-                  variant={BackgroundVariant.Dots}
-                  gap={20}
-                  size={1}
-                />
+                {activeCanvasStyle.background ? (
+                  <Background {...activeCanvasStyle.background} />
+                ) : null}
                 {showToolbar ? (
                   <Panel position="top-center">
                     <PreviewToolbar />
@@ -328,8 +383,16 @@ export function WorkspaceLab() {
     useState<WorkspaceLabScenario["id"]>("balanced");
   const [nodeState, setNodeState] = useState<LabNodeState>("selected");
   const [edgeState, setEdgeState] = useState<LabEdgeState>("default");
+  const [edgeStyle, setEdgeStyle] = useState<LabEdgeStyle>("fine");
   const [layoutMode, setLayoutMode] = useState<LabLayoutMode>("vertical");
+  const [layoutSpacing, setLayoutSpacing] =
+    useState<LabLayoutSpacing>("balanced");
   const [nodeShape, setNodeShape] = useState<LabNodeShape>("rounded");
+  const [connectionPointStyle, setConnectionPointStyle] =
+    useState<LabConnectionPointStyle>("dot");
+  const [collapseControlStyle, setCollapseControlStyle] =
+    useState<LabCollapseControlStyle>("floating");
+  const [canvasStyle, setCanvasStyle] = useState<LabCanvasStyle>("dots");
   const [theme, setTheme] = useState<LabTheme>("quiet");
   const [density, setDensity] = useState<LabDensity>("comfortable");
   const [viewport, setViewport] = useState<LabViewport>("desktop");
@@ -342,20 +405,30 @@ export function WorkspaceLab() {
     workspaceLabScenarios.find((item) => item.id === scenarioId) ??
     workspaceLabScenarios[0];
   const activeTheme = getWorkspaceLabTheme(theme);
+  const activeNodeDensity = getWorkspaceLabNodeDensity(density);
 
   return (
     <main
       className={`${styles.lab} flex h-full min-h-0 w-full bg-slate-100`}
       data-theme={theme}
       data-density={density}
-      style={getWorkspaceLabThemeStyle(activeTheme)}
+      style={{
+        ...getWorkspaceLabThemeStyle(activeTheme),
+        ...getWorkspaceLabNodeDensityStyle(activeNodeDensity),
+      }}
     >
       <WorkspacePreview
         scenario={scenario}
         nodeState={nodeState}
         edgeState={edgeState}
+        edgeStyle={edgeStyle}
         layoutMode={layoutMode}
+        layoutSpacing={layoutSpacing}
         nodeShape={nodeShape}
+        connectionPointStyle={connectionPointStyle}
+        collapseControlStyle={collapseControlStyle}
+        canvasStyle={canvasStyle}
+        density={density}
         viewport={viewport}
         showLeftPanel={showLeftPanel}
         showRightPanel={showRightPanel}
@@ -368,8 +441,13 @@ export function WorkspaceLab() {
         scenarioId={scenarioId}
         nodeState={nodeState}
         edgeState={edgeState}
+        edgeStyle={edgeStyle}
         layoutMode={layoutMode}
+        layoutSpacing={layoutSpacing}
         nodeShape={nodeShape}
+        connectionPointStyle={connectionPointStyle}
+        collapseControlStyle={collapseControlStyle}
+        canvasStyle={canvasStyle}
         theme={theme}
         density={density}
         viewport={viewport}
@@ -380,8 +458,13 @@ export function WorkspaceLab() {
         onScenarioChange={setScenarioId}
         onNodeStateChange={setNodeState}
         onEdgeStateChange={setEdgeState}
+        onEdgeStyleChange={setEdgeStyle}
         onLayoutModeChange={setLayoutMode}
+        onLayoutSpacingChange={setLayoutSpacing}
         onNodeShapeChange={setNodeShape}
+        onConnectionPointStyleChange={setConnectionPointStyle}
+        onCollapseControlStyleChange={setCollapseControlStyle}
+        onCanvasStyleChange={setCanvasStyle}
         onThemeChange={setTheme}
         onDensityChange={setDensity}
         onViewportChange={setViewport}

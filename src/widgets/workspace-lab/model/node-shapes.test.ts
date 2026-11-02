@@ -15,13 +15,9 @@ describe("workspaceLabNodeShapes", () => {
     expect(getWorkspaceLabNodeShape("rounded").name).toBe("둥근 사각형");
   });
 
-  it("원형 노드에 동일한 너비와 최소·최대 너비를 제공한다", () => {
+  it("원형 노드 정의를 조회한다", () => {
     const circle = getWorkspaceLabNodeShape("circle");
 
-    expect(circle.nodeStyle).toEqual({
-      width: 112,
-      minWidth: 112,
-      maxWidth: 112,
-    });
+    expect(circle.name).toBe("원형");
   });
 });

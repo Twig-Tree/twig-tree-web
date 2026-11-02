@@ -5,6 +5,7 @@ import {
   type EdgeProps,
 } from "@xyflow/react";
 import type { WorkspaceLabEdge } from "../model/types";
+import { workspaceLabSmoothStepRouting } from "../model/edge-routing";
 
 export function WorkspaceLabEdge({
   id,
@@ -28,7 +29,11 @@ export function WorkspaceLabEdge({
   const [path] =
     data?.path === "bezier"
       ? getBezierPath(pathParams)
-      : getSmoothStepPath({ ...pathParams, borderRadius: 16 });
+      : getSmoothStepPath({
+          ...pathParams,
+          borderRadius: workspaceLabSmoothStepRouting.borderRadius,
+          offset: workspaceLabSmoothStepRouting.offset,
+        });
 
   return (
     <BaseEdge
@@ -37,6 +42,7 @@ export function WorkspaceLabEdge({
       markerEnd={markerEnd}
       className="workspace-lab-edge"
       data-state={data?.state ?? "default"}
+      data-style={data?.edgeStyle ?? "fine"}
     />
   );
 }

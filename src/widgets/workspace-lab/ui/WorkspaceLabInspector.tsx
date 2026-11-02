@@ -1,14 +1,24 @@
 import type {
+  LabCanvasStyle,
+  LabCollapseControlStyle,
+  LabConnectionPointStyle,
   LabDensity,
   LabEdgeState,
+  LabEdgeStyle,
   LabLayoutMode,
+  LabLayoutSpacing,
   LabNodeShape,
   LabNodeState,
   LabTheme,
   LabViewport,
   WorkspaceLabScenario,
 } from "../model/types";
-import { getWorkspaceLabLayout, workspaceLabLayouts } from "../model/layouts";
+import {
+  getWorkspaceLabLayout,
+  getWorkspaceLabLayoutSpacing,
+  workspaceLabLayouts,
+  workspaceLabLayoutSpacings,
+} from "../model/layouts";
 import {
   getWorkspaceLabNodeShape,
   workspaceLabNodeShapes,
@@ -18,14 +28,31 @@ import {
   getWorkspaceLabThemePalette,
   workspaceLabThemes,
 } from "../model/themes";
+import {
+  getWorkspaceLabCanvasStyle,
+  getWorkspaceLabCollapseControlStyle,
+  getWorkspaceLabConnectionPointStyle,
+  getWorkspaceLabEdgeStyle,
+  getWorkspaceLabNodeDensity,
+  workspaceLabCanvasStyles,
+  workspaceLabCollapseControlStyles,
+  workspaceLabConnectionPointStyles,
+  workspaceLabEdgeStyles,
+  workspaceLabNodeDensities,
+} from "../model/visual-slots";
 
 type WorkspaceLabInspectorProps = {
   scenarios: WorkspaceLabScenario[];
   scenarioId: WorkspaceLabScenario["id"];
   nodeState: LabNodeState;
   edgeState: LabEdgeState;
+  edgeStyle: LabEdgeStyle;
   layoutMode: LabLayoutMode;
+  layoutSpacing: LabLayoutSpacing;
   nodeShape: LabNodeShape;
+  connectionPointStyle: LabConnectionPointStyle;
+  collapseControlStyle: LabCollapseControlStyle;
+  canvasStyle: LabCanvasStyle;
   theme: LabTheme;
   density: LabDensity;
   viewport: LabViewport;
@@ -36,8 +63,13 @@ type WorkspaceLabInspectorProps = {
   onScenarioChange: (value: WorkspaceLabScenario["id"]) => void;
   onNodeStateChange: (value: LabNodeState) => void;
   onEdgeStateChange: (value: LabEdgeState) => void;
+  onEdgeStyleChange: (value: LabEdgeStyle) => void;
   onLayoutModeChange: (value: LabLayoutMode) => void;
+  onLayoutSpacingChange: (value: LabLayoutSpacing) => void;
   onNodeShapeChange: (value: LabNodeShape) => void;
+  onConnectionPointStyleChange: (value: LabConnectionPointStyle) => void;
+  onCollapseControlStyleChange: (value: LabCollapseControlStyle) => void;
+  onCanvasStyleChange: (value: LabCanvasStyle) => void;
   onThemeChange: (value: LabTheme) => void;
   onDensityChange: (value: LabDensity) => void;
   onViewportChange: (value: LabViewport) => void;
@@ -120,8 +152,13 @@ export function WorkspaceLabInspector({
   scenarioId,
   nodeState,
   edgeState,
+  edgeStyle,
   layoutMode,
+  layoutSpacing,
   nodeShape,
+  connectionPointStyle,
+  collapseControlStyle,
+  canvasStyle,
   theme,
   density,
   viewport,
@@ -132,8 +169,13 @@ export function WorkspaceLabInspector({
   onScenarioChange,
   onNodeStateChange,
   onEdgeStateChange,
+  onEdgeStyleChange,
   onLayoutModeChange,
+  onLayoutSpacingChange,
   onNodeShapeChange,
+  onConnectionPointStyleChange,
+  onCollapseControlStyleChange,
+  onCanvasStyleChange,
   onThemeChange,
   onDensityChange,
   onViewportChange,
@@ -145,7 +187,15 @@ export function WorkspaceLabInspector({
   const currentScenario = scenarios.find((item) => item.id === scenarioId);
   const currentTheme = getWorkspaceLabTheme(theme);
   const currentLayout = getWorkspaceLabLayout(layoutMode);
+  const currentLayoutSpacing = getWorkspaceLabLayoutSpacing(layoutSpacing);
   const currentNodeShape = getWorkspaceLabNodeShape(nodeShape);
+  const currentNodeDensity = getWorkspaceLabNodeDensity(density);
+  const currentCanvasStyle = getWorkspaceLabCanvasStyle(canvasStyle);
+  const currentEdgeStyle = getWorkspaceLabEdgeStyle(edgeStyle);
+  const currentConnectionPointStyle =
+    getWorkspaceLabConnectionPointStyle(connectionPointStyle);
+  const currentCollapseControlStyle =
+    getWorkspaceLabCollapseControlStyle(collapseControlStyle);
   const themePalette = getWorkspaceLabThemePalette(currentTheme);
 
   return (
@@ -185,11 +235,23 @@ export function WorkspaceLabInspector({
             }))}
             onChange={onLayoutModeChange}
           />
+          <SelectField
+            label="배치 간격"
+            value={layoutSpacing}
+            options={workspaceLabLayoutSpacings.map((item) => ({
+              value: item.id,
+              label: item.name,
+            }))}
+            onChange={onLayoutSpacingChange}
+          />
           <p className="text-xs leading-5 text-slate-500">
             {currentScenario?.description}
           </p>
           <p className="text-xs leading-5 text-slate-500">
             {currentLayout.description}
+          </p>
+          <p className="text-xs leading-5 text-slate-500">
+            {currentLayoutSpacing.description}
           </p>
         </section>
 
@@ -240,6 +302,33 @@ export function WorkspaceLabInspector({
             </p>
           </div>
           <SelectField
+            label="캔버스"
+            value={canvasStyle}
+            options={workspaceLabCanvasStyles.map((item) => ({
+              value: item.id,
+              label: item.name,
+            }))}
+            onChange={onCanvasStyleChange}
+          />
+          <p className="text-[11px] leading-4 text-slate-500">
+            {currentCanvasStyle.description}
+          </p>
+          <SelectField
+            label="뷰포트"
+            value={viewport}
+            options={[
+              { value: "desktop", label: "Desktop" },
+              { value: "compact", label: "Compact" },
+            ]}
+            onChange={onViewportChange}
+          />
+        </section>
+
+        <section className="space-y-3 border-t border-slate-100 pt-5">
+          <h3 className="text-xs font-semibold tracking-wide text-slate-400 uppercase">
+            Node
+          </h3>
+          <SelectField
             label="노드 모양"
             value={nodeShape}
             options={workspaceLabNodeShapes.map((item) => ({
@@ -252,23 +341,59 @@ export function WorkspaceLabInspector({
             {currentNodeShape.description}
           </p>
           <SelectField
-            label="밀도"
+            label="노드 밀도"
             value={density}
-            options={[
-              { value: "comfortable", label: "Comfortable" },
-              { value: "compact", label: "Compact" },
-            ]}
+            options={workspaceLabNodeDensities.map((item) => ({
+              value: item.id,
+              label: item.name,
+            }))}
             onChange={onDensityChange}
           />
+          <p className="text-[11px] leading-4 text-slate-500">
+            {currentNodeDensity.description}
+          </p>
           <SelectField
-            label="뷰포트"
-            value={viewport}
-            options={[
-              { value: "desktop", label: "Desktop" },
-              { value: "compact", label: "Compact" },
-            ]}
-            onChange={onViewportChange}
+            label="접기 버튼"
+            value={collapseControlStyle}
+            options={workspaceLabCollapseControlStyles.map((item) => ({
+              value: item.id,
+              label: item.name,
+            }))}
+            onChange={onCollapseControlStyleChange}
           />
+          <p className="text-[11px] leading-4 text-slate-500">
+            {currentCollapseControlStyle.description}
+          </p>
+        </section>
+
+        <section className="space-y-3 border-t border-slate-100 pt-5">
+          <h3 className="text-xs font-semibold tracking-wide text-slate-400 uppercase">
+            Connection
+          </h3>
+          <SelectField
+            label="연결선"
+            value={edgeStyle}
+            options={workspaceLabEdgeStyles.map((item) => ({
+              value: item.id,
+              label: item.name,
+            }))}
+            onChange={onEdgeStyleChange}
+          />
+          <p className="text-[11px] leading-4 text-slate-500">
+            {currentEdgeStyle.description}
+          </p>
+          <SelectField
+            label="연결 포인트"
+            value={connectionPointStyle}
+            options={workspaceLabConnectionPointStyles.map((item) => ({
+              value: item.id,
+              label: item.name,
+            }))}
+            onChange={onConnectionPointStyleChange}
+          />
+          <p className="text-[11px] leading-4 text-slate-500">
+            {currentConnectionPointStyle.description}
+          </p>
         </section>
 
         <section className="space-y-2 border-t border-slate-100 pt-5">
