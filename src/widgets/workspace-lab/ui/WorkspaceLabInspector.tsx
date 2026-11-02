@@ -1,17 +1,31 @@
 import type {
   LabDensity,
   LabEdgeState,
+  LabLayoutMode,
+  LabNodeShape,
   LabNodeState,
   LabTheme,
   LabViewport,
   WorkspaceLabScenario,
 } from "../model/types";
+import { getWorkspaceLabLayout, workspaceLabLayouts } from "../model/layouts";
+import {
+  getWorkspaceLabNodeShape,
+  workspaceLabNodeShapes,
+} from "../model/node-shapes";
+import {
+  getWorkspaceLabTheme,
+  getWorkspaceLabThemePalette,
+  workspaceLabThemes,
+} from "../model/themes";
 
 type WorkspaceLabInspectorProps = {
   scenarios: WorkspaceLabScenario[];
   scenarioId: WorkspaceLabScenario["id"];
   nodeState: LabNodeState;
   edgeState: LabEdgeState;
+  layoutMode: LabLayoutMode;
+  nodeShape: LabNodeShape;
   theme: LabTheme;
   density: LabDensity;
   viewport: LabViewport;
@@ -22,6 +36,8 @@ type WorkspaceLabInspectorProps = {
   onScenarioChange: (value: WorkspaceLabScenario["id"]) => void;
   onNodeStateChange: (value: LabNodeState) => void;
   onEdgeStateChange: (value: LabEdgeState) => void;
+  onLayoutModeChange: (value: LabLayoutMode) => void;
+  onNodeShapeChange: (value: LabNodeShape) => void;
   onThemeChange: (value: LabTheme) => void;
   onDensityChange: (value: LabDensity) => void;
   onViewportChange: (value: LabViewport) => void;
@@ -104,6 +120,8 @@ export function WorkspaceLabInspector({
   scenarioId,
   nodeState,
   edgeState,
+  layoutMode,
+  nodeShape,
   theme,
   density,
   viewport,
@@ -114,6 +132,8 @@ export function WorkspaceLabInspector({
   onScenarioChange,
   onNodeStateChange,
   onEdgeStateChange,
+  onLayoutModeChange,
+  onNodeShapeChange,
   onThemeChange,
   onDensityChange,
   onViewportChange,
@@ -123,6 +143,10 @@ export function WorkspaceLabInspector({
   onShowPlayerChange,
 }: WorkspaceLabInspectorProps) {
   const currentScenario = scenarios.find((item) => item.id === scenarioId);
+  const currentTheme = getWorkspaceLabTheme(theme);
+  const currentLayout = getWorkspaceLabLayout(layoutMode);
+  const currentNodeShape = getWorkspaceLabNodeShape(nodeShape);
+  const themePalette = getWorkspaceLabThemePalette(currentTheme);
 
   return (
     <aside className="workspace-lab-inspector flex h-full w-72 shrink-0 flex-col border-l border-slate-200 bg-white">
@@ -133,6 +157,9 @@ export function WorkspaceLabInspector({
         <h2 className="mt-1 text-base font-semibold text-slate-950">
           Workspace UI
         </h2>
+        <p className="mt-1 text-xs leading-5 text-slate-500">
+          {currentTheme.name}
+        </p>
       </header>
 
       <div className="min-h-0 flex-1 space-y-5 overflow-y-auto p-5">
@@ -149,8 +176,20 @@ export function WorkspaceLabInspector({
             }))}
             onChange={onScenarioChange}
           />
+          <SelectField
+            label="트리 전개"
+            value={layoutMode}
+            options={workspaceLabLayouts.map((item) => ({
+              value: item.id,
+              label: item.name,
+            }))}
+            onChange={onLayoutModeChange}
+          />
           <p className="text-xs leading-5 text-slate-500">
             {currentScenario?.description}
+          </p>
+          <p className="text-xs leading-5 text-slate-500">
+            {currentLayout.description}
           </p>
         </section>
 
@@ -179,13 +218,39 @@ export function WorkspaceLabInspector({
           <SelectField
             label="테마"
             value={theme}
-            options={[
-              { value: "neutral", label: "Neutral" },
-              { value: "soft", label: "Soft" },
-              { value: "contrast", label: "High contrast" },
-            ]}
+            options={workspaceLabThemes.map((item) => ({
+              value: item.id,
+              label: item.name,
+            }))}
             onChange={onThemeChange}
           />
+          <div className="rounded-xl border border-slate-200 bg-slate-50 p-3">
+            <div className="flex items-center gap-2">
+              {themePalette.map((swatch) => (
+                <span
+                  key={swatch.label}
+                  className="size-6 rounded-full border border-black/10 shadow-sm"
+                  style={{ backgroundColor: swatch.color }}
+                  title={`${swatch.label} ${swatch.color}`}
+                />
+              ))}
+            </div>
+            <p className="mt-2 text-[11px] leading-4 text-slate-500">
+              {currentTheme.description}
+            </p>
+          </div>
+          <SelectField
+            label="노드 모양"
+            value={nodeShape}
+            options={workspaceLabNodeShapes.map((item) => ({
+              value: item.id,
+              label: item.name,
+            }))}
+            onChange={onNodeShapeChange}
+          />
+          <p className="text-[11px] leading-4 text-slate-500">
+            {currentNodeShape.description}
+          </p>
           <SelectField
             label="밀도"
             value={density}

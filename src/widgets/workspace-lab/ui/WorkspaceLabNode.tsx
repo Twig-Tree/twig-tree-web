@@ -5,19 +5,43 @@ import type { WorkspaceLabNode } from "../model/types";
 export function WorkspaceLabNode({ data }: NodeProps<WorkspaceLabNode>) {
   const state = data.state ?? "default";
   const isEditing = state === "editing" || state === "error";
+  const layoutMode = data.layoutMode ?? "vertical";
+  const activeTargetPosition =
+    layoutMode === "horizontal" ? Position.Left : Position.Top;
+  const activeSourcePosition =
+    layoutMode === "horizontal" ? Position.Right : Position.Bottom;
+  const positions = [
+    Position.Top,
+    Position.Right,
+    Position.Bottom,
+    Position.Left,
+  ];
 
   return (
     <div
       className="workspace-lab-node"
       data-state={state}
       data-root={data.isRoot || undefined}
+      data-layout={layoutMode}
+      data-shape={data.nodeShape ?? "rounded"}
     >
-      <Handle
-        type="target"
-        position={Position.Top}
-        className="workspace-lab-handle"
-        style={{ visibility: data.isRoot ? "hidden" : "visible" }}
-      />
+      {positions.map((position) => (
+        <Handle
+          key={`target-${position}`}
+          id={`target-${position}`}
+          type="target"
+          position={position}
+          className="workspace-lab-handle"
+          style={{
+            visibility:
+              layoutMode !== "radial" &&
+              position === activeTargetPosition &&
+              !data.isRoot
+                ? "visible"
+                : "hidden",
+          }}
+        />
+      ))}
 
       <div className="workspace-lab-node__content">
         {isEditing ? (
@@ -54,11 +78,21 @@ export function WorkspaceLabNode({ data }: NodeProps<WorkspaceLabNode>) {
         ) : null}
       </div>
 
-      <Handle
-        type="source"
-        position={Position.Bottom}
-        className="workspace-lab-handle"
-      />
+      {positions.map((position) => (
+        <Handle
+          key={`source-${position}`}
+          id={`source-${position}`}
+          type="source"
+          position={position}
+          className="workspace-lab-handle"
+          style={{
+            visibility:
+              layoutMode !== "radial" && position === activeSourcePosition
+                ? "visible"
+                : "hidden",
+          }}
+        />
+      ))}
 
       {data.hasChildren ? (
         <button

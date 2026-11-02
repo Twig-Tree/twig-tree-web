@@ -11,6 +11,7 @@ import {
 } from "@xyflow/react";
 import {
   BookOpen,
+  Check,
   ChevronRight,
   Maximize2,
   MoreHorizontal,
@@ -18,13 +19,22 @@ import {
   Plus,
   Redo2,
   Search,
+  Share2,
   Undo2,
   X,
 } from "lucide-react";
+import { getWorkspaceLabLayout } from "../model/layouts";
+import { getWorkspaceLabNodeShape } from "../model/node-shapes";
 import { workspaceLabScenarios } from "../model/scenarios";
+import {
+  getWorkspaceLabTheme,
+  getWorkspaceLabThemeStyle,
+} from "../model/themes";
 import type {
   LabDensity,
   LabEdgeState,
+  LabLayoutMode,
+  LabNodeShape,
   LabNodeState,
   LabTheme,
   LabViewport,
@@ -42,9 +52,9 @@ const edgeTypes: EdgeTypes = { workspaceLab: WorkspaceLabEdgeView };
 
 function PreviewLeftPanel() {
   return (
-    <aside className="flex w-52 shrink-0 flex-col border-r border-slate-200 bg-white">
+    <aside className="workspace-preview-sidebar flex w-52 shrink-0 flex-col border-r border-slate-200 bg-white">
       <div className="border-b border-slate-100 p-3">
-        <label className="flex h-9 items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 px-3 text-xs text-slate-400">
+        <label className="workspace-preview-search flex h-9 items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 px-3 text-xs text-slate-400">
           <Search className="size-3.5" aria-hidden="true" />
           <span>노드 검색</span>
         </label>
@@ -57,7 +67,7 @@ function PreviewLeftPanel() {
           {["사용자 리서치", "정보 구조", "비주얼 시스템"].map((label) => (
             <li
               key={label}
-              className="flex items-center gap-1.5 rounded-md px-2 py-1.5 hover:bg-slate-50"
+              className="workspace-preview-outline-item flex items-center gap-1.5 rounded-md px-2 py-1.5 hover:bg-slate-50"
             >
               <ChevronRight className="size-3 text-slate-400" /> {label}
             </li>
@@ -72,7 +82,7 @@ function PreviewLeftPanel() {
           {["핵심", "검토 필요", "완료"].map((tag) => (
             <span
               key={tag}
-              className="rounded-full bg-slate-100 px-2 py-1 text-[10px] text-slate-600"
+              className="workspace-preview-tag rounded-full bg-slate-100 px-2 py-1 text-[10px] text-slate-600"
             >
               {tag}
             </span>
@@ -85,7 +95,7 @@ function PreviewLeftPanel() {
 
 function PreviewMemoPanel() {
   return (
-    <aside className="flex w-64 shrink-0 flex-col border-l border-slate-200 bg-white">
+    <aside className="workspace-preview-memo flex w-64 shrink-0 flex-col border-l border-slate-200 bg-white">
       <header className="flex h-14 items-center justify-between border-b border-slate-100 px-4">
         <div>
           <p className="text-[9px] font-semibold tracking-wider text-indigo-500 uppercase">
@@ -128,13 +138,13 @@ function PreviewToolbar() {
   ];
 
   return (
-    <div className="flex items-center gap-1 rounded-xl border border-slate-200 bg-white/95 p-1.5 shadow-lg backdrop-blur">
+    <div className="workspace-preview-toolbar flex items-center gap-1 rounded-xl border border-slate-200 bg-white/95 p-1.5 shadow-lg backdrop-blur">
       {items.map(({ label, icon: Icon }) => (
         <button
           key={label}
           type="button"
           aria-label={label}
-          className="grid size-8 place-items-center rounded-lg text-slate-500 hover:bg-slate-100 hover:text-indigo-600"
+          className="workspace-preview-toolbar-button grid size-8 place-items-center rounded-lg text-slate-500 hover:bg-slate-100 hover:text-indigo-600"
         >
           <Icon className="size-3.5" aria-hidden="true" />
         </button>
@@ -145,8 +155,8 @@ function PreviewToolbar() {
 
 function PreviewPlayer() {
   return (
-    <div className="flex min-w-72 items-center gap-3 rounded-xl border border-slate-200 bg-white/95 px-3 py-2 shadow-lg backdrop-blur">
-      <button className="grid size-8 place-items-center rounded-full bg-indigo-600 text-white">
+    <div className="workspace-preview-player flex min-w-72 items-center gap-3 rounded-xl border border-slate-200 bg-white/95 px-3 py-2 shadow-lg backdrop-blur">
+      <button className="workspace-preview-player-button grid size-8 place-items-center rounded-full bg-indigo-600 text-white">
         <Play className="ml-0.5 size-3.5 fill-current" />
         <span className="sr-only">강의 재생</span>
       </button>
@@ -169,6 +179,8 @@ function WorkspacePreview({
   scenario,
   nodeState,
   edgeState,
+  layoutMode,
+  nodeShape,
   viewport,
   showLeftPanel,
   showRightPanel,
@@ -178,34 +190,43 @@ function WorkspacePreview({
   scenario: WorkspaceLabScenario;
   nodeState: LabNodeState;
   edgeState: LabEdgeState;
+  layoutMode: LabLayoutMode;
+  nodeShape: LabNodeShape;
   viewport: LabViewport;
   showLeftPanel: boolean;
   showRightPanel: boolean;
   showToolbar: boolean;
   showPlayer: boolean;
 }) {
+  const laidOutScenario = useMemo(
+    () => getWorkspaceLabLayout(layoutMode).calculate(scenario),
+    [layoutMode, scenario],
+  );
+  const activeNodeShape = getWorkspaceLabNodeShape(nodeShape);
   const nodes = useMemo<WorkspaceLabNode[]>(
     () =>
-      scenario.nodes.map((item, index) => ({
+      laidOutScenario.nodes.map((item, index) => ({
         ...item,
+        style: { ...item.style, ...activeNodeShape.nodeStyle },
         selected: index === 0 && nodeState === "selected",
         data: {
           ...item.data,
           state: index === 0 ? nodeState : "default",
+          nodeShape,
         },
       })),
-    [nodeState, scenario.nodes],
+    [activeNodeShape.nodeStyle, laidOutScenario.nodes, nodeShape, nodeState],
   );
   const edges = useMemo<WorkspaceLabEdge[]>(
     () =>
-      scenario.edges.map((item, index) => ({
+      laidOutScenario.edges.map((item, index) => ({
         ...item,
         data: {
           ...item.data,
           state: index === 0 ? edgeState : "default",
         },
       })),
-    [edgeState, scenario.edges],
+    [edgeState, laidOutScenario.edges],
   );
 
   return (
@@ -216,7 +237,7 @@ function WorkspacePreview({
         aria-label="워크스페이스 UI 미리보기"
       >
         <div className="flex min-w-0 flex-1 flex-col">
-          <header className="flex h-12 shrink-0 items-center justify-between border-b border-slate-200 bg-white px-4">
+          <header className="workspace-preview-header flex h-12 shrink-0 items-center justify-between border-b border-slate-200 bg-white px-4">
             <div>
               <p className="text-[9px] font-medium tracking-wider text-slate-400 uppercase">
                 Workspace
@@ -225,9 +246,20 @@ function WorkspacePreview({
                 디지털 제품 디자인
               </h1>
             </div>
-            <span className="rounded-full bg-emerald-50 px-2 py-1 text-[10px] font-medium text-emerald-700">
-              Saved
-            </span>
+            <div className="flex items-center gap-2">
+              <span className="workspace-preview-saved flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-1 text-[10px] font-medium text-emerald-700">
+                <Check className="size-3" aria-hidden="true" /> Saved
+              </span>
+              <span className="workspace-preview-avatar grid size-7 place-items-center rounded-full bg-slate-900 text-[9px] font-semibold text-white">
+                SF
+              </span>
+              <button
+                type="button"
+                className="workspace-preview-share flex h-7 items-center gap-1.5 rounded-md border border-slate-200 px-2.5 text-[10px] font-medium text-slate-600"
+              >
+                <Share2 className="size-3" aria-hidden="true" /> 공유
+              </button>
+            </div>
           </header>
 
           <div className="flex min-h-0 flex-1">
@@ -251,7 +283,7 @@ function WorkspacePreview({
               ) : null}
 
               <ReactFlow
-                key={scenario.id}
+                key={`${scenario.id}-${layoutMode}-${nodeShape}`}
                 nodes={nodes}
                 edges={edges}
                 nodeTypes={nodeTypes}
@@ -294,9 +326,11 @@ function WorkspacePreview({
 export function WorkspaceLab() {
   const [scenarioId, setScenarioId] =
     useState<WorkspaceLabScenario["id"]>("balanced");
-  const [nodeState, setNodeState] = useState<LabNodeState>("default");
+  const [nodeState, setNodeState] = useState<LabNodeState>("selected");
   const [edgeState, setEdgeState] = useState<LabEdgeState>("default");
-  const [theme, setTheme] = useState<LabTheme>("neutral");
+  const [layoutMode, setLayoutMode] = useState<LabLayoutMode>("vertical");
+  const [nodeShape, setNodeShape] = useState<LabNodeShape>("rounded");
+  const [theme, setTheme] = useState<LabTheme>("quiet");
   const [density, setDensity] = useState<LabDensity>("comfortable");
   const [viewport, setViewport] = useState<LabViewport>("desktop");
   const [showLeftPanel, setShowLeftPanel] = useState(true);
@@ -307,17 +341,21 @@ export function WorkspaceLab() {
   const scenario =
     workspaceLabScenarios.find((item) => item.id === scenarioId) ??
     workspaceLabScenarios[0];
+  const activeTheme = getWorkspaceLabTheme(theme);
 
   return (
     <main
       className={`${styles.lab} flex h-full min-h-0 w-full bg-slate-100`}
       data-theme={theme}
       data-density={density}
+      style={getWorkspaceLabThemeStyle(activeTheme)}
     >
       <WorkspacePreview
         scenario={scenario}
         nodeState={nodeState}
         edgeState={edgeState}
+        layoutMode={layoutMode}
+        nodeShape={nodeShape}
         viewport={viewport}
         showLeftPanel={showLeftPanel}
         showRightPanel={showRightPanel}
@@ -330,6 +368,8 @@ export function WorkspaceLab() {
         scenarioId={scenarioId}
         nodeState={nodeState}
         edgeState={edgeState}
+        layoutMode={layoutMode}
+        nodeShape={nodeShape}
         theme={theme}
         density={density}
         viewport={viewport}
@@ -340,6 +380,8 @@ export function WorkspaceLab() {
         onScenarioChange={setScenarioId}
         onNodeStateChange={setNodeState}
         onEdgeStateChange={setEdgeState}
+        onLayoutModeChange={setLayoutMode}
+        onNodeShapeChange={setNodeShape}
         onThemeChange={setTheme}
         onDensityChange={setDensity}
         onViewportChange={setViewport}

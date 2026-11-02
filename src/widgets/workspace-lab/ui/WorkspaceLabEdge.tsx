@@ -1,4 +1,9 @@
-import { BaseEdge, getSmoothStepPath, type EdgeProps } from "@xyflow/react";
+import {
+  BaseEdge,
+  getBezierPath,
+  getSmoothStepPath,
+  type EdgeProps,
+} from "@xyflow/react";
 import type { WorkspaceLabEdge } from "../model/types";
 
 export function WorkspaceLabEdge({
@@ -12,15 +17,18 @@ export function WorkspaceLabEdge({
   markerEnd,
   data,
 }: EdgeProps<WorkspaceLabEdge>) {
-  const [path] = getSmoothStepPath({
+  const pathParams = {
     sourceX,
     sourceY,
     targetX,
     targetY,
     sourcePosition,
     targetPosition,
-    borderRadius: 16,
-  });
+  };
+  const [path] =
+    data?.path === "bezier"
+      ? getBezierPath(pathParams)
+      : getSmoothStepPath({ ...pathParams, borderRadius: 16 });
 
   return (
     <BaseEdge

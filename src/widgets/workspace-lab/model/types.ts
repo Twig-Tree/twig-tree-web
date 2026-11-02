@@ -12,7 +12,9 @@ export type LabNodeState =
 
 export type LabEdgeState = "default" | "active" | "traced";
 
-export type LabTheme = "neutral" | "soft" | "contrast";
+export type { WorkspaceLabThemeId as LabTheme } from "./themes";
+export type { WorkspaceLabLayoutId as LabLayoutMode } from "./layouts";
+export type { WorkspaceLabNodeShapeId as LabNodeShape } from "./node-shapes";
 export type LabDensity = "comfortable" | "compact";
 export type LabViewport = "desktop" | "compact";
 
@@ -22,10 +24,13 @@ export type WorkspaceLabNodeData = {
   state?: LabNodeState;
   isRoot?: boolean;
   hasChildren?: boolean;
+  layoutMode?: "vertical" | "horizontal" | "radial";
+  nodeShape?: "square" | "rounded" | "circle";
 };
 
 export type WorkspaceLabEdgeData = {
   state?: LabEdgeState;
+  path?: "smoothstep" | "bezier";
 };
 
 export type WorkspaceLabNode = Node<WorkspaceLabNodeData, "workspaceLab">;
