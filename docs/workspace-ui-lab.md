@@ -67,7 +67,7 @@ minimum gap = offset × 2 + center clearance
 
 ### 캔버스 표면과 패턴을 분리한다
 
-테마의 `canvas` 토큰은 바탕색을 정하고, 캔버스 프리셋은 도트·라인·크로스·페이퍼 표현을 정한다. React Flow의 renderer는 투명하게 유지해야 루트에 적용된 배경과 페이퍼 질감이 가려지지 않는다.
+테마의 `canvas` 토큰은 바탕색을 정하고, 캔버스 프리셋은 패턴과 질감 표현을 정한다. 프리셋의 색도 테마 token에서 파생해 테마를 바꿔도 함께 따라간다. React Flow의 renderer는 투명하게 유지해야 루트에 적용된 배경과 페이퍼 질감이 가려지지 않는다.
 
 ### 프리셋은 조합으로 검증한다
 
@@ -92,7 +92,7 @@ minimum gap = offset × 2 + center clearance
 | Edge line        | 연결선의 기하와 표현을 독립적으로 조합  | 형태, 패턴, 두께, 색상, 투명도, 특수 효과 |
 | Connection point | 노드 연결 포트 표현                     | 도트, 링, 사각 포트, 숨김                 |
 | Collapse control | 하위 트리 접기 버튼 표현                | 플로팅 원형, 하단 노치, 인라인 미니멀     |
-| Canvas           | 캔버스 패턴과 질감                      | 도트, 라인, 크로스, 페이퍼                |
+| Canvas           | 캔버스 패턴과 질감                      | 도트, 라인, 모눈, 크로스, 페이퍼, 무지 등 |
 | State            | 노드와 연결선의 상태 표현               | selected, editing, traced 등              |
 | Regions          | 주변 Workspace UI 노출                  | 좌우 패널, 툴바, 플레이어, viewport       |
 

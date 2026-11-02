@@ -109,6 +109,21 @@
   background: transparent;
 }
 
+.canvas[data-canvas="spotlight"] :global(.react-flow) {
+  background-color: var(--lab-canvas);
+  background-image:
+    radial-gradient(
+      ellipse at 50% 42%,
+      color-mix(in srgb, var(--lab-surface) 72%, transparent) 0,
+      transparent 58%
+    ),
+    radial-gradient(
+      ellipse at 50% 50%,
+      transparent 52%,
+      color-mix(in srgb, var(--lab-edge) 14%, transparent) 100%
+    );
+}
+
 .canvas[data-canvas="paper"] :global(.react-flow) {
   background-color: var(--lab-canvas);
   background-image:
@@ -447,15 +462,6 @@
     .workspace-lab-node[data-connection-point="hidden"] .workspace-lab-handle
   ) {
   opacity: 0;
-}
-
-.canvas :global(.react-flow__background pattern circle) {
-  fill: color-mix(in srgb, var(--lab-edge) 32%, transparent);
-}
-
-.canvas :global(.react-flow__background pattern path) {
-  stroke: color-mix(in srgb, var(--lab-edge) 28%, transparent);
-  fill: color-mix(in srgb, var(--lab-edge) 28%, transparent);
 }
 
 @keyframes lab-edge-trace {

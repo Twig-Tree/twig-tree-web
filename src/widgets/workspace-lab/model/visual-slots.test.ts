@@ -26,8 +26,20 @@ describe("workspaceLab visual slots", () => {
     }
   });
 
-  it("페이퍼 캔버스는 React Flow 패턴을 사용하지 않는다", () => {
-    expect(getWorkspaceLabCanvasStyle("paper").background).toBeUndefined();
+  it("CSS로 표현하는 캔버스는 React Flow 패턴을 사용하지 않는다", () => {
+    for (const id of ["paper", "spotlight", "plain"] as const) {
+      expect(getWorkspaceLabCanvasStyle(id).backgrounds).toBeUndefined();
+    }
+  });
+
+  it("모눈의 주선이 보조선과 같은 좌표에 그어진다", () => {
+    const [minor, major] =
+      getWorkspaceLabCanvasStyle("graph").backgrounds ?? [];
+    const getFirstLine = (gap: number) => gap / 2;
+
+    expect(
+      (getFirstLine(major.gap) - getFirstLine(minor.gap)) % minor.gap,
+    ).toBe(0);
   });
 
   it("노드 밀도에 따라 원형 노드 직경이 커진다", () => {

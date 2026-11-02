@@ -132,12 +132,16 @@ Registry 배열에서 literal union 타입과 Inspector 옵션을 파생한다. 
 
 ### 캔버스 추가
 
-React Flow의 `Background`로 표현 가능한 패턴은 `WorkspaceLabCanvasStyleDefinition.background`에 정의한다. 별도 질감이 필요한 프리셋은 root의 `data-canvas-style`과 CSS로 표현한다.
+React Flow의 `Background`로 표현 가능한 패턴은 `WorkspaceLabCanvasStyleDefinition.backgrounds`에 레이어 배열로 정의한다. 모눈처럼 보조선과 주선을 겹치는 프리셋은 레이어를 여러 개 둔다. 별도 질감이 필요한 프리셋은 캔버스의 `data-canvas`와 CSS로 표현한다.
+
+패턴 색은 레이어 정의의 `color`가 정한다. CSS에서 `.react-flow__background`의 `fill`이나 `stroke`를 덮어쓰면 프리셋별 색 차이가 사라지므로 추가하지 않는다.
+
+CSS 질감은 viewport와 함께 움직이지 않는다. 이동·확대 기준이 되어야 하는 패턴은 `Background` 레이어로 만들고, 시선 유도나 종이 결처럼 화면에 고정되어도 되는 표현만 CSS로 둔다.
 
 레이어 책임은 다음과 같다.
 
 - React Flow root: 테마의 캔버스 색과 별도 질감
-- React Flow `Background`: 도트, 라인, 크로스 패턴
+- React Flow `Background`: 도트, 라인, 크로스 패턴 레이어
 - `.react-flow__renderer`: 투명 유지
 
 renderer에 불투명 배경을 주면 root의 페이퍼 질감이 가려지므로 추가하지 않는다.
@@ -155,7 +159,7 @@ renderer에 불투명 배경을 주면 root의 페이퍼 질감이 가려지므�
 - 세로, 가로, 방사형 배치를 모두 확인한다.
 - Compact와 Spacious 밀도에서 노드가 겹치지 않는지 확인한다.
 - 세로 + 촘촘하게 + 원형 노드에서 직각 연결선이 불필요하게 여러 번 꺾이지 않는지 확인한다.
-- 도트, 라인, 크로스, 페이퍼 캔버스가 실제로 구분되어 보이는지 확인한다.
+- 각 캔버스 프리셋이 실제로 구분되어 보이는지 확인한다.
 - 빈 시나리오와 compact viewport를 확인한다.
 - registry의 ID 중복과 fallback 동작을 단위 테스트한다.
 

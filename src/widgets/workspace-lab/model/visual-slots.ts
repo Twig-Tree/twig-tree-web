@@ -8,13 +8,20 @@ interface VisualSlotDefinition {
   description: string;
 }
 
+export interface WorkspaceLabCanvasBackgroundLayer {
+  variant: BackgroundVariant;
+  gap: number;
+  size?: number; // 도트 지름과 크로스 길이
+  lineWidth?: number; // 라인과 크로스 두께
+  color: string;
+}
+
 export interface WorkspaceLabCanvasStyleDefinition extends VisualSlotDefinition {
-  background?: {
-    variant: BackgroundVariant;
-    gap: number;
-    size: number;
-    color: string;
-  };
+  /*
+  아래에서 위 순서로 쌓는 React Flow 패턴 레이어다.
+  비어 있으면 root의 테마 캔버스 색과 CSS 질감만 보인다.
+  */
+  backgrounds?: readonly WorkspaceLabCanvasBackgroundLayer[];
 }
 
 export interface WorkspaceLabNodeDensityDefinition extends VisualSlotDefinition {
@@ -72,39 +79,117 @@ export const workspaceLabCanvasStyles = [
     id: "dots",
     name: "도트 그리드",
     description: "배치 기준을 제공하는 가벼운 점 패턴입니다.",
-    background: {
-      variant: BackgroundVariant.Dots,
-      gap: 20,
-      size: 1,
-      color: "color-mix(in srgb, var(--lab-edge) 30%, transparent)",
-    },
+    backgrounds: [
+      {
+        variant: BackgroundVariant.Dots,
+        gap: 20,
+        size: 1,
+        color: "color-mix(in srgb, var(--lab-edge) 32%, transparent)",
+      },
+    ],
+  },
+  {
+    id: "fine-dots",
+    name: "촘촘한 도트",
+    description: "작은 점을 좁게 깔아 고밀도 트리에서도 결만 남깁니다.",
+    backgrounds: [
+      {
+        variant: BackgroundVariant.Dots,
+        gap: 12,
+        size: 0.8,
+        color: "color-mix(in srgb, var(--lab-edge) 24%, transparent)",
+      },
+    ],
+  },
+  {
+    id: "bold-dots",
+    name: "큰 도트",
+    description: "넓은 간격의 굵은 점으로 확대해도 기준점이 또렷합니다.",
+    backgrounds: [
+      {
+        variant: BackgroundVariant.Dots,
+        gap: 32,
+        size: 2.2,
+        color: "color-mix(in srgb, var(--lab-edge) 36%, transparent)",
+      },
+    ],
   },
   {
     id: "grid",
     name: "라인 그리드",
     description: "구조 설계에 적합한 정방형 가이드입니다.",
-    background: {
-      variant: BackgroundVariant.Lines,
-      gap: 24,
-      size: 1,
-      color: "color-mix(in srgb, var(--lab-edge) 18%, transparent)",
-    },
+    backgrounds: [
+      {
+        variant: BackgroundVariant.Lines,
+        gap: 24,
+        lineWidth: 1,
+        color: "color-mix(in srgb, var(--lab-edge) 28%, transparent)",
+      },
+    ],
+  },
+  {
+    /*
+    Lines 패턴은 칸의 중앙에 선을 긋는다. 주선 간격을 보조선 간격의 홀수 배로 두어야
+    두 레이어의 선이 같은 좌표에서 겹친다.
+    */
+    id: "graph",
+    name: "모눈",
+    description: "가는 보조선과 굵은 주선으로 거리와 정렬을 가늠합니다.",
+    backgrounds: [
+      {
+        variant: BackgroundVariant.Lines,
+        gap: 16,
+        lineWidth: 0.5,
+        color: "color-mix(in srgb, var(--lab-edge) 16%, transparent)",
+      },
+      {
+        variant: BackgroundVariant.Lines,
+        gap: 80,
+        lineWidth: 1,
+        color: "color-mix(in srgb, var(--lab-edge) 30%, transparent)",
+      },
+    ],
+  },
+  {
+    id: "accent-grid",
+    name: "액센트 그리드",
+    description: "테마 강조색으로 옅게 그은 그리드입니다.",
+    backgrounds: [
+      {
+        variant: BackgroundVariant.Lines,
+        gap: 24,
+        lineWidth: 1,
+        color: "color-mix(in srgb, var(--lab-accent) 14%, transparent)",
+      },
+    ],
   },
   {
     id: "cross",
     name: "크로스 좌표",
     description: "넓은 공간에서도 위치를 짚기 쉬운 십자 패턴입니다.",
-    background: {
-      variant: BackgroundVariant.Cross,
-      gap: 28,
-      size: 1.5,
-      color: "color-mix(in srgb, var(--lab-edge) 24%, transparent)",
-    },
+    backgrounds: [
+      {
+        variant: BackgroundVariant.Cross,
+        gap: 28,
+        size: 1.5,
+        color: "color-mix(in srgb, var(--lab-edge) 28%, transparent)",
+      },
+    ],
   },
   {
     id: "paper",
     name: "페이퍼",
     description: "패턴을 줄이고 은은한 종이 결만 남긴 캔버스입니다.",
+  },
+  {
+    id: "spotlight",
+    name: "스포트라이트",
+    description: "가운데를 밝히고 가장자리를 눌러 트리에 시선을 모읍니다.",
+  },
+  {
+    id: "plain",
+    name: "무지",
+    description: "패턴과 질감 없이 테마 캔버스 색만 사용합니다.",
   },
 ] as const satisfies readonly WorkspaceLabCanvasStyleDefinition[];
 

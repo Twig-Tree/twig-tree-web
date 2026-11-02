@@ -458,9 +458,13 @@ function WorkspacePreview({
                 zoomOnScroll
                 proOptions={{ hideAttribution: true }}
               >
-                {activeCanvasStyle.background ? (
-                  <Background {...activeCanvasStyle.background} />
-                ) : null}
+                {activeCanvasStyle.backgrounds?.map((background, index) => (
+                  <Background
+                    key={index}
+                    id={`workspace-lab-canvas-${index}`}
+                    {...background}
+                  />
+                ))}
                 {showToolbar ? (
                   <Panel position="top-center">
                     <PreviewToolbar />
