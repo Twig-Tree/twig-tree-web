@@ -1,0 +1,192 @@
+import { useState } from "react";
+import {
+  getWorkspaceLabColorTokens,
+  isWorkspaceLabColorRolesModified,
+  workspaceLabAccentColors,
+  workspaceLabChromeColors,
+  workspaceLabColorContrasts,
+  workspaceLabDefaultColorRoles,
+  workspaceLabNeutralTones,
+  workspaceLabRootColors,
+  workspaceLabStatusColors,
+} from "../model/color-roles";
+import {
+  getWorkspaceLabTheme,
+  getWorkspaceLabThemePalette,
+  workspaceLabThemes,
+  type WorkspaceLabThemeTokens,
+} from "../model/themes";
+import type { LabColorRoles, LabTheme } from "../model/types";
+import {
+  SegmentedField,
+  SelectField,
+  SwatchField,
+  type SwatchOption,
+} from "./WorkspaceLabFields";
+
+type WorkspaceLabColorSectionProps = {
+  theme: LabTheme; // 색 역할의 출발점이 되는 테마
+  colorRoles: LabColorRoles; // 테마 위에 덧씌운 역할별 선택
+  onThemeChange: (value: LabTheme) => void;
+  onColorRolesChange: (value: LabColorRoles) => void;
+};
+
+/*
+테마 기본 선택지는 자체 견본이 없으므로 현재 테마 토큰에서 같은 자리의 색을 꺼내 보여준다.
+*/
+const getSwatchOptions = <T extends string>(
+  options: ReadonlyArray<{
+    id: T;
+    name: string;
+    swatches?: readonly string[];
+  }>,
+  getThemeSwatches: () => readonly string[],
+): Array<SwatchOption<T>> =>
+  options.map((option) => ({
+    value: option.id,
+    label: option.name,
+    swatches: option.swatches ?? getThemeSwatches(),
+  }));
+
+const toSelectOptions = <T extends string>(
+  options: ReadonlyArray<{ id: T; name: string }>,
+) => options.map((option) => ({ value: option.id, label: option.name }));
+
+export function WorkspaceLabColorSection({
+  theme,
+  colorRoles,
+  onThemeChange,
+  onColorRolesChange,
+}: WorkspaceLabColorSectionProps) {
+  const [showDetail, setShowDetail] = useState(false);
+  const currentTheme = getWorkspaceLabTheme(theme);
+  const baseTokens: WorkspaceLabThemeTokens = currentTheme.tokens;
+  const tokens = getWorkspaceLabColorTokens(baseTokens, colorRoles);
+  const palette = getWorkspaceLabThemePalette({ ...currentTheme, tokens });
+  const isModified = isWorkspaceLabColorRolesModified(colorRoles);
+
+  const changeRole = <K extends keyof LabColorRoles>(
+    role: K,
+    value: LabColorRoles[K],
+  ) => onColorRolesChange({ ...colorRoles, [role]: value });
+
+  return (
+    <section className="space-y-3 border-t border-slate-100 pt-5">
+      <div className="flex items-center justify-between">
+        <h3 className="text-xs font-semibold tracking-wide text-slate-400 uppercase">
+          Color
+        </h3>
+        {isModified ? (
+          <button
+            type="button"
+            onClick={() =>
+              onColorRolesChange({ ...workspaceLabDefaultColorRoles })
+            }
+            className="flex items-center gap-1.5 rounded-full bg-amber-50 px-2 py-0.5 text-[11px] font-medium text-amber-700 hover:bg-amber-100"
+          >
+            <span className="size-1.5 rounded-full bg-amber-500" />
+            수정됨 · 초기화
+          </button>
+        ) : null}
+      </div>
+
+      <SelectField
+        label="기반 테마"
+        value={theme}
+        options={toSelectOptions(workspaceLabThemes)}
+        onChange={onThemeChange}
+      />
+      <div className="rounded-xl border border-slate-200 bg-slate-50 p-3">
+        <div className="flex items-center gap-2">
+          {palette.map((swatch) => (
+            <span
+              key={swatch.label}
+              className="size-6 rounded-full border border-black/10 shadow-sm"
+              style={{ backgroundColor: swatch.color }}
+              title={swatch.label}
+            />
+          ))}
+        </div>
+        <p className="mt-2 text-[11px] leading-4 text-slate-500">
+          {currentTheme.description}
+        </p>
+      </div>
+
+      <SwatchField
+        label="중립 톤"
+        value={colorRoles.neutral}
+        options={getSwatchOptions(workspaceLabNeutralTones, () => [
+          baseTokens.canvas,
+          baseTokens.surface,
+          baseTokens.text,
+        ])}
+        onChange={(value) => changeRole("neutral", value)}
+      />
+      <SwatchField
+        label="강조색"
+        value={colorRoles.accent}
+        options={getSwatchOptions(workspaceLabAccentColors, () => [
+          baseTokens.accent,
+        ])}
+        onChange={(value) => changeRole("accent", value)}
+      />
+      <SelectField
+        label="루트 노드"
+        value={colorRoles.root}
+        options={toSelectOptions(workspaceLabRootColors)}
+        onChange={(value) => changeRole("root", value)}
+      />
+      <SegmentedField
+        label="대비"
+        value={colorRoles.contrast}
+        options={[
+          ...toSelectOptions(workspaceLabColorContrasts).filter(
+            (option) => option.value === "low",
+          ),
+          { value: "theme", label: "기본" },
+          ...toSelectOptions(workspaceLabColorContrasts).filter(
+            (option) => option.value === "high",
+          ),
+        ]}
+        onChange={(value) => changeRole("contrast", value)}
+      />
+
+      <button
+        type="button"
+        aria-expanded={showDetail}
+        aria-controls="workspace-lab-color-detail"
+        onClick={() => setShowDetail((current) => !current)}
+        className="flex w-full items-center justify-between rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-left text-xs font-medium text-slate-700 transition-colors hover:border-indigo-200 hover:bg-indigo-50"
+      >
+        <span>세부 설정</span>
+        <span aria-hidden="true" className="text-slate-400">
+          {showDetail ? "접기 −" : "열기 +"}
+        </span>
+      </button>
+
+      {showDetail ? (
+        <div
+          id="workspace-lab-color-detail"
+          className="space-y-3 rounded-xl border border-slate-200 bg-slate-50/70 p-3"
+        >
+          <SwatchField
+            label="상태 색"
+            value={colorRoles.status}
+            options={getSwatchOptions(workspaceLabStatusColors, () => [
+              baseTokens.highlight,
+              baseTokens.lecture,
+              baseTokens.danger,
+            ])}
+            onChange={(value) => changeRole("status", value)}
+          />
+          <SelectField
+            label="크롬 (툴바·아바타)"
+            value={colorRoles.chrome}
+            options={toSelectOptions(workspaceLabChromeColors)}
+            onChange={(value) => changeRole("chrome", value)}
+          />
+        </div>
+      ) : null}
+    </section>
+  );
+}

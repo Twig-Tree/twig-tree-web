@@ -29,6 +29,7 @@ describe("workspaceLabThemes", () => {
       { label: "Surface", color: theme.tokens.surface },
       { label: "Ink", color: theme.tokens.text },
       { label: "Accent", color: theme.tokens.accent },
+      { label: "Root", color: theme.tokens.rootSurface },
     ]);
   });
 });

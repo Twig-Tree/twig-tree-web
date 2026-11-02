@@ -2,6 +2,7 @@ import { useState } from "react";
 import type {
   LabCanvasStyle,
   LabCollapseControlStyle,
+  LabColorRoles,
   LabConnectionPointStyle,
   LabDensity,
   LabEdgeState,
@@ -50,11 +51,7 @@ import {
   workspaceLabPanelSurfaces,
   workspaceLabPanelWidths,
 } from "../model/panels";
-import {
-  getWorkspaceLabTheme,
-  getWorkspaceLabThemePalette,
-  workspaceLabThemes,
-} from "../model/themes";
+import { getWorkspaceLabTheme } from "../model/themes";
 import {
   getWorkspaceLabCanvasStyle,
   getWorkspaceLabCollapseControlStyle,
@@ -65,6 +62,8 @@ import {
   workspaceLabConnectionPointStyles,
   workspaceLabNodeDensities,
 } from "../model/visual-slots";
+import { WorkspaceLabColorSection } from "./WorkspaceLabColorSection";
+import { SelectField, Toggle } from "./WorkspaceLabFields";
 
 type WorkspaceLabInspectorProps = {
   scenarios: WorkspaceLabScenario[];
@@ -79,6 +78,7 @@ type WorkspaceLabInspectorProps = {
   collapseControlStyle: LabCollapseControlStyle;
   canvasStyle: LabCanvasStyle;
   theme: LabTheme;
+  colorRoles: LabColorRoles;
   density: LabDensity;
   viewport: LabViewport;
   showLeftPanel: boolean;
@@ -98,6 +98,7 @@ type WorkspaceLabInspectorProps = {
   onCollapseControlStyleChange: (value: LabCollapseControlStyle) => void;
   onCanvasStyleChange: (value: LabCanvasStyle) => void;
   onThemeChange: (value: LabTheme) => void;
+  onColorRolesChange: (value: LabColorRoles) => void;
   onDensityChange: (value: LabDensity) => void;
   onViewportChange: (value: LabViewport) => void;
   onShowLeftPanelChange: (value: boolean) => void;
@@ -124,57 +125,6 @@ const edgeStates: Array<{ value: LabEdgeState; label: string }> = [
   { value: "active", label: "선택" },
   { value: "traced", label: "강의 추적" },
 ];
-
-function SelectField<T extends string>({
-  label,
-  value,
-  options,
-  onChange,
-}: {
-  label: string;
-  value: T;
-  options: Array<{ value: T; label: string }>;
-  onChange: (value: T) => void;
-}) {
-  return (
-    <label className="flex flex-col gap-1.5 text-xs font-medium text-slate-600">
-      {label}
-      <select
-        value={value}
-        onChange={(event) => onChange(event.target.value as T)}
-        className="h-9 rounded-lg border border-slate-200 bg-white px-2.5 text-sm text-slate-900 outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100"
-      >
-        {options.map((option) => (
-          <option key={option.value} value={option.value}>
-            {option.label}
-          </option>
-        ))}
-      </select>
-    </label>
-  );
-}
-
-function Toggle({
-  label,
-  checked,
-  onChange,
-}: {
-  label: string;
-  checked: boolean;
-  onChange: (value: boolean) => void;
-}) {
-  return (
-    <label className="flex cursor-pointer items-center justify-between gap-3 py-1 text-sm text-slate-700">
-      {label}
-      <input
-        type="checkbox"
-        checked={checked}
-        onChange={(event) => onChange(event.target.checked)}
-        className="size-4 accent-indigo-600"
-      />
-    </label>
-  );
-}
 
 type PanelStyleSectionProps = {
   title: string; // Inspector 구획 제목
@@ -289,6 +239,7 @@ export function WorkspaceLabInspector({
   collapseControlStyle,
   canvasStyle,
   theme,
+  colorRoles,
   density,
   viewport,
   showLeftPanel,
@@ -308,6 +259,7 @@ export function WorkspaceLabInspector({
   onCollapseControlStyleChange,
   onCanvasStyleChange,
   onThemeChange,
+  onColorRolesChange,
   onDensityChange,
   onViewportChange,
   onShowLeftPanelChange,
@@ -339,7 +291,6 @@ export function WorkspaceLabInspector({
     getWorkspaceLabConnectionPointStyle(connectionPointStyle);
   const currentCollapseControlStyle =
     getWorkspaceLabCollapseControlStyle(collapseControlStyle);
-  const themePalette = getWorkspaceLabThemePalette(currentTheme);
 
   const handleEdgePresetChange = (
     presetId: WorkspaceLabEdgeStylePresetSelection,
@@ -431,34 +382,17 @@ export function WorkspaceLabInspector({
           />
         </section>
 
+        <WorkspaceLabColorSection
+          theme={theme}
+          colorRoles={colorRoles}
+          onThemeChange={onThemeChange}
+          onColorRolesChange={onColorRolesChange}
+        />
+
         <section className="space-y-3 border-t border-slate-100 pt-5">
           <h3 className="text-xs font-semibold tracking-wide text-slate-400 uppercase">
             Appearance
           </h3>
-          <SelectField
-            label="테마"
-            value={theme}
-            options={workspaceLabThemes.map((item) => ({
-              value: item.id,
-              label: item.name,
-            }))}
-            onChange={onThemeChange}
-          />
-          <div className="rounded-xl border border-slate-200 bg-slate-50 p-3">
-            <div className="flex items-center gap-2">
-              {themePalette.map((swatch) => (
-                <span
-                  key={swatch.label}
-                  className="size-6 rounded-full border border-black/10 shadow-sm"
-                  style={{ backgroundColor: swatch.color }}
-                  title={`${swatch.label} ${swatch.color}`}
-                />
-              ))}
-            </div>
-            <p className="mt-2 text-[11px] leading-4 text-slate-500">
-              {currentTheme.description}
-            </p>
-          </div>
           <SelectField
             label="캔버스"
             value={canvasStyle}

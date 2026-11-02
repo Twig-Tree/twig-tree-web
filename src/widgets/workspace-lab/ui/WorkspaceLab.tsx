@@ -622,6 +622,7 @@ export function WorkspaceLab() {
         collapseControlStyle={collapseControlStyle}
         canvasStyle={canvasStyle}
         theme={theme}
+        colorRoles={colorRoles}
         density={density}
         viewport={viewport}
         showLeftPanel={showLeftPanel}
@@ -641,6 +642,7 @@ export function WorkspaceLab() {
         onCollapseControlStyleChange={setCollapseControlStyle}
         onCanvasStyleChange={setCanvasStyle}
         onThemeChange={handleThemeChange}
+        onColorRolesChange={setColorRoles}
         onDensityChange={setDensity}
         onViewportChange={setViewport}
         onShowLeftPanelChange={setShowLeftPanel}

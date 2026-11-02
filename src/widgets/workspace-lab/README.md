@@ -20,6 +20,8 @@ workspace-lab/
 ├── ui/
 │   ├── WorkspaceLab.tsx           # 상태 조합과 Preview
 │   ├── WorkspaceLabInspector.tsx  # 실험 옵션 제어판
+│   ├── WorkspaceLabColorSection.tsx  # 테마와 색 역할 제어
+│   ├── WorkspaceLabFields.tsx     # Inspector 공용 입력 컴포넌트
 │   ├── WorkspaceLabNode.tsx       # Lab 전용 node renderer
 │   ├── WorkspaceLabEdge.tsx       # Lab 전용 edge renderer
 │   └── WorkspaceLab.module.css    # token 소비와 slot 표현
@@ -68,6 +70,7 @@ Registry 배열에서 literal union 타입과 Inspector 옵션을 파생한다. 
 - `getWorkspaceLabColorTokens`는 neutral → accent → root → status → chrome → contrast 순서로 적용한다. 루트와 크롬이 새 강조색·중립 톤을 따라가고, 대비가 마지막 결과를 같은 비율로 조정하려면 이 순서를 지켜야 한다.
 - 강조색은 고정 목록 대신 이전 강조색과 같은 값을 쓰던 토큰을 모두 바꾼다. 테마마다 강조색을 쓰는 토큰이 다르기 때문이다.
 - 테마를 바꾸면 역할 선택은 테마 기본으로 돌아간다.
+- Inspector의 Color 구획은 역할이 하나라도 테마 기본이 아니면 `수정됨 · 초기화`를 보여준다. `테마 기본` 견본은 자체 색이 없으므로 현재 테마 토큰의 같은 자리 색을 보여준다.
 - 곡률과 그림자는 색이 아니므로 역할에서 다루지 않는다.
 
 ### 노드 모양 추가
