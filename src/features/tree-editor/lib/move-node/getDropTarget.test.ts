@@ -140,6 +140,26 @@ describe("getDropTarget", () => {
     expect(dropAt("c", 450, 220)).toBeNull();
   });
 
+  /*
+  하위 노드 d 바로 아래 30 거리에 다른 노드 e가 있어, 후보에서만 빼면 e가 기준이 된다.
+  */
+  it("하위 노드 상자 안에 놓으면 근처에 다른 노드가 있어도 놓을 수 없다", () => {
+    const nodesWithNeighbor = [...nodes, createNode("e", 400, 270)];
+
+    expect(
+      getDropTarget({
+        draggedClientId: "c",
+        point: { x: 450, y: 235 },
+        visibleNodes: nodesWithNeighbor,
+        nodes: nodesWithNeighbor,
+        edges: [
+          ...edges,
+          createEditorEdge({ sourceClientId: "b", targetClientId: "e" }),
+        ],
+      }),
+    ).toBeNull();
+  });
+
   it("원래 자리와 같으면 null이다", () => {
     expect(dropAt("b", 250, 38)).toBeNull();
     expect(dropAt("b", 250, 202)).toBeNull();

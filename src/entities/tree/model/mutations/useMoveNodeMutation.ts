@@ -28,7 +28,10 @@ export const useMoveNodeMutation = () => {
 
     /*
     이동은 옮긴 노드의 parentId와 양쪽 형제의 orderIndex를 함께 바꾼다. 응답에 바뀐 노드가 모두 들어 있으므로
-    무효화하지 않고 응답 노드로 캐시를 덮는다. 하위 노드는 parentId가 그대로라 바뀌지 않는다.
+    무효화하지 않고 응답으로 캐시를 갱신한다. 하위 노드는 parentId가 그대로라 바뀌지 않는다.
+
+    캐시에 있는 노드에는 이동이 바꾸는 parentId와 orderIndex만 합친다. 응답의 이름·메모·태그는 서버가 이동을 처리한
+    시점의 값이라, 그 사이 저장된 메모나 제목의 응답이 먼저 도착했다면 통째로 덮을 때 옛 값으로 돌아간다.
     캐시에 없는 노드는 다른 곳에서 만든 노드이므로 끝에 덧붙인다. 캐시는 배열 순서를 약속하지 않는다.
     */
     onSuccess: ({ siblings, previousSiblings }, { treeId }) => {
@@ -47,7 +50,17 @@ export const useMoveNodeMutation = () => {
           );
 
           return [
-            ...oldNodes.map((node) => movedNodeById.get(node.id) ?? node),
+            ...oldNodes.map((node) => {
+              const movedNode = movedNodeById.get(node.id);
+
+              return movedNode
+                ? {
+                    ...node,
+                    parentId: movedNode.parentId,
+                    orderIndex: movedNode.orderIndex,
+                  }
+                : node;
+            }),
             ...addedNodes,
           ];
         },

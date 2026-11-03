@@ -67,9 +67,21 @@ export const useTreeStore = create<TreeState>()(
         });
       },
 
+      /*
+      끌기가 아닌 위치 변경(dragging이 false)은 좌표를 반영하지 않는다. 노드의 좌표는 레이아웃이 정하고, 노드를 옮기는 일은
+      드래그를 놓았을 때의 노드 이동이 맡는다. 이 변경은 화살표 키 이동과 포인터 드래그의 끝에서 생긴다. 화살표 키 이동은
+      onNodeDragStop을 거치지 않아 반영하면 저장되지 않은 좌표가 남고, 포인터 드래그는 onNodeDragStop이 끌기 전 좌표로 되돌린다.
+      dragging 표시는 풀어야 하므로 변경을 버리지 않고 좌표만 뺀다.
+      */
       onNodesChange: (changes) => {
+        const nextChanges = changes.map((change) =>
+          change.type === "position" && !change.dragging
+            ? { ...change, position: undefined }
+            : change,
+        );
+
         set({
-          nodes: applyNodeChanges(changes, get().nodes),
+          nodes: applyNodeChanges(nextChanges, get().nodes),
         });
       },
 

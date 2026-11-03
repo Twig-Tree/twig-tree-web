@@ -251,3 +251,65 @@ describe("노드 이동 store action", () => {
     expect(useTreeStore.temporal.getState().pastStates).toHaveLength(1);
   });
 });
+
+describe("onNodesChange", () => {
+  beforeEach(() => {
+    useTreeStore.getState().initializeTree({
+      treeId: "5",
+      nodes: [createNode(1)],
+      edges: [],
+    });
+  });
+
+  afterEach(() => {
+    useTreeStore.getState().resetTree();
+    useTreeStore.temporal.getState().clear();
+  });
+
+  const getNode = () => useTreeStore.getState().nodes[0];
+
+  it("끄는 중인 위치 변경은 좌표를 반영한다", () => {
+    useTreeStore.getState().onNodesChange([
+      {
+        type: "position",
+        id: "c1",
+        position: { x: 30, y: 40 },
+        dragging: true,
+      },
+    ]);
+
+    expect(getNode()).toMatchObject({
+      position: { x: 30, y: 40 },
+      dragging: true,
+    });
+  });
+
+  /*
+  화살표 키 이동과 포인터 드래그의 끝이 이 변경을 낸다. 좌표는 레이아웃과 노드 이동이 정한다.
+  */
+  it("끌기가 아닌 위치 변경은 좌표를 반영하지 않고 dragging 표시만 푼다", () => {
+    const { onNodesChange } = useTreeStore.getState();
+
+    onNodesChange([
+      {
+        type: "position",
+        id: "c1",
+        position: { x: 30, y: 40 },
+        dragging: true,
+      },
+    ]);
+    onNodesChange([
+      {
+        type: "position",
+        id: "c1",
+        position: { x: 50, y: 60 },
+        dragging: false,
+      },
+    ]);
+
+    expect(getNode()).toMatchObject({
+      position: { x: 30, y: 40 },
+      dragging: false,
+    });
+  });
+});

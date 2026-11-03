@@ -122,6 +122,45 @@ describe("useMoveNodeMutation", () => {
     expect(cachedNodes).toHaveLength(RAW_TREE_DATA.length);
   });
 
+  /*
+  응답의 이름·메모·태그는 서버가 이동을 처리한 시점의 값이다. 그 사이 저장된 값이 캐시에 먼저 들어왔다면 덮지 않는다.
+  */
+  it("캐시에 있는 노드는 parentId와 orderIndex만 바꾸고 이름·메모·태그는 유지한다", async () => {
+    const { wrapper, queryClient } = createQueryWrapper();
+    queryClient.setQueryData(
+      treeQueryKeys.detail(TREE_ID),
+      mapNodesDtoToDomain(RAW_TREE_DATA).map((node) =>
+        node.id === "23"
+          ? { ...node, label: "새 이름", memo: "새 메모", tagIds: ["1"] }
+          : node,
+      ),
+    );
+    const { result } = renderHook(() => useMoveNodeMutation(), { wrapper });
+
+    result.current.mutate({
+      treeId: TREE_ID,
+      nodeId: "23",
+      parentId: "3",
+      position: 1,
+    });
+
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+
+    expect(
+      getCachedNode(
+        queryClient.getQueryData<TreeNode[]>(treeQueryKeys.detail(TREE_ID)),
+        "23",
+      ),
+    ).toEqual({
+      id: "23",
+      parentId: "3",
+      label: "새 이름",
+      orderIndex: 1,
+      memo: "새 메모",
+      tagIds: ["1"],
+    });
+  });
+
   it("하위 노드 밑으로 옮기면 NODE400-2로 실패하고 캐시를 바꾸지 않는다", async () => {
     const { wrapper, queryClient } = createQueryWrapper();
     const initialNodes = mapNodesDtoToDomain(RAW_TREE_DATA);

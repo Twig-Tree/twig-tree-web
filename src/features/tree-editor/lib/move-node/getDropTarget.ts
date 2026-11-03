@@ -55,21 +55,37 @@ const getDescendantClientIds = (
   edges: CustomEditorEdge[],
   clientId: string,
 ): Set<string> => {
+  /*
+  드래그 중에는 커서가 움직일 때마다 불리므로, 엣지를 한 번만 훑어 부모별 자식 목록을 만든 뒤 따라 내려간다.
+  */
+  const childClientIdsByParent = new Map<string, string[]>();
+
+  edges.forEach((edge) => {
+    const childClientIds = childClientIdsByParent.get(edge.source);
+
+    if (childClientIds) {
+      childClientIds.push(edge.target);
+    } else {
+      childClientIdsByParent.set(edge.source, [edge.target]);
+    }
+  });
+
   const descendantClientIds = new Set<string>();
-  const queue = [clientId];
+  const stack = [clientId];
 
-  while (queue.length > 0) {
-    const currentClientId = queue.shift()!;
+  /*
+  이미 모은 노드는 다시 넣지 않아, 엣지가 어긋나 순환이 생겨도 탐색이 끝난다.
+  */
+  while (stack.length > 0) {
+    const currentClientId = stack.pop()!;
 
-    edges.forEach((edge) => {
-      if (
-        edge.source === currentClientId &&
-        !descendantClientIds.has(edge.target)
-      ) {
-        descendantClientIds.add(edge.target);
-        queue.push(edge.target);
+    for (const childClientId of childClientIdsByParent.get(currentClientId) ??
+      []) {
+      if (!descendantClientIds.has(childClientId)) {
+        descendantClientIds.add(childClientId);
+        stack.push(childClientId);
       }
-    });
+    }
   }
 
   return descendantClientIds;
@@ -109,8 +125,6 @@ export const getDropTarget = ({
   } | null = null;
 
   for (const node of visibleNodes) {
-    if (excludedClientIds.has(node.id)) continue;
-
     const rect = getNodeRect(node);
     if (!rect) continue;
 
@@ -118,6 +132,16 @@ export const getDropTarget = ({
     const dx = Math.max(rect.x - point.x, 0, point.x - (rect.x + rect.width));
     const dy = Math.max(rect.y - point.y, 0, point.y - (rect.y + rect.height));
     const distance = Math.hypot(dx, dy);
+
+    if (excludedClientIds.has(node.id)) {
+      /*
+      하위 노드 위에 놓으면 근처에 다른 노드가 있어도 그 노드를 기준으로 삼지 않고 원래 자리로 돌린다.
+      끄는 노드 자신은 늘 커서 아래에 있으므로 이 검사에서 뺀다.
+      */
+      if (node.id !== draggedClientId && distance === 0) return null;
+
+      continue;
+    }
 
     if (
       distance <= MAX_DROP_DISTANCE &&
