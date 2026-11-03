@@ -6,7 +6,13 @@ import {
   applyNodeChanges,
   applyEdgeChanges,
 } from "@xyflow/react";
+import { TreeNode } from "@/src/entities/tree";
 import { CustomEditorNode, CustomEditorEdge } from "./types";
+import {
+  getMovedElements,
+  MoveNodeParams,
+} from "../lib/move-node/getMovedElements";
+import { getNodesInServerSiblingOrder } from "../lib/move-node/getNodesInServerSiblingOrder";
 
 interface TreeState {
   treeId: string | null;
@@ -35,6 +41,8 @@ interface TreeState {
   addTagToNodeInStore: (clientId: string, tagId: string) => void;
   removeTagFromNodeInStore: (clientId: string, tagId: string) => void;
   removeTagFromAllNodesInStore: (tagId: string) => void;
+  moveNodeInStore: (params: MoveNodeParams) => void;
+  applySiblingOrderInStore: (siblingGroups: TreeNode[][]) => void;
 }
 
 export const useTreeStore = create<TreeState>()(
@@ -201,6 +209,27 @@ export const useTreeStore = create<TreeState>()(
           ),
         });
       },
+
+      /*
+      노드를 하위 트리째 목적지 부모 밑의 position 번째로 옮긴다. 서버와 같은 규칙으로 형제 orderIndex를 다시 매기므로
+      보통은 성공 응답과 같은 상태가 된다. 부모가 바뀌면 엣지 연결이, 순서가 바뀌면 orderIndex가 달라져 history에 기록된다.
+      */
+      moveNodeInStore: (params: MoveNodeParams) => {
+        const { nodes, edges } = get();
+
+        set(getMovedElements(nodes, edges, params));
+      },
+
+      /*
+      서버가 확정한 형제 순서로 orderIndex와 배열 순서를 맞춘다. 먼저 반영한 이동과 같으면 바꾸지 않아 history에도 남지 않는다.
+      다른 탭의 편집으로 순서가 달랐을 때만 바뀌며, 그때는 history에 한 칸이 쌓여 undo 한 번이 이 보정만 되돌린다.
+      */
+      applySiblingOrderInStore: (siblingGroups: TreeNode[][]) => {
+        const { nodes } = get();
+        const nextNodes = getNodesInServerSiblingOrder(nodes, siblingGroups);
+
+        if (nextNodes !== nodes) set({ nodes: nextNodes });
+      },
     }),
     {
       // zundo 옵션: 액션 함수들은 히스토리 스택에 쌓이지 않도록 state만 저장
@@ -236,8 +265,25 @@ export const useTreeStore = create<TreeState>()(
             return currentNode.data?.orderIndex !== pastNode.data?.orderIndex;
           });
 
+          /*
+          조건 3: 엣지 연결이 달라졌을 때 (부모 변경)
+          부모를 바꾸는 이동은 엣지 ID를 그대로 두고 source만 바꾼다. 옮긴 노드가 새 부모 밑에서도 같은 orderIndex를 받으면
+          조건 1·2에 걸리지 않으므로, 이 조건이 없으면 실패 복구의 undo()가 그 앞의 편집을 되돌린다.
+          */
+          const pastEdgeById = new Map(
+            pastState.edges.map((edge) => [edge.id, edge]),
+          );
+          const isConnectionChanged = currentState.edges.some((currentEdge) => {
+            const pastEdge = pastEdgeById.get(currentEdge.id);
+            if (!pastEdge) return false; // 새로 추가된 엣지는 isCountChanged에서 걸러짐
+            return (
+              currentEdge.source !== pastEdge.source ||
+              currentEdge.target !== pastEdge.target
+            );
+          });
+
           // 의미 있는 비즈니스 변화일 때만 히스토리 기록
-          if (isCountChanged || isOrderChanged) {
+          if (isCountChanged || isOrderChanged || isConnectionChanged) {
             handleSetAction(state);
           }
         };
