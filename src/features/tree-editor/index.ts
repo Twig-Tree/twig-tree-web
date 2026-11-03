@@ -7,6 +7,7 @@ export { useSyncCollapseAcrossTabs } from "./model/collapse/useSyncCollapseAcros
 export { useVisibleElements } from "./model/collapse/useVisibleElements";
 export { useEditorLayout } from "./model/layout/useEditorLayout";
 export { useFocusNode } from "./model/focus/useFocusNode";
+export { useMoveNodeByDrag } from "./model/drag/useMoveNodeByDrag";
 export { useNodeSearch } from "./model/search/useNodeSearch";
 export { useHighlightResults } from "./model/highlight/useHighlightResults";
 export { useTagResults } from "./model/tag/useTagResults";
