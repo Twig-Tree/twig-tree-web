@@ -1,6 +1,7 @@
 "use client";
 import { ReactFlow, ReactFlowProvider, Panel } from "@xyflow/react";
 import {
+  DropIndicatorOverlay,
   MemoSidePanel,
   edgeTypes,
   nodeTypes,
@@ -104,9 +105,13 @@ function LayoutFlow({ workspaceId, treeId }: LayoutFlowProps) {
   노드를 끌어 놓으면 위치가 아니라 부모와 순서가 바뀐다. 레이아웃 계산에는 visibleNodes를 그대로 쓰고,
   화면에는 루트를 끌 수 없게 표시한 draggableNodes를 넘긴다.
   */
-  const { draggableNodes, onNodeDragStart, onNodeDragStop } = useMoveNodeByDrag(
-    { treeId, visibleNodes, visibleEdges, moveNode },
-  );
+  const {
+    draggableNodes,
+    dropIndicator,
+    onNodeDragStart,
+    onNodeDrag,
+    onNodeDragStop,
+  } = useMoveNodeByDrag({ treeId, visibleNodes, visibleEdges, moveNode });
 
   /*
   결과로 고른 노드를 선택하고 화면 가운데로 옮긴다. 메모에서 일치한 노드는 일치한 내용을 바로 볼 수 있도록 메모 패널도 연다.
@@ -151,6 +156,7 @@ function LayoutFlow({ workspaceId, treeId }: LayoutFlowProps) {
           onNodesChange={onNodesChange}
           onEdgesChange={onEdgesChange}
           onNodeDragStart={onNodeDragStart}
+          onNodeDrag={onNodeDrag}
           onNodeDragStop={onNodeDragStop}
           disableKeyboardA11y={isMutating}
           nodesDraggable={!isMutating}
@@ -161,6 +167,8 @@ function LayoutFlow({ workspaceId, treeId }: LayoutFlowProps) {
           edgesReconnectable={false}
           elementsSelectable={!isMutating}
         >
+          <DropIndicatorOverlay indicator={dropIndicator} />
+
           <Panel position="top-right">
             <button
               className="xy-theme__button"
