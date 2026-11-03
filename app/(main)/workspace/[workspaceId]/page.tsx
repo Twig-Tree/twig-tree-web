@@ -61,6 +61,7 @@ function LayoutFlow({ workspaceId, treeId }: LayoutFlowProps) {
     handleAddNode,
     isDeletingNode,
     handleDeleteNode,
+    isMovingNode,
   } = useTreeEditorActions({ workspaceId, treeId });
 
   // 1. 컴포넌트 마운트 시 일단 기록 중지 (트리 레이아웃 정렬 전 히스토리 기록 방지)
@@ -112,7 +113,7 @@ function LayoutFlow({ workspaceId, treeId }: LayoutFlowProps) {
     resume();
   };
 
-  const isMutating = isAddingNode || isDeletingNode;
+  const isMutating = isAddingNode || isDeletingNode || isMovingNode;
 
   if (isLoading) {
     return <div>Loading...</div>;
