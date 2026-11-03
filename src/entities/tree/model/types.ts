@@ -15,6 +15,16 @@ export interface TreeNode {
 }
 
 /**
+ * 노드 이동으로 순서가 다시 매겨진 형제 노드들.
+ *
+ * 부모 ID는 각 노드의 parentId에 담겨 있으므로 따로 두지 않는다. 같은 부모 안 이동이면 previousSiblings는 빈 배열이다.
+ */
+export interface MovedNodes {
+  siblings: TreeNode[]; // 목적지 부모의 자식 전체. orderIndex 오름차순
+  previousSiblings: TreeNode[]; // 다른 부모로 옮겼을 때 원래 부모에 남은 자식 전체. orderIndex 오름차순
+}
+
+/**
  * 트리에 속한 태그. 노드는 이 목록 중 여러 개를 골라 붙인다.
  * 같은 트리 안에서 이름은 하나뿐이다.
  */
