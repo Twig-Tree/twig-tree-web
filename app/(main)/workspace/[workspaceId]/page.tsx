@@ -48,8 +48,6 @@ function LayoutFlow({ workspaceId, treeId }: LayoutFlowProps) {
   // Zustand 스토어에서 액션(Actions) 구독
   const onNodesChange = useTreeStore((state) => state.onNodesChange);
   const onEdgesChange = useTreeStore((state) => state.onEdgesChange);
-  const onConnect = useTreeStore((state) => state.onConnect);
-  const onReconnect = useTreeStore((state) => state.onReconnect);
 
   const { undo, redo, clear, pause, resume, canUndo, canRedo } =
     useTreeHistory();
@@ -141,12 +139,13 @@ function LayoutFlow({ workspaceId, treeId }: LayoutFlowProps) {
           edgeTypes={edgeTypes}
           onNodesChange={onNodesChange}
           onEdgesChange={onEdgesChange}
-          onConnect={onConnect}
-          onReconnect={onReconnect}
           disableKeyboardA11y={isMutating}
           nodesDraggable={!isMutating}
-          nodesConnectable={!isMutating}
-          edgesReconnectable={!isMutating}
+          /*
+          부모와 순서는 노드를 끌어 바꾼다. 엣지를 잇거나 끝을 옮기는 편집은 서버에 저장할 수 없어 막는다.
+          */
+          nodesConnectable={false}
+          edgesReconnectable={false}
           elementsSelectable={!isMutating}
         >
           <Panel position="top-right">

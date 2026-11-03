@@ -1,17 +1,12 @@
 import { create } from "zustand";
 import { temporal } from "zundo";
 import {
-  addEdge,
-  reconnectEdge,
-  Connection,
   OnNodesChange,
   OnEdgesChange,
   applyNodeChanges,
   applyEdgeChanges,
 } from "@xyflow/react";
 import { CustomEditorNode, CustomEditorEdge } from "./types";
-import { hasCycle } from "../lib/checkCycle";
-import { hasAlreadyParent, isDuplicateEdge } from "../lib/edge";
 
 interface TreeState {
   treeId: string | null;
@@ -29,8 +24,6 @@ interface TreeState {
   onNodesChange: OnNodesChange<CustomEditorNode>;
   onEdgesChange: OnEdgesChange;
 
-  onConnect: (connection: Connection) => void;
-  onReconnect: (oldEdge: CustomEditorEdge, newConnection: Connection) => void;
   addNodeToStore: (
     newNode: CustomEditorNode,
     newEdge: CustomEditorEdge,
@@ -75,64 +68,6 @@ export const useTreeStore = create<TreeState>()(
       onEdgesChange: (changes) => {
         set({
           edges: applyEdgeChanges(changes, get().edges),
-        });
-      },
-
-      onConnect: (connection) => {
-        const { nodes, edges } = get();
-
-        // 이미 부모가 있는 노드인지 검사
-        if (connection.target && hasAlreadyParent(edges, connection.target)) {
-          return alert("트리 구조에서는 하나의 부모 노드만 가질 수 있습니다.");
-        }
-
-        const potentialEdges = [
-          ...edges,
-          {
-            id: `e-${connection.source}-${connection.target}`,
-            source: connection.source,
-            target: connection.target,
-          },
-        ];
-
-        if (hasCycle(nodes, potentialEdges)) return alert("순환 참조 불가");
-        if (isDuplicateEdge(edges, connection.source, connection.target))
-          return alert("중복 연결 불가");
-
-        set({ edges: addEdge(connection, edges) });
-      },
-
-      onReconnect: (oldEdge, newConnection) => {
-        const { nodes, edges } = get();
-
-        // Reconnect할 때는 기존 자기 자신의 연결(oldEdge)은 제외하고 다른 부모가 있는지 검사
-        const remainingEdges = edges.filter((e) => e.id !== oldEdge.id);
-
-        if (
-          newConnection.target &&
-          hasAlreadyParent(remainingEdges, newConnection.target)
-        ) {
-          return alert("트리 구조에서는 하나의 부모 노드만 가질 수 있습니다.");
-        }
-
-        const potentialEdges = [
-          ...remainingEdges,
-          { ...newConnection, id: oldEdge.id },
-        ];
-
-        if (hasCycle(nodes, potentialEdges)) return alert("순환 참조 불가");
-        if (
-          isDuplicateEdge(
-            edges,
-            newConnection.source,
-            newConnection.target,
-            oldEdge.id,
-          )
-        )
-          return alert("중복 연결 불가");
-
-        set({
-          edges: reconnectEdge(oldEdge, newConnection, edges),
         });
       },
 

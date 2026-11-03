@@ -19,6 +19,7 @@ export function CustomNode({
   parentId,
   targetPosition,
   sourcePosition,
+  isConnectable,
 }: NodeProps<CustomEditorNode>) {
   const isRoot = parentId === null;
 
@@ -157,12 +158,16 @@ export function CustomNode({
   /*
   테두리는 React Flow가 감싸는 .react-flow__node가 그리므로, 강조 여부를 속성으로만 알리고 스타일은 xy-theme.css가 바깥 요소에 입힌다.
   */
+  /*
+  Handle은 isConnectable을 받지 않으면 true로 두므로, ReactFlow의 nodesConnectable이 핸들까지 닿도록 그대로 넘긴다.
+  */
   return (
     <div className="custom-node" data-highlighted={isHighlighted}>
       <Handle
         type="target"
         position={targetPosition ?? Position.Top}
         id="input"
+        isConnectable={isConnectable}
         style={{ visibility: isRoot ? "hidden" : "visible" }}
       />
 
@@ -209,6 +214,7 @@ export function CustomNode({
         type="source"
         position={sourcePosition ?? Position.Bottom}
         id="output"
+        isConnectable={isConnectable}
       />
 
       <CollapseToggleButton clientId={id} serverId={data.serverId} />
