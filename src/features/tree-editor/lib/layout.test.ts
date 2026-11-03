@@ -267,13 +267,13 @@ describe("getLayoutStructureSignature", () => {
   });
 
   /*
-  reconnect는 엣지 ID를 유지한 채 연결만 바꾸므로 ID 비교로는 감지되지 않는다.
+  부모를 바꾸는 노드 이동은 엣지 ID를 유지한 채 연결만 바꾸므로 ID 비교로는 감지되지 않는다.
   */
   it("엣지 ID가 같아도 연결이 바뀌면 다른 시그니처를 낸다", () => {
     const threeNodes = [...nodes, createNode("3", { x: 0, y: 0 })];
-    const reconnectedEdges = [{ id: "e-1-2", source: "3", target: "2" }];
+    const movedEdges = [{ id: "e-1-2", source: "3", target: "2" }];
 
-    expect(getLayoutStructureSignature(threeNodes, reconnectedEdges)).not.toBe(
+    expect(getLayoutStructureSignature(threeNodes, movedEdges)).not.toBe(
       getLayoutStructureSignature(threeNodes, edges),
     );
   });
@@ -354,7 +354,7 @@ describe("getLayoutedElements", () => {
   });
 
   /*
-  mrtree는 형제 순서를 엣지 입력 순서로 정한다. reconnect는 옮긴 엣지를 배열 끝에 붙이므로
+  mrtree는 형제 순서를 엣지 입력 순서로 정한다. 노드 이동은 노드 배열만 다시 놓으므로
   엣지 배열이 노드 배열과 어긋날 수 있는데, 그래도 형제 순서는 노드 배열을 따라야 한다.
   */
   it("엣지 배열 순서가 노드 배열 순서와 달라도 노드 배열 순서를 따른다", async () => {

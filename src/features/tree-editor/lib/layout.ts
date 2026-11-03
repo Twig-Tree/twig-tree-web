@@ -22,7 +22,7 @@ export const elkOptions = {
 함수 이름 : sortEdgesByTargetOrder
 기능 : 엣지를 자식(target) 노드의 배열 순서대로 정렬한다. mrtree는 형제 순서를 엣지 입력 순서로 정하는데,
 편집기에서 형제 순서를 정하는 것은 노드 배열이므로 ELK에 넘기기 직전에 엣지를 노드 순서에 맞춘다.
-엣지 배열은 reconnect가 옮긴 엣지를 끝에 붙이는 식으로 노드 배열과 어긋날 수 있다.
+노드 이동은 노드 배열만 다시 놓고 엣지 배열은 그대로 두므로 두 배열의 순서가 어긋날 수 있다.
 인자 : CustomEditorNode[] nodes -> 형제 순서를 정하는 노드 목록
 CustomEditorEdge[] edges -> 정렬할 엣지 목록
 반환값 : 자식 노드의 배열 순서로 정렬한 새 엣지 목록
@@ -151,7 +151,7 @@ export const getLayoutStructureSignature = (
   const nodeIds = nodes.map((node) => node.id);
 
   /*
-  엣지는 ID 대신 연결 관계로 비교한다. reconnect는 엣지 ID를 유지한 채 source·target만
+  엣지는 ID 대신 연결 관계로 비교한다. 부모를 바꾸는 노드 이동은 엣지 ID를 유지한 채 source만
   바꾸므로 ID로는 배치가 달라지는 변화를 감지할 수 없다.
   */
   const edgeConnections = edges.map((edge) => [edge.source, edge.target]);

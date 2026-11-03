@@ -61,8 +61,8 @@ Optimistic update는 editor store에서만 한다.
 
 따라서 다음 전제가 필요하다.
 
-- add/delete mutation이 pending인 동안 다른 편집 action이 끼어들지 않아야 한다.
-- pending 중에는 add/delete 버튼, undo/redo 버튼, React Flow drag/connect/reconnect/select 같은 편집 입력을 막는다.
+- add/delete/move mutation이 pending인 동안 다른 편집 action이 끼어들지 않아야 한다.
+- pending 중에는 add/delete 버튼, undo/redo 버튼, React Flow drag/select 같은 편집 입력을 막는다.
 - `undo()`가 복구해야 하는 history의 마지막 항목은 방금 실패한 optimistic update여야 한다.
 
 이 전제를 만족하면 실패 시 다음처럼 처리한다.
@@ -78,10 +78,13 @@ onError: () => {
 
 ### 예외: history에 기록되지 않는 action
 
-`undo()` 복구는 해당 변경이 zundo history에 쌓여 있을 때만 성립한다. `treeStore`의 `handleSet`은 아래 두 조건에서만 history를 기록한다.
+`undo()` 복구는 해당 변경이 zundo history에 쌓여 있을 때만 성립한다. `treeStore`의 `handleSet`은 아래 세 조건에서만 history를 기록한다.
 
 - 노드 또는 엣지 개수 변화
 - `data.orderIndex` 변화
+- 엣지 연결(`source`·`target`) 변화
+
+세 번째 조건은 노드 이동 때문에 있다. 부모를 바꾸는 이동은 엣지 ID를 그대로 두고 `source`만 바꾼다. 옮긴 노드가 새 부모 밑에서도 같은 `orderIndex`를 받으면 앞의 두 조건에 걸리지 않는다. 예를 들어 3번째 노드를 자식이 2개인 부모의 맨 끝으로 옮기는 경우다.
 
 따라서 노드 제목 수정처럼 `data`의 다른 필드만 바꾸는 action은 history에 남지 않는다. 이때 `undo()`를 호출하면 방금 실패한 변경이 아니라 그 앞의 추가·삭제가 되돌려지므로 **써서는 안 된다.**
 
@@ -108,7 +111,7 @@ history에 남지 않으므로 **`undo()`가 엉뚱한 항목을 되돌리지 �
                                                               → A 시작 전 전역 상태 복원 (B의 변경 소실)
 ```
 
-노드 추가·삭제의 `undo()` 복구는 성격이 다르다. zundo history의 직전 스냅샷으로 `nodes`와 `edges`를 통째로 되돌리므로 값 단위가 아니다. 이쪽이 안전한 근거는 범위가 좁아서가 아니라 위 "실패 복구 규칙"의 전제, 즉 pending 중 다른 편집이 끼어들지 못하게 막는 데 있다.
+노드 추가·삭제·이동의 `undo()` 복구는 성격이 다르다. zundo history의 직전 스냅샷으로 `nodes`와 `edges`를 통째로 되돌리므로 값 단위가 아니다. 이쪽이 안전한 근거는 범위가 좁아서가 아니라 위 "실패 복구 규칙"의 전제, 즉 pending 중 다른 편집이 끼어들지 못하게 막는 데 있다.
 
 새 action을 추가할 때는 그 변경이 `handleSet`의 기록 조건에 걸리는지 먼저 확인하고, 걸리지 않으면 `undo()` 대신 직접 복구를 쓴다.
 
@@ -128,19 +131,19 @@ history에 남지 않으므로 **`undo()`가 엉뚱한 항목을 되돌리지 �
 
 실패 시 `undo()`를 사용하는 구조에서는 pending 중 편집 잠금이 중요하다.
 
-페이지나 editor boundary에서는 add/delete pending 상태를 묶어 interaction disable 값을 만든다.
+페이지나 editor boundary에서는 add/delete/move pending 상태를 묶어 interaction disable 값을 만든다.
 
 ```ts
-const isMutating = isAddingNode || isDeletingNode;
+const isMutating = isAddingNode || isDeletingNode || isMovingNode;
 ```
 
-그리고 React Flow와 버튼에 같은 기준을 적용한다.
+그리고 React Flow와 버튼에 같은 기준을 적용한다. 엣지를 잇거나 끝을 옮기는 편집은 서버에 저장할 수 없어 pending과 상관없이 항상 막는다. 부모와 순서는 노드 드래그로 바꾼다.
 
 ```tsx
 <ReactFlow
   nodesDraggable={!isMutating}
-  nodesConnectable={!isMutating}
-  edgesReconnectable={!isMutating}
+  nodesConnectable={false}
+  edgesReconnectable={false}
   elementsSelectable={!isMutating}
 />
 ```
@@ -191,13 +194,15 @@ const handleAddRootNode = async () => {
 이름은 어떤 계층의 동작인지 드러나야 한다.
 
 - 사용자 이벤트 handler: `handleAddNode`, `handleDeleteNode`, `handleSaveMemo`, `handleDetachNodeTag`, `handleDeleteTreeTag`
-- Action hook: `useAddNode`, `useDeleteNode`, `useUpdateNodeName`, `useAttachNodeTag`, `useDetachNodeTag`, `useDeleteTreeTag`
-- Server mutation hook: `useAddNodeMutation`, `useDeleteNodeMutation`, `useEditNodeNameMutation`
-- Store action: `addNodeToStore`, `deleteNodeFromStore`, `updateNodeLabelInStore`, `addTagToNodeInStore`, `removeTagFromNodeInStore`, `removeTagFromAllNodesInStore`
+- Action hook: `useAddNode`, `useDeleteNode`, `useMoveNode`, `useUpdateNodeName`, `useAttachNodeTag`, `useDetachNodeTag`, `useDeleteTreeTag`
+- Server mutation hook: `useAddNodeMutation`, `useDeleteNodeMutation`, `useMoveNodeMutation`, `useEditNodeNameMutation`
+- Store action: `addNodeToStore`, `deleteNodeFromStore`, `moveNodeInStore`, `applySiblingOrderInStore`, `updateNodeLabelInStore`, `addTagToNodeInStore`, `removeTagFromNodeInStore`, `removeTagFromAllNodesInStore`
 
 `handle*`을 붙이는 기준은 인자 유무가 아니라 **이벤트나 콜백 prop에 연결되어 그 자체로 완결되는가**다. `handleSaveMemo(content)`처럼 인자를 받아도 호출부가 결과를 쓰지 않고 그대로 넘기면 handler다.
 
 반면 호출부가 반환값을 받아 자기 흐름을 결정하는 함수는 동사형으로 둔다. `updateNodeName(name)`은 `Promise<boolean>`을 돌려주고, `CustomNode`의 `commitName`이 그 결과로 편집 종료와 에러 표시를 나눈다. 이런 함수는 handler가 아니라 handler가 조립해 쓰는 연산이다.
+
+`moveNode(params)`도 동사형이다. 반환값은 없지만 이벤트에 바로 연결되지 않기 때문이다. 드래그 handler `onNodeDragStop`이 놓은 지점에서 목적지를 구하고 접힌 노드를 펼친 뒤 부르는 연산이다.
 
 `onAdd`, `onDelete`처럼 범용적인 이름은 domain store action에는 사용하지 않는다. `on*` 이름은 React Flow의 `onNodesChange`, `onEdgesChange` 같은 framework callback 성격에 남겨둔다.
 
@@ -325,6 +330,35 @@ treeId가 있음 →            루트 노드 생성 → store 초기화(treeId 
 
 - Query cache는 그대로 둔다. 지운 적이 없다.
 - Editor store는 `undo()`로 optimistic delete를 되돌린다.
+
+## 예시: Move Node
+
+`useMoveNode`는 노드를 하위 트리째 목적지 부모 밑의 `position` 번째로 옮긴다. 같은 부모 안 순서 변경과 다른 부모로의 이동을 한 API(`PATCH /trees/{treeId}/nodes/{nodeId}/move`)로 처리한다. 목적지는 드래그를 놓은 지점에서 정해지므로 호출부(`useMoveNodeByDrag`)가 넘긴다.
+
+`position`은 옮길 노드를 뺀 형제 사이의 순번이고 1부터 센다. 같은 부모에서 `[a, b, c, d]`의 a를 c 뒤로 옮기면 4가 아니라 3이다. 서버가 같은 부모면 `1..n`, 다른 부모면 `1..n+1`만 받기 때문이다.
+
+요청 전에 막는 경우는 다음과 같다.
+
+- 루트 이동. 형제가 없어 옮길 자리가 없다.
+- 같은 자리로의 이동. 요청을 보내지 않는다.
+- 옮길 노드나 새 부모가 저장 전(`serverId === null`)인 경우. 알림을 띄운다.
+
+`moveNodeInStore`가 editor store에 먼저 반영한다. 부모가 바뀌면 들어오는 엣지의 `source`만 바꾸고 엣지 ID는 그대로 둔다. 노드 배열에서 형제 순서를 바꾸고, 형제의 `orderIndex`를 서버와 같은 규칙으로 `1..n`으로 다시 매긴다. 다른 부모로 옮기면 원래 형제도 다시 매긴다. 삭제로 생긴 빈 번호도 이때 함께 정리된다.
+
+성공 시:
+
+- Query cache는 응답의 목적지 형제(`siblings`)와 원래 형제(`previousSiblings`)로 해당 노드를 덮는다. 응답에 바뀐 노드가 모두 들어 있어 무효화하지 않는다. cache에 없는 노드는 다른 곳에서 만든 노드이므로 끝에 덧붙인다.
+- Editor store는 `applySiblingOrderInStore`로 응답의 형제 순서에 `orderIndex`와 배열 순서를 맞춘다. 먼저 반영한 값과 같으면 바뀌지 않아 history에도 남지 않는다. 다른 탭의 편집으로 순서가 달랐을 때만 바뀌며, 그때는 history에 한 칸이 쌓여 undo 한 번이 이 보정만 되돌린다. 응답에만 있는 노드는 store에 들이지 않는다.
+
+실패 시:
+
+- Query cache는 그대로 둔다. 바꾼 적이 없다.
+- Editor store는 `undo()`로 되돌린다. 부모가 바뀌면 엣지 연결이, 순서가 바뀌면 `orderIndex`가 달라지므로 이동은 항상 history에 기록된다(위 "예외: history에 기록되지 않는 action"의 세 번째 조건).
+- 알림은 에러 코드로 나눈다. `NODE400-1`은 루트 이동, `NODE400-2`는 자기 자신이나 하위 노드 밑으로의 이동이다. `NODE400-3`은 화면의 형제 수로 계산한 순번이 서버 범위를 벗어난 경우로, 다른 곳에서 트리가 바뀐 것이므로 새로고침을 안내한다.
+
+접힌 노드의 자식으로 옮기면 `useMoveNodeByDrag`가 `moveNode`보다 먼저 그 노드를 펼친다. 펼치지 않으면 옮긴 노드가 숨겨져 선택이 풀리고 메모 패널이 닫힌다. 이동이 실패해도 펼친 상태는 둔다. 접힘은 undo 대상이 아니다.
+
+이동이 성공한 뒤 undo/redo를 하면 store만 되돌아가고 서버는 그대로다. 노드 추가·삭제에도 있는 한계다.
 
 ## 예시: Update Node Name
 
