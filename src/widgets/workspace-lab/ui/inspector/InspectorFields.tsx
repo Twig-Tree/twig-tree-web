@@ -152,12 +152,10 @@ export function SegmentedField<T extends string>({
 export function InspectorSection({
   title,
   action,
-  isFirst = false,
   children,
 }: {
   title: string;
   action?: ReactNode; // 제목 오른쪽에 둘 보조 동작
-  isFirst?: boolean; // 첫 구획은 위 구분선을 그리지 않는다
   children: ReactNode;
 }) {
   const heading = (
@@ -166,12 +164,11 @@ export function InspectorSection({
     </h3>
   );
 
+  /*
+  탭 안의 첫 구획은 위 구분선을 그리지 않는다.
+  */
   return (
-    <section
-      className={
-        isFirst ? "space-y-3" : "space-y-3 border-t border-slate-100 pt-5"
-      }
-    >
+    <section className="space-y-3 border-t border-slate-100 pt-5 first:border-t-0 first:pt-0">
       {action ? (
         <div className="flex items-center justify-between">
           {heading}

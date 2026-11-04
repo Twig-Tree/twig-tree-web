@@ -1,7 +1,10 @@
+import { useState } from "react";
 import { getWorkspaceLabTheme } from "../model/themes";
-import { AppearanceSection } from "./inspector/AppearanceSection";
+import { CanvasSection } from "./inspector/CanvasSection";
 import { ColorSection } from "./inspector/ColorSection";
 import { ConnectionSection } from "./inspector/ConnectionSection";
+import { InspectorTabs, type InspectorTab } from "./inspector/InspectorTabs";
+import { LayoutSection } from "./inspector/LayoutSection";
 import { NodeSection } from "./inspector/NodeSection";
 import { PanelStyleSection } from "./inspector/PanelStyleSection";
 import { RegionsSection } from "./inspector/RegionsSection";
@@ -9,11 +12,74 @@ import { ScenarioSection } from "./inspector/ScenarioSection";
 import { StateSection } from "./inspector/StateSection";
 import type { InspectorSectionProps } from "./inspector/types";
 
+type InspectorTabId = "structure" | "style" | "regions";
+
 export function WorkspaceLabInspector({
   config,
   onChange,
 }: InspectorSectionProps) {
+  const [activeTab, setActiveTab] = useState<InspectorTabId>("structure");
   const currentTheme = getWorkspaceLabTheme(config.theme);
+  const sectionProps = { config, onChange };
+
+  /*
+  탭은 "무엇을 결정하는가"로 나눈다. 구조는 어떤 트리를 어떻게 펼칠지,
+  스타일은 트리를 어떻게 그릴지, 화면 영역은 트리 주변에 무엇을 둘지를 정한다.
+  */
+  const tabs: ReadonlyArray<InspectorTab<InspectorTabId>> = [
+    {
+      id: "structure",
+      label: "구조",
+      content: (
+        <>
+          <ScenarioSection {...sectionProps} />
+          <LayoutSection {...sectionProps} />
+          <StateSection {...sectionProps} />
+        </>
+      ),
+    },
+    {
+      id: "style",
+      label: "스타일",
+      content: (
+        <>
+          <ColorSection {...sectionProps} />
+          <CanvasSection {...sectionProps} />
+          <NodeSection {...sectionProps} />
+          <ConnectionSection {...sectionProps} />
+        </>
+      ),
+    },
+    {
+      id: "regions",
+      label: "화면 영역",
+      content: (
+        <>
+          <RegionsSection {...sectionProps} />
+          <PanelStyleSection
+            title="Left panel"
+            visibleLabel="왼쪽 패널 표시"
+            isVisible={config.showLeftPanel}
+            panelStyle={config.leftPanelStyle}
+            onVisibleChange={(showLeftPanel) => onChange({ showLeftPanel })}
+            onPanelStyleChange={(leftPanelStyle) =>
+              onChange({ leftPanelStyle })
+            }
+          />
+          <PanelStyleSection
+            title="Memo panel"
+            visibleLabel="메모 패널 표시"
+            isVisible={config.showRightPanel}
+            panelStyle={config.memoPanelStyle}
+            onVisibleChange={(showRightPanel) => onChange({ showRightPanel })}
+            onPanelStyleChange={(memoPanelStyle) =>
+              onChange({ memoPanelStyle })
+            }
+          />
+        </>
+      ),
+    },
+  ];
 
   return (
     <aside className="workspace-lab-inspector flex h-full w-72 shrink-0 flex-col border-l border-slate-200 bg-white">
@@ -29,31 +95,11 @@ export function WorkspaceLabInspector({
         </p>
       </header>
 
-      <div className="min-h-0 flex-1 space-y-5 overflow-y-auto p-5">
-        <ScenarioSection config={config} onChange={onChange} />
-        <StateSection config={config} onChange={onChange} />
-        <ColorSection config={config} onChange={onChange} />
-        <AppearanceSection config={config} onChange={onChange} />
-        <NodeSection config={config} onChange={onChange} />
-        <ConnectionSection config={config} onChange={onChange} />
-        <RegionsSection config={config} onChange={onChange} />
-        <PanelStyleSection
-          title="Left panel"
-          visibleLabel="왼쪽 패널 표시"
-          isVisible={config.showLeftPanel}
-          panelStyle={config.leftPanelStyle}
-          onVisibleChange={(showLeftPanel) => onChange({ showLeftPanel })}
-          onPanelStyleChange={(leftPanelStyle) => onChange({ leftPanelStyle })}
-        />
-        <PanelStyleSection
-          title="Memo panel"
-          visibleLabel="메모 패널 표시"
-          isVisible={config.showRightPanel}
-          panelStyle={config.memoPanelStyle}
-          onVisibleChange={(showRightPanel) => onChange({ showRightPanel })}
-          onPanelStyleChange={(memoPanelStyle) => onChange({ memoPanelStyle })}
-        />
-      </div>
+      <InspectorTabs
+        tabs={tabs}
+        activeTab={activeTab}
+        onActiveTabChange={setActiveTab}
+      />
     </aside>
   );
 }

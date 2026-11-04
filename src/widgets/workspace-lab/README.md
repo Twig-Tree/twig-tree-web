@@ -20,8 +20,9 @@ workspace-lab/
 │   └── types.ts           # Lab에서 공유하는 타입
 ├── ui/
 │   ├── WorkspaceLab.tsx           # 조합 상태와 Preview
-│   ├── WorkspaceLabInspector.tsx  # Inspector 구획 배치
+│   ├── WorkspaceLabInspector.tsx  # Inspector 탭과 구획 배치
 │   ├── inspector/
+│   │   ├── InspectorTabs.tsx      # 구조·스타일·화면 영역 탭
 │   │   ├── InspectorFields.tsx    # 구획 틀과 공용 입력 컴포넌트
 │   │   ├── types.ts               # 구획 공통 props
 │   │   └── *Section.tsx           # 구획별 제어 항목
@@ -36,6 +37,16 @@ workspace-lab/
 ## 상태 흐름
 
 Inspector가 바꾸는 값은 `model/config.ts`의 `WorkspaceLabConfig` 한 객체에 모여 있다. `WorkspaceLab`은 `useReducer(workspaceLabConfigReducer)`로 이 객체를 들고, Preview에는 `config`를, Inspector의 각 구획에는 `config`와 `onChange(바꿀 필드)`를 내려준다. 구획 사이의 규칙(테마를 바꾸면 색 역할 초기화)은 reducer가 맡는다.
+
+Inspector는 "무엇을 결정하는가"로 탭을 나눈다. 새 구획은 이 기준으로 탭을 고른다.
+
+| 탭        | 결정하는 것               | 구획                            |
+| --------- | ------------------------- | ------------------------------- |
+| 구조      | 어떤 트리를 어떻게 펼칠지 | Scenario, Layout, State         |
+| 스타일    | 트리를 어떻게 그릴지      | Color, Canvas, Node, Connection |
+| 화면 영역 | 트리 주변에 무엇을 둘지   | Regions, Left panel, Memo panel |
+
+숨긴 탭도 마운트를 유지해, 펼쳐 둔 세부 설정이 탭을 오가도 접히지 않는다.
 
 ```text
 Inspector selection
