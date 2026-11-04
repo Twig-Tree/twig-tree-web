@@ -33,6 +33,10 @@ interface TreeState {
     newNode: CustomEditorNode,
     newEdge: CustomEditorEdge,
   ) => void;
+  addSubtreeToStore: (
+    subtreeNodes: CustomEditorNode[],
+    subtreeEdges: CustomEditorEdge[],
+  ) => void;
   confirmCreatedNodeInStore: (clientId: string, createdNode: TreeNode) => void;
   deleteNodeFromStore: (clientIdsToDelete: string[]) => void;
   updateNodeMemoInStore: (clientId: string, memo: string | null) => void;
@@ -102,9 +106,23 @@ export const useTreeStore = create<TreeState>()((set, get) => ({
   },
 
   /*
+  지운 하위 트리를 다시 넣는다. 노드는 배열 끝에 붙으므로 하위 트리 루트는 부모의 마지막 자식이 된다.
+  원래 자리로 옮기는 일은 호출부가 moveNodeInStore로 한다.
+  */
+  addSubtreeToStore: (subtreeNodes, subtreeEdges) => {
+    const { nodes, edges } = get();
+
+    set({
+      nodes: nodes.concat(subtreeNodes),
+      edges: edges.concat(subtreeEdges),
+    });
+  },
+
+  /*
   서버가 확정한 노드 ID를 먼저 추가한 노드에 채운다. 노드의 신원은 클라이언트가 정한 값이라
   교체하지 않으므로 엣지도 손대지 않고, 레이아웃 입력이 되는 구조도 달라지지 않는다.
   서버가 label이나 orderIndex를 보정할 수 있으므로 그 값은 응답으로 덮는다.
+  memo와 tagIds는 덮지 않는다. 막 만든 노드는 서버에 메모·태그가 없고, 삭제를 되돌릴 때는 이어서 보내는 요청이 채운다.
   position은 화면 전용 값이라 그대로 둔다.
   */
   confirmCreatedNodeInStore: (clientId: string, createdNode: TreeNode) => {
@@ -120,7 +138,6 @@ export const useTreeStore = create<TreeState>()((set, get) => ({
                 serverId: createdNode.id, // 도메인 모델의 ID는 이미 문자열이다.
                 label: createdNode.label,
                 orderIndex: createdNode.orderIndex,
-                memo: createdNode.memo,
               },
             }
           : node,

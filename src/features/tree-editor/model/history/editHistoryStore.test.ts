@@ -10,6 +10,8 @@ const createAddEntry = (clientId: string): AddNodeEntry => ({
   clientId,
   parentClientId: "root",
   label: clientId,
+  memo: null,
+  tagIds: [],
 });
 
 const createMoveEntry = (clientId: string): MoveNodeEntry => ({

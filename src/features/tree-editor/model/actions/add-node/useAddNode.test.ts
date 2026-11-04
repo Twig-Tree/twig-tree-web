@@ -76,6 +76,8 @@ describe("useAddNode", () => {
           clientId: addedNode.id,
           parentClientId: "c1",
           label: "Added node 2",
+          memo: null,
+          tagIds: [],
         },
       ]),
     );

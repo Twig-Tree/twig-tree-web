@@ -64,16 +64,11 @@ describe("useDeleteNode", () => {
   });
 
   /*
-  삭제를 되돌리는 요청이 아직 없어, 삭제 전 기록을 undo하면 지워진 노드를 가리키는 요청이 나간다.
+  undo는 이 기록으로 하위 트리를 다시 만든다. 메모·태그를 되살리려면 노드를 data째, 부모와 이으려면 들어오던 엣지까지 남겨야 한다.
   */
-  it("삭제가 성공하면 undo 기록을 비운다", async () => {
+  it("삭제가 성공하면 지운 하위 트리와 원래 자리를 기록한다", async () => {
     vi.spyOn(treeApi, "deleteNode").mockResolvedValue(undefined);
-    useEditHistoryStore.getState().record({
-      type: "add",
-      clientId: "c21",
-      parentClientId: "c2",
-      label: "node 21",
-    });
+    const { nodes, edges } = useTreeStore.getState();
     const { result } = renderDeleteNode("c2");
 
     act(() => {
@@ -81,7 +76,15 @@ describe("useDeleteNode", () => {
     });
 
     await waitFor(() =>
-      expect(useEditHistoryStore.getState().past).toHaveLength(0),
+      expect(useEditHistoryStore.getState().past).toEqual([
+        {
+          type: "delete",
+          clientId: "c2",
+          placement: { parentClientId: "c1", position: 1 },
+          nodes: [nodes[1], nodes[2]],
+          edges: [edges[0], edges[1]],
+        },
+      ]),
     );
   });
 

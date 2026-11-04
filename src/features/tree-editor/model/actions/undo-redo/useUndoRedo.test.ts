@@ -1,11 +1,18 @@
 import { act, renderHook, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, it, expect, vi } from "vitest";
-import { treeApi } from "@/src/entities/tree";
+import {
+  memoApi,
+  tagApi,
+  treeApi,
+  treeQueryKeys,
+  type TreeTag,
+} from "@/src/entities/tree";
 import { createQueryWrapper } from "@/src/tests/helpers/createQueryWrapper";
 import { createEditorEdge } from "../../../lib/add-node/createEditorEdge";
 import { createEditorNode } from "../../../lib/add-node/createEditorNode";
 import {
   type AddNodeEntry,
+  type DeleteNodeEntry,
   type MoveNodeEntry,
   useEditHistoryStore,
 } from "../../history/editHistoryStore";
@@ -35,6 +42,8 @@ const addEntry: AddNodeEntry = {
   clientId: "c3",
   parentClientId: "c1",
   label: "node 3",
+  memo: null,
+  tagIds: [],
 };
 
 const moveEntry: MoveNodeEntry = {
@@ -57,11 +66,64 @@ const getHistory = () => {
   return { past, future };
 };
 
+const TREE_TAGS: TreeTag[] = [{ id: "7", name: "남은 태그" }]; // 8번 태그는 지운 뒤 트리에서 사라졌다.
+
+/*
+삭제를 되돌릴 때 트리 태그 목록으로 지워진 태그를 거르므로, 목록을 cache에 미리 채워 첫 렌더부터 읽히게 한다.
+*/
 const renderUndoRedo = () => {
-  const { wrapper } = createQueryWrapper();
+  const { wrapper, queryClient } = createQueryWrapper();
+
+  vi.spyOn(tagApi, "getTreeTags").mockResolvedValue(TREE_TAGS);
+  queryClient.setQueryData(treeQueryKeys.tags("10"), TREE_TAGS);
 
   return renderHook(() => useUndoRedo({ treeId: "10" }), { wrapper });
 };
+
+/*
+c3 하위 트리를 지운 기록. c3은 원래 c1의 첫 번째 자식이었고 메모와 태그 7·8이 있었다.
+*/
+const createDeleteEntry = (): DeleteNodeEntry => {
+  const [, , c3, c21] = useTreeStore.getState().nodes;
+  const [, c1ToC3, c3ToC21] = useTreeStore.getState().edges;
+
+  return {
+    type: "delete",
+    clientId: "c3",
+    placement: { parentClientId: "c1", position: 1 },
+    nodes: [
+      { ...c3, data: { ...c3.data, memo: "지운 메모", tagIds: ["7", "8"] } },
+      { ...c21, data: { ...c21.data, orderIndex: 3 } },
+    ],
+    edges: [c1ToC3, c3ToC21],
+  };
+};
+
+const getChildClientIds = (parentClientId: string) => {
+  const { nodes, edges } = useTreeStore.getState();
+  const childClientIds = new Set(
+    edges
+      .filter((edge) => edge.source === parentClientId)
+      .map((edge) => edge.target),
+  );
+
+  return nodes
+    .filter((node) => childClientIds.has(node.id))
+    .map((node) => node.id);
+};
+
+const createServerNode = (
+  id: string,
+  parentId: string,
+  orderIndex: number,
+) => ({
+  id,
+  parentId,
+  label: `node ${id}`,
+  orderIndex,
+  memo: null,
+  tagIds: [],
+});
 
 describe("useUndoRedo", () => {
   beforeEach(() => {
@@ -131,6 +193,67 @@ describe("useUndoRedo", () => {
       orderId: 2,
     });
     expect(getHistory()).toEqual({ past: [addEntry], future: [] });
+  });
+
+  /*
+  추가한 뒤 고친 제목·메모·태그는 기록에 남지 않는다. 지울 때 기록을 고쳐 쓰지 않으면 redo가 처음 추가할 때의 값으로 만든다.
+  */
+  it("추가를 undo하면 지우기 직전의 제목·메모·태그로 기록을 고쳐 쓴다", async () => {
+    vi.spyOn(treeApi, "deleteNode").mockResolvedValue(undefined);
+    useEditHistoryStore.getState().record(addEntry);
+    const {
+      updateNodeLabelInStore,
+      updateNodeMemoInStore,
+      addTagToNodeInStore,
+    } = useTreeStore.getState();
+    updateNodeLabelInStore("c3", "고친 제목");
+    updateNodeMemoInStore("c3", "쓴 메모");
+    addTagToNodeInStore("c3", "7");
+    const { result } = renderUndoRedo();
+
+    act(() => result.current.handleUndo());
+
+    await waitFor(() =>
+      expect(getHistory().future).toEqual([
+        { ...addEntry, label: "고친 제목", memo: "쓴 메모", tagIds: ["7"] },
+      ]),
+    );
+  });
+
+  it("추가를 redo하면 기록의 메모와 남은 태그를 되살린다", async () => {
+    useTreeStore.getState().deleteNodeFromStore(["c3", "c21"]);
+    const entry: AddNodeEntry = {
+      ...addEntry,
+      memo: "쓴 메모",
+      tagIds: ["7", "8"],
+    };
+    useEditHistoryStore.getState().record(entry);
+    useEditHistoryStore.getState().takeUndo();
+    vi.spyOn(treeApi, "createNode").mockResolvedValue(
+      createServerNode("99", "1", 2),
+    );
+    const updateMemoSpy = vi
+      .spyOn(memoApi, "updateMemo")
+      .mockResolvedValue({ title: "node 3", content: "쓴 메모" });
+    const addNodeTagSpy = vi
+      .spyOn(tagApi, "addNodeTag")
+      .mockResolvedValue(TREE_TAGS[0]);
+    const { result } = renderUndoRedo();
+
+    act(() => result.current.handleRedo());
+
+    await waitFor(() =>
+      expect(getHistory()).toEqual({ past: [entry], future: [] }),
+    );
+    expect(updateMemoSpy).toHaveBeenCalledExactlyOnceWith(99, {
+      content: "쓴 메모",
+    });
+    expect(addNodeTagSpy).toHaveBeenCalledExactlyOnceWith(99, 7);
+    expect(getNodeById("c3")?.data).toMatchObject({
+      serverId: "99",
+      memo: "쓴 메모",
+      tagIds: ["7"],
+    });
   });
 
   it("이동을 undo하면 옮기기 전 자리로, redo하면 같은 목적지로 이동을 요청한다", async () => {
@@ -203,5 +326,125 @@ describe("useUndoRedo", () => {
 
     await waitFor(() => expect(deleteNodeSpy).toHaveBeenCalledOnce());
     expect(getHistory()).toEqual({ past: [moveEntry], future: [addEntry] });
+  });
+  describe("삭제", () => {
+    /*
+    원래 순번은 그 사이 다른 노드가 차지했을 수 있어 맨 끝에 만든 뒤 옮긴다. 자식은 새로 만든 부모 밑이라 원래 순번을 쓴다.
+    */
+    it("undo하면 하위 트리 루트를 맨 끝에 만들어 원래 자리로 옮기고, 하위 노드·메모·남은 태그를 되살린다", async () => {
+      const entry = createDeleteEntry();
+      useTreeStore.getState().deleteNodeFromStore(["c3", "c21"]);
+      useEditHistoryStore.getState().record(entry);
+      const createNodeSpy = vi
+        .spyOn(treeApi, "createNode")
+        .mockResolvedValueOnce(createServerNode("30", "1", 2))
+        .mockResolvedValueOnce(createServerNode("210", "30", 3));
+      const moveNodeSpy = vi.spyOn(treeApi, "moveNode").mockResolvedValue({
+        siblings: [
+          createServerNode("30", "1", 1),
+          createServerNode("2", "1", 2),
+        ],
+        previousSiblings: [],
+      });
+      const updateMemoSpy = vi
+        .spyOn(memoApi, "updateMemo")
+        .mockResolvedValue({ title: "node 3", content: "지운 메모" });
+      const addNodeTagSpy = vi
+        .spyOn(tagApi, "addNodeTag")
+        .mockResolvedValue(TREE_TAGS[0]);
+      const { result } = renderUndoRedo();
+
+      act(() => result.current.handleUndo());
+
+      expect(getChildClientIds("c1")).toEqual(["c3", "c2"]);
+      await waitFor(() =>
+        expect(getHistory()).toEqual({ past: [], future: [entry] }),
+      );
+      expect(createNodeSpy.mock.calls).toEqual([
+        [10, { name: "node 3", parentId: 1, orderId: 2 }],
+        [10, { name: "node 21", parentId: 30, orderId: 3 }],
+      ]);
+      expect(moveNodeSpy).toHaveBeenCalledExactlyOnceWith(10, 30, {
+        parentId: 1,
+        position: 1,
+      });
+      expect(updateMemoSpy).toHaveBeenCalledExactlyOnceWith(30, {
+        content: "지운 메모",
+      });
+      expect(addNodeTagSpy).toHaveBeenCalledExactlyOnceWith(30, 7);
+      expect(getNodeById("c3")?.data).toMatchObject({
+        serverId: "30",
+        memo: "지운 메모",
+        tagIds: ["7"],
+      });
+      expect(getNodeById("c21")?.data.serverId).toBe("210");
+      expect(getParentClientId("c21")).toBe("c3");
+      expect(getChildClientIds("c1")).toEqual(["c3", "c2"]);
+    });
+
+    it("되살리는 도중 실패하면 만든 하위 트리 루트를 지우고 지운 상태로 되돌린다", async () => {
+      const entry = createDeleteEntry();
+      useTreeStore.getState().deleteNodeFromStore(["c3", "c21"]);
+      const { nodes: deletedNodes, edges: deletedEdges } =
+        useTreeStore.getState();
+      useEditHistoryStore.getState().record(entry);
+      vi.spyOn(treeApi, "createNode")
+        .mockResolvedValueOnce(createServerNode("30", "1", 2))
+        .mockRejectedValueOnce(new Error("failed"));
+      vi.spyOn(treeApi, "moveNode").mockResolvedValue({
+        siblings: [],
+        previousSiblings: [],
+      });
+      vi.spyOn(memoApi, "updateMemo").mockResolvedValue({
+        title: "node 3",
+        content: "지운 메모",
+      });
+      vi.spyOn(tagApi, "addNodeTag").mockResolvedValue(TREE_TAGS[0]);
+      const deleteNodeSpy = vi
+        .spyOn(treeApi, "deleteNode")
+        .mockResolvedValue(undefined);
+      const alertSpy = vi.spyOn(window, "alert").mockImplementation(() => {});
+      const { result } = renderUndoRedo();
+
+      act(() => result.current.handleUndo());
+
+      await waitFor(() =>
+        expect(alertSpy).toHaveBeenCalledExactlyOnceWith(
+          "되돌리기에 실패했습니다.",
+        ),
+      );
+      expect(deleteNodeSpy).toHaveBeenCalledExactlyOnceWith(10, 30);
+      expect(useTreeStore.getState().nodes).toEqual(deletedNodes);
+      expect(useTreeStore.getState().edges).toEqual(deletedEdges);
+      expect(getHistory()).toEqual({ past: [entry], future: [] });
+    });
+
+    /*
+    되살린 뒤 고친 메모는 기록에 남지 않는다. 다시 지울 때 기록을 고쳐 쓰지 않으면 다음 undo가 처음 지운 시점의 메모로 되살린다.
+    */
+    it("redo하면 다시 지우고, 기록을 지우기 직전 값으로 고쳐 쓴다", async () => {
+      const entry = createDeleteEntry();
+      useEditHistoryStore.getState().record(entry);
+      useEditHistoryStore.getState().takeUndo();
+      useTreeStore.getState().updateNodeMemoInStore("c3", "고친 메모");
+      const deleteNodeSpy = vi
+        .spyOn(treeApi, "deleteNode")
+        .mockResolvedValue(undefined);
+      const { result } = renderUndoRedo();
+
+      act(() => result.current.handleRedo());
+
+      expect(getNodeById("c3")).toBeUndefined();
+      expect(getNodeById("c21")).toBeUndefined();
+      await waitFor(() => expect(getHistory().past[0]).not.toBe(entry));
+      expect(deleteNodeSpy).toHaveBeenCalledExactlyOnceWith(10, 3);
+      expect(getHistory().future).toEqual([]);
+
+      const [refreshedEntry] = getHistory().past as DeleteNodeEntry[];
+      expect(refreshedEntry.nodes.map((node) => node.data.memo)).toEqual([
+        "고친 메모",
+        null,
+      ]);
+    });
   });
 });

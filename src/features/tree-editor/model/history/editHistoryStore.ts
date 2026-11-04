@@ -10,7 +10,12 @@ export type AddNodeEntry = {
   type: "add";
   clientId: string; // 추가한 노드의 편집기 노드 ID
   parentClientId: string; // 부모의 편집기 노드 ID
-  label: string; // 다시 만들 때 보낼 노드 이름
+  /*
+  다시 만들 때 되살릴 값. 추가한 뒤 고친 제목·메모·태그는 기록에 남지 않으므로, undo로 지울 때 그 시점의 값으로 고쳐 쓴다.
+  */
+  label: string;
+  memo: string | null;
+  tagIds: string[];
 };
 
 export type MoveNodeEntry = {
@@ -39,6 +44,14 @@ interface EditHistoryState {
   takeRedo: () => EditHistoryEntry | null;
   cancelUndo: (entry: EditHistoryEntry) => void;
   cancelRedo: (entry: EditHistoryEntry) => void;
+  replaceLatestUndo: (
+    entry: EditHistoryEntry,
+    nextEntry: EditHistoryEntry,
+  ) => void;
+  replaceLatestRedo: (
+    entry: EditHistoryEntry,
+    nextEntry: EditHistoryEntry,
+  ) => void;
   clear: () => void;
 }
 
@@ -123,6 +136,30 @@ export const useEditHistoryStore = create<EditHistoryState>()((set, get) => ({
       past: past.slice(0, -1),
       future: [...state.future, entry],
     }));
+  },
+
+  /*
+  redo가 성공한 뒤 그 기록을 지금 상태로 고쳐 쓴다. 삭제를 되돌린 사이 메모·태그를 고쳤다면, 다시 지울 때의 값으로 기록해야
+  다음 undo가 고친 값으로 되살린다. 그 사이 기록이 바뀌었으면 고쳐 쓸 대상이 아니므로 아무것도 하지 않는다.
+  */
+  replaceLatestUndo: (entry, nextEntry) => {
+    const { past } = get();
+
+    if (past.at(-1) !== entry) return;
+
+    set({ past: [...past.slice(0, -1), nextEntry] });
+  },
+
+  /*
+  undo가 성공한 뒤 그 기록을 지금 상태로 고쳐 쓴다. 추가를 되돌릴 때 그 사이 고친 제목·메모·태그를 남겨 redo가 되살리게 한다.
+  확인 기준은 replaceLatestUndo와 같다.
+  */
+  replaceLatestRedo: (entry, nextEntry) => {
+    const { future } = get();
+
+    if (future.at(-1) !== entry) return;
+
+    set({ future: [...future.slice(0, -1), nextEntry] });
   },
 
   clear: () => {

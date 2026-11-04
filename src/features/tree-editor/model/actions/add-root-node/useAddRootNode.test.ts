@@ -92,6 +92,8 @@ describe("useAddRootNode", () => {
         clientId: "old",
         parentClientId: "old-parent",
         label: "이전 트리의 기록",
+        memo: null,
+        tagIds: [],
       });
       const { result } = renderAddRootNode("2", "20");
 

@@ -126,6 +126,8 @@ export const useAddNode = ({
             clientId: newClientId,
             parentClientId: selectedNode.id,
             label: createdNode.label,
+            memo: null, // 막 만든 노드는 메모·태그가 없다.
+            tagIds: [],
           });
         },
         /*
