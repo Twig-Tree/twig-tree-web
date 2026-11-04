@@ -26,6 +26,7 @@ workspace-lab/
 │   ├── inspector/
 │   │   ├── InspectorTabs.tsx      # 구조·스타일·화면 영역 탭
 │   │   ├── InspectorFields.tsx    # 구획 틀과 공용 입력 컴포넌트
+│   │   ├── DesignThemeField.tsx   # 헤더의 디자인 테마 선택기
 │   │   ├── types.ts               # 구획 공통 props
 │   │   └── *Section.tsx           # 구획별 제어 항목
 │   ├── WorkspaceLabNode.tsx       # Lab 전용 node renderer
@@ -49,6 +50,8 @@ Inspector는 "무엇을 결정하는가"로 탭을 나눈다. 새 구획은 이 
 | 화면 영역 | 트리 주변에 무엇을 둘지   | Regions, Left panel, Memo panel |
 
 숨긴 탭도 마운트를 유지해, 펼쳐 둔 세부 설정이 탭을 오가도 접히지 않는다.
+
+디자인 테마 선택기는 탭 위 헤더에 둔다. 스타일 탭과 화면 영역 탭의 값을 함께 바꾸므로 어느 한 탭에 속하지 않는다. 테마 값에서 벗어나면 선택지에 "· 수정됨"이 붙고, 옆의 배지로 테마 값으로 되돌린다.
 
 ```text
 Inspector selection

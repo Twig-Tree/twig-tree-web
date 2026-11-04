@@ -20,6 +20,7 @@ import type { LabColorRoles } from "../../model/types";
 import {
   DisclosureButton,
   InspectorSection,
+  ModifiedResetButton,
   SegmentedField,
   SelectField,
   SwatchField,
@@ -64,16 +65,11 @@ export function ColorSection({ config, onChange }: InspectorSectionProps) {
       title="Color"
       action={
         isModified ? (
-          <button
-            type="button"
-            onClick={() =>
+          <ModifiedResetButton
+            onReset={() =>
               onChange({ colorRoles: { ...workspaceLabDefaultColorRoles } })
             }
-            className="flex items-center gap-1.5 rounded-full bg-amber-50 px-2 py-0.5 text-[11px] font-medium text-amber-700 hover:bg-amber-100"
-          >
-            <span className="size-1.5 rounded-full bg-amber-500" />
-            수정됨 · 초기화
-          </button>
+          />
         ) : null
       }
     >

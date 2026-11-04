@@ -182,6 +182,25 @@ export function InspectorSection({
   );
 }
 
+/*
+함수 이름 : ModifiedResetButton
+기능 : 기준값에서 벗어났음을 알리고, 누르면 기준값으로 되돌리는 배지 버튼을 그린다.
+인자 : (() => void) onReset -> 기준값으로 되돌리는 동작
+반환값 : 수정됨 배지 버튼
+*/
+export function ModifiedResetButton({ onReset }: { onReset: () => void }) {
+  return (
+    <button
+      type="button"
+      onClick={onReset}
+      className="flex shrink-0 items-center gap-1.5 rounded-full bg-amber-50 px-2 py-0.5 text-[11px] font-medium text-amber-700 hover:bg-amber-100"
+    >
+      <span className="size-1.5 rounded-full bg-amber-500" />
+      수정됨 · 초기화
+    </button>
+  );
+}
+
 export function FieldDescription({ children }: { children: ReactNode }) {
   return <p className="text-[11px] leading-4 text-slate-500">{children}</p>;
 }

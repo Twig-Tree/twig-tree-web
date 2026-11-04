@@ -1,8 +1,8 @@
 import { useState } from "react";
-import { getWorkspaceLabColorTheme } from "../model/color-themes";
 import { CanvasSection } from "./inspector/CanvasSection";
 import { ColorSection } from "./inspector/ColorSection";
 import { ConnectionSection } from "./inspector/ConnectionSection";
+import { DesignThemeField } from "./inspector/DesignThemeField";
 import { InspectorTabs, type InspectorTab } from "./inspector/InspectorTabs";
 import { LayoutSection } from "./inspector/LayoutSection";
 import { NodeSection } from "./inspector/NodeSection";
@@ -20,7 +20,6 @@ export function WorkspaceLabInspector({
   onChange,
 }: InspectorSectionProps) {
   const [activeTab, setActiveTab] = useState<InspectorTabId>("structure");
-  const currentTheme = getWorkspaceLabColorTheme(config.colorTheme);
   const sectionProps = { config, onChange };
 
   /*
@@ -92,9 +91,7 @@ export function WorkspaceLabInspector({
         <h2 className="mt-1 text-base font-semibold text-slate-950">
           Workspace UI
         </h2>
-        <p className="mt-1 text-xs leading-5 text-slate-500">
-          {currentTheme.name}
-        </p>
+        <DesignThemeField {...sectionProps} />
       </header>
 
       <InspectorTabs
