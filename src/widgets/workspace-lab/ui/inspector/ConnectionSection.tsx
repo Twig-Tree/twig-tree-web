@@ -26,6 +26,7 @@ import {
   SelectField,
   toSelectOptions,
 } from "./InspectorFields";
+import { DesignThemeSectionReset } from "./DesignThemeField";
 import type { InspectorSectionProps } from "./types";
 
 export function ConnectionSection({ config, onChange }: InspectorSectionProps) {
@@ -63,7 +64,16 @@ export function ConnectionSection({ config, onChange }: InspectorSectionProps) {
   };
 
   return (
-    <InspectorSection title="Connection">
+    <InspectorSection
+      title="Connection"
+      action={
+        <DesignThemeSectionReset
+          config={config}
+          onChange={onChange}
+          section="connection"
+        />
+      }
+    >
       <SelectField
         label="제안 스타일"
         value={currentEdgePresetId}

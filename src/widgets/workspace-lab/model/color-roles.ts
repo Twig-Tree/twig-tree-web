@@ -398,10 +398,3 @@ export function getWorkspaceLabColorTokens(
 
   return tokens;
 }
-
-export const isWorkspaceLabColorRolesModified = (
-  selection: WorkspaceLabColorRoleSelection,
-) =>
-  (Object.keys(selection) as Array<keyof WorkspaceLabColorRoleSelection>).some(
-    (role) => selection[role] !== workspaceLabDefaultColorRoles[role],
-  );

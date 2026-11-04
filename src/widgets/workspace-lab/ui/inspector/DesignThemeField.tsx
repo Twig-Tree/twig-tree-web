@@ -1,7 +1,10 @@
 import {
   getWorkspaceLabDesignTheme,
+  getWorkspaceLabDesignThemeSectionChange,
   isWorkspaceLabDesignThemeModified,
+  isWorkspaceLabDesignThemeSectionModified,
   workspaceLabDesignThemes,
+  type WorkspaceLabDesignThemeSection,
 } from "../../model/design-themes";
 import {
   FieldDescription,
@@ -60,5 +63,31 @@ export function DesignThemeField({ config, onChange }: InspectorSectionProps) {
       </select>
       <FieldDescription>{currentTheme.description}</FieldDescription>
     </div>
+  );
+}
+
+type DesignThemeSectionResetProps = InspectorSectionProps & {
+  section: WorkspaceLabDesignThemeSection; // 테마와 비교할 Inspector 구획
+};
+
+/*
+함수 이름 : DesignThemeSectionReset
+기능 : 구획 값이 현재 디자인 테마에서 벗어났을 때만 수정됨 배지를 그리고, 누르면 그 구획만 테마 값으로 되돌린다.
+인자 : DesignThemeSectionResetProps
+반환값 : 수정됨 배지 또는 null
+*/
+export function DesignThemeSectionReset({
+  config,
+  onChange,
+  section,
+}: DesignThemeSectionResetProps) {
+  if (!isWorkspaceLabDesignThemeSectionModified(config, section)) return null;
+
+  return (
+    <ModifiedResetButton
+      onReset={() =>
+        onChange(getWorkspaceLabDesignThemeSectionChange(config, section))
+      }
+    />
   );
 }

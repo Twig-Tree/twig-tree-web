@@ -1,11 +1,9 @@
 import { useState } from "react";
 import {
   getWorkspaceLabColorTokens,
-  isWorkspaceLabColorRolesModified,
   workspaceLabAccentColors,
   workspaceLabChromeColors,
   workspaceLabColorContrasts,
-  workspaceLabDefaultColorRoles,
   workspaceLabNeutralTones,
   workspaceLabRootColors,
   workspaceLabStatusColors,
@@ -20,13 +18,13 @@ import type { LabColorRoles } from "../../model/types";
 import {
   DisclosureButton,
   InspectorSection,
-  ModifiedResetButton,
   SegmentedField,
   SelectField,
   SwatchField,
   toSelectOptions,
   type SwatchOption,
 } from "./InspectorFields";
+import { DesignThemeSectionReset } from "./DesignThemeField";
 import type { InspectorSectionProps } from "./types";
 
 /*
@@ -53,7 +51,6 @@ export function ColorSection({ config, onChange }: InspectorSectionProps) {
   const baseTokens: WorkspaceLabColorThemeTokens = currentTheme.tokens;
   const tokens = getWorkspaceLabColorTokens(baseTokens, colorRoles);
   const palette = getWorkspaceLabColorThemePalette({ ...currentTheme, tokens });
-  const isModified = isWorkspaceLabColorRolesModified(colorRoles);
 
   const changeRole = <K extends keyof LabColorRoles>(
     role: K,
@@ -64,13 +61,11 @@ export function ColorSection({ config, onChange }: InspectorSectionProps) {
     <InspectorSection
       title="Color"
       action={
-        isModified ? (
-          <ModifiedResetButton
-            onReset={() =>
-              onChange({ colorRoles: { ...workspaceLabDefaultColorRoles } })
-            }
-          />
-        ) : null
+        <DesignThemeSectionReset
+          config={config}
+          onChange={onChange}
+          section="color"
+        />
       }
     >
       <SelectField

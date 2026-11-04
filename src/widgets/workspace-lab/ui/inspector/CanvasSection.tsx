@@ -8,13 +8,23 @@ import {
   SelectField,
   toSelectOptions,
 } from "./InspectorFields";
+import { DesignThemeSectionReset } from "./DesignThemeField";
 import type { InspectorSectionProps } from "./types";
 
 export function CanvasSection({ config, onChange }: InspectorSectionProps) {
   const currentCanvasStyle = getWorkspaceLabCanvasStyle(config.canvasStyle);
 
   return (
-    <InspectorSection title="Canvas">
+    <InspectorSection
+      title="Canvas"
+      action={
+        <DesignThemeSectionReset
+          config={config}
+          onChange={onChange}
+          section="canvas"
+        />
+      }
+    >
       <SelectField
         label="캔버스"
         value={config.canvasStyle}

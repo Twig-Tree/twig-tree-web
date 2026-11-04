@@ -1,9 +1,15 @@
 import { describe, expect, it } from "vitest";
 import { workspaceLabDefaultColorRoles } from "./color-roles";
-import { workspaceLabConfigReducer, workspaceLabDefaultConfig } from "./config";
+import {
+  isWorkspaceLabDefaultConfig,
+  workspaceLabConfigReducer,
+  workspaceLabDefaultConfig,
+} from "./config";
 import {
   applyWorkspaceLabDesignTheme,
+  getWorkspaceLabDesignThemeSectionChange,
   isWorkspaceLabDesignThemeModified,
+  isWorkspaceLabDesignThemeSectionModified,
   workspaceLabDesignThemes,
 } from "./design-themes";
 
@@ -121,5 +127,95 @@ describe("workspaceLabConfigReducer · 디자인 테마", () => {
     const reset = workspaceLabConfigReducer(modified, { designTheme: "quiet" });
 
     expect(reset).toEqual(workspaceLabDefaultConfig);
+  });
+});
+
+describe("디자인 테마 구획", () => {
+  const modified = workspaceLabConfigReducer(
+    applyWorkspaceLabDesignTheme(workspaceLabDefaultConfig, "soft"),
+    {
+      canvasStyle: "plain",
+      colorRoles: { ...workspaceLabDefaultColorRoles, accent: "teal" },
+      leftPanelStyle: {
+        ...workspaceLabDefaultConfig.leftPanelStyle,
+        placement: "floating",
+        surface: "glass",
+      },
+    },
+  );
+
+  it("바뀐 값이 속한 구획만 수정됨으로 본다", () => {
+    expect(isWorkspaceLabDesignThemeSectionModified(modified, "canvas")).toBe(
+      true,
+    );
+    expect(isWorkspaceLabDesignThemeSectionModified(modified, "color")).toBe(
+      true,
+    );
+    expect(
+      isWorkspaceLabDesignThemeSectionModified(modified, "leftPanel"),
+    ).toBe(true);
+    expect(isWorkspaceLabDesignThemeSectionModified(modified, "shape")).toBe(
+      false,
+    );
+    expect(
+      isWorkspaceLabDesignThemeSectionModified(modified, "memoPanel"),
+    ).toBe(false);
+  });
+
+  it("구획 초기화는 그 구획만 현재 디자인 테마 값으로 되돌린다", () => {
+    const next = workspaceLabConfigReducer(
+      modified,
+      getWorkspaceLabDesignThemeSectionChange(modified, "canvas"),
+    );
+
+    expect(next.canvasStyle).toBe("paper");
+    expect(next.colorRoles.accent).toBe("teal");
+    expect(isWorkspaceLabDesignThemeSectionModified(next, "canvas")).toBe(
+      false,
+    );
+  });
+
+  it("패널 구획 초기화는 배치·너비를 유지한다", () => {
+    const next = workspaceLabConfigReducer(
+      modified,
+      getWorkspaceLabDesignThemeSectionChange(modified, "leftPanel"),
+    );
+
+    expect(next.leftPanelStyle.placement).toBe("floating");
+    expect(next.leftPanelStyle.surface).toBe("muted");
+  });
+});
+
+describe("isWorkspaceLabDefaultConfig", () => {
+  it("기본 조합이면 true, 한 값이라도 다르면 false", () => {
+    expect(isWorkspaceLabDefaultConfig(workspaceLabDefaultConfig)).toBe(true);
+    expect(
+      isWorkspaceLabDefaultConfig(
+        workspaceLabConfigReducer(workspaceLabDefaultConfig, {
+          showPlayer: true,
+        }),
+      ),
+    ).toBe(false);
+    expect(
+      isWorkspaceLabDefaultConfig(
+        workspaceLabConfigReducer(workspaceLabDefaultConfig, {
+          leftPanelStyle: {
+            ...workspaceLabDefaultConfig.leftPanelStyle,
+            width: "wide",
+          },
+        }),
+      ),
+    ).toBe(false);
+  });
+
+  it("전체 초기화는 어떤 조합에서든 기본 조합으로 되돌린다", () => {
+    const changed = workspaceLabConfigReducer(
+      applyWorkspaceLabDesignTheme(workspaceLabDefaultConfig, "contrast"),
+      { scenarioId: "deep", showToolbar: false },
+    );
+
+    expect(
+      workspaceLabConfigReducer(changed, workspaceLabDefaultConfig),
+    ).toEqual(workspaceLabDefaultConfig);
   });
 });

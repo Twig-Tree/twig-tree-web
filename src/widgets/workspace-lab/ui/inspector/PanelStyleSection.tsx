@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import {
   getWorkspaceLabPanelBorder,
   getWorkspaceLabPanelPlacement,
@@ -19,6 +20,7 @@ import {
 
 type PanelStyleSectionProps = {
   title: string; // Inspector 구획 제목
+  action?: ReactNode; // 제목 오른쪽의 수정됨 배지
   visibleLabel: string; // 패널 표시 토글 이름
   isVisible: boolean; // 미리보기에 패널을 그리는지 여부
   panelStyle: LabPanelStyle; // 패널의 현재 디자인 선택값
@@ -28,6 +30,7 @@ type PanelStyleSectionProps = {
 
 export function PanelStyleSection({
   title,
+  action,
   visibleLabel,
   isVisible,
   panelStyle,
@@ -39,7 +42,7 @@ export function PanelStyleSection({
   const currentBorder = getWorkspaceLabPanelBorder(panelStyle.border);
 
   return (
-    <InspectorSection title={title}>
+    <InspectorSection title={title} action={action}>
       <Toggle
         label={visibleLabel}
         checked={isVisible}

@@ -114,3 +114,24 @@ export function workspaceLabConfigReducer(
 
   return next;
 }
+
+/*
+함수 이름 : isWorkspaceLabDefaultConfig
+기능 : 현재 조합이 Lab 기본 조합과 같은지 판단한다. 색 역할·연결선·패널처럼 묶인 값은 한 단계 안까지 비교한다.
+인자 : WorkspaceLabConfig config -> 현재 조합
+반환값 : 모든 값이 기본 조합과 같으면 true
+*/
+export const isWorkspaceLabDefaultConfig = (config: WorkspaceLabConfig) =>
+  (
+    Object.keys(workspaceLabDefaultConfig) as Array<keyof WorkspaceLabConfig>
+  ).every((key) => {
+    const defaultValue = workspaceLabDefaultConfig[key];
+    const value = config[key];
+
+    return typeof defaultValue === "object"
+      ? Object.entries(defaultValue).every(
+          ([field, fieldValue]) =>
+            (value as Record<string, unknown>)[field] === fieldValue,
+        )
+      : defaultValue === value;
+  });

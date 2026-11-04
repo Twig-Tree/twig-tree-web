@@ -1,8 +1,15 @@
 import { useState } from "react";
+import {
+  isWorkspaceLabDefaultConfig,
+  workspaceLabDefaultConfig,
+} from "../model/config";
 import { CanvasSection } from "./inspector/CanvasSection";
 import { ColorSection } from "./inspector/ColorSection";
 import { ConnectionSection } from "./inspector/ConnectionSection";
-import { DesignThemeField } from "./inspector/DesignThemeField";
+import {
+  DesignThemeField,
+  DesignThemeSectionReset,
+} from "./inspector/DesignThemeField";
 import { InspectorTabs, type InspectorTab } from "./inspector/InspectorTabs";
 import { LayoutSection } from "./inspector/LayoutSection";
 import { NodeSection } from "./inspector/NodeSection";
@@ -59,6 +66,9 @@ export function WorkspaceLabInspector({
           <RegionsSection {...sectionProps} />
           <PanelStyleSection
             title="Left panel"
+            action={
+              <DesignThemeSectionReset {...sectionProps} section="leftPanel" />
+            }
             visibleLabel="왼쪽 패널 표시"
             isVisible={config.showLeftPanel}
             panelStyle={config.leftPanelStyle}
@@ -69,6 +79,9 @@ export function WorkspaceLabInspector({
           />
           <PanelStyleSection
             title="Memo panel"
+            action={
+              <DesignThemeSectionReset {...sectionProps} section="memoPanel" />
+            }
             visibleLabel="메모 패널 표시"
             isVisible={config.showRightPanel}
             panelStyle={config.memoPanelStyle}
@@ -85,9 +98,20 @@ export function WorkspaceLabInspector({
   return (
     <aside className="workspace-lab-inspector flex h-full w-72 shrink-0 flex-col border-l border-slate-200 bg-white">
       <header className="border-b border-slate-200 px-5 py-4">
-        <p className="text-[11px] font-semibold tracking-[0.18em] text-indigo-600 uppercase">
-          Inspector
-        </p>
+        <div className="flex items-center justify-between">
+          <p className="text-[11px] font-semibold tracking-[0.18em] text-indigo-600 uppercase">
+            Inspector
+          </p>
+          {/* 구조·화면 영역까지 포함해 Lab을 처음 연 상태로 되돌린다. */}
+          <button
+            type="button"
+            disabled={isWorkspaceLabDefaultConfig(config)}
+            onClick={() => onChange(workspaceLabDefaultConfig)}
+            className="text-[11px] font-medium text-slate-500 hover:text-slate-900 disabled:cursor-default disabled:text-slate-300"
+          >
+            전체 초기화
+          </button>
+        </div>
         <h2 className="mt-1 text-base font-semibold text-slate-950">
           Workspace UI
         </h2>

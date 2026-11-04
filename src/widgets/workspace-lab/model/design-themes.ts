@@ -144,8 +144,74 @@ export const getWorkspaceLabDesignTheme = (
   workspaceLabDesignThemes.find((theme) => theme.id === id) ??
   workspaceLabDesignThemes[0];
 
-const hasSameValues = <T extends object>(a: T, b: T) =>
-  (Object.keys(a) as Array<keyof T>).every((key) => a[key] === b[key]);
+/*
+Inspector 구획마다 디자인 테마의 어느 값을 책임지는지 정한다.
+구획 배지는 이 묶음 안에서만 테마와 비교하고, 초기화도 이 묶음만 되돌린다.
+*/
+const designThemeSectionKeys = {
+  color: ["colorTheme", "colorRoles"],
+  shape: ["shapeStyle"],
+  canvas: ["canvasStyle"],
+  node: ["nodeShape", "density", "collapseControlStyle"],
+  connection: ["edgeStyle", "connectionPointStyle"],
+  leftPanel: ["leftPanel"],
+  memoPanel: ["memoPanel"],
+} as const satisfies Record<
+  string,
+  ReadonlyArray<keyof WorkspaceLabDesignThemeValues>
+>;
+
+export type WorkspaceLabDesignThemeSection =
+  keyof typeof designThemeSectionKeys;
+
+type DesignThemeValueKey = keyof WorkspaceLabDesignThemeValues;
+
+const designThemeSections = Object.keys(
+  designThemeSectionKeys,
+) as WorkspaceLabDesignThemeSection[];
+
+/*
+테마 값과 config 값은 패널만 이름과 모양이 다르다.
+테마는 패널 표현만 갖고, config는 배치·너비까지 담은 패널 스타일을 갖는다.
+*/
+const getConfigValue = (
+  config: WorkspaceLabConfig,
+  key: DesignThemeValueKey,
+) =>
+  key === "leftPanel"
+    ? config.leftPanelStyle
+    : key === "memoPanel"
+      ? config.memoPanelStyle
+      : config[key];
+
+const isSameValue = (themeValue: unknown, configValue: unknown) =>
+  typeof themeValue === "object" && themeValue !== null
+    ? Object.entries(themeValue).every(
+        ([key, value]) =>
+          (configValue as Record<string, unknown>)[key] === value,
+      )
+    : themeValue === configValue;
+
+function getThemeValuesChange(
+  config: WorkspaceLabConfig,
+  id: WorkspaceLabDesignThemeId,
+  keys: ReadonlyArray<DesignThemeValueKey>,
+): Partial<WorkspaceLabConfig> {
+  const values = getWorkspaceLabDesignTheme(id).values;
+  const change: Partial<WorkspaceLabConfig> = {};
+
+  for (const key of keys) {
+    if (key === "leftPanel") {
+      change.leftPanelStyle = { ...config.leftPanelStyle, ...values.leftPanel };
+    } else if (key === "memoPanel") {
+      change.memoPanelStyle = { ...config.memoPanelStyle, ...values.memoPanel };
+    } else {
+      Object.assign(change, { [key]: values[key] });
+    }
+  }
+
+  return change;
+}
 
 /*
 함수 이름 : applyWorkspaceLabDesignTheme
@@ -158,16 +224,50 @@ export function applyWorkspaceLabDesignTheme(
   config: WorkspaceLabConfig,
   id: WorkspaceLabDesignThemeId,
 ): WorkspaceLabConfig {
-  const { leftPanel, memoPanel, ...values } =
-    getWorkspaceLabDesignTheme(id).values;
-
   return {
     ...config,
-    ...values,
+    ...getThemeValuesChange(
+      config,
+      id,
+      designThemeSections.flatMap((section) => designThemeSectionKeys[section]),
+    ),
     designTheme: id,
-    leftPanelStyle: { ...config.leftPanelStyle, ...leftPanel },
-    memoPanelStyle: { ...config.memoPanelStyle, ...memoPanel },
   };
+}
+
+/*
+함수 이름 : getWorkspaceLabDesignThemeSectionChange
+기능 : 한 구획이 책임지는 값만 현재 디자인 테마의 값으로 되돌리는 변경을 만든다.
+인자 : WorkspaceLabConfig config -> 현재 조합
+WorkspaceLabDesignThemeSection section -> 되돌릴 구획
+반환값 : reducer에 넘길 변경
+*/
+export const getWorkspaceLabDesignThemeSectionChange = (
+  config: WorkspaceLabConfig,
+  section: WorkspaceLabDesignThemeSection,
+) =>
+  getThemeValuesChange(
+    config,
+    config.designTheme,
+    designThemeSectionKeys[section],
+  );
+
+/*
+함수 이름 : isWorkspaceLabDesignThemeSectionModified
+기능 : 한 구획이 책임지는 값이 현재 디자인 테마에서 벗어났는지 판단한다.
+인자 : WorkspaceLabConfig config -> 현재 조합
+WorkspaceLabDesignThemeSection section -> 비교할 구획
+반환값 : 구획 값 중 하나라도 테마와 다르면 true
+*/
+export function isWorkspaceLabDesignThemeSectionModified(
+  config: WorkspaceLabConfig,
+  section: WorkspaceLabDesignThemeSection,
+): boolean {
+  const values = getWorkspaceLabDesignTheme(config.designTheme).values;
+
+  return designThemeSectionKeys[section].some(
+    (key) => !isSameValue(values[key], getConfigValue(config, key)),
+  );
 }
 
 /*
@@ -176,17 +276,7 @@ export function applyWorkspaceLabDesignTheme(
 인자 : WorkspaceLabConfig config -> 현재 조합
 반환값 : 테마가 정하는 값 중 하나라도 다르면 true
 */
-export function isWorkspaceLabDesignThemeModified(
-  config: WorkspaceLabConfig,
-): boolean {
-  const { leftPanel, memoPanel, colorRoles, edgeStyle, ...values } =
-    getWorkspaceLabDesignTheme(config.designTheme).values;
-
-  return !(
-    hasSameValues(values, config) &&
-    hasSameValues(colorRoles, config.colorRoles) &&
-    hasSameValues(edgeStyle, config.edgeStyle) &&
-    hasSameValues(leftPanel, config.leftPanelStyle) &&
-    hasSameValues(memoPanel, config.memoPanelStyle)
+export const isWorkspaceLabDesignThemeModified = (config: WorkspaceLabConfig) =>
+  designThemeSections.some((section) =>
+    isWorkspaceLabDesignThemeSectionModified(config, section),
   );
-}

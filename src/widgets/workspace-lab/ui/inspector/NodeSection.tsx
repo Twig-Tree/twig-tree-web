@@ -14,6 +14,7 @@ import {
   SelectField,
   toSelectOptions,
 } from "./InspectorFields";
+import { DesignThemeSectionReset } from "./DesignThemeField";
 import type { InspectorSectionProps } from "./types";
 
 export function NodeSection({ config, onChange }: InspectorSectionProps) {
@@ -24,7 +25,16 @@ export function NodeSection({ config, onChange }: InspectorSectionProps) {
   );
 
   return (
-    <InspectorSection title="Node">
+    <InspectorSection
+      title="Node"
+      action={
+        <DesignThemeSectionReset
+          config={config}
+          onChange={onChange}
+          section="node"
+        />
+      }
+    >
       <SelectField
         label="노드 모양"
         value={config.nodeShape}

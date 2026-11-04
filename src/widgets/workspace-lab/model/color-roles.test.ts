@@ -1,7 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
   getWorkspaceLabColorTokens,
-  isWorkspaceLabColorRolesModified,
   workspaceLabAccentColors,
   workspaceLabChromeColors,
   workspaceLabColorContrasts,
@@ -74,17 +73,5 @@ describe("workspaceLab color roles", () => {
     expect(tokens.canvas).toBe("#f7f6f4");
     expect(tokens.accent).toBe(quietTokens.accent);
     expect(tokens.rootSurface).toBe(quietTokens.rootSurface);
-  });
-
-  it("테마 기본이 아닌 역할이 있으면 수정된 것으로 본다", () => {
-    expect(
-      isWorkspaceLabColorRolesModified(workspaceLabDefaultColorRoles),
-    ).toBe(false);
-    expect(
-      isWorkspaceLabColorRolesModified({
-        ...workspaceLabDefaultColorRoles,
-        contrast: "high",
-      }),
-    ).toBe(true);
   });
 });
