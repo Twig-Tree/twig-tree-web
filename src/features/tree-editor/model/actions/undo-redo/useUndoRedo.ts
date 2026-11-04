@@ -1,4 +1,4 @@
-import { useRef } from "react";
+import { useEffect, useRef } from "react";
 import {
   useAddNodeMutation,
   useAddNodeTagMutation,
@@ -106,6 +106,21 @@ export const useUndoRedo = ({ treeId }: UseUndoRedoParams) => {
   undo/redo는 연타하면 다음 기록을 꺼내 요청이 겹친다. pending 값은 리렌더 전 클릭을 막지 못하므로 동기 가드를 둔다.
   */
   const isRunningRef = useRef(false);
+
+  /*
+  요청 중에 편집기를 벗어나면 store는 다음 편집기의 트리로 채워진다. 그 뒤에 실패를 처리하면 이전 트리의 구조로 store를 덮으므로,
+  편집기가 아직 떠 있는지로 실패 처리 여부를 정한다. 같은 워크스페이스에 다시 들어와도 노드 신원이 새로 만들어지므로
+  트리 ID 비교로는 구분할 수 없다.
+  */
+  const isMountedRef = useRef(false);
+
+  useEffect(() => {
+    isMountedRef.current = true;
+
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
 
   /*
   노드를 하위 트리째 지운다. 추가의 undo와 삭제의 redo가 쓴다. 추가를 되돌릴 때는 그 뒤에 붙은 자식이 기록 순서상
@@ -382,6 +397,8 @@ export const useUndoRedo = ({ treeId }: UseUndoRedoParams) => {
     try {
       await applyHistoryEntry(treeId, entry, direction);
     } catch (error) {
+      if (!isMountedRef.current) return; // 편집기를 벗어났으면 store와 기록이 이미 비워져 되돌릴 대상이 없다.
+
       restoreStructureInStore({ nodes, edges });
 
       if (error instanceof RecreateFailedAfterMoveError) {

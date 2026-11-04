@@ -311,6 +311,41 @@ describe("useUndoRedo", () => {
   /*
   pending 값은 리렌더 전 클릭을 막지 못한다. 막지 못하면 두 번째 클릭이 앞 기록을 꺼내 요청이 겹친다.
   */
+  /*
+  편집기를 벗어나면 store는 비워지고 다음 편집기의 트리로 채워진다. 그 뒤에 도착한 실패로 이전 트리의 구조를 되돌리면 새 트리를 덮는다.
+  */
+  it("요청 중에 편집기를 벗어난 뒤 실패하면 store를 되돌리지 않고 알리지도 않는다", async () => {
+    useEditHistoryStore.getState().record(moveEntry);
+    let rejectMove: (error: Error) => void = () => {};
+    vi.spyOn(treeApi, "moveNode").mockReturnValue(
+      new Promise((_, reject) => {
+        rejectMove = reject;
+      }),
+    );
+    const alertSpy = vi.spyOn(window, "alert").mockImplementation(() => {});
+    const { result, unmount } = renderUndoRedo();
+
+    act(() => result.current.handleUndo());
+    await waitFor(() => expect(treeApi.moveNode).toHaveBeenCalled());
+
+    unmount();
+    useTreeStore.getState().resetTree();
+    useEditHistoryStore.getState().clear();
+    useTreeStore.getState().initializeTree({
+      treeId: "20",
+      nodes: [createNode("9", 1)],
+      edges: [],
+    });
+    const { nodes: nextNodes, edges: nextEdges } = useTreeStore.getState();
+
+    await act(async () => rejectMove(new Error("failed")));
+
+    expect(useTreeStore.getState().nodes).toBe(nextNodes);
+    expect(useTreeStore.getState().edges).toBe(nextEdges);
+    expect(getHistory()).toEqual({ past: [], future: [] });
+    expect(alertSpy).not.toHaveBeenCalled();
+  });
+
   it("요청 중에 다시 눌러도 다음 기록을 꺼내지 않는다", async () => {
     const deleteNodeSpy = vi
       .spyOn(treeApi, "deleteNode")
