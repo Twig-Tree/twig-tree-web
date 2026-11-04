@@ -3,7 +3,6 @@ import {
   workspaceLabShapeStyles,
 } from "../../model/shape-styles";
 import {
-  FieldDescription,
   InspectorSection,
   SelectField,
   toSelectOptions,
@@ -30,8 +29,8 @@ export function ShapeSection({ config, onChange }: InspectorSectionProps) {
         value={config.shapeStyle}
         options={toSelectOptions(workspaceLabShapeStyles)}
         onChange={(shapeStyle) => onChange({ shapeStyle })}
+        description={currentShapeStyle.description}
       />
-      <FieldDescription>{currentShapeStyle.description}</FieldDescription>
     </InspectorSection>
   );
 }

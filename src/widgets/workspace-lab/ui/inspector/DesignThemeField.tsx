@@ -1,3 +1,4 @@
+import { useId } from "react";
 import {
   getWorkspaceLabDesignTheme,
   getWorkspaceLabDesignThemeSectionChange,
@@ -22,6 +23,7 @@ import type { InspectorSectionProps } from "./types";
 export function DesignThemeField({ config, onChange }: InspectorSectionProps) {
   const currentTheme = getWorkspaceLabDesignTheme(config.designTheme);
   const isModified = isWorkspaceLabDesignThemeModified(config);
+  const descriptionId = useId();
 
   /*
   select는 같은 값을 다시 골라도 change가 일어나지 않는다.
@@ -45,6 +47,7 @@ export function DesignThemeField({ config, onChange }: InspectorSectionProps) {
       <select
         id="workspace-lab-design-theme"
         value={config.designTheme}
+        aria-describedby={descriptionId}
         onChange={(event) =>
           onChange({
             designTheme: event.target.value as typeof config.designTheme,
@@ -61,7 +64,9 @@ export function DesignThemeField({ config, onChange }: InspectorSectionProps) {
           </option>
         ))}
       </select>
-      <FieldDescription>{currentTheme.description}</FieldDescription>
+      <FieldDescription id={descriptionId}>
+        {currentTheme.description}
+      </FieldDescription>
     </div>
   );
 }

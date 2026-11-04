@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useId, useState } from "react";
 import {
   getWorkspaceLabColorTokens,
   workspaceLabAccentColors,
@@ -47,6 +47,7 @@ const getSwatchOptions = <T extends string>(
 export function ColorSection({ config, onChange }: InspectorSectionProps) {
   const { colorTheme, colorRoles } = config;
   const [showDetail, setShowDetail] = useState(false);
+  const themeDescriptionId = useId(); // 팔레트 카드 안의 컬러 테마 설명
   const currentTheme = getWorkspaceLabColorTheme(colorTheme);
   const baseTokens: WorkspaceLabColorThemeTokens = currentTheme.tokens;
   const tokens = getWorkspaceLabColorTokens(baseTokens, colorRoles);
@@ -73,6 +74,7 @@ export function ColorSection({ config, onChange }: InspectorSectionProps) {
         value={colorTheme}
         options={toSelectOptions(workspaceLabColorThemes)}
         onChange={(value) => onChange({ colorTheme: value })}
+        describedBy={themeDescriptionId}
       />
       <div className="rounded-xl border border-slate-200 bg-slate-50 p-3">
         <div className="flex items-center gap-2">
@@ -85,7 +87,10 @@ export function ColorSection({ config, onChange }: InspectorSectionProps) {
             />
           ))}
         </div>
-        <p className="mt-2 text-[11px] leading-4 text-slate-500">
+        <p
+          id={themeDescriptionId}
+          className="mt-2 text-[11px] leading-4 text-slate-500"
+        >
           {currentTheme.description}
         </p>
       </div>

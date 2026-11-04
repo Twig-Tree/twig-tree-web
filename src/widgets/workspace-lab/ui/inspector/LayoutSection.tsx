@@ -5,7 +5,6 @@ import {
   workspaceLabLayoutSpacings,
 } from "../../model/layouts";
 import {
-  FieldDescription,
   InspectorSection,
   SelectField,
   toSelectOptions,
@@ -25,15 +24,15 @@ export function LayoutSection({ config, onChange }: InspectorSectionProps) {
         value={config.layoutMode}
         options={toSelectOptions(workspaceLabLayouts)}
         onChange={(layoutMode) => onChange({ layoutMode })}
+        description={currentLayout.description}
       />
-      <FieldDescription>{currentLayout.description}</FieldDescription>
       <SelectField
         label="배치 간격"
         value={config.layoutSpacing}
         options={toSelectOptions(workspaceLabLayoutSpacings)}
         onChange={(layoutSpacing) => onChange({ layoutSpacing })}
+        description={currentLayoutSpacing.description}
       />
-      <FieldDescription>{currentLayoutSpacing.description}</FieldDescription>
     </InspectorSection>
   );
 }

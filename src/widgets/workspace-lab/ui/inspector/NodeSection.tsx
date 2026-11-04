@@ -9,7 +9,6 @@ import {
   workspaceLabNodeDensities,
 } from "../../model/visual-slots";
 import {
-  FieldDescription,
   InspectorSection,
   SelectField,
   toSelectOptions,
@@ -40,24 +39,22 @@ export function NodeSection({ config, onChange }: InspectorSectionProps) {
         value={config.nodeShape}
         options={toSelectOptions(workspaceLabNodeShapes)}
         onChange={(nodeShape) => onChange({ nodeShape })}
+        description={currentNodeShape.description}
       />
-      <FieldDescription>{currentNodeShape.description}</FieldDescription>
       <SelectField
         label="노드 밀도"
         value={config.density}
         options={toSelectOptions(workspaceLabNodeDensities)}
         onChange={(density) => onChange({ density })}
+        description={currentNodeDensity.description}
       />
-      <FieldDescription>{currentNodeDensity.description}</FieldDescription>
       <SelectField
         label="접기 버튼"
         value={config.collapseControlStyle}
         options={toSelectOptions(workspaceLabCollapseControlStyles)}
         onChange={(collapseControlStyle) => onChange({ collapseControlStyle })}
+        description={currentCollapseControlStyle.description}
       />
-      <FieldDescription>
-        {currentCollapseControlStyle.description}
-      </FieldDescription>
     </InspectorSection>
   );
 }

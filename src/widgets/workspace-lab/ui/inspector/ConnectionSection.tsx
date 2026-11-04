@@ -21,7 +21,6 @@ import {
 } from "../../model/visual-slots";
 import {
   DisclosureButton,
-  FieldDescription,
   InspectorSection,
   SelectField,
   toSelectOptions,
@@ -85,11 +84,11 @@ export function ConnectionSection({ config, onChange }: InspectorSectionProps) {
           { value: "custom" as const, label: "커스텀" },
         ]}
         onChange={handleEdgePresetChange}
+        description={
+          currentEdgePreset?.description ??
+          "세부 속성을 직접 조합한 커스텀 스타일입니다."
+        }
       />
-      <FieldDescription>
-        {currentEdgePreset?.description ??
-          "세부 속성을 직접 조합한 커스텀 스타일입니다."}
-      </FieldDescription>
 
       <DisclosureButton
         label="커스텀 설정"
@@ -110,10 +109,8 @@ export function ConnectionSection({ config, onChange }: InspectorSectionProps) {
             onChange={(lineStyle) =>
               onEdgeStyleChange({ ...edgeStyle, lineStyle })
             }
+            description={currentEdgeLineStyle.description}
           />
-          <FieldDescription>
-            {currentEdgeLineStyle.description}
-          </FieldDescription>
           <div className="grid grid-cols-2 gap-3">
             <SelectField
               label="패턴"
@@ -151,8 +148,8 @@ export function ConnectionSection({ config, onChange }: InspectorSectionProps) {
             value={edgeStyle.effect}
             options={toSelectOptions(workspaceLabEdgeEffects)}
             onChange={(effect) => onEdgeStyleChange({ ...edgeStyle, effect })}
+            description={currentEdgeEffect.description}
           />
-          <FieldDescription>{currentEdgeEffect.description}</FieldDescription>
         </div>
       ) : null}
 
@@ -161,10 +158,8 @@ export function ConnectionSection({ config, onChange }: InspectorSectionProps) {
         value={connectionPointStyle}
         options={toSelectOptions(workspaceLabConnectionPointStyles)}
         onChange={(connectionPointStyle) => onChange({ connectionPointStyle })}
+        description={currentConnectionPointStyle.description}
       />
-      <FieldDescription>
-        {currentConnectionPointStyle.description}
-      </FieldDescription>
     </InspectorSection>
   );
 }

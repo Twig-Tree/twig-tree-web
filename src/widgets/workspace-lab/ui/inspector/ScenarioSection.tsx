@@ -2,11 +2,7 @@ import {
   getWorkspaceLabScenario,
   workspaceLabScenarios,
 } from "../../model/scenarios";
-import {
-  FieldDescription,
-  InspectorSection,
-  SelectField,
-} from "./InspectorFields";
+import { InspectorSection, SelectField } from "./InspectorFields";
 import type { InspectorSectionProps } from "./types";
 
 export function ScenarioSection({ config, onChange }: InspectorSectionProps) {
@@ -22,8 +18,8 @@ export function ScenarioSection({ config, onChange }: InspectorSectionProps) {
           label: item.label,
         }))}
         onChange={(scenarioId) => onChange({ scenarioId })}
+        description={currentScenario.description}
       />
-      <FieldDescription>{currentScenario.description}</FieldDescription>
     </InspectorSection>
   );
 }

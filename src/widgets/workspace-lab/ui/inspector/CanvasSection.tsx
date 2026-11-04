@@ -3,7 +3,6 @@ import {
   workspaceLabCanvasStyles,
 } from "../../model/visual-slots";
 import {
-  FieldDescription,
   InspectorSection,
   SelectField,
   toSelectOptions,
@@ -30,8 +29,8 @@ export function CanvasSection({ config, onChange }: InspectorSectionProps) {
         value={config.canvasStyle}
         options={toSelectOptions(workspaceLabCanvasStyles)}
         onChange={(canvasStyle) => onChange({ canvasStyle })}
+        description={currentCanvasStyle.description}
       />
-      <FieldDescription>{currentCanvasStyle.description}</FieldDescription>
     </InspectorSection>
   );
 }

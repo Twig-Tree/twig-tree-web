@@ -1,31 +1,56 @@
-import type { ReactNode } from "react";
+import { useId, type ReactNode } from "react";
 
+type SelectFieldProps<T extends string> = {
+  label: string;
+  value: T;
+  options: Array<{ value: T; label: string }>;
+  onChange: (value: T) => void;
+  description?: ReactNode; // 현재 선택값의 설명
+  describedBy?: string; // 여러 필드가 함께 쓰는 바깥 설명의 id
+};
+
+/*
+함수 이름 : SelectField
+기능 : 라벨이 붙은 select를 그린다. 설명이 있으면 select 아래에 두고 aria-describedby로 연결한다.
+인자 : SelectFieldProps
+반환값 : 선택 필드
+*/
 export function SelectField<T extends string>({
   label,
   value,
   options,
   onChange,
-}: {
-  label: string;
-  value: T;
-  options: Array<{ value: T; label: string }>;
-  onChange: (value: T) => void;
-}) {
+  description,
+  describedBy,
+}: SelectFieldProps<T>) {
+  const descriptionId = useId();
+
+  /*
+  설명은 label 바깥에 둔다. label 안에 두면 설명 문장까지 필드 이름으로 읽힌다.
+  */
   return (
-    <label className="flex flex-col gap-1.5 text-xs font-medium text-slate-600">
-      {label}
-      <select
-        value={value}
-        onChange={(event) => onChange(event.target.value as T)}
-        className="h-9 rounded-lg border border-slate-200 bg-white px-2.5 text-sm text-slate-900 outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100"
-      >
-        {options.map((option) => (
-          <option key={option.value} value={option.value}>
-            {option.label}
-          </option>
-        ))}
-      </select>
-    </label>
+    <div className="flex flex-col gap-1.5">
+      <label className="flex flex-col gap-1.5 text-xs font-medium text-slate-600">
+        {label}
+        <select
+          value={value}
+          aria-describedby={
+            description !== undefined ? descriptionId : describedBy
+          }
+          onChange={(event) => onChange(event.target.value as T)}
+          className="h-9 rounded-lg border border-slate-200 bg-white px-2.5 text-sm text-slate-900 outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100"
+        >
+          {options.map((option) => (
+            <option key={option.value} value={option.value}>
+              {option.label}
+            </option>
+          ))}
+        </select>
+      </label>
+      {description !== undefined ? (
+        <FieldDescription id={descriptionId}>{description}</FieldDescription>
+      ) : null}
+    </div>
   );
 }
 
@@ -201,8 +226,18 @@ export function ModifiedResetButton({ onReset }: { onReset: () => void }) {
   );
 }
 
-export function FieldDescription({ children }: { children: ReactNode }) {
-  return <p className="text-[11px] leading-4 text-slate-500">{children}</p>;
+export function FieldDescription({
+  id,
+  children,
+}: {
+  id?: string; // 필드가 aria-describedby로 가리킬 id
+  children: ReactNode;
+}) {
+  return (
+    <p id={id} className="text-[11px] leading-4 text-slate-500">
+      {children}
+    </p>
+  );
 }
 
 export function DisclosureButton({

@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import { useId, type ReactNode } from "react";
 import {
   getWorkspaceLabPanelBorder,
   getWorkspaceLabPanelPlacement,
@@ -40,6 +40,7 @@ export function PanelStyleSection({
   const currentPlacement = getWorkspaceLabPanelPlacement(panelStyle.placement);
   const currentSurface = getWorkspaceLabPanelSurface(panelStyle.surface);
   const currentBorder = getWorkspaceLabPanelBorder(panelStyle.border);
+  const surfaceDescriptionId = useId(); // 표면과 경계가 함께 쓰는 설명
 
   return (
     <InspectorSection title={title} action={action}>
@@ -57,8 +58,8 @@ export function PanelStyleSection({
             onChange={(placement) =>
               onPanelStyleChange({ ...panelStyle, placement })
             }
+            description={currentPlacement.description}
           />
-          <FieldDescription>{currentPlacement.description}</FieldDescription>
           <div className="grid grid-cols-2 gap-3">
             <SelectField
               label="너비"
@@ -81,6 +82,7 @@ export function PanelStyleSection({
               onChange={(surface) =>
                 onPanelStyleChange({ ...panelStyle, surface })
               }
+              describedBy={surfaceDescriptionId}
             />
             <SelectField
               label="경계"
@@ -89,9 +91,10 @@ export function PanelStyleSection({
               onChange={(border) =>
                 onPanelStyleChange({ ...panelStyle, border })
               }
+              describedBy={surfaceDescriptionId}
             />
           </div>
-          <FieldDescription>
+          <FieldDescription id={surfaceDescriptionId}>
             {currentSurface.description} {currentBorder.description}
           </FieldDescription>
         </>
