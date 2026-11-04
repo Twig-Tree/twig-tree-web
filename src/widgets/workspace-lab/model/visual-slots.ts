@@ -24,6 +24,23 @@ export interface WorkspaceLabCanvasStyleDefinition extends VisualSlotDefinition 
   backgrounds?: readonly WorkspaceLabCanvasBackgroundLayer[];
 }
 
+export interface WorkspaceLabConnectionPointTokens {
+  width: string; // 위·아래 접점 기준 가로 길이. 왼쪽·오른쪽 접점은 가로와 세로를 바꿔 그린다.
+  height: string; // 위·아래 접점 기준 세로 길이
+  radius: string;
+  borderWidth: string;
+  borderStyle: "solid" | "dashed";
+  borderColor: string;
+  fill: string;
+  shadow: string; // 테두리 바깥에 덧그리는 고리와 번짐
+  rotate: string; // React Flow가 위치 지정에 쓰는 transform과 겹치지 않도록 rotate 속성으로 돌린다.
+  opacity: string;
+}
+
+export interface WorkspaceLabConnectionPointStyleDefinition extends VisualSlotDefinition {
+  tokens: WorkspaceLabConnectionPointTokens;
+}
+
 export interface WorkspaceLabNodeDensityDefinition extends VisualSlotDefinition {
   paddingX: number;
   paddingY: number;
@@ -33,28 +50,160 @@ export interface WorkspaceLabNodeDensityDefinition extends VisualSlotDefinition 
   circleSize: number;
 }
 
+/*
+연결 포인트는 크기, 윤곽선, 채움을 독립된 토큰으로 조합한다.
+색은 컬러 테마 변수만 참조해 어떤 테마와 섞어도 바탕과 어긋나지 않는다.
+*/
+const accentMix = (percent: number) =>
+  `color-mix(in srgb, var(--lab-accent) ${percent}%, transparent)`;
+
+const defaultConnectionPointTokens = {
+  width: "7px",
+  height: "7px",
+  radius: "50%",
+  borderWidth: "1px",
+  borderStyle: "solid",
+  borderColor: "var(--lab-edge)",
+  fill: "var(--lab-surface)",
+  shadow: "none",
+  rotate: "0deg",
+  opacity: "1",
+} as const satisfies WorkspaceLabConnectionPointTokens;
+
 export const workspaceLabConnectionPointStyles = [
   {
     id: "dot",
     name: "도트",
-    description: "작은 채움점으로 연결 위치를 간결하게 표시합니다.",
+    description: "작은 점으로 연결 위치를 간결하게 표시합니다.",
+    tokens: defaultConnectionPointTokens,
+  },
+  {
+    id: "pin",
+    name: "핀",
+    description: "윤곽선 없이 연결선 색으로 채운 가장 작은 점입니다.",
+    tokens: {
+      ...defaultConnectionPointTokens,
+      width: "5px",
+      height: "5px",
+      borderWidth: "0px",
+      fill: "var(--lab-edge)",
+    },
+  },
+  {
+    id: "solid",
+    name: "채운 원",
+    description:
+      "강조색으로 채우고 노드 표면색 테두리로 선과 노드에서 떼어 냅니다.",
+    tokens: {
+      ...defaultConnectionPointTokens,
+      width: "10px",
+      height: "10px",
+      borderWidth: "2px",
+      borderColor: "var(--lab-surface)",
+      fill: "var(--lab-accent)",
+    },
   },
   {
     id: "ring",
     name: "링",
     description: "비어 있는 원으로 연결 가능한 지점을 강조합니다.",
+    tokens: {
+      ...defaultConnectionPointTokens,
+      width: "10px",
+      height: "10px",
+      borderWidth: "2px",
+      borderColor: "var(--lab-accent)",
+      fill: "var(--lab-canvas)",
+    },
+  },
+  {
+    id: "dashed",
+    name: "점선 링",
+    description: "점선 윤곽의 큰 원으로 도면 위 접점처럼 표시합니다.",
+    tokens: {
+      ...defaultConnectionPointTokens,
+      width: "12px",
+      height: "12px",
+      borderWidth: "1.5px",
+      borderStyle: "dashed",
+      borderColor: "var(--lab-accent)",
+      fill: "var(--lab-canvas)",
+    },
+  },
+  {
+    id: "target",
+    name: "과녁",
+    description: "채운 중심과 바깥 고리를 겹쳐 눈에 띄는 접점을 만듭니다.",
+    tokens: {
+      ...defaultConnectionPointTokens,
+      width: "8px",
+      height: "8px",
+      borderWidth: "2px",
+      borderColor: "var(--lab-canvas)",
+      fill: "var(--lab-accent)",
+      shadow: "0 0 0 1.5px var(--lab-accent)",
+    },
+  },
+  {
+    id: "halo",
+    name: "후광",
+    description: "채운 점 둘레에 옅은 강조색 번짐을 둡니다.",
+    tokens: {
+      ...defaultConnectionPointTokens,
+      width: "8px",
+      height: "8px",
+      borderWidth: "0px",
+      fill: "var(--lab-accent)",
+      shadow: `0 0 0 4px ${accentMix(22)}`,
+    },
   },
   {
     id: "square",
     name: "사각 포트",
     description: "도면이나 데이터 맵에 어울리는 각진 접점입니다.",
+    tokens: {
+      ...defaultConnectionPointTokens,
+      width: "8px",
+      height: "8px",
+      radius: "1px",
+      borderColor: "var(--lab-accent)",
+    },
+  },
+  {
+    id: "diamond",
+    name: "마름모",
+    description: "45도 돌린 채운 사각형으로 방향이 있는 접점처럼 보입니다.",
+    tokens: {
+      ...defaultConnectionPointTokens,
+      width: "8px",
+      height: "8px",
+      radius: "1px",
+      borderWidth: "1.5px",
+      borderColor: "var(--lab-surface)",
+      fill: "var(--lab-accent)",
+      rotate: "45deg",
+    },
+  },
+  {
+    id: "tab",
+    name: "탭",
+    description: "노드 가장자리를 따라 눕힌 짧은 막대입니다.",
+    tokens: {
+      ...defaultConnectionPointTokens,
+      width: "16px",
+      height: "4px",
+      radius: "2px",
+      borderWidth: "0px",
+      fill: "var(--lab-accent)",
+    },
   },
   {
     id: "hidden",
     name: "숨김",
     description: "접점은 유지하되 화면에는 표시하지 않습니다.",
+    tokens: { ...defaultConnectionPointTokens, opacity: "0" },
   },
-] as const satisfies readonly VisualSlotDefinition[];
+] as const satisfies readonly WorkspaceLabConnectionPointStyleDefinition[];
 
 export const workspaceLabCollapseControlStyles = [
   {
@@ -251,7 +400,51 @@ function findVisualSlot<T extends VisualSlotDefinition>(
 
 export const getWorkspaceLabConnectionPointStyle = (
   id: WorkspaceLabConnectionPointStyleId,
-) => findVisualSlot(workspaceLabConnectionPointStyles, id);
+): WorkspaceLabConnectionPointStyleDefinition =>
+  findVisualSlot(workspaceLabConnectionPointStyles, id);
+
+const connectionPointTokenCssVariables = {
+  width: "--lab-handle-width",
+  height: "--lab-handle-height",
+  radius: "--lab-handle-radius",
+  borderWidth: "--lab-handle-border-width",
+  borderStyle: "--lab-handle-border-style",
+  borderColor: "--lab-handle-border-color",
+  fill: "--lab-handle-fill",
+  shadow: "--lab-handle-shadow",
+  rotate: "--lab-handle-rotate",
+  opacity: "--lab-handle-opacity",
+} as const satisfies Record<
+  keyof WorkspaceLabConnectionPointTokens,
+  `--lab-handle-${string}`
+>;
+
+type WorkspaceLabConnectionPointCssStyle = CSSProperties &
+  Record<
+    (typeof connectionPointTokenCssVariables)[keyof typeof connectionPointTokenCssVariables],
+    string
+  >;
+
+/*
+함수 이름 : getWorkspaceLabConnectionPointCssStyle
+기능 : 연결 포인트 토큰을 노드 접점 CSS가 읽는 --lab-handle-* 변수로 변환한다.
+인자 : WorkspaceLabConnectionPointStyleDefinition pointStyle -> 적용할 연결 포인트 스타일
+반환값 : 캔버스 요소에 넣을 CSS 변수 객체
+*/
+export function getWorkspaceLabConnectionPointCssStyle(
+  pointStyle: WorkspaceLabConnectionPointStyleDefinition,
+): WorkspaceLabConnectionPointCssStyle {
+  const style = {} as WorkspaceLabConnectionPointCssStyle;
+
+  for (const tokenName of Object.keys(
+    connectionPointTokenCssVariables,
+  ) as Array<keyof WorkspaceLabConnectionPointTokens>) {
+    style[connectionPointTokenCssVariables[tokenName]] =
+      pointStyle.tokens[tokenName];
+  }
+
+  return style;
+}
 
 export const getWorkspaceLabCollapseControlStyle = (
   id: WorkspaceLabCollapseControlStyleId,

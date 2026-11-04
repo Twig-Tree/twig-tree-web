@@ -56,6 +56,8 @@ import {
 } from "../model/panels";
 import {
   getWorkspaceLabCanvasStyle,
+  getWorkspaceLabConnectionPointCssStyle,
+  getWorkspaceLabConnectionPointStyle,
   getWorkspaceLabNodeDensity,
   getWorkspaceLabNodeDensityStyle,
   getWorkspaceLabNodeSize,
@@ -347,14 +349,12 @@ function WorkspacePreview({ config }: { config: WorkspaceLabConfig }) {
           ...item.data,
           state: index === 0 ? nodeState : "default",
           nodeShape,
-          connectionPointStyle,
           collapseControlStyle,
         },
       })),
     [
       activeNodeDensity.circleSize,
       collapseControlStyle,
-      connectionPointStyle,
       laidOutScenario.nodes,
       nodeShape,
       nodeState,
@@ -414,6 +414,9 @@ function WorkspacePreview({ config }: { config: WorkspaceLabConfig }) {
             <div
               className={`${styles.canvas} relative min-h-0 min-w-0 flex-1`}
               data-canvas={canvasStyle}
+              style={getWorkspaceLabConnectionPointCssStyle(
+                getWorkspaceLabConnectionPointStyle(connectionPointStyle),
+              )}
             >
               {scenario.nodes.length === 0 ? (
                 <div className="absolute inset-0 z-10 grid place-items-center pointer-events-none">

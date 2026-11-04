@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import {
   getWorkspaceLabCanvasStyle,
+  getWorkspaceLabConnectionPointCssStyle,
+  getWorkspaceLabConnectionPointStyle,
   getWorkspaceLabNodeDensity,
   getWorkspaceLabNodeDensityStyle,
   getWorkspaceLabNodeSize,
@@ -24,6 +26,37 @@ describe("workspaceLab visual slots", () => {
 
       expect(new Set(ids).size).toBe(ids.length);
     }
+  });
+
+  it.each(workspaceLabConnectionPointStyles)(
+    "$name 연결 포인트의 색은 컬러 테마 변수만 쓴다",
+    (pointStyle) => {
+      const { borderColor, fill, shadow } = pointStyle.tokens;
+
+      for (const value of [borderColor, fill, shadow]) {
+        expect(value).not.toMatch(/rgb\(|#[0-9a-f]{3,6}/i);
+      }
+    },
+  );
+
+  it("숨김만 연결 포인트를 투명하게 그린다", () => {
+    const transparentIds = workspaceLabConnectionPointStyles
+      .filter((pointStyle) => pointStyle.tokens.opacity === "0")
+      .map((pointStyle) => pointStyle.id);
+
+    expect(transparentIds).toEqual(["hidden"]);
+  });
+
+  it("연결 포인트 토큰을 CSS 변수로 변환한다", () => {
+    expect(
+      getWorkspaceLabConnectionPointCssStyle(
+        getWorkspaceLabConnectionPointStyle("diamond"),
+      ),
+    ).toMatchObject({
+      "--lab-handle-width": "8px",
+      "--lab-handle-fill": "var(--lab-accent)",
+      "--lab-handle-rotate": "45deg",
+    });
   });
 
   it("CSS로 표현하는 캔버스는 React Flow 패턴을 사용하지 않는다", () => {

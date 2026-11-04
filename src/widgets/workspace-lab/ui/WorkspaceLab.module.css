@@ -570,38 +570,24 @@ app/xy-theme.css가 모든 React Flow에 고정 배경색을 준다. Lab에서�
 }
 
 .canvas :global(.workspace-lab-handle) {
-  width: 7px;
-  height: 7px;
-  border: 1px solid var(--lab-edge);
-  background: var(--lab-surface);
+  width: var(--lab-handle-width);
+  height: var(--lab-handle-height);
+  min-width: 0;
+  min-height: 0;
+  border-radius: var(--lab-handle-radius);
+  border: var(--lab-handle-border-width) var(--lab-handle-border-style)
+    var(--lab-handle-border-color);
+  background: var(--lab-handle-fill);
+  box-shadow: var(--lab-handle-shadow);
+  rotate: var(--lab-handle-rotate);
+  opacity: var(--lab-handle-opacity);
 }
 
-.canvas
-  :global(
-    .workspace-lab-node[data-connection-point="ring"] .workspace-lab-handle
-  ) {
-  width: 10px;
-  height: 10px;
-  border: 2px solid var(--lab-accent);
-  background: var(--lab-canvas);
-}
-
-.canvas
-  :global(
-    .workspace-lab-node[data-connection-point="square"] .workspace-lab-handle
-  ) {
-  width: 8px;
-  height: 8px;
-  border-radius: 1px;
-  border-color: var(--lab-accent);
-  background: var(--lab-surface);
-}
-
-.canvas
-  :global(
-    .workspace-lab-node[data-connection-point="hidden"] .workspace-lab-handle
-  ) {
-  opacity: 0;
+/* 막대처럼 길쭉한 접점은 노드 가장자리를 따라 눕도록 좌우 접점에서 가로·세로를 바꾼다. */
+.canvas :global(.workspace-lab-handle.react-flow__handle-left),
+.canvas :global(.workspace-lab-handle.react-flow__handle-right) {
+  width: var(--lab-handle-height);
+  height: var(--lab-handle-width);
 }
 
 @keyframes lab-edge-trace {

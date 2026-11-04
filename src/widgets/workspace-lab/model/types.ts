@@ -53,7 +53,6 @@ export type WorkspaceLabNodeData = {
   hasChildren?: boolean;
   layoutMode?: "vertical" | "horizontal" | "radial";
   nodeShape?: "square" | "rounded" | "circle";
-  connectionPointStyle?: "dot" | "ring" | "square" | "hidden";
   collapseControlStyle?: "floating" | "notch" | "minimal";
 };
 

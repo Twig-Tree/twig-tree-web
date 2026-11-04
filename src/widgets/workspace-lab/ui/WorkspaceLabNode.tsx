@@ -24,7 +24,6 @@ export function WorkspaceLabNode({ data }: NodeProps<WorkspaceLabNode>) {
       data-root={data.isRoot || undefined}
       data-layout={layoutMode}
       data-shape={data.nodeShape ?? "rounded"}
-      data-connection-point={data.connectionPointStyle ?? "dot"}
       data-collapse-control={data.collapseControlStyle ?? "floating"}
     >
       {positions.map((position) => (
