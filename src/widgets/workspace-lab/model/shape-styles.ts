@@ -78,6 +78,20 @@ export const workspaceLabShapeStyles = [
       playerShadow: `3px 3px 0 ${ink(88)}`,
     },
   },
+  {
+    id: "flat",
+    name: "플랫",
+    description:
+      "노드에 그림자를 두지 않고 선과 면의 대비로만 구분합니다. 떠 있는 툴바만 얕게 띄웁니다.",
+    tokens: {
+      nodeRadius: "4px",
+      nodeShadow: "none",
+      selectedShadow: "none",
+      rootShadow: "none",
+      toolbarShadow: `0 2px 8px ${ink(18)}`,
+      playerShadow: `0 2px 8px ${ink(18)}`,
+    },
+  },
 ] as const satisfies readonly WorkspaceLabShapeStyleDefinition[];
 
 export type WorkspaceLabShapeStyleId =

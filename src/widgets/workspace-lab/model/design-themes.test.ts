@@ -31,6 +31,17 @@ describe("workspaceLabDesignThemes", () => {
 });
 
 describe("applyWorkspaceLabDesignTheme", () => {
+  it.each(workspaceLabDesignThemes)(
+    "$name을 적용한 직후에는 수정되지 않은 상태다",
+    ({ id }) => {
+      expect(
+        isWorkspaceLabDesignThemeModified(
+          applyWorkspaceLabDesignTheme(workspaceLabDefaultConfig, id),
+        ),
+      ).toBe(false);
+    },
+  );
+
   it("테마가 정하는 스타일을 덮어쓰고 수정되지 않은 상태가 된다", () => {
     const next = applyWorkspaceLabDesignTheme(
       workspaceLabDefaultConfig,

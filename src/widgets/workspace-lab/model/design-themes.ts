@@ -133,6 +133,77 @@ export const workspaceLabDesignThemes = [
       memoPanel: { surface: "panel", border: "line", density: "compact" },
     },
   },
+  {
+    id: "midnight",
+    name: "Midnight",
+    description:
+      "어두운 캔버스에 청록 곡선만 빛나게 두어, 오래 들여다봐도 피로하지 않은 집중용 조합입니다.",
+    values: {
+      colorTheme: "midnight",
+      colorRoles: workspaceLabDefaultColorRoles,
+      shapeStyle: "standard",
+      canvasStyle: "fine-dots",
+      nodeShape: "rounded",
+      density: "comfortable",
+      collapseControlStyle: "floating",
+      connectionPointStyle: "ring",
+      edgeStyle: {
+        lineStyle: "curved",
+        pattern: "solid",
+        thickness: "regular",
+        color: "accent",
+        opacity: "muted",
+        effect: "none",
+      },
+      leftPanel: { surface: "panel", border: "none", density: "comfortable" },
+      memoPanel: { surface: "panel", border: "none", density: "comfortable" },
+    },
+  },
+  {
+    id: "paper",
+    name: "Warm Paper",
+    description:
+      "종이 결 캔버스, 넉넉한 여백, 둥근 직각 연결로 손으로 정리한 노트처럼 읽히는 조합입니다.",
+    values: {
+      colorTheme: "paper",
+      colorRoles: workspaceLabDefaultColorRoles,
+      shapeStyle: "standard",
+      canvasStyle: "paper",
+      nodeShape: "rounded",
+      density: "spacious",
+      collapseControlStyle: "notch",
+      connectionPointStyle: "hidden",
+      edgeStyle: {
+        lineStyle: "rounded",
+        pattern: "solid",
+        thickness: "regular",
+        color: "theme",
+        opacity: "full",
+        effect: "none",
+      },
+      leftPanel: { surface: "canvas", border: "line", density: "spacious" },
+      memoPanel: { surface: "panel", border: "line", density: "spacious" },
+    },
+  },
+  {
+    id: "blueprint",
+    name: "Blueprint",
+    description:
+      "모눈 위에 그림자 없는 사각 노드와 직각 점선을 그어 설계 도면처럼 구조를 드러내는 조합입니다.",
+    values: {
+      colorTheme: "blueprint",
+      colorRoles: workspaceLabDefaultColorRoles,
+      shapeStyle: "flat",
+      canvasStyle: "graph",
+      nodeShape: "square",
+      density: "compact",
+      collapseControlStyle: "minimal",
+      connectionPointStyle: "square",
+      edgeStyle: getWorkspaceLabEdgeStylePreset("blueprint").values,
+      leftPanel: { surface: "panel", border: "line", density: "compact" },
+      memoPanel: { surface: "panel", border: "line", density: "compact" },
+    },
+  },
 ] as const satisfies readonly WorkspaceLabDesignThemeDefinition[];
 
 export type WorkspaceLabDesignThemeId =

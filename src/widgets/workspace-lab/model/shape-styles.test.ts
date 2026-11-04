@@ -16,7 +16,7 @@ describe("workspaceLabShapeStyles", () => {
     "$name의 그림자는 컬러 테마의 그림자 색만 쓴다",
     (shape) => {
       for (const [name, value] of Object.entries(shape.tokens)) {
-        if (name === "nodeRadius") continue;
+        if (name === "nodeRadius" || value === "none") continue; // 그림자가 없으면 색도 없다
 
         expect(value).toContain("var(--lab-shadow-ink)");
         expect(value).not.toMatch(/rgb\(|#[0-9a-f]{3,6}/i);
