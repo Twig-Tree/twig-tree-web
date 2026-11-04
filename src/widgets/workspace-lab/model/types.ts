@@ -14,6 +14,7 @@ export type LabEdgeState = "default" | "active" | "traced";
 
 export type { WorkspaceLabColorThemeId as LabColorTheme } from "./color-themes";
 export type { WorkspaceLabShapeStyleId as LabShapeStyle } from "./shape-styles";
+export type { WorkspaceLabDesignThemeId as LabDesignTheme } from "./design-themes";
 export type { WorkspaceLabLayoutId as LabLayoutMode } from "./layouts";
 export type { WorkspaceLabLayoutSpacingId as LabLayoutSpacing } from "./layouts";
 export type { WorkspaceLabNodeShapeId as LabNodeShape } from "./node-shapes";

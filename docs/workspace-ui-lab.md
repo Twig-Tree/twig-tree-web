@@ -87,6 +87,7 @@ minimum gap = offset × 2 + center clearance
 | Scenario         | 트리 구조와 상태 fixture               | 균형, 깊은 트리, 고밀도, 빈 화면          |
 | Layout           | 트리 전개 방향과 연결 방향             | 세로, 가로, 방사형                        |
 | Layout spacing   | 형제·단계·ring 외부 간격               | 촘촘하게, 균형, 넓게                      |
+| Design theme     | 아래 스타일 슬롯을 묶은 이름 있는 조합 | Quiet Focus, Neutral, Soft, High contrast |
 | Color theme      | 전체 화면의 색 토큰                    | Quiet Focus, Neutral, Soft, High contrast |
 | Color roles      | 컬러 테마 위에 덧씌우는 역할별 색      | 중립 톤, 강조색, 루트, 상태, 크롬, 대비   |
 | Shape            | 곡률과 그림자 모양                     | 겹그림자, 표준, 부드러운 확산, 하드 섀도  |

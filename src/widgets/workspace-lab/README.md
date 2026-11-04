@@ -12,6 +12,7 @@ workspace-lab/
 │   ├── layouts.ts         # 세로·가로·방사형 좌표와 배치 간격
 │   ├── edge-routing.ts    # 직각 연결선의 기하학적 제약
 │   ├── edge-styles.ts     # 형태, 패턴, 두께, 색상, 투명도, 효과 registry
+│   ├── design-themes.ts   # 여러 슬롯을 묶은 디자인 테마 registry와 적용·수정 판단
 │   ├── color-themes.ts    # 컬러 테마 token schema와 registry
 │   ├── color-roles.ts     # 컬러 테마 위에 덧씌우는 역할별 색 선택 registry
 │   ├── shape-styles.ts    # 곡률과 그림자 registry
@@ -76,9 +77,21 @@ Lab의 "테마"는 범위에 따라 둘로 나눈다.
 | 용어        | 범위                                                                   | 정의 위치          |
 | ----------- | ---------------------------------------------------------------------- | ------------------ |
 | 컬러 테마   | 색 토큰만. 그 위에 색 역할이 덧씌워진다                                | `color-themes.ts`  |
-| 디자인 테마 | 컬러 테마, 형태, 노드, 연결선, 캔버스, 패널 표현을 묶은 이름 있는 조합 | 다음 단계에서 추가 |
+| 디자인 테마 | 컬러 테마, 형태, 노드, 연결선, 캔버스, 패널 표현을 묶은 이름 있는 조합 | `design-themes.ts` |
 
 곡률과 그림자는 색이 아니므로 컬러 테마에 두지 않고 `shape-styles.ts`의 형태 슬롯으로 둔다.
+
+### 디자인 테마 추가
+
+`design-themes.ts`의 `workspaceLabDesignThemes`에 각 슬롯의 id를 묶어 정의한다. 패널은 표면·경계·밀도만 정한다.
+
+디자인 테마에 넣지 않는 항목은 다음과 같다. 테마를 바꿔도 사용자가 고른 값이 남는다.
+
+- 구조 탭의 시나리오·레이아웃·상태
+- viewport와 툴바·플레이어·패널 표시 여부
+- 패널 배치와 너비
+
+`config.designTheme`은 마지막으로 적용한 디자인 테마다. 그 뒤 테마가 정하는 값을 하나라도 바꾸면 `isWorkspaceLabDesignThemeModified`가 수정됨으로 판단한다. 같은 테마를 다시 고르면 테마 값으로 되돌아간다. 첫 디자인 테마는 `workspaceLabDefaultConfig`와 같은 조합이어야 하며, 테스트가 이를 확인한다.
 
 ### 컬러 테마 추가
 
