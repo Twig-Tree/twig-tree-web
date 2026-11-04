@@ -162,33 +162,6 @@ export const workspaceLabDesignThemes = [
     },
   },
   {
-    id: "paper",
-    name: "Warm Paper",
-    description:
-      "종이 결 캔버스, 넉넉한 여백, 둥근 직각 연결로 손으로 정리한 노트처럼 읽히는 조합입니다.",
-    values: {
-      colorTheme: "paper",
-      colorRoles: workspaceLabDefaultColorRoles,
-      shapeStyle: "standard",
-      canvasStyle: "paper",
-      nodeShape: "rounded",
-      density: "spacious",
-      collapseControlStyle: "notch",
-      connectionPointStyle: "hidden",
-      edgeStyle: {
-        lineStyle: "rounded",
-        pattern: "solid",
-        thickness: "regular",
-        color: "theme",
-        opacity: "full",
-        effect: "none",
-        marker: "arrow",
-      },
-      leftPanel: { surface: "canvas", border: "line", density: "spacious" },
-      memoPanel: { surface: "panel", border: "line", density: "spacious" },
-    },
-  },
-  {
     id: "blueprint",
     name: "Blueprint",
     description:

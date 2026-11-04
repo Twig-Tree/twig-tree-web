@@ -275,61 +275,6 @@ const midnightTokens: WorkspaceLabColorThemeTokens = {
 };
 
 /*
-크림색 종이와 갈색 잉크, 테라코타 강조색으로 손으로 쓴 노트 같은 온도를 만든다.
-*/
-const paperTokens: WorkspaceLabColorThemeTokens = {
-  previewBackground: "#e8dfd1",
-  previewPattern: "radial-gradient(#d3c6b1 0.75px, transparent 0.75px)",
-  previewPatternSize: "14px 14px",
-  frameBorder: "rgb(120 90 60 / 18%)",
-  frameShadow: "0 18px 50px rgb(80 50 20 / 14%)",
-  canvas: "#f6f0e4",
-  surface: "#fffaf0",
-  surfaceMuted: "#f3ebdc",
-  panelSurface: "#fbf5ea",
-  headerSurface: "#fbf5ea",
-  border: "#e2d5bf",
-  panelBorder: "#e8dcc8",
-  text: "#3a2c20",
-  mutedText: "#8a7660",
-  accent: "#c2552d",
-  accentText: "#ffffff",
-  highlight: "#d4a017",
-  lecture: "#3f7f73",
-  danger: "#b3261e",
-  edge: "#c4ae8f",
-  shadowInk: "#5a3a1c",
-  selectedRing: "rgb(194 85 45 / 18%)",
-  rootSurface: "#3a2c20",
-  rootBorder: "#3a2c20",
-  rootText: "#fffaf0",
-  rootMutedText: "#c9b8a2",
-  rootControlSurface: "#c2552d",
-  rootControlText: "#ffffff",
-  savedSurface: "#eef1e2",
-  savedText: "#5b6b2f",
-  avatarSurface: "#3a2c20",
-  avatarText: "#fffaf0",
-  shareSurface: "#fffaf0",
-  shareBorder: "#e2d5bf",
-  shareText: "#5c4a38",
-  searchSurface: "#f6f0e4",
-  outlineText: "#5c4a38",
-  outlineHoverSurface: "#f3ebdc",
-  outlineHoverText: "#3a2c20",
-  tagSurface: "#f3ebdc",
-  tagBorder: "#e2d5bf",
-  tagText: "#6b5743",
-  toolbarSurface: "rgb(255 250 240 / 95%)",
-  toolbarBorder: "#e2d5bf",
-  toolbarText: "#8a7660",
-  toolbarHoverSurface: "#f3ebdc",
-  toolbarHoverText: "#c2552d",
-  playerSurface: "rgb(255 250 240 / 95%)",
-  playerBorder: "#e2d5bf",
-};
-
-/*
 청사진 용지처럼 짙은 파랑 바탕에 밝은 하늘색 선을 긋는다.
 루트만 밝게 반전해 도면의 표제란처럼 보이게 한다.
 */
@@ -590,12 +535,6 @@ export const workspaceLabColorThemes = [
     description:
       "어두운 캔버스와 청록 강조색으로 긴 작업에서도 눈이 덜 피로합니다.",
     tokens: midnightTokens,
-  },
-  {
-    id: "paper",
-    name: "Warm Paper",
-    description: "크림색 종이와 테라코타 강조색으로 따뜻한 노트처럼 보입니다.",
-    tokens: paperTokens,
   },
   {
     id: "blueprint",

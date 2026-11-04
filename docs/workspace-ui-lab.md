@@ -82,24 +82,24 @@ minimum gap = offset × 2 + center clearance
 
 ## 현재 슬롯
 
-| 슬롯             | 책임                                   | 현재 예시                                       |
-| ---------------- | -------------------------------------- | ----------------------------------------------- |
-| Scenario         | 트리 구조와 상태 fixture               | 균형, 깊은 트리, 고밀도, 빈 화면                |
-| Layout           | 트리 전개 방향과 연결 방향             | 세로, 가로, 방사형                              |
-| Layout spacing   | 형제·단계·ring 외부 간격               | 촘촘하게, 균형, 넓게                            |
-| Design theme     | 아래 스타일 슬롯을 묶은 이름 있는 조합 | Quiet Focus, Midnight, Warm Paper, Blueprint 등 |
-| Color theme      | 전체 화면의 색 토큰                    | Quiet Focus, Neutral, Midnight, Blueprint 등    |
-| Color roles      | 컬러 테마 위에 덧씌우는 역할별 색      | 중립 톤, 강조색, 루트, 상태, 크롬, 대비         |
-| Shape            | 곡률과 그림자 모양                     | 겹그림자, 표준, 확산, 하드 섀도, 플랫           |
-| Node shape       | 노드 외곽 형태                         | 사각형, 둥근 사각형, 원형                       |
-| Node density     | 노드 내부 여백과 실제 크기             | Compact, Comfortable, Spacious                  |
-| Edge line        | 연결선의 기하와 표현을 독립적으로 조합 | 형태, 패턴, 두께, 색상, 투명도, 특수 효과       |
-| Connection point | 노드 연결 포트 표현                    | 도트, 링, 사각 포트, 숨김                       |
-| Collapse control | 하위 트리 접기 버튼 표현               | 플로팅 원형, 하단 노치, 인라인 미니멀           |
-| Canvas           | 캔버스 패턴과 질감                     | 도트, 라인, 모눈, 크로스, 페이퍼, 무지 등       |
-| State            | 노드와 연결선의 상태 표현              | selected, editing, traced 등                    |
-| Panels           | 왼쪽·메모 패널 각각의 표시와 디자인    | 배치, 너비, 표면, 경계, 밀도                    |
-| Regions          | 주변 Workspace UI 노출                 | 툴바, 플레이어, viewport                        |
+| 슬롯             | 책임                                   | 현재 예시                                    |
+| ---------------- | -------------------------------------- | -------------------------------------------- |
+| Scenario         | 트리 구조와 상태 fixture               | 균형, 깊은 트리, 고밀도, 빈 화면             |
+| Layout           | 트리 전개 방향과 연결 방향             | 세로, 가로, 방사형                           |
+| Layout spacing   | 형제·단계·ring 외부 간격               | 촘촘하게, 균형, 넓게                         |
+| Design theme     | 아래 스타일 슬롯을 묶은 이름 있는 조합 | Quiet Focus, Midnight, Blueprint 등          |
+| Color theme      | 전체 화면의 색 토큰                    | Quiet Focus, Neutral, Midnight, Blueprint 등 |
+| Color roles      | 컬러 테마 위에 덧씌우는 역할별 색      | 중립 톤, 강조색, 루트, 상태, 크롬, 대비      |
+| Shape            | 곡률과 그림자 모양                     | 겹그림자, 표준, 확산, 하드 섀도, 플랫        |
+| Node shape       | 노드 외곽 형태                         | 사각형, 둥근 사각형, 원형                    |
+| Node density     | 노드 내부 여백과 실제 크기             | Compact, Comfortable, Spacious               |
+| Edge line        | 연결선의 기하와 표현을 독립적으로 조합 | 형태, 패턴, 두께, 색상, 투명도, 특수 효과    |
+| Connection point | 노드 연결 포트 표현                    | 도트, 링, 사각 포트, 숨김                    |
+| Collapse control | 하위 트리 접기 버튼 표현               | 플로팅 원형, 하단 노치, 인라인 미니멀        |
+| Canvas           | 캔버스 패턴과 질감                     | 도트, 라인, 모눈, 크로스, 페이퍼, 무지 등    |
+| State            | 노드와 연결선의 상태 표현              | selected, editing, traced 등                 |
+| Panels           | 왼쪽·메모 패널 각각의 표시와 디자인    | 배치, 너비, 표면, 경계, 밀도                 |
+| Regions          | 주변 Workspace UI 노출                 | 툴바, 플레이어, viewport                     |
 
 ## 제품 반영 기준
 
