@@ -3,21 +3,20 @@ import {
   type LectureScript,
 } from "@/src/entities/lecture";
 import {
-  type CustomEditorEdge,
   type CustomEditorNode,
   type EditorLectureAnimation,
   type EditorLectureScript,
 } from "../../model/types";
-import { createLectureNodePathResolver } from "./createLectureNodePathResolver";
+import { createLectureNodeIdResolver } from "./createLectureNodeIdResolver";
 
-type FindClientId = ReturnType<typeof createLectureNodePathResolver>;
+type FindClientId = ReturnType<typeof createLectureNodeIdResolver>;
 
 /*
 함수 이름 : getEditorLectureAnimation
-기능 : 애니메이션 트리 안의 모든 노드 이름 경로를 편집기 clientId로 바꾼다.
+기능 : 애니메이션 트리 안의 모든 서버 노드 ID를 편집기 clientId로 바꾼다.
 인자 : LectureAnimation animation -> 변환할 애니메이션 또는 조합 그룹
-FindClientId findClientId -> 이름 경로를 clientId로 바꾸는 함수
-반환값 : 편집기에서 실행할 애니메이션. 경로 하나라도 찾지 못하면 null
+FindClientId findClientId -> 서버 노드 ID를 clientId로 바꾸는 함수
+반환값 : 편집기에서 실행할 애니메이션. 서버 노드 ID 하나라도 찾지 못하면 null
 */
 const getEditorLectureAnimation = (
   animation: LectureAnimation,
@@ -36,8 +35,8 @@ const getEditorLectureAnimation = (
     return { ...animation, children };
   }
 
-  const getClientIds = (paths: string[][]): string[] | null => {
-    const clientIds = paths.map(findClientId);
+  const getClientIds = (nodeIds: string[]): string[] | null => {
+    const clientIds = nodeIds.map(findClientId);
 
     return clientIds.includes(null)
       ? null
@@ -47,7 +46,7 @@ const getEditorLectureAnimation = (
   switch (animation.type) {
     case "focus":
     case "highlight": {
-      const targetClientIds = getClientIds(animation.targetNodePaths);
+      const targetClientIds = getClientIds(animation.targetNodeIds);
 
       if (targetClientIds === null) return null;
 
@@ -69,7 +68,7 @@ const getEditorLectureAnimation = (
           };
     }
     case "dim": {
-      const exceptClientIds = getClientIds(animation.exceptNodePaths);
+      const exceptClientIds = getClientIds(animation.exceptNodeIds);
 
       if (exceptClientIds === null) return null;
       return {
@@ -82,7 +81,7 @@ const getEditorLectureAnimation = (
       };
     }
     case "trace": {
-      const clientIds = getClientIds(animation.nodePaths);
+      const clientIds = getClientIds(animation.nodeIds);
 
       if (clientIds === null) return null;
       return {
@@ -98,22 +97,20 @@ const getEditorLectureAnimation = (
 
 /*
 함수 이름 : getEditorLectureScript
-기능 : 동적 강의 대본의 중심 노드와 모든 단위 동작을 현재 편집기의 clientId에 연결한다.
+기능 : 동적 강의 대본의 중심 노드와 모든 단위 동작의 서버 노드 ID를 현재 편집기의 clientId에 연결한다.
 인자 : LectureScript script -> LLM 또는 목데이터가 만든 동적 강의 대본
 CustomEditorNode[] nodes -> 현재 editor store의 노드 목록
-CustomEditorEdge[] edges -> 현재 editor store의 엣지 목록
-반환값 : 편집기에서 실행할 강의 대본. 경로 하나라도 찾지 못하면 null
+반환값 : 편집기에서 실행할 강의 대본. 서버 노드 ID 하나라도 찾지 못하면 null
 */
 export const getEditorLectureScript = (
   script: LectureScript,
   nodes: CustomEditorNode[],
-  edges: CustomEditorEdge[],
 ): EditorLectureScript | null => {
-  const findClientId = createLectureNodePathResolver(nodes, edges);
+  const findClientId = createLectureNodeIdResolver(nodes);
   const scenes: EditorLectureScript["scenes"] = [];
 
   for (const scene of script.scenes) {
-    const clientId = findClientId(scene.nodePath);
+    const clientId = findClientId(scene.nodeId);
 
     if (clientId === null) return null;
 

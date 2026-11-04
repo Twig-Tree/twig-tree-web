@@ -50,11 +50,10 @@ export function LectureScriptPlayer({
   const resetScript = useLectureScriptStore((state) => state.resetScript);
   const resetVisual = useLectureAnimationStore((state) => state.resetVisual);
   const nodes = useTreeStore((state) => state.nodes);
-  const edges = useTreeStore((state) => state.edges);
 
   const editorScript = useMemo(
-    () => getEditorLectureScript(script, nodes, edges),
-    [script, nodes, edges],
+    () => getEditorLectureScript(script, nodes),
+    [script, nodes],
   );
   const audioMode = useLectureScriptPlayback({
     revealNodes: onRevealNodes,
@@ -100,7 +99,7 @@ export function LectureScriptPlayer({
               id="script-unavailable-reason"
               className="text-xs text-slate-500"
             >
-              현재 트리 구조와 대본의 노드 경로가 일치하지 않습니다.
+              현재 트리에 대본이 가리키는 노드가 없습니다.
             </p>
           ) : (
             <p className="text-xs text-slate-500">

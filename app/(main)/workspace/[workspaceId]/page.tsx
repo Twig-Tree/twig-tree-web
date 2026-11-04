@@ -39,6 +39,9 @@ interface LayoutFlowProps {
   treeId: string | null; // 트리가 없는 워크스페이스는 null
 }
 
+const isLectureAnimationDevPanelEnabled =
+  process.env.NODE_ENV === "development";
+
 function LayoutFlow({ workspaceId, treeId }: LayoutFlowProps) {
   const [isMemoPanelOpen, setIsMemoPanelOpen] = useState(false);
   const closeMemoPanel = useCallback(() => setIsMemoPanelOpen(false), []); // 렌더마다 새 함수가 되면 useVisibleElements의 effect가 매번 다시 돈다.
@@ -203,13 +206,15 @@ function LayoutFlow({ workspaceId, treeId }: LayoutFlowProps) {
             </button>
           </Panel>
 
-          <Panel position="top-left">
-            <LectureAnimationDevPanel
-              selectedNode={selectedNode}
-              onRevealNodes={revealNodes}
-              onResetCamera={fitTreeView}
-            />
-          </Panel>
+          {isLectureAnimationDevPanelEnabled ? (
+            <Panel position="top-left">
+              <LectureAnimationDevPanel
+                selectedNode={selectedNode}
+                onRevealNodes={revealNodes}
+                onResetCamera={fitTreeView}
+              />
+            </Panel>
+          ) : null}
 
           {/*
           강의는 목데이터로 재생하는 데모다. 서버가 강의를 내려주게 되면 조회 결과로 바꾼다.

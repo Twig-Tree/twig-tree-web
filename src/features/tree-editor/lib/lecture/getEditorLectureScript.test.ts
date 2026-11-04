@@ -1,6 +1,5 @@
 import { describe, expect, it } from "vitest";
 import { type LectureScript } from "@/src/entities/lecture";
-import { createEditorEdge } from "../add-node/createEditorEdge";
 import { createEditorNode } from "../add-node/createEditorNode";
 import { getEditorLectureScript } from "./getEditorLectureScript";
 
@@ -21,19 +20,13 @@ const nodes = [
   createNode("c4", "스택"),
 ];
 
-const edges = [
-  createEditorEdge({ sourceClientId: "c1", targetClientId: "c2" }),
-  createEditorEdge({ sourceClientId: "c2", targetClientId: "c3" }),
-  createEditorEdge({ sourceClientId: "c2", targetClientId: "c4" }),
-];
-
 const script: LectureScript = {
   id: "data-structure",
   title: "자료구조 비교",
   scenes: [
     {
       id: "compare",
-      nodePath: ["컴퓨터 사이언스", "자료구조"],
+      nodeId: "s2",
       beats: [
         {
           id: "introduce-children",
@@ -47,10 +40,7 @@ const script: LectureScript = {
             children: [
               {
                 type: "focus",
-                targetNodePaths: [
-                  ["컴퓨터 사이언스", "자료구조", "배열"],
-                  ["컴퓨터 사이언스", "자료구조", "스택"],
-                ],
+                targetNodeIds: ["s3", "s4"],
                 maxZoom: 1.2,
                 durationMs: 600,
               },
@@ -60,24 +50,18 @@ const script: LectureScript = {
                 children: [
                   {
                     type: "highlight",
-                    targetNodePaths: [["컴퓨터 사이언스", "자료구조", "배열"]],
+                    targetNodeIds: ["s3"],
                     style: "pulse",
                     durationMs: 700,
                   },
                   {
                     type: "dim",
-                    exceptNodePaths: [
-                      ["컴퓨터 사이언스", "자료구조", "배열"],
-                      ["컴퓨터 사이언스", "자료구조", "스택"],
-                    ],
+                    exceptNodeIds: ["s3", "s4"],
                     durationMs: 700,
                   },
                   {
                     type: "trace",
-                    nodePaths: [
-                      ["컴퓨터 사이언스", "자료구조"],
-                      ["컴퓨터 사이언스", "자료구조", "배열"],
-                    ],
+                    nodeIds: ["s2", "s3"],
                     durationMs: 500,
                   },
                 ],
@@ -92,8 +76,8 @@ const script: LectureScript = {
 };
 
 describe("getEditorLectureScript", () => {
-  it("중첩된 순차·병렬 동작 안의 모든 노드 경로를 clientId로 바꾼다", () => {
-    expect(getEditorLectureScript(script, nodes, edges)).toEqual({
+  it("중첩된 순차·병렬 동작 안의 모든 서버 노드 ID를 clientId로 바꾼다", () => {
+    expect(getEditorLectureScript(script, nodes)).toEqual({
       id: "data-structure",
       title: "자료구조 비교",
       scenes: [
@@ -149,7 +133,16 @@ describe("getEditorLectureScript", () => {
     });
   });
 
-  it("애니메이션 안의 경로 하나라도 찾지 못하면 대본 전체를 거부한다", () => {
+  it("노드 이름이 바뀌어도 서버 노드 ID가 같으면 대본을 연결한다", () => {
+    const renamedNodes = nodes.map((node) => ({
+      ...node,
+      data: { ...node.data, label: `변경-${node.data.label}` },
+    }));
+
+    expect(getEditorLectureScript(script, renamedNodes)).not.toBeNull();
+  });
+
+  it("애니메이션 안의 서버 노드 ID 하나라도 찾지 못하면 대본 전체를 거부한다", () => {
     const invalidScript: LectureScript = {
       ...script,
       scenes: [
@@ -160,9 +153,7 @@ describe("getEditorLectureScript", () => {
               ...script.scenes[0].beats[0],
               animation: {
                 type: "highlight",
-                targetNodePaths: [
-                  ["컴퓨터 사이언스", "자료구조", "연결 리스트"],
-                ],
+                targetNodeIds: ["missing-node"],
                 style: "steady",
                 durationMs: 500,
               },
@@ -172,6 +163,6 @@ describe("getEditorLectureScript", () => {
       ],
     };
 
-    expect(getEditorLectureScript(invalidScript, nodes, edges)).toBeNull();
+    expect(getEditorLectureScript(invalidScript, nodes)).toBeNull();
   });
 });

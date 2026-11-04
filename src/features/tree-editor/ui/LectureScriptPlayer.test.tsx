@@ -1,7 +1,10 @@
-import { act, render, screen } from "@testing-library/react";
+import { act, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { WORLD_GEOGRAPHY_LECTURE_SCRIPT } from "@/src/entities/lecture";
+import {
+  WORLD_GEOGRAPHY_LECTURE_SCRIPT,
+  WORLD_GEOGRAPHY_NODE_IDS,
+} from "@/src/entities/lecture";
 import { createEditorEdge } from "../lib/add-node/createEditorEdge";
 import { createEditorNode } from "../lib/add-node/createEditorNode";
 import { useLectureAnimationStore } from "../model/lecture/lectureAnimationStore";
@@ -10,27 +13,27 @@ import { useTreeStore } from "../model/treeStore";
 import { LectureScriptPlayer } from "./LectureScriptPlayer";
 
 const treeRows = [
-  ["world", null, "세계"],
-  ["europe", "world", "유럽"],
-  ["asia", "world", "아시아"],
-  ["france", "europe", "프랑스"],
-  ["germany", "europe", "독일"],
-  ["euro", "europe", "유로"],
-  ["paris", "france", "파리"],
-  ["berlin", "germany", "베를린"],
-  ["korea", "asia", "대한민국"],
-  ["japan", "asia", "일본"],
-  ["seoul", "korea", "서울"],
-  ["won", "korea", "원"],
-  ["tokyo", "japan", "도쿄"],
-  ["yen", "japan", "엔"],
+  ["world", null, "세계", WORLD_GEOGRAPHY_NODE_IDS.world],
+  ["europe", "world", "유럽", WORLD_GEOGRAPHY_NODE_IDS.europe],
+  ["asia", "world", "아시아", WORLD_GEOGRAPHY_NODE_IDS.asia],
+  ["france", "europe", "프랑스", WORLD_GEOGRAPHY_NODE_IDS.france],
+  ["germany", "europe", "독일", WORLD_GEOGRAPHY_NODE_IDS.germany],
+  ["euro", "europe", "유로", WORLD_GEOGRAPHY_NODE_IDS.euro],
+  ["paris", "france", "파리", WORLD_GEOGRAPHY_NODE_IDS.paris],
+  ["berlin", "germany", "베를린", WORLD_GEOGRAPHY_NODE_IDS.berlin],
+  ["korea", "asia", "대한민국", WORLD_GEOGRAPHY_NODE_IDS.korea],
+  ["japan", "asia", "일본", WORLD_GEOGRAPHY_NODE_IDS.japan],
+  ["seoul", "korea", "서울", WORLD_GEOGRAPHY_NODE_IDS.seoul],
+  ["won", "korea", "원", WORLD_GEOGRAPHY_NODE_IDS.won],
+  ["tokyo", "japan", "도쿄", WORLD_GEOGRAPHY_NODE_IDS.tokyo],
+  ["yen", "japan", "엔", WORLD_GEOGRAPHY_NODE_IDS.yen],
 ] as const;
 
 const setWorldGeographyTree = () => {
-  const nodes = treeRows.map(([clientId, , label], orderIndex) =>
+  const nodes = treeRows.map(([clientId, , label, serverId], orderIndex) =>
     createEditorNode({
       clientId,
-      serverId: String(orderIndex + 201),
+      serverId,
       label,
       orderIndex,
       x: 0,
@@ -79,7 +82,7 @@ afterEach(() => {
 });
 
 describe("LectureScriptPlayer", () => {
-  it("대본의 경로와 현재 트리가 다르면 시작을 막고 이유를 알린다", () => {
+  it("대본의 서버 노드 ID가 현재 트리에 없으면 시작을 막고 이유를 알린다", () => {
     useTreeStore.setState({
       nodes: [
         createEditorNode({
@@ -99,7 +102,7 @@ describe("LectureScriptPlayer", () => {
 
     expect(startButton).toBeDisabled();
     expect(startButton).toHaveAccessibleDescription(
-      /현재 트리 구조와 대본의 노드 경로가 일치하지 않습니다/,
+      /현재 트리에 대본이 가리키는 노드가 없습니다/,
     );
   });
 
@@ -139,5 +142,84 @@ describe("LectureScriptPlayer", () => {
       ["europe", "france", "germany", "euro"],
       { maxZoom: 1.1, duration: 700 },
     );
+  });
+
+  it("장면을 건너뛰면 이전 장면의 persist 레이어를 정리한다", async () => {
+    setWorldGeographyTree();
+    renderPlayer();
+    await userEvent.click(screen.getByRole("button", { name: "강의 시작" }));
+    act(() => {
+      useLectureAnimationStore.getState().setLayer({
+        id: "persisted",
+        type: "highlight",
+        clientIds: new Set(["world"]),
+        style: "steady",
+      });
+    });
+
+    await userEvent.click(screen.getByRole("button", { name: "다음 장면" }));
+
+    await waitFor(() =>
+      expect(useLectureAnimationStore.getState().layers.size).toBe(0),
+    );
+  });
+
+  it("일시정지 중에는 persist 레이어를 유지한다", async () => {
+    setWorldGeographyTree();
+    renderPlayer();
+    await userEvent.click(screen.getByRole("button", { name: "강의 시작" }));
+    act(() => {
+      useLectureAnimationStore.getState().setLayer({
+        id: "persisted",
+        type: "highlight",
+        clientIds: new Set(["world"]),
+        style: "steady",
+      });
+    });
+
+    await userEvent.click(screen.getByRole("button", { name: "일시정지" }));
+
+    expect(useLectureAnimationStore.getState().layers.has("persisted")).toBe(
+      true,
+    );
+  });
+
+  it("강의가 끝나면 persist 레이어를 정리한다", async () => {
+    setWorldGeographyTree();
+    renderPlayer();
+    await userEvent.click(screen.getByRole("button", { name: "강의 시작" }));
+    act(() => {
+      useLectureAnimationStore.getState().setLayer({
+        id: "persisted",
+        type: "highlight",
+        clientIds: new Set(["world"]),
+        style: "steady",
+      });
+      useLectureScriptStore.setState({ sceneIndex: 3, beatIndex: 2 });
+      useLectureScriptStore.getState().completeBeat(3, 2);
+    });
+
+    expect(await screen.findByText("동적 강의를 마쳤습니다.")).toBeVisible();
+    await waitFor(() =>
+      expect(useLectureAnimationStore.getState().layers.size).toBe(0),
+    );
+  });
+
+  it("플레이어가 사라지면 persist 레이어를 정리한다", async () => {
+    setWorldGeographyTree();
+    const { unmount } = renderPlayer();
+    await userEvent.click(screen.getByRole("button", { name: "강의 시작" }));
+    act(() => {
+      useLectureAnimationStore.getState().setLayer({
+        id: "persisted",
+        type: "highlight",
+        clientIds: new Set(["world"]),
+        style: "steady",
+      });
+    });
+
+    unmount();
+
+    expect(useLectureAnimationStore.getState().layers.size).toBe(0);
   });
 });

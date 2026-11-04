@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { playSentence, type LectureAudioMode } from "./lectureSpeech";
+import { useLectureAnimationStore } from "./lectureAnimationStore";
 import { runLectureAnimation } from "./runLectureAnimation";
 import { useKoreanVoice } from "./useKoreanVoice";
 import { useLectureScriptStore } from "./lectureScriptStore";
@@ -74,6 +75,20 @@ export const useLectureScriptPlayback = ({
       controller.abort();
       stopNarration();
       finishNarration();
+
+      /*
+      persist 레이어는 같은 장면의 다음 비트와 일시정지 화면에서는 유지한다.
+      장면을 떠나거나 강의가 끝나면 대본의 reset 누락과 수동 건너뛰기에도 남지 않게 정리한다.
+      */
+      const nextState = useLectureScriptStore.getState();
+      const hasLeftScene =
+        nextState.script !== script || nextState.sceneIndex !== sceneIndex;
+      const hasStopped =
+        nextState.status === "idle" || nextState.status === "ended";
+
+      if (hasLeftScene || hasStopped) {
+        useLectureAnimationStore.getState().resetVisual();
+      }
     };
   }, [
     status,

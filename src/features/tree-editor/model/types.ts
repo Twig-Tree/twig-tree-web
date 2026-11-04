@@ -60,23 +60,20 @@ export type EditorLectureSegment = Omit<
 type EditorLectureNodeAction =
   | (Omit<
       Extract<LectureAnimationAction, { type: "focus" }>,
-      "targetNodePaths"
+      "targetNodeIds"
     > & {
       targetClientIds: string[];
     })
   | (Omit<
       Extract<LectureAnimationAction, { type: "highlight" }>,
-      "targetNodePaths"
+      "targetNodeIds"
     > & {
       targetClientIds: string[];
     })
-  | (Omit<
-      Extract<LectureAnimationAction, { type: "dim" }>,
-      "exceptNodePaths"
-    > & {
+  | (Omit<Extract<LectureAnimationAction, { type: "dim" }>, "exceptNodeIds"> & {
       exceptClientIds: string[];
     })
-  | (Omit<Extract<LectureAnimationAction, { type: "trace" }>, "nodePaths"> & {
+  | (Omit<Extract<LectureAnimationAction, { type: "trace" }>, "nodeIds"> & {
       clientIds: string[];
     });
 
@@ -101,7 +98,7 @@ export interface EditorLectureBeat extends Omit<LectureBeat, "animation"> {
 
 export interface EditorLectureScene extends Omit<
   LectureScene,
-  "nodePath" | "beats"
+  "nodeId" | "beats"
 > {
   clientId: string;
   beats: EditorLectureBeat[];

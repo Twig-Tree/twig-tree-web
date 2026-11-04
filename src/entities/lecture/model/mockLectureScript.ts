@@ -1,21 +1,21 @@
-import { type LectureNodePath, type LectureScript } from "./types";
+import { type LectureNodeId, type LectureScript } from "./types";
 
-const PATHS = {
-  world: ["세계"],
-  europe: ["세계", "유럽"],
-  france: ["세계", "유럽", "프랑스"],
-  paris: ["세계", "유럽", "프랑스", "파리"],
-  germany: ["세계", "유럽", "독일"],
-  berlin: ["세계", "유럽", "독일", "베를린"],
-  euro: ["세계", "유럽", "유로"],
-  asia: ["세계", "아시아"],
-  korea: ["세계", "아시아", "대한민국"],
-  seoul: ["세계", "아시아", "대한민국", "서울"],
-  won: ["세계", "아시아", "대한민국", "원"],
-  japan: ["세계", "아시아", "일본"],
-  tokyo: ["세계", "아시아", "일본", "도쿄"],
-  yen: ["세계", "아시아", "일본", "엔"],
-} satisfies Record<string, LectureNodePath>;
+export const WORLD_GEOGRAPHY_NODE_IDS = {
+  world: "201",
+  europe: "202",
+  asia: "203",
+  france: "204",
+  germany: "205",
+  euro: "206",
+  paris: "207",
+  berlin: "208",
+  korea: "209",
+  japan: "210",
+  seoul: "211",
+  won: "212",
+  tokyo: "213",
+  yen: "214",
+} satisfies Record<string, LectureNodeId>;
 
 export const WORLD_GEOGRAPHY_WORKSPACE_ID = "3";
 
@@ -30,7 +30,7 @@ export const WORLD_GEOGRAPHY_LECTURE_SCRIPT = {
   scenes: [
     {
       id: "world-overview",
-      nodePath: PATHS.world,
+      nodeId: WORLD_GEOGRAPHY_NODE_IDS.world,
       beats: [
         {
           id: "world-overview-intro",
@@ -44,13 +44,17 @@ export const WORLD_GEOGRAPHY_LECTURE_SCRIPT = {
             children: [
               {
                 type: "focus",
-                targetNodePaths: [PATHS.world, PATHS.europe, PATHS.asia],
+                targetNodeIds: [
+                  WORLD_GEOGRAPHY_NODE_IDS.world,
+                  WORLD_GEOGRAPHY_NODE_IDS.europe,
+                  WORLD_GEOGRAPHY_NODE_IDS.asia,
+                ],
                 maxZoom: 1,
                 durationMs: 700,
               },
               {
                 type: "highlight",
-                targetNodePaths: [PATHS.world],
+                targetNodeIds: [WORLD_GEOGRAPHY_NODE_IDS.world],
                 style: "pulse",
                 durationMs: 1200,
               },
@@ -69,17 +73,27 @@ export const WORLD_GEOGRAPHY_LECTURE_SCRIPT = {
             children: [
               {
                 type: "dim",
-                exceptNodePaths: [PATHS.world, PATHS.europe, PATHS.asia],
+                exceptNodeIds: [
+                  WORLD_GEOGRAPHY_NODE_IDS.world,
+                  WORLD_GEOGRAPHY_NODE_IDS.europe,
+                  WORLD_GEOGRAPHY_NODE_IDS.asia,
+                ],
                 durationMs: 2600,
               },
               {
                 type: "trace",
-                nodePaths: [PATHS.world, PATHS.europe],
+                nodeIds: [
+                  WORLD_GEOGRAPHY_NODE_IDS.world,
+                  WORLD_GEOGRAPHY_NODE_IDS.europe,
+                ],
                 durationMs: 2200,
               },
               {
                 type: "trace",
-                nodePaths: [PATHS.world, PATHS.asia],
+                nodeIds: [
+                  WORLD_GEOGRAPHY_NODE_IDS.world,
+                  WORLD_GEOGRAPHY_NODE_IDS.asia,
+                ],
                 durationMs: 2200,
               },
             ],
@@ -89,7 +103,7 @@ export const WORLD_GEOGRAPHY_LECTURE_SCRIPT = {
     },
     {
       id: "europe-countries",
-      nodePath: PATHS.europe,
+      nodeId: WORLD_GEOGRAPHY_NODE_IDS.europe,
       beats: [
         {
           id: "europe-countries-intro",
@@ -103,11 +117,11 @@ export const WORLD_GEOGRAPHY_LECTURE_SCRIPT = {
             children: [
               {
                 type: "focus",
-                targetNodePaths: [
-                  PATHS.europe,
-                  PATHS.france,
-                  PATHS.germany,
-                  PATHS.euro,
+                targetNodeIds: [
+                  WORLD_GEOGRAPHY_NODE_IDS.europe,
+                  WORLD_GEOGRAPHY_NODE_IDS.france,
+                  WORLD_GEOGRAPHY_NODE_IDS.germany,
+                  WORLD_GEOGRAPHY_NODE_IDS.euro,
                 ],
                 maxZoom: 1.1,
                 durationMs: 700,
@@ -118,13 +132,16 @@ export const WORLD_GEOGRAPHY_LECTURE_SCRIPT = {
                 children: [
                   {
                     type: "highlight",
-                    targetNodePaths: [PATHS.france, PATHS.germany],
+                    targetNodeIds: [
+                      WORLD_GEOGRAPHY_NODE_IDS.france,
+                      WORLD_GEOGRAPHY_NODE_IDS.germany,
+                    ],
                     style: "steady",
                     durationMs: 1800,
                   },
                   {
                     type: "highlight",
-                    targetNodePaths: [PATHS.euro],
+                    targetNodeIds: [WORLD_GEOGRAPHY_NODE_IDS.euro],
                     style: "pulse",
                     durationMs: 1800,
                   },
@@ -145,18 +162,26 @@ export const WORLD_GEOGRAPHY_LECTURE_SCRIPT = {
             children: [
               {
                 type: "focus",
-                targetNodePaths: [PATHS.europe, PATHS.france, PATHS.paris],
+                targetNodeIds: [
+                  WORLD_GEOGRAPHY_NODE_IDS.europe,
+                  WORLD_GEOGRAPHY_NODE_IDS.france,
+                  WORLD_GEOGRAPHY_NODE_IDS.paris,
+                ],
                 maxZoom: 1.25,
                 durationMs: 600,
               },
               {
                 type: "trace",
-                nodePaths: [PATHS.europe, PATHS.france, PATHS.paris],
+                nodeIds: [
+                  WORLD_GEOGRAPHY_NODE_IDS.europe,
+                  WORLD_GEOGRAPHY_NODE_IDS.france,
+                  WORLD_GEOGRAPHY_NODE_IDS.paris,
+                ],
                 durationMs: 1400,
               },
               {
                 type: "highlight",
-                targetNodePaths: [PATHS.paris],
+                targetNodeIds: [WORLD_GEOGRAPHY_NODE_IDS.paris],
                 style: "pulse",
                 durationMs: 1200,
               },
@@ -175,18 +200,26 @@ export const WORLD_GEOGRAPHY_LECTURE_SCRIPT = {
             children: [
               {
                 type: "focus",
-                targetNodePaths: [PATHS.europe, PATHS.germany, PATHS.berlin],
+                targetNodeIds: [
+                  WORLD_GEOGRAPHY_NODE_IDS.europe,
+                  WORLD_GEOGRAPHY_NODE_IDS.germany,
+                  WORLD_GEOGRAPHY_NODE_IDS.berlin,
+                ],
                 maxZoom: 1.25,
                 durationMs: 600,
               },
               {
                 type: "trace",
-                nodePaths: [PATHS.europe, PATHS.germany, PATHS.berlin],
+                nodeIds: [
+                  WORLD_GEOGRAPHY_NODE_IDS.europe,
+                  WORLD_GEOGRAPHY_NODE_IDS.germany,
+                  WORLD_GEOGRAPHY_NODE_IDS.berlin,
+                ],
                 durationMs: 1400,
               },
               {
                 type: "highlight",
-                targetNodePaths: [PATHS.berlin],
+                targetNodeIds: [WORLD_GEOGRAPHY_NODE_IDS.berlin],
                 style: "pulse",
                 durationMs: 1200,
               },
@@ -205,7 +238,10 @@ export const WORLD_GEOGRAPHY_LECTURE_SCRIPT = {
             children: [
               {
                 type: "trace",
-                nodePaths: [PATHS.europe, PATHS.euro],
+                nodeIds: [
+                  WORLD_GEOGRAPHY_NODE_IDS.europe,
+                  WORLD_GEOGRAPHY_NODE_IDS.euro,
+                ],
                 durationMs: 1000,
               },
               {
@@ -214,13 +250,16 @@ export const WORLD_GEOGRAPHY_LECTURE_SCRIPT = {
                 children: [
                   {
                     type: "highlight",
-                    targetNodePaths: [PATHS.france, PATHS.germany],
+                    targetNodeIds: [
+                      WORLD_GEOGRAPHY_NODE_IDS.france,
+                      WORLD_GEOGRAPHY_NODE_IDS.germany,
+                    ],
                     style: "steady",
                     durationMs: 1800,
                   },
                   {
                     type: "highlight",
-                    targetNodePaths: [PATHS.euro],
+                    targetNodeIds: [WORLD_GEOGRAPHY_NODE_IDS.euro],
                     style: "pulse",
                     durationMs: 1800,
                   },
@@ -233,7 +272,7 @@ export const WORLD_GEOGRAPHY_LECTURE_SCRIPT = {
     },
     {
       id: "asia-countries",
-      nodePath: PATHS.asia,
+      nodeId: WORLD_GEOGRAPHY_NODE_IDS.asia,
       beats: [
         {
           id: "asia-countries-intro",
@@ -247,13 +286,17 @@ export const WORLD_GEOGRAPHY_LECTURE_SCRIPT = {
             children: [
               {
                 type: "focus",
-                targetNodePaths: [PATHS.asia, PATHS.korea, PATHS.japan],
+                targetNodeIds: [
+                  WORLD_GEOGRAPHY_NODE_IDS.asia,
+                  WORLD_GEOGRAPHY_NODE_IDS.korea,
+                  WORLD_GEOGRAPHY_NODE_IDS.japan,
+                ],
                 maxZoom: 1.1,
                 durationMs: 700,
               },
               {
                 type: "highlight",
-                targetNodePaths: [PATHS.asia],
+                targetNodeIds: [WORLD_GEOGRAPHY_NODE_IDS.asia],
                 style: "pulse",
                 durationMs: 1200,
               },
@@ -272,7 +315,11 @@ export const WORLD_GEOGRAPHY_LECTURE_SCRIPT = {
             children: [
               {
                 type: "focus",
-                targetNodePaths: [PATHS.korea, PATHS.seoul, PATHS.won],
+                targetNodeIds: [
+                  WORLD_GEOGRAPHY_NODE_IDS.korea,
+                  WORLD_GEOGRAPHY_NODE_IDS.seoul,
+                  WORLD_GEOGRAPHY_NODE_IDS.won,
+                ],
                 maxZoom: 1.2,
                 durationMs: 600,
               },
@@ -282,17 +329,27 @@ export const WORLD_GEOGRAPHY_LECTURE_SCRIPT = {
                 children: [
                   {
                     type: "trace",
-                    nodePaths: [PATHS.asia, PATHS.korea, PATHS.seoul],
+                    nodeIds: [
+                      WORLD_GEOGRAPHY_NODE_IDS.asia,
+                      WORLD_GEOGRAPHY_NODE_IDS.korea,
+                      WORLD_GEOGRAPHY_NODE_IDS.seoul,
+                    ],
                     durationMs: 1800,
                   },
                   {
                     type: "trace",
-                    nodePaths: [PATHS.korea, PATHS.won],
+                    nodeIds: [
+                      WORLD_GEOGRAPHY_NODE_IDS.korea,
+                      WORLD_GEOGRAPHY_NODE_IDS.won,
+                    ],
                     durationMs: 1800,
                   },
                   {
                     type: "highlight",
-                    targetNodePaths: [PATHS.seoul, PATHS.won],
+                    targetNodeIds: [
+                      WORLD_GEOGRAPHY_NODE_IDS.seoul,
+                      WORLD_GEOGRAPHY_NODE_IDS.won,
+                    ],
                     style: "pulse",
                     durationMs: 1800,
                   },
@@ -313,7 +370,11 @@ export const WORLD_GEOGRAPHY_LECTURE_SCRIPT = {
             children: [
               {
                 type: "focus",
-                targetNodePaths: [PATHS.japan, PATHS.tokyo, PATHS.yen],
+                targetNodeIds: [
+                  WORLD_GEOGRAPHY_NODE_IDS.japan,
+                  WORLD_GEOGRAPHY_NODE_IDS.tokyo,
+                  WORLD_GEOGRAPHY_NODE_IDS.yen,
+                ],
                 maxZoom: 1.2,
                 durationMs: 600,
               },
@@ -323,17 +384,27 @@ export const WORLD_GEOGRAPHY_LECTURE_SCRIPT = {
                 children: [
                   {
                     type: "trace",
-                    nodePaths: [PATHS.asia, PATHS.japan, PATHS.tokyo],
+                    nodeIds: [
+                      WORLD_GEOGRAPHY_NODE_IDS.asia,
+                      WORLD_GEOGRAPHY_NODE_IDS.japan,
+                      WORLD_GEOGRAPHY_NODE_IDS.tokyo,
+                    ],
                     durationMs: 1800,
                   },
                   {
                     type: "trace",
-                    nodePaths: [PATHS.japan, PATHS.yen],
+                    nodeIds: [
+                      WORLD_GEOGRAPHY_NODE_IDS.japan,
+                      WORLD_GEOGRAPHY_NODE_IDS.yen,
+                    ],
                     durationMs: 1800,
                   },
                   {
                     type: "highlight",
-                    targetNodePaths: [PATHS.tokyo, PATHS.yen],
+                    targetNodeIds: [
+                      WORLD_GEOGRAPHY_NODE_IDS.tokyo,
+                      WORLD_GEOGRAPHY_NODE_IDS.yen,
+                    ],
                     style: "pulse",
                     durationMs: 1800,
                   },
@@ -346,7 +417,7 @@ export const WORLD_GEOGRAPHY_LECTURE_SCRIPT = {
     },
     {
       id: "world-recap",
-      nodePath: PATHS.world,
+      nodeId: WORLD_GEOGRAPHY_NODE_IDS.world,
       beats: [
         {
           id: "world-recap-capitals",
@@ -360,22 +431,22 @@ export const WORLD_GEOGRAPHY_LECTURE_SCRIPT = {
             children: [
               {
                 type: "focus",
-                targetNodePaths: [
-                  PATHS.paris,
-                  PATHS.berlin,
-                  PATHS.seoul,
-                  PATHS.tokyo,
+                targetNodeIds: [
+                  WORLD_GEOGRAPHY_NODE_IDS.paris,
+                  WORLD_GEOGRAPHY_NODE_IDS.berlin,
+                  WORLD_GEOGRAPHY_NODE_IDS.seoul,
+                  WORLD_GEOGRAPHY_NODE_IDS.tokyo,
                 ],
                 maxZoom: 0.95,
                 durationMs: 800,
               },
               {
                 type: "highlight",
-                targetNodePaths: [
-                  PATHS.paris,
-                  PATHS.berlin,
-                  PATHS.seoul,
-                  PATHS.tokyo,
+                targetNodeIds: [
+                  WORLD_GEOGRAPHY_NODE_IDS.paris,
+                  WORLD_GEOGRAPHY_NODE_IDS.berlin,
+                  WORLD_GEOGRAPHY_NODE_IDS.seoul,
+                  WORLD_GEOGRAPHY_NODE_IDS.tokyo,
                 ],
                 style: "pulse",
                 durationMs: 2200,
@@ -395,13 +466,21 @@ export const WORLD_GEOGRAPHY_LECTURE_SCRIPT = {
             children: [
               {
                 type: "focus",
-                targetNodePaths: [PATHS.euro, PATHS.won, PATHS.yen],
+                targetNodeIds: [
+                  WORLD_GEOGRAPHY_NODE_IDS.euro,
+                  WORLD_GEOGRAPHY_NODE_IDS.won,
+                  WORLD_GEOGRAPHY_NODE_IDS.yen,
+                ],
                 maxZoom: 1,
                 durationMs: 800,
               },
               {
                 type: "highlight",
-                targetNodePaths: [PATHS.euro, PATHS.won, PATHS.yen],
+                targetNodeIds: [
+                  WORLD_GEOGRAPHY_NODE_IDS.euro,
+                  WORLD_GEOGRAPHY_NODE_IDS.won,
+                  WORLD_GEOGRAPHY_NODE_IDS.yen,
+                ],
                 style: "pulse",
                 durationMs: 2200,
               },
@@ -424,13 +503,17 @@ export const WORLD_GEOGRAPHY_LECTURE_SCRIPT = {
               },
               {
                 type: "focus",
-                targetNodePaths: [PATHS.world, PATHS.europe, PATHS.asia],
+                targetNodeIds: [
+                  WORLD_GEOGRAPHY_NODE_IDS.world,
+                  WORLD_GEOGRAPHY_NODE_IDS.europe,
+                  WORLD_GEOGRAPHY_NODE_IDS.asia,
+                ],
                 maxZoom: 1,
                 durationMs: 800,
               },
               {
                 type: "highlight",
-                targetNodePaths: [PATHS.world],
+                targetNodeIds: [WORLD_GEOGRAPHY_NODE_IDS.world],
                 style: "steady",
                 durationMs: 1600,
               },

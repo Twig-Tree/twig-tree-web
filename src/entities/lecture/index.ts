@@ -10,6 +10,7 @@ export type {
   LectureHighlightAction,
   LectureNarration,
   LectureNodePath,
+  LectureNodeId,
   LectureResetAction,
   LectureScene,
   LectureScript,
@@ -20,5 +21,6 @@ export type {
 export { DEMO_LECTURE } from "./model/mockLecture";
 export {
   WORLD_GEOGRAPHY_LECTURE_SCRIPT,
+  WORLD_GEOGRAPHY_NODE_IDS,
   WORLD_GEOGRAPHY_WORKSPACE_ID,
 } from "./model/mockLectureScript";

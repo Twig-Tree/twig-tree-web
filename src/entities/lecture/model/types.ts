@@ -1,9 +1,14 @@
 /*
-루트 노드부터 대상 노드까지의 노드 이름 경로.
-노드 ID는 트리를 만들 때마다 서버가 새로 부여하므로 목데이터는 ID 대신 이름 경로로 노드를 가리킨다.
-서버가 강의를 내려주게 되면 이 자리는 노드 ID로 바뀐다.
+기존 구간 강의가 사용하는 루트 노드부터 대상 노드까지의 이름 경로.
+동적 LectureScript는 아래 LectureNodeId를 사용한다.
 */
 export type LectureNodePath = string[];
+
+/*
+동적 강의가 가리키는 서버 노드 ID. 지금은 프론트 목데이터가 이 값을 제공하고,
+강의 API가 생기면 같은 계약으로 서버 응답을 받는다.
+*/
+export type LectureNodeId = string;
 
 /*
 문장 하나의 자막. 시각은 구간 시작으로부터의 밀리초다.
@@ -51,14 +56,14 @@ export interface LectureNarration {
 
 export interface LectureFocusAction {
   type: "focus";
-  targetNodePaths: LectureNodePath[]; // 한 화면에 모을 노드
+  targetNodeIds: LectureNodeId[]; // 한 화면에 모을 노드
   maxZoom: number;
   durationMs: number;
 }
 
 export interface LectureHighlightAction {
   type: "highlight";
-  targetNodePaths: LectureNodePath[];
+  targetNodeIds: LectureNodeId[];
   style: "steady" | "pulse";
   durationMs: number;
   persist?: boolean; // true이면 다음 reset 전까지 강조를 유지한다
@@ -66,14 +71,14 @@ export interface LectureHighlightAction {
 
 export interface LectureDimAction {
   type: "dim";
-  exceptNodePaths: LectureNodePath[]; // 흐리지 않고 남겨 둘 노드
+  exceptNodeIds: LectureNodeId[]; // 흐리지 않고 남겨 둘 노드
   durationMs: number;
   persist?: boolean; // true이면 다음 reset 전까지 흐림을 유지한다
 }
 
 export interface LectureTraceAction {
   type: "trace";
-  nodePaths: LectureNodePath[]; // 연결선을 따라갈 순서로 나열한 노드
+  nodeIds: LectureNodeId[]; // 연결선을 따라갈 순서로 나열한 노드
   durationMs: number;
 }
 
@@ -114,7 +119,7 @@ export interface LectureBeat {
 */
 export interface LectureScene {
   id: string;
-  nodePath: LectureNodePath;
+  nodeId: LectureNodeId;
   beats: LectureBeat[];
 }
 

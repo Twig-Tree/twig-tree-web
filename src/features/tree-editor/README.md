@@ -139,7 +139,7 @@ editor store 초기화는 트리당 한 번만 수행한다. `useInitializeTree`
 
 ### 목데이터와 노드 연결
 
-노드 ID는 트리를 만들 때마다 서버가 새로 부여하고 편집기 노드 ID도 세션마다 새로 만들어지므로, 목데이터는 루트부터의 노드 이름 경로로 노드를 가리킨다. `getEditorLectureSegments`가 강의를 시작할 때 엣지를 따라 내려가며 편집기 노드 ID로 바꾼다. 경로 하나라도 찾지 못하면 강의 전체를 이 트리에 맞지 않는 것으로 보고 시작 버튼을 잠근다. 일부 구간만 재생하면 강의 흐름이 끊기기 때문이다.
+기존 `Lecture` 데모는 노드 ID가 정해지지 않은 수동 편집 트리에서도 재생해야 하므로 루트부터의 노드 이름 경로를 사용한다. `getEditorLectureSegments`가 강의를 시작할 때 엣지를 따라 내려가며 편집기 노드 ID로 바꾼다. 경로 하나라도 찾지 못하면 강의 전체를 이 트리에 맞지 않는 것으로 보고 시작 버튼을 잠근다. 동적 `LectureScript`는 아래 설명처럼 서버 노드 ID를 사용한다.
 
 `DEMO_LECTURE`는 아래 구조의 트리에서 재생된다. 백엔드 개발용 시나리오 `POST /tree-request?mock=small`과 같은 구조지만, 그 응답은 고정 JSON이고 DB에 저장되지 않는다. 데모를 보려면 새 워크스페이스에서 편집기로 이 트리를 직접 만든다. 형제 순서는 연결에 영향을 주지 않는다.
 
@@ -156,15 +156,15 @@ editor store 초기화는 트리당 한 번만 수행한다. `useInitializeTree`
 
 ### 동적 연출은 제한된 동작을 조합한다
 
-`LectureScript`는 장면(`scene`) 아래에 음성·자막·연출의 동기화 경계인 `beat`를 두고, 각 비트가 `focus`·`highlight`·`dim`·`trace`·`reset` 동작을 갖는다. `group`은 이 동작들을 `sequence` 또는 `parallel`로 재귀 조합한다. LLM은 이 데이터 계약만 생성하고 브라우저에서 실행할 코드를 만들지 않는다.
+`LectureScript`는 장면(`scene`) 아래에 음성·자막·연출의 동기화 경계인 `beat`를 두고, 각 비트가 `focus`·`highlight`·`dim`·`trace`·`reset` 동작을 갖는다. `group`은 이 동작들을 `sequence` 또는 `parallel`로 재귀 조합한다. LLM은 이 데이터 계약만 생성하고 브라우저에서 실행할 코드를 만들지 않는다. 외부 JSON의 런타임 검증은 실제 강의 API를 연결할 때 추가하며 요구사항은 `docs/specs/lecture-script-contract.md`에 둔다.
 
-`getEditorLectureScript`는 실행 전에 대본 안의 모든 이름 경로를 편집기 clientId로 바꾼다. 경로 하나라도 현재 트리에 없으면 대본 전체를 거부한다. 변환 뒤에는 `runLectureAnimation`이 조합을 해석하고, `lectureAnimationStore`가 강조·흐림·연결선 추적을 동작별 레이어로 관리한다. 병렬 동작이 각각 자기 레이어만 제거하므로 같은 종류의 효과를 서로 덮어쓰지 않는다.
+`getEditorLectureScript`는 실행 전에 대본 안의 모든 서버 노드 ID를 편집기 노드의 `data.serverId`와 비교해 React Flow clientId로 바꾼다. ID 하나라도 현재 트리에 없으면 대본 전체를 거부한다. 이름은 표시값일 뿐 연결 키가 아니므로 노드 이름이 바뀌어도 같은 서버 ID라면 대본을 재생할 수 있다. 변환 뒤에는 `runLectureAnimation`이 조합을 해석하고, `lectureAnimationStore`가 강조·흐림·연결선 추적을 동작별 레이어로 관리한다. 병렬 동작이 각각 자기 레이어만 제거하므로 같은 종류의 효과를 서로 덮어쓰지 않는다.
 
-`persist`가 없는 시각 동작은 `durationMs` 뒤에 자기 레이어를 제거한다. `persist: true`인 동작은 즉시 다음 동작으로 진행하면서 효과를 유지하고 이후 `reset`이 정리한다. 실행 신호가 중단되면 대기 중인 일회성 동작을 정리하고 이후 순차 동작은 실행하지 않는다. 현재 기존 `Lecture` 플레이어는 그대로이며, 동적 목 대본과 비트 재생 연결은 다음 단계에서 붙인다.
+`persist`가 없는 시각 동작은 `durationMs` 뒤에 자기 레이어를 제거한다. `persist: true`인 동작은 즉시 다음 동작으로 진행하면서 같은 장면 동안 효과를 유지한다. `reset`이 먼저 지울 수 있고, 장면 전환·정상 종료·사용자 종료·재시작·언마운트에서는 플레이어가 남은 레이어를 자동 정리한다. 일시정지는 현재 화면을 보존한다. 실행 신호가 중단되면 대기 중인 일회성 동작을 정리하고 이후 순차 동작은 실행하지 않는다.
 
 개발 패널의 단위 동작은 900ms 동안 표시한다. `Dim Others`도 같은 시간이 지나면 자동으로 해제된다. `Sequence`는 Focus → 부모 Highlight → Trace Child → 자식 Pulse 사이에 짧은 전환 간격을 두고 현재 단계를 패널에 표시한다. Pulse는 React Flow가 좌표 배치에 쓰는 `transform`을 건드리지 않고 box-shadow만 움직이며, Trace Child는 연결선의 굵기·광원·흐르는 점선으로 방향을 드러낸다. 모든 트리 엣지는 기존 smooth step 모양을 유지하는 `CustomEdge`로 렌더링되어 추적 상태를 직접 구독한다.
 
-워크스페이스 왼쪽 위의 `LectureAnimationDevPanel`은 LLM과 비트 재생을 연결하기 전에 실행기를 눈으로 검증하는 프로토타입 도구다. 트리에서 노드를 선택하면 그 노드와 첫 자식을 대상으로 단위 동작과 순차·병렬 조합을 실행한다. `Dim Others`처럼 지속되는 효과는 `초기화`로 지우고, 진행 중인 일회성 동작은 `중단`으로 취소한다. 이 패널은 동적 강의 연결이 안정되면 제거하거나 개발 환경에서만 노출한다.
+워크스페이스 왼쪽 위의 `LectureAnimationDevPanel`은 실행기를 눈으로 검증하는 프로토타입 도구다. 트리에서 노드를 선택하면 그 노드와 첫 자식을 대상으로 단위 동작과 순차·병렬 조합을 실행한다. `Dim Others`처럼 지속되는 효과는 `초기화`로 지우고, 진행 중인 일회성 동작은 `중단`으로 취소한다. 패널은 `NODE_ENV=development`에서만 렌더링하며 운영 빌드에는 노출하지 않는다.
 
 ### 상태는 위치 하나에서 파생한다
 
