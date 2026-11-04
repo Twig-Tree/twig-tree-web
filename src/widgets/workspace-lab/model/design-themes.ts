@@ -204,6 +204,70 @@ export const workspaceLabDesignThemes = [
       memoPanel: { surface: "panel", border: "line", density: "compact" },
     },
   },
+  {
+    id: "grove",
+    name: "Grove",
+    description:
+      "가운데가 밝은 캔버스에 부드러운 곡선 가지를 뻗어, 생각이 자라나는 숲처럼 보이는 조합입니다.",
+    values: {
+      colorTheme: "grove",
+      colorRoles: workspaceLabDefaultColorRoles,
+      shapeStyle: "diffuse",
+      canvasStyle: "spotlight",
+      nodeShape: "rounded",
+      density: "comfortable",
+      collapseControlStyle: "notch",
+      connectionPointStyle: "ring",
+      edgeStyle: getWorkspaceLabEdgeStylePreset("soft-guide").values,
+      leftPanel: { surface: "canvas", border: "none", density: "comfortable" },
+      memoPanel: { surface: "panel", border: "shadow", density: "comfortable" },
+    },
+  },
+  {
+    id: "sunny",
+    name: "Sunny Pop",
+    description:
+      "큰 도트, 큰 곡률, 굵은 코랄 연결선으로 아이디어를 가볍고 신나게 펼치는 조합입니다.",
+    values: {
+      colorTheme: "sunny",
+      colorRoles: workspaceLabDefaultColorRoles,
+      shapeStyle: "diffuse",
+      canvasStyle: "bold-dots",
+      nodeShape: "rounded",
+      density: "spacious",
+      collapseControlStyle: "floating",
+      connectionPointStyle: "dot",
+      edgeStyle: getWorkspaceLabEdgeStylePreset("signal-flow").values,
+      leftPanel: { surface: "panel", border: "shadow", density: "comfortable" },
+      memoPanel: { surface: "panel", border: "shadow", density: "comfortable" },
+    },
+  },
+  {
+    id: "mono",
+    name: "Mono Brutal",
+    description:
+      "검정 선, 오프셋 그림자, 직선 연결만으로 장식 없이 구조를 밀어붙이는 조합입니다.",
+    values: {
+      colorTheme: "mono",
+      colorRoles: workspaceLabDefaultColorRoles,
+      shapeStyle: "hard",
+      canvasStyle: "cross",
+      nodeShape: "square",
+      density: "spacious",
+      collapseControlStyle: "minimal",
+      connectionPointStyle: "square",
+      edgeStyle: {
+        lineStyle: "straight",
+        pattern: "solid",
+        thickness: "strong",
+        color: "ink",
+        opacity: "full",
+        effect: "none",
+      },
+      leftPanel: { surface: "panel", border: "line", density: "spacious" },
+      memoPanel: { surface: "panel", border: "line", density: "spacious" },
+    },
+  },
 ] as const satisfies readonly WorkspaceLabDesignThemeDefinition[];
 
 export type WorkspaceLabDesignThemeId =
