@@ -187,7 +187,7 @@ export const workspaceLabRootColors = [
       rootText: tokens.surface,
       rootMutedText: mix(tokens.surface, 65, tokens.text),
       rootControlSurface: tokens.accent,
-      rootControlText: "#ffffff",
+      rootControlText: tokens.accentText,
     }),
   },
   {
@@ -210,8 +210,8 @@ export const workspaceLabRootColors = [
     apply: (tokens) => ({
       rootSurface: tokens.accent,
       rootBorder: tokens.accent,
-      rootText: "#ffffff",
-      rootMutedText: mix("#ffffff", 72, tokens.accent),
+      rootText: tokens.accentText,
+      rootMutedText: mix(tokens.accentText, 72, tokens.accent),
       rootControlSurface: tokens.surface,
       rootControlText: tokens.accent,
     }),
@@ -289,11 +289,11 @@ export const workspaceLabChromeColors = [
     apply: (tokens) => ({
       toolbarSurface: tokens.accent,
       toolbarBorder: "transparent",
-      toolbarText: mix("#ffffff", 80, tokens.accent),
+      toolbarText: mix(tokens.accentText, 80, tokens.accent),
       toolbarHoverSurface: "rgb(255 255 255 / 14%)",
-      toolbarHoverText: "#ffffff",
+      toolbarHoverText: tokens.accentText,
       avatarSurface: tokens.accent,
-      avatarText: "#ffffff",
+      avatarText: tokens.accentText,
     }),
   },
 ] as const satisfies readonly ColorRoleOptionDefinition[];

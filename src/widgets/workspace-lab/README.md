@@ -111,7 +111,7 @@ Lab의 "테마"는 범위에 따라 둘로 나눈다.
 1. `color-themes.ts`에서 기존 token 집합을 펼친 뒤 필요한 값만 덮어쓴다.
 2. `workspaceLabColorThemes` registry에 새 정의를 추가한다.
 3. 새 색상 책임이 필요하면 `WorkspaceLabColorThemeTokens`와 `tokenCssVariables`를 함께 확장한다.
-4. CSS에서는 직접 색을 추가하기보다 `--lab-*` 변수를 소비한다.
+4. CSS와 미리보기 마크업에서는 직접 색을 쓰지 않고 `--lab-*` 변수를 소비한다. 강조색으로 채운 면의 글자는 `accentText`를 쓴다. 노랑처럼 밝은 강조색은 흰 글자가 읽히지 않기 때문이다.
 5. 컬러 테마 테스트에서 모든 token이 CSS 변수로 변환되는지 확인한다.
 
 컬러 테마에는 색만 둔다. 곡률, 그림자 모양, 연결선 종류처럼 독립적으로 비교할 항목을 컬러 테마 안에 숨기지 않는다. 예외로 `previewBackground`, `previewPattern`, `frameShadow`는 Workspace 바깥의 Lab 배경이라 컬러 테마에 남겨 둔다.

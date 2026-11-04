@@ -6,6 +6,7 @@
 
 .previewFrame {
   border: 1px solid var(--lab-frame-border);
+  background: var(--lab-surface);
   border-radius: 14px;
   box-shadow: var(--lab-frame-shadow);
   transition:
@@ -27,7 +28,7 @@
 }
 
 .lab :global(.workspace-preview-avatar) {
-  border: 2px solid #fffefa;
+  border: 2px solid var(--lab-header-surface);
   background: var(--lab-avatar-surface);
   box-shadow: 0 0 0 1px var(--lab-border);
   color: var(--lab-avatar-text);
@@ -63,6 +64,7 @@
 }
 
 .lab :global(.workspace-preview-panel-section) {
+  border-color: var(--lab-panel-border);
   padding: var(--lab-panel-padding);
 }
 
@@ -103,7 +105,8 @@
 
 .lab :global(.workspace-preview-panel[data-border="shadow"]) {
   border-color: transparent;
-  box-shadow: 0 12px 32px rgb(15 23 42 / 10%);
+  box-shadow: 0 12px 32px
+    color-mix(in srgb, var(--lab-shadow-ink) 10%, transparent);
 }
 
 .lab :global(.workspace-preview-panel[data-border="none"]) {
@@ -121,6 +124,7 @@
 .lab :global(.workspace-preview-search) {
   border-color: var(--lab-panel-border);
   background: var(--lab-search-surface);
+  color: var(--lab-node-muted);
 }
 
 .lab :global(.workspace-preview-outline-item) {
@@ -161,6 +165,67 @@
 
 .lab :global(.workspace-preview-player-button) {
   background: var(--lab-accent);
+  color: var(--lab-accent-text);
+}
+
+/*
+미리보기의 글자·버튼·빈 화면도 테마 토큰만 쓴다.
+색을 직접 쓰면 어두운 테마나 보라가 아닌 강조색에서 그 자리만 따로 논다.
+*/
+.lab :global(.workspace-preview-title) {
+  color: var(--lab-node-text);
+}
+
+.lab :global(.workspace-preview-eyebrow),
+.lab :global(.workspace-preview-meta) {
+  color: var(--lab-node-muted);
+}
+
+.lab :global(.workspace-preview-accent-label) {
+  color: var(--lab-accent);
+}
+
+.lab :global(.workspace-preview-icon-button) {
+  color: var(--lab-node-muted);
+}
+
+.lab :global(.workspace-preview-icon-button:hover) {
+  background: var(--lab-surface-muted);
+  color: var(--lab-node-text);
+}
+
+.lab :global(.workspace-preview-memo-body) {
+  border-color: var(--lab-panel-border);
+  background: var(--lab-surface-muted);
+  color: var(--lab-node-muted);
+}
+
+.lab :global(.workspace-preview-secondary-button) {
+  border-color: var(--lab-panel-border);
+  color: var(--lab-outline-text);
+}
+
+.lab :global(.workspace-preview-primary-button) {
+  background: var(--lab-accent);
+  color: var(--lab-accent-text);
+}
+
+.lab :global(.workspace-preview-progress) {
+  background: var(--lab-surface-muted);
+}
+
+.lab :global(.workspace-preview-progress-bar) {
+  background: var(--lab-accent);
+}
+
+.lab :global(.workspace-preview-empty) {
+  border-color: var(--lab-border);
+  background: color-mix(in srgb, var(--lab-surface) 80%, transparent);
+}
+
+.lab :global(.workspace-preview-empty-icon) {
+  background: color-mix(in srgb, var(--lab-accent) 12%, var(--lab-surface));
+  color: var(--lab-accent);
 }
 
 .previewFrame[data-viewport="compact"] {
@@ -171,6 +236,13 @@
 
 .canvas {
   background: var(--lab-canvas);
+}
+
+/*
+app/xy-theme.css가 모든 React Flow에 고정 배경색을 준다. Lab에서는 테마의 캔버스 색으로 덮는다.
+*/
+.canvas :global(.react-flow) {
+  --xy-background-color: var(--lab-canvas);
 }
 
 .canvas :global(.react-flow__renderer) {

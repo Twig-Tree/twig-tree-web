@@ -16,6 +16,7 @@ export interface WorkspaceLabColorThemeTokens {
   text: string;
   mutedText: string;
   accent: string;
+  accentText: string; // 강조색으로 채운 면 위의 글자·아이콘 색
   highlight: string;
   lecture: string;
   danger: string;
@@ -74,6 +75,7 @@ const neutralTokens: WorkspaceLabColorThemeTokens = {
   text: "#172033",
   mutedText: "#778195",
   accent: "#4f46e5",
+  accentText: "#ffffff",
   highlight: "#f59e0b",
   lecture: "#06b6d4",
   danger: "#dc2626",
@@ -267,6 +269,7 @@ const tokenCssVariables = {
   text: "--lab-node-text",
   mutedText: "--lab-node-muted",
   accent: "--lab-accent",
+  accentText: "--lab-accent-text",
   highlight: "--lab-highlight",
   lecture: "--lab-lecture",
   danger: "--lab-danger",
