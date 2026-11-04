@@ -6,6 +6,7 @@ import { createQueryWrapper } from "@/src/tests/helpers/createQueryWrapper";
 import { server } from "@/src/tests/mocks/server";
 import { createEditorEdge } from "../../../lib/add-node/createEditorEdge";
 import { createEditorNode } from "../../../lib/add-node/createEditorNode";
+import { useEditHistoryStore } from "../../history/editHistoryStore";
 import { useTreeStore } from "../../treeStore";
 import { useMoveNode } from "./useMoveNode";
 
@@ -76,13 +77,13 @@ describe("useMoveNode", () => {
         createEdge("c1", "unsaved"),
       ],
     });
-    useTreeStore.temporal.getState().clear();
+    useEditHistoryStore.getState().clear();
   });
 
   afterEach(() => {
     vi.restoreAllMocks();
     useTreeStore.getState().resetTree();
-    useTreeStore.temporal.getState().clear();
+    useEditHistoryStore.getState().clear();
   });
 
   it("editor store에 먼저 옮기고 서버 ID로 이동을 요청한다", async () => {
@@ -112,7 +113,14 @@ describe("useMoveNode", () => {
     await waitFor(() => expect(result.current.isMovingNode).toBe(false));
 
     expect(getChildClientIds("c2")).toEqual(["c23", "c21", "c22"]);
-    expect(useTreeStore.temporal.getState().pastStates).toHaveLength(1);
+    expect(useEditHistoryStore.getState().past).toEqual([
+      {
+        type: "move",
+        clientId: "c23",
+        from: { parentClientId: "c2", position: 3 },
+        to: { parentClientId: "c2", position: 1 },
+      },
+    ]);
   });
 
   it("응답의 형제 순서가 다르면 서버 순서로 맞춘다", async () => {
@@ -171,7 +179,7 @@ describe("useMoveNode", () => {
     );
     expect(getChildClientIds("c2")).toEqual(["c21", "c22", "c23"]);
     expect(getChildClientIds("c3")).toEqual([]);
-    expect(useTreeStore.temporal.getState().pastStates).toHaveLength(0);
+    expect(useEditHistoryStore.getState().past).toHaveLength(0);
   });
 
   it("저장되지 않은 노드는 알리고 옮기지 않는다", () => {
@@ -205,6 +213,6 @@ describe("useMoveNode", () => {
     });
 
     expect(moveNodeSpy).not.toHaveBeenCalled();
-    expect(useTreeStore.temporal.getState().pastStates).toHaveLength(0);
+    expect(useEditHistoryStore.getState().past).toHaveLength(0);
   });
 });

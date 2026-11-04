@@ -26,9 +26,7 @@ interface CollapseState {
 }
 
 /*
-접힘 상태는 treeStore와 따로 둔다. treeStore는 zundo로 undo history를 기록하는데, 접기·펼치기는
-서버와 무관한 화면 상태라 undo 대상이 아니다. 따로 두면 기록 여부가 treeStore의 handleSet 조건에
-기대지 않는다. 또 접힘 상태는 localStorage와 다른 탭을 따라 바뀌어 편집 상태와 생명주기가 다르다.
+접힘 상태는 treeStore와 따로 둔다. 접힘 상태는 localStorage와 다른 탭을 따라 바뀌어 편집 상태와 생명주기가 다르다.
 */
 export const useCollapseStore = create<CollapseState>()((set, get) => {
   /*

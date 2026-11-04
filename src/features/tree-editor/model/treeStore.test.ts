@@ -29,12 +29,10 @@ describe("selectOnlyNodeInStore", () => {
         createEditorEdge({ sourceClientId: "c1", targetClientId: "c3" }),
       ],
     });
-    useTreeStore.temporal.getState().clear();
   });
 
   afterEach(() => {
     useTreeStore.getState().resetTree();
-    useTreeStore.temporal.getState().clear();
   });
 
   it("대상 노드만 선택하고 이전에 선택된 노드의 선택을 푼다", () => {
@@ -56,12 +54,6 @@ describe("selectOnlyNodeInStore", () => {
     expect(nextFirstNode).toBe(firstNode);
     expect(nextThirdNode).toBe(thirdNode);
   });
-
-  it("undo history에 기록되지 않는다", () => {
-    useTreeStore.getState().selectOnlyNodeInStore("c2");
-
-    expect(useTreeStore.temporal.getState().pastStates).toHaveLength(0);
-  });
 });
 
 describe("노드 태그 store action", () => {
@@ -79,12 +71,10 @@ describe("노드 태그 store action", () => {
         createEditorEdge({ sourceClientId: "c1", targetClientId: "c3" }),
       ],
     });
-    useTreeStore.temporal.getState().clear();
   });
 
   afterEach(() => {
     useTreeStore.getState().resetTree();
-    useTreeStore.temporal.getState().clear();
   });
 
   it("addTagToNodeInStore는 대상 노드에만 붙인 순서대로 태그를 더한다", () => {
@@ -130,21 +120,6 @@ describe("노드 태그 store action", () => {
     expect(getTagIdsByClientId()).toEqual({ c1: [], c2: [], c3: ["t2"] });
     expect(useTreeStore.getState().nodes[0]).toBe(firstNode);
   });
-
-  it("undo history에 기록되지 않는다", () => {
-    const {
-      addTagToNodeInStore,
-      removeTagFromNodeInStore,
-      removeTagFromAllNodesInStore,
-    } = useTreeStore.getState();
-
-    addTagToNodeInStore("c2", "t1");
-    removeTagFromNodeInStore("c2", "t1");
-    addTagToNodeInStore("c3", "t2");
-    removeTagFromAllNodesInStore("t2");
-
-    expect(useTreeStore.temporal.getState().pastStates).toHaveLength(0);
-  });
 });
 
 describe("노드 이동 store action", () => {
@@ -177,49 +152,13 @@ describe("노드 이동 store action", () => {
         createEditorEdge({ sourceClientId: "r", targetClientId: "b" }),
       ],
     });
-    useTreeStore.temporal.getState().clear();
   });
 
   afterEach(() => {
     useTreeStore.getState().resetTree();
-    useTreeStore.temporal.getState().clear();
   });
 
-  const getParentClientId = (clientId: string) =>
-    useTreeStore.getState().edges.find((edge) => edge.target === clientId)
-      ?.source;
-
-  it("같은 부모 안 이동은 history에 기록되어 undo로 되돌릴 수 있다", () => {
-    const initialNodes = useTreeStore.getState().nodes;
-
-    useTreeStore
-      .getState()
-      .moveNodeInStore({ clientId: "b", parentClientId: "r", position: 1 });
-
-    expect(useTreeStore.temporal.getState().pastStates).toHaveLength(1);
-
-    useTreeStore.temporal.getState().undo();
-
-    expect(useTreeStore.getState().nodes).toEqual(initialNodes);
-  });
-
-  /*
-  조건 3(엣지 연결 변화)이 없으면 기록되지 않아, 실패 복구의 undo()가 그 앞의 편집을 되돌린다.
-  */
-  it("orderIndex가 그대로인 부모 변경도 history에 기록되어 undo로 되돌릴 수 있다", () => {
-    useTreeStore
-      .getState()
-      .moveNodeInStore({ clientId: "b", parentClientId: "a", position: 2 });
-
-    expect(getParentClientId("b")).toBe("a");
-    expect(useTreeStore.temporal.getState().pastStates).toHaveLength(1);
-
-    useTreeStore.temporal.getState().undo();
-
-    expect(getParentClientId("b")).toBe("r");
-  });
-
-  it("applySiblingOrderInStore는 응답이 store와 같으면 상태를 바꾸지 않고 history에도 남기지 않는다", () => {
+  it("applySiblingOrderInStore는 응답이 store와 같으면 상태를 바꾸지 않는다", () => {
     const { moveNodeInStore, applySiblingOrderInStore } =
       useTreeStore.getState();
 
@@ -248,7 +187,6 @@ describe("노드 이동 store action", () => {
     ]);
 
     expect(useTreeStore.getState().nodes).toBe(movedNodes);
-    expect(useTreeStore.temporal.getState().pastStates).toHaveLength(1);
   });
 });
 
@@ -263,7 +201,6 @@ describe("onNodesChange", () => {
 
   afterEach(() => {
     useTreeStore.getState().resetTree();
-    useTreeStore.temporal.getState().clear();
   });
 
   const getNode = () => useTreeStore.getState().nodes[0];
@@ -343,12 +280,10 @@ describe("restoreStructureInStore", () => {
         createEditorEdge({ sourceClientId: "r", targetClientId: "d" }),
       ],
     });
-    useTreeStore.temporal.getState().clear();
   });
 
   afterEach(() => {
     useTreeStore.getState().resetTree();
-    useTreeStore.temporal.getState().clear();
   });
 
   const getOrder = () =>
@@ -408,30 +343,5 @@ describe("restoreStructureInStore", () => {
 
     expect(getOrder()).toEqual(["r:1", "a:1", "b:2", "d:4"]);
     expect(useTreeStore.getState().edges).toEqual(edges);
-  });
-
-  /*
-  복구가 기록되면 Undo가 실패한 편집을 다시 보여 주고, 먼저 반영한 편집이 남으면 서버에 없는 편집이 Undo 대상이 된다.
-  */
-  it("먼저 반영한 편집의 기록을 지우고 복구는 기록하지 않는다", () => {
-    const { deleteNodeFromStore, moveNodeInStore } = useTreeStore.getState();
-
-    deleteNodeFromStore(["a"]);
-    const { nodes, edges } = useTreeStore.getState();
-
-    moveNodeInStore({ clientId: "d", parentClientId: "r", position: 1 });
-    useTreeStore.getState().restoreStructureInStore({ nodes, edges });
-
-    const { pastStates, futureStates, isTracking } =
-      useTreeStore.temporal.getState();
-    expect(pastStates).toHaveLength(1);
-    expect(pastStates[0].nodes?.map((node) => node.id)).toEqual([
-      "r",
-      "a",
-      "b",
-      "d",
-    ]);
-    expect(futureStates).toHaveLength(0);
-    expect(isTracking).toBe(true);
   });
 });

@@ -1,5 +1,7 @@
 import { useDeleteNodeMutation } from "@/src/entities/tree/model/mutations/useDeleteNodeMutation";
 import { useTreeStore } from "@/src/features/tree-editor/model/treeStore";
+import { getSubtreeClientIds } from "../../../lib/getSubtreeClientIds";
+import { useEditHistoryStore } from "../../history/editHistoryStore";
 import { CustomEditorNode } from "@/src/features/tree-editor/model/types";
 
 interface UseDeleteNodeParams {
@@ -23,6 +25,7 @@ export const useDeleteNode = ({
   const restoreStructureInStore = useTreeStore(
     (state) => state.restoreStructureInStore,
   );
+  const clearEditHistory = useEditHistoryStore((state) => state.clear);
   const {
     mutate: deleteNodeOnServer,
     isPending: isDeletingNode,
@@ -55,30 +58,9 @@ export const useDeleteNode = ({
     }
 
     /*
-    삭제 대상 노드를 시작점으로 삼아 서브트리에 포함된 모든 노드를 수집한다.
-    엣지가 잇는 것은 편집기 노드 신원이므로 여기서 모이는 것도 서버 ID가 아니라 편집기 노드 ID다.
-    */
-    const clientIdsToDelete = new Set<string>([selectedNode.id]);
-    const queue = [selectedNode.id];
-
-    /*
-    현재 노드를 source로 가지는 엣지를 따라가며 자식 노드를 삭제 대상에 추가한다.
-    */
-    while (queue.length > 0) {
-      const currentClientId = queue.shift()!;
-
-      edges.forEach((edge) => {
-        if (edge.source === currentClientId) {
-          clientIdsToDelete.add(edge.target);
-          queue.push(edge.target);
-        }
-      });
-    }
-
-    /*
     서버 응답을 기다리기 전에 editor store에서 삭제 대상 서브트리를 제거한다.
     */
-    deleteNodeFromStore(Array.from(clientIdsToDelete));
+    deleteNodeFromStore(getSubtreeClientIds(edges, selectedNode.id));
 
     /*
     서버에 노드 삭제 요청을 보내고, 실패하면 editor store를 삭제 전 상태로 되돌린다.
@@ -89,6 +71,13 @@ export const useDeleteNode = ({
         nodeId: serverId,
       },
       {
+        /*
+        삭제를 되돌리는 요청은 아직 없어(#117 4단계) undo 기록을 비운다. 삭제 이전으로는 undo할 수 없지만,
+        남겨 두면 삭제 전 기록을 undo할 때 지워진 노드를 가리키는 요청이 나가 서버와 어긋난다.
+        */
+        onSuccess: () => {
+          clearEditHistory();
+        },
         /*
         서버 요청이 실패하면 삭제 전 구조로 되돌린다. 지운 노드는 삭제 전 값으로 되살아난다.
         */

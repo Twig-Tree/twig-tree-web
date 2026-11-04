@@ -10,7 +10,6 @@ export type AddNodeEntry = {
   type: "add";
   clientId: string; // 추가한 노드의 편집기 노드 ID
   parentClientId: string; // 부모의 편집기 노드 ID
-  orderIndex: number; // 다시 만들 때 보낼 순번
   label: string; // 다시 만들 때 보낼 노드 이름
 };
 

@@ -9,7 +9,6 @@ const createAddEntry = (clientId: string): AddNodeEntry => ({
   type: "add",
   clientId,
   parentClientId: "root",
-  orderIndex: 1,
   label: clientId,
 });
 

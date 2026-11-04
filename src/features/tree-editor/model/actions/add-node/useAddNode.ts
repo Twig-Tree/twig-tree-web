@@ -4,6 +4,7 @@ import { createEditorNode } from "../../../lib/add-node/createEditorNode";
 import { createClientNodeId } from "../../../lib/createClientNodeId";
 import { getNextOrderIndex } from "../../../lib/node";
 import { useCollapseStore } from "../../collapse/collapseStore";
+import { useEditHistoryStore } from "../../history/editHistoryStore";
 import { useTreeStore } from "../../treeStore";
 import { CustomEditorEdge, CustomEditorNode } from "../../types";
 
@@ -27,10 +28,14 @@ export const useAddNode = ({
   edges,
 }: UseAddNodeParams) => {
   const addNodeToStore = useTreeStore((state) => state.addNodeToStore);
+  const confirmCreatedNodeInStore = useTreeStore(
+    (state) => state.confirmCreatedNodeInStore,
+  );
   const restoreStructureInStore = useTreeStore(
     (state) => state.restoreStructureInStore,
   );
   const expand = useCollapseStore((state) => state.expand);
+  const recordEdit = useEditHistoryStore((state) => state.record);
 
   const {
     mutate: addNodeOnServer,
@@ -111,28 +116,17 @@ export const useAddNode = ({
       },
       {
         /*
-        서버가 확정한 노드 ID를 노드 자신에게 채운다. 노드의 신원은 클라이언트가 정한 값이라
-        교체하지 않으므로 엣지도 손대지 않고, 레이아웃 입력이 되는 구조도 달라지지 않는다.
-        서버가 label이나 orderIndex를 보정할 수 있으므로 그 값은 응답으로 덮는다.
-        position은 화면 전용 값이라 그대로 둔다.
+        서버가 확정한 노드 ID를 채운다. 서버에 반영된 뒤에야 되돌릴 요청을 만들 수 있으므로 undo 기록도 이때 남긴다.
         */
         onSuccess: (createdNode) => {
-          useTreeStore.setState((state) => ({
-            nodes: state.nodes.map((node) =>
-              node.id === newClientId
-                ? {
-                    ...node,
-                    data: {
-                      ...node.data,
-                      serverId: createdNode.id, // 도메인 모델의 ID는 이미 문자열이다.
-                      label: createdNode.label,
-                      orderIndex: createdNode.orderIndex,
-                      memo: createdNode.memo,
-                    },
-                  }
-                : node,
-            ),
-          }));
+          confirmCreatedNodeInStore(newClientId, createdNode);
+
+          recordEdit({
+            type: "add",
+            clientId: newClientId,
+            parentClientId: selectedNode.id,
+            label: createdNode.label,
+          });
         },
         /*
         서버 요청이 실패하면 추가 전 구조로 되돌린다. 추가한 노드와 엣지만 빠진다.

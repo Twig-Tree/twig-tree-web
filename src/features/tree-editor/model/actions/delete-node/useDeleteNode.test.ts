@@ -4,6 +4,7 @@ import { treeApi } from "@/src/entities/tree";
 import { createQueryWrapper } from "@/src/tests/helpers/createQueryWrapper";
 import { createEditorEdge } from "../../../lib/add-node/createEditorEdge";
 import { createEditorNode } from "../../../lib/add-node/createEditorNode";
+import { useEditHistoryStore } from "../../history/editHistoryStore";
 import { useTreeStore } from "../../treeStore";
 import { useDeleteNode } from "./useDeleteNode";
 
@@ -53,13 +54,35 @@ describe("useDeleteNode", () => {
         createEditorEdge({ sourceClientId: "c1", targetClientId: "c3" }),
       ],
     });
-    useTreeStore.temporal.getState().clear();
+    useEditHistoryStore.getState().clear();
   });
 
   afterEach(() => {
     vi.restoreAllMocks();
     useTreeStore.getState().resetTree();
-    useTreeStore.temporal.getState().clear();
+    useEditHistoryStore.getState().clear();
+  });
+
+  /*
+  삭제를 되돌리는 요청이 아직 없어, 삭제 전 기록을 undo하면 지워진 노드를 가리키는 요청이 나간다.
+  */
+  it("삭제가 성공하면 undo 기록을 비운다", async () => {
+    vi.spyOn(treeApi, "deleteNode").mockResolvedValue(undefined);
+    useEditHistoryStore.getState().record({
+      type: "add",
+      clientId: "c21",
+      parentClientId: "c2",
+      label: "node 21",
+    });
+    const { result } = renderDeleteNode("c2");
+
+    act(() => {
+      result.current.handleDeleteNode();
+    });
+
+    await waitFor(() =>
+      expect(useEditHistoryStore.getState().past).toHaveLength(0),
+    );
   });
 
   /*
@@ -104,6 +127,6 @@ describe("useDeleteNode", () => {
     ).toEqual(["c1:1", "c2:1", "c21:1", "c3:4"]);
     expect(useTreeStore.getState().edges).toEqual(initialEdges);
     expect(getNodeById("c3")?.data.label).toBe("renamed");
-    expect(useTreeStore.temporal.getState().pastStates).toHaveLength(0);
+    expect(useEditHistoryStore.getState().past).toHaveLength(0);
   });
 });

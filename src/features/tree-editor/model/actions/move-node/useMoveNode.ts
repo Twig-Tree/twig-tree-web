@@ -2,6 +2,7 @@ import { NODE_ERROR_CODE, useMoveNodeMutation } from "@/src/entities/tree";
 import { getApiErrorCode } from "@/src/shared/api/authErrorCodes";
 import { MoveNodeParams } from "../../../lib/move-node/getMovedElements";
 import { getNodePlacement } from "../../../lib/move-node/getNodePlacement";
+import { useEditHistoryStore } from "../../history/editHistoryStore";
 import { useTreeStore } from "../../treeStore";
 
 type UseMoveNodeParams = {
@@ -49,6 +50,7 @@ export const useMoveNode = ({ treeId }: UseMoveNodeParams) => {
   const restoreStructureInStore = useTreeStore(
     (state) => state.restoreStructureInStore,
   );
+  const recordEdit = useEditHistoryStore((state) => state.record);
   const { mutate: moveNodeOnServer, isPending: isMovingNode } =
     useMoveNodeMutation();
 
@@ -90,9 +92,16 @@ export const useMoveNode = ({ treeId }: UseMoveNodeParams) => {
       {
         /*
         서버와 같은 규칙으로 먼저 매겼으므로 보통은 바뀌는 것이 없다. 다른 탭의 편집으로 순서가 달랐을 때만 서버 순서로 맞춘다.
+        undo는 옮기기 전 자리로, redo는 같은 목적지로 다시 옮긴다.
         */
         onSuccess: ({ siblings, previousSiblings }) => {
           applySiblingOrderInStore([siblings, previousSiblings]);
+          recordEdit({
+            type: "move",
+            clientId,
+            from: placement,
+            to: { parentClientId, position },
+          });
         },
         onError: (error) => {
           restoreStructureInStore({ nodes, edges });

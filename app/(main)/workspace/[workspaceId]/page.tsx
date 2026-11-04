@@ -12,12 +12,11 @@ import {
   useReactFlowStoreSetters,
   useSyncCollapseAcrossTabs,
   useTreeEditorActions,
-  useTreeHistory,
   useTreeStore,
   useVisibleElements,
   type NodeResult,
 } from "@/src/features/tree-editor";
-import { use, useCallback, useEffect, useState } from "react";
+import { use, useCallback, useState } from "react";
 import { useGetTreeQuery } from "@/src/entities/tree/model/queries";
 import { useGetWorkspaceQuery } from "@/src/entities/workspace";
 import { isClientError } from "@/src/shared/api/httpErrors";
@@ -51,9 +50,6 @@ function LayoutFlow({ workspaceId, treeId }: LayoutFlowProps) {
   const onNodesChange = useTreeStore((state) => state.onNodesChange);
   const onEdgesChange = useTreeStore((state) => state.onEdgesChange);
 
-  const { undo, redo, clear, pause, resume, canUndo, canRedo } =
-    useTreeHistory();
-
   const { setNodes } = useReactFlowStoreSetters();
 
   const {
@@ -65,17 +61,16 @@ function LayoutFlow({ workspaceId, treeId }: LayoutFlowProps) {
     handleDeleteNode,
     moveNode,
     isMovingNode,
+    handleUndo,
+    handleRedo,
+    canUndo,
+    canRedo,
+    isUndoingOrRedoing,
   } = useTreeEditorActions({ workspaceId, treeId });
-
-  // 1. 컴포넌트 마운트 시 일단 기록 중지 (트리 레이아웃 정렬 전 히스토리 기록 방지)
-  useEffect(() => {
-    pause();
-  }, [pause]);
 
   useInitializeTree({
     treeId,
     treeData,
-    clear,
   });
 
   useSyncCollapseAcrossTabs();
@@ -122,13 +117,8 @@ function LayoutFlow({ workspaceId, treeId }: LayoutFlowProps) {
     if (result.isMemoMatched) setIsMemoPanelOpen(true);
   };
 
-  // 2. React Flow 초기화가 끝났을 때 히스토리 기록 재개
-  const handleInit = () => {
-    clear();
-    resume();
-  };
-
-  const isMutating = isAddingNode || isDeletingNode || isMovingNode;
+  const isMutating =
+    isAddingNode || isDeletingNode || isMovingNode || isUndoingOrRedoing;
 
   if (isLoading) {
     return <div>Loading...</div>;
@@ -150,7 +140,6 @@ function LayoutFlow({ workspaceId, treeId }: LayoutFlowProps) {
         <ReactFlow
           nodes={draggableNodes}
           edges={visibleEdges}
-          onInit={handleInit}
           nodeTypes={nodeTypes}
           edgeTypes={edgeTypes}
           onNodesChange={onNodesChange}
@@ -172,7 +161,7 @@ function LayoutFlow({ workspaceId, treeId }: LayoutFlowProps) {
           <Panel position="top-right">
             <button
               className="xy-theme__button"
-              onClick={() => undo()}
+              onClick={handleUndo}
               disabled={!canUndo || isMutating}
             >
               Undo
@@ -180,7 +169,7 @@ function LayoutFlow({ workspaceId, treeId }: LayoutFlowProps) {
 
             <button
               className="xy-theme__button"
-              onClick={() => redo()}
+              onClick={handleRedo}
               disabled={!canRedo || isMutating}
             >
               Redo

@@ -4,6 +4,7 @@ import { treeApi } from "@/src/entities/tree";
 import { createQueryWrapper } from "@/src/tests/helpers/createQueryWrapper";
 import { createEditorEdge } from "../../../lib/add-node/createEditorEdge";
 import { createEditorNode } from "../../../lib/add-node/createEditorNode";
+import { useEditHistoryStore } from "../../history/editHistoryStore";
 import { useTreeStore } from "../../treeStore";
 import { useAddNode } from "./useAddNode";
 
@@ -43,13 +44,42 @@ describe("useAddNode", () => {
       nodes: [createNode("1", 1), createNode("2", 1)],
       edges: [createEditorEdge({ sourceClientId: "c1", targetClientId: "c2" })],
     });
-    useTreeStore.temporal.getState().clear();
+    useEditHistoryStore.getState().clear();
   });
 
   afterEach(() => {
     vi.restoreAllMocks();
     useTreeStore.getState().resetTree();
-    useTreeStore.temporal.getState().clear();
+    useEditHistoryStore.getState().clear();
+  });
+
+  it("서버가 확정한 ID를 채우고 undo 기록을 남긴다", async () => {
+    vi.spyOn(treeApi, "createNode").mockResolvedValue({
+      id: "77",
+      parentId: "1",
+      label: "Added node 2",
+      orderIndex: 2,
+      memo: null,
+      tagIds: [],
+    });
+    const { result } = renderAddNode();
+
+    act(() => {
+      result.current.handleAddNode();
+    });
+
+    const addedNode = useTreeStore.getState().nodes[2];
+    await waitFor(() =>
+      expect(useEditHistoryStore.getState().past).toEqual([
+        {
+          type: "add",
+          clientId: addedNode.id,
+          parentClientId: "c1",
+          label: "Added node 2",
+        },
+      ]),
+    );
+    expect(useTreeStore.getState().nodes[2].data.serverId).toBe("77");
   });
 
   it("서버가 거절하면 추가한 노드와 엣지만 빼고, history에도 남기지 않는다", async () => {
@@ -72,7 +102,7 @@ describe("useAddNode", () => {
     );
     expect(useTreeStore.getState().nodes).toEqual(initialNodes);
     expect(useTreeStore.getState().edges).toEqual(initialEdges);
-    expect(useTreeStore.temporal.getState().pastStates).toHaveLength(0);
-    expect(useTreeStore.temporal.getState().futureStates).toHaveLength(0);
+    expect(useEditHistoryStore.getState().past).toHaveLength(0);
+    expect(useEditHistoryStore.getState().future).toHaveLength(0);
   });
 });
