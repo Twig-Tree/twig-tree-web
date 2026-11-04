@@ -9,6 +9,7 @@ import {
   getWorkspaceLabEdgeColor,
   getWorkspaceLabEdgeEffect,
   getWorkspaceLabEdgeLineStyle,
+  getWorkspaceLabEdgeMarker,
   getWorkspaceLabEdgeOpacity,
   getWorkspaceLabEdgePattern,
   getWorkspaceLabEdgeThickness,
@@ -24,7 +25,6 @@ export function WorkspaceLabEdge({
   targetY,
   sourcePosition,
   targetPosition,
-  markerEnd,
   data,
 }: EdgeProps<WorkspaceLabEdge>) {
   const pathParams = {
@@ -41,6 +41,7 @@ export function WorkspaceLabEdge({
   const color = getWorkspaceLabEdgeColor(data?.color ?? "theme");
   const opacity = getWorkspaceLabEdgeOpacity(data?.opacity ?? "full");
   const effect = getWorkspaceLabEdgeEffect(data?.effect ?? "none");
+  const marker = getWorkspaceLabEdgeMarker(data?.marker ?? "arrow-closed");
   const state = data?.state ?? "default";
   const effectiveLineStyle =
     lineStyle.id === "layout"
@@ -88,7 +89,22 @@ export function WorkspaceLabEdge({
       ? "drop-shadow(0 0 3px color-mix(in srgb, var(--lab-lecture) 55%, transparent))"
       : null,
   ].filter(Boolean);
-  const gradientId = `workspace-lab-edge-fade-${id.replace(/[^a-zA-Z0-9_-]/g, "-")}`;
+  const safeId = id.replace(/[^a-zA-Z0-9_-]/g, "-");
+  const gradientId = `workspace-lab-edge-fade-${safeId}`;
+  const markerId = `workspace-lab-edge-marker-${safeId}`;
+
+  /*
+  끝 모양은 선 두께에 맞춰 키우되, 윤곽선은 10×10 좌표계를 늘린 만큼 줄여 화면에서 선과 같은 굵기로 보이게 한다.
+  fade 효과의 그라디언트는 끝까지 이어지지 않으므로 끝 모양은 늘 단색으로 칠한다.
+  */
+  const markerSize = 8 + strokeWidth * 2.4;
+  const markerStrokeWidth = (strokeWidth * 10) / markerSize;
+  const markerFill =
+    marker.fill === "stroke"
+      ? strokeColor
+      : marker.fill === "canvas"
+        ? "var(--lab-canvas)"
+        : "none";
   const edgeStyle = {
     stroke: effect.id === "fade" ? `url(#${gradientId})` : strokeColor,
     strokeWidth,
@@ -100,6 +116,32 @@ export function WorkspaceLabEdge({
 
   return (
     <>
+      {marker.d ? (
+        <defs>
+          <marker
+            id={markerId}
+            viewBox="0 0 10 10"
+            refX={marker.refX}
+            refY={5}
+            markerWidth={markerSize}
+            markerHeight={markerSize}
+            markerUnits="userSpaceOnUse"
+            orient="auto-start-reverse"
+          >
+            <path
+              d={marker.d}
+              style={{
+                fill: markerFill,
+                stroke: strokeColor,
+                strokeWidth: markerStrokeWidth,
+                strokeLinecap: "round",
+                strokeLinejoin: "round",
+                opacity: opacity.value,
+              }}
+            />
+          </marker>
+        </defs>
+      ) : null}
       {effect.id === "fade" ? (
         <defs>
           <linearGradient
@@ -130,7 +172,7 @@ export function WorkspaceLabEdge({
       <BaseEdge
         id={id}
         path={path}
-        markerEnd={markerEnd}
+        markerEnd={marker.d ? `url(#${markerId})` : undefined}
         className="workspace-lab-edge"
         style={edgeStyle}
         data-state={state}
@@ -140,6 +182,7 @@ export function WorkspaceLabEdge({
         data-color={color.id}
         data-opacity={opacity.id}
         data-effect={effect.id}
+        data-marker={marker.id}
       />
     </>
   );

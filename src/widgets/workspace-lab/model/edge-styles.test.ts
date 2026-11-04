@@ -7,6 +7,7 @@ import {
   getWorkspaceLabEdgeThickness,
   workspaceLabEdgeColors,
   workspaceLabEdgeEffects,
+  workspaceLabEdgeMarkers,
   workspaceLabEdgeLineStyles,
   workspaceLabEdgeOpacities,
   workspaceLabEdgePatterns,
@@ -21,6 +22,7 @@ const edgeSlotCollections = [
   workspaceLabEdgeColors,
   workspaceLabEdgeOpacities,
   workspaceLabEdgeEffects,
+  workspaceLabEdgeMarkers,
   workspaceLabEdgeStylePresets,
 ];
 
@@ -53,5 +55,13 @@ describe("workspaceLab edge styles", () => {
         opacity: "faint",
       }),
     ).toBe("custom");
+  });
+
+  it("끝 모양은 '없음'만 경로가 비어 있고, 선 끝은 10×10 좌표계 안에 닿는다", () => {
+    for (const marker of workspaceLabEdgeMarkers) {
+      expect(marker.d === "").toBe(marker.id === "none");
+      expect(marker.refX).toBeGreaterThan(0);
+      expect(marker.refX).toBeLessThanOrEqual(10);
+    }
   });
 });

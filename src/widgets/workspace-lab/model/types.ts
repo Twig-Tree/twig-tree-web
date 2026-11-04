@@ -1,4 +1,5 @@
 import type { Edge, Node } from "@xyflow/react";
+import type { WorkspaceLabEdgeMarkerId } from "./edge-styles";
 
 export type LabNodeState =
   | "default"
@@ -65,6 +66,7 @@ export type WorkspaceLabEdgeData = {
   color?: "theme" | "accent" | "ink" | "highlight";
   opacity?: "full" | "muted" | "faint";
   effect?: "none" | "shadow" | "contrast" | "fade";
+  marker?: WorkspaceLabEdgeMarkerId;
 };
 
 export type WorkspaceLabNode = Node<WorkspaceLabNodeData, "workspaceLab">;

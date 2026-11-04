@@ -151,6 +151,82 @@ export const workspaceLabEdgeEffects = [
   },
 ] as const satisfies readonly EdgeSlotDefinition[];
 
+export interface WorkspaceLabEdgeMarkerDefinition extends EdgeSlotDefinition {
+  /*
+  10×10 좌표계에서 그린 모양이다. 선의 끝은 오른쪽(x = refX)에 닿고 왼쪽에서 들어온다.
+  */
+  d: string;
+  fill: "stroke" | "canvas" | "none"; // 선 색으로 채움, 캔버스색으로 비움, 채우지 않음
+  refX: number; // 선 끝이 닿는 x 좌표
+}
+
+export const workspaceLabEdgeMarkers = [
+  {
+    id: "none",
+    name: "없음",
+    description: "끝 모양 없이 선만 노드에 닿습니다. 방향은 배치로만 읽힙니다.",
+    d: "",
+    fill: "none",
+    refX: 10,
+  },
+  {
+    id: "arrow-closed",
+    name: "채운 화살촉",
+    description: "가장 익숙한 방향 표시입니다. 작은 크기에서도 잘 보입니다.",
+    d: "M1 1.5 L9.5 5 L1 8.5 Z",
+    fill: "stroke",
+    refX: 9.5,
+  },
+  {
+    id: "arrow",
+    name: "열린 화살촉",
+    description: "선으로만 그린 화살촉으로 방향을 가볍게 알려 줍니다.",
+    d: "M2 1.5 L9 5 L2 8.5",
+    fill: "none",
+    refX: 9,
+  },
+  {
+    id: "triangle-hollow",
+    name: "빈 삼각형",
+    description: "윤곽만 남긴 삼각형으로 도면처럼 담백하게 방향을 표시합니다.",
+    d: "M1.5 1.5 L9 5 L1.5 8.5 Z",
+    fill: "canvas",
+    refX: 9,
+  },
+  {
+    id: "dot",
+    name: "점",
+    description: "끝에 채운 점을 찍어 연결이 닿은 자리를 표시합니다.",
+    d: "M2 5 A3.5 3.5 0 1 0 9 5 A3.5 3.5 0 1 0 2 5 Z",
+    fill: "stroke",
+    refX: 9,
+  },
+  {
+    id: "ring",
+    name: "링",
+    description: "속이 빈 원으로 연결 지점을 부드럽게 표시합니다.",
+    d: "M2 5 A3.5 3.5 0 1 0 9 5 A3.5 3.5 0 1 0 2 5 Z",
+    fill: "canvas",
+    refX: 9,
+  },
+  {
+    id: "diamond",
+    name: "마름모",
+    description: "마름모로 끝을 맺어 관계를 장식적으로 강조합니다.",
+    d: "M1 5 L5 1.5 L9.5 5 L5 8.5 Z",
+    fill: "stroke",
+    refX: 9.5,
+  },
+  {
+    id: "bar",
+    name: "막대",
+    description: "선 끝에 세로 막대를 그어 단정하게 끊습니다.",
+    d: "M8.5 1.5 L8.5 8.5",
+    fill: "none",
+    refX: 8.5,
+  },
+] as const satisfies readonly WorkspaceLabEdgeMarkerDefinition[];
+
 export type WorkspaceLabEdgeLineStyleId =
   (typeof workspaceLabEdgeLineStyles)[number]["id"];
 export type WorkspaceLabEdgePatternId =
@@ -163,6 +239,8 @@ export type WorkspaceLabEdgeOpacityId =
   (typeof workspaceLabEdgeOpacities)[number]["id"];
 export type WorkspaceLabEdgeEffectId =
   (typeof workspaceLabEdgeEffects)[number]["id"];
+export type WorkspaceLabEdgeMarkerId =
+  (typeof workspaceLabEdgeMarkers)[number]["id"];
 
 export type WorkspaceLabEdgeStyleSelection = {
   lineStyle: WorkspaceLabEdgeLineStyleId;
@@ -171,6 +249,7 @@ export type WorkspaceLabEdgeStyleSelection = {
   color: WorkspaceLabEdgeColorId;
   opacity: WorkspaceLabEdgeOpacityId;
   effect: WorkspaceLabEdgeEffectId;
+  marker: WorkspaceLabEdgeMarkerId; // 선 끝 모양
 };
 
 interface WorkspaceLabEdgeStylePresetDefinition extends EdgeSlotDefinition {
@@ -189,6 +268,7 @@ export const workspaceLabEdgeStylePresets = [
       color: "theme",
       opacity: "full",
       effect: "none",
+      marker: "arrow-closed",
     },
   },
   {
@@ -202,6 +282,7 @@ export const workspaceLabEdgeStylePresets = [
       color: "theme",
       opacity: "muted",
       effect: "shadow",
+      marker: "arrow",
     },
   },
   {
@@ -215,6 +296,7 @@ export const workspaceLabEdgeStylePresets = [
       color: "accent",
       opacity: "muted",
       effect: "contrast",
+      marker: "triangle-hollow",
     },
   },
   {
@@ -228,6 +310,7 @@ export const workspaceLabEdgeStylePresets = [
       color: "accent",
       opacity: "full",
       effect: "shadow",
+      marker: "arrow-closed",
     },
   },
   {
@@ -241,6 +324,7 @@ export const workspaceLabEdgeStylePresets = [
       color: "highlight",
       opacity: "muted",
       effect: "fade",
+      marker: "dot",
     },
   },
 ] as const satisfies readonly WorkspaceLabEdgeStylePresetDefinition[];
@@ -277,6 +361,11 @@ export const getWorkspaceLabEdgeOpacity = (id: WorkspaceLabEdgeOpacityId) =>
 
 export const getWorkspaceLabEdgeEffect = (id: WorkspaceLabEdgeEffectId) =>
   findEdgeSlot(workspaceLabEdgeEffects, id);
+
+export const getWorkspaceLabEdgeMarker = (
+  id: WorkspaceLabEdgeMarkerId,
+): WorkspaceLabEdgeMarkerDefinition =>
+  findEdgeSlot(workspaceLabEdgeMarkers, id);
 
 export const getWorkspaceLabEdgeStylePreset = (
   id: WorkspaceLabEdgeStylePresetId,

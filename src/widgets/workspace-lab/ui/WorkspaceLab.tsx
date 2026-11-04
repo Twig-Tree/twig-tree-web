@@ -35,10 +35,6 @@ import {
   getWorkspaceLabLayoutSpacing,
   type WorkspaceLabLayoutNodeSizes,
 } from "../model/layouts";
-import {
-  getWorkspaceLabEdgeColor,
-  getWorkspaceLabEdgeThickness,
-} from "../model/edge-styles";
 import { getWorkspaceLabColorTokens } from "../model/color-roles";
 import {
   workspaceLabConfigReducer,
@@ -332,8 +328,6 @@ function WorkspacePreview({ config }: { config: WorkspaceLabConfig }) {
     [activeLayoutSpacing, fallbackNodeSize, layoutMode, nodeSizes, scenario],
   );
   const activeCanvasStyle = getWorkspaceLabCanvasStyle(canvasStyle);
-  const activeEdgeColor = getWorkspaceLabEdgeColor(edgeStyle.color);
-  const activeEdgeThickness = getWorkspaceLabEdgeThickness(edgeStyle.thickness);
   const nodes = useMemo<WorkspaceLabNode[]>(
     () =>
       laidOutScenario.nodes.map((item, index) => ({
@@ -370,32 +364,13 @@ function WorkspacePreview({ config }: { config: WorkspaceLabConfig }) {
     () =>
       laidOutScenario.edges.map((item, index) => ({
         ...item,
-        markerEnd:
-          typeof item.markerEnd === "object" && item.markerEnd
-            ? {
-                ...item.markerEnd,
-                color:
-                  index === 0 && edgeState === "active"
-                    ? "var(--lab-accent)"
-                    : index === 0 && edgeState === "traced"
-                      ? "var(--lab-lecture)"
-                      : activeEdgeColor.value,
-                strokeWidth: activeEdgeThickness.width,
-              }
-            : item.markerEnd,
         data: {
           ...item.data,
           state: index === 0 ? edgeState : "default",
           ...edgeStyle,
         },
       })),
-    [
-      activeEdgeColor.value,
-      activeEdgeThickness.width,
-      edgeState,
-      edgeStyle,
-      laidOutScenario.edges,
-    ],
+    [edgeState, edgeStyle, laidOutScenario.edges],
   );
 
   return (

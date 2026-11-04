@@ -1,4 +1,4 @@
-import { MarkerType, Position } from "@xyflow/react";
+import { Position } from "@xyflow/react";
 import type {
   WorkspaceLabEdge,
   WorkspaceLabNode,
@@ -25,7 +25,6 @@ const edge = (source: string, target: string): WorkspaceLabEdge => ({
   source,
   target,
   type: "workspaceLab",
-  markerEnd: { type: MarkerType.ArrowClosed },
   data: {},
 });
 

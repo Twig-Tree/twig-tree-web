@@ -2,10 +2,12 @@ import { useState } from "react";
 import {
   getMatchingWorkspaceLabEdgeStylePresetId,
   getWorkspaceLabEdgeEffect,
+  getWorkspaceLabEdgeMarker,
   getWorkspaceLabEdgeLineStyle,
   getWorkspaceLabEdgeStylePreset,
   workspaceLabEdgeColors,
   workspaceLabEdgeEffects,
+  workspaceLabEdgeMarkers,
   workspaceLabEdgeLineStyles,
   workspaceLabEdgeOpacities,
   workspaceLabEdgePatterns,
@@ -149,6 +151,15 @@ export function ConnectionSection({ config, onChange }: InspectorSectionProps) {
             options={toSelectOptions(workspaceLabEdgeEffects)}
             onChange={(effect) => onEdgeStyleChange({ ...edgeStyle, effect })}
             description={currentEdgeEffect.description}
+          />
+          <SelectField
+            label="끝 모양"
+            value={edgeStyle.marker}
+            options={toSelectOptions(workspaceLabEdgeMarkers)}
+            onChange={(marker) => onEdgeStyleChange({ ...edgeStyle, marker })}
+            description={
+              getWorkspaceLabEdgeMarker(edgeStyle.marker).description
+            }
           />
         </div>
       ) : null}
