@@ -10,6 +10,7 @@ import {
   type WorkspaceDetail,
 } from "@/src/entities/workspace";
 import { createEditorNode } from "../../../lib/add-node/createEditorNode";
+import { useEditHistoryStore } from "../../history/editHistoryStore";
 import { useTreeStore } from "../../treeStore";
 import { useAddRootNode } from "./useAddRootNode";
 
@@ -53,7 +54,7 @@ const getCachedTreeId = (
 describe("useAddRootNode", () => {
   beforeEach(() => {
     useTreeStore.getState().resetTree();
-    useTreeStore.temporal.getState().clear();
+    useEditHistoryStore.getState().clear();
   });
 
   afterEach(() => {
@@ -86,12 +87,20 @@ describe("useAddRootNode", () => {
     루트는 지울 수 없으므로 추가를 되돌릴 수 있으면 서버에 루트가 남은 채 store만 비게 된다.
     */
     it("루트를 추가한 뒤에는 되돌릴 기록이 남지 않는다", async () => {
+      useEditHistoryStore.getState().record({
+        type: "add",
+        clientId: "old",
+        parentClientId: "old-parent",
+        label: "이전 트리의 기록",
+        memo: null,
+        tagIds: [],
+      });
       const { result } = renderAddRootNode("2", "20");
 
       await act(() => result.current.handleAddRootNode());
 
       expect(useTreeStore.getState().nodes).toHaveLength(1);
-      expect(useTreeStore.temporal.getState().pastStates).toEqual([]);
+      expect(useEditHistoryStore.getState().past).toEqual([]);
     });
 
     it("노드가 이미 있으면 요청하지 않는다", async () => {

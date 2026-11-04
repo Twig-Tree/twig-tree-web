@@ -36,7 +36,6 @@ export const useVisibleElements = ({
   선택된 노드는 editor store에서 selected로 찾으므로 화면에서 숨겨져도 선택된 채로 남는다.
   그대로 두면 Delete Node와 Add Node가 보이지 않는 노드를 대상으로 동작하고, 메모 패널이 보이지 않는 노드의 메모를 보여 준다.
   이 탭의 토글과 다른 탭에서 받은 접힘 변경 모두 숨길 노드 집합을 바꾸므로, 두 경우를 여기 한 곳에서 처리한다.
-  selected만 바꾸고 노드·엣지 개수와 orderIndex는 그대로라 undo history에 기록되지 않는다.
   */
   useEffect(() => {
     const hasHiddenSelectedNode = nodes.some(

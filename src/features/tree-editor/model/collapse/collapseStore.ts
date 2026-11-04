@@ -26,9 +26,7 @@ interface CollapseState {
 }
 
 /*
-접힘 상태는 treeStore와 따로 둔다. treeStore는 zundo로 undo history를 기록하는데, 접기·펼치기는
-서버와 무관한 화면 상태라 undo 대상이 아니다. 따로 두면 기록 여부가 treeStore의 handleSet 조건에
-기대지 않는다. 또 접힘 상태는 localStorage와 다른 탭을 따라 바뀌어 편집 상태와 생명주기가 다르다.
+접힘 상태는 treeStore와 따로 둔다. 접힘 상태는 localStorage와 다른 탭을 따라 바뀌어 편집 상태와 생명주기가 다르다.
 */
 export const useCollapseStore = create<CollapseState>()((set, get) => {
   /*
@@ -80,8 +78,8 @@ export const useCollapseStore = create<CollapseState>()((set, get) => {
       }
 
       /*
-      노드를 삭제해도 접힘 목록에서는 바로 지우지 않는다(삭제를 undo하면 접힘 상태도 돌아와야 한다).
-      그래서 삭제된 노드의 serverId가 남아 있을 수 있어, 여기서 조회한 트리에 있는 노드만 남긴다.
+      노드를 삭제해도 접힘 목록에서는 바로 지우지 않는다(삭제 요청이 실패하면 노드가 같은 serverId로 돌아오므로,
+      지워 두면 펼쳐진 채로 돌아온다). 그래서 삭제된 노드의 serverId가 남아 있을 수 있어, 여기서 조회한 트리에 있는 노드만 남긴다.
       */
       const existingServerIds = new Set(
         nodes.flatMap((node) =>

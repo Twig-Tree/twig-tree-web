@@ -4,6 +4,7 @@ import { createEditorNode } from "../../../lib/add-node/createEditorNode";
 import { createClientNodeId } from "../../../lib/createClientNodeId";
 import { getNextOrderIndex } from "../../../lib/node";
 import { useCollapseStore } from "../../collapse/collapseStore";
+import { useEditHistoryStore } from "../../history/editHistoryStore";
 import { useTreeStore } from "../../treeStore";
 import { CustomEditorEdge, CustomEditorNode } from "../../types";
 
@@ -27,7 +28,14 @@ export const useAddNode = ({
   edges,
 }: UseAddNodeParams) => {
   const addNodeToStore = useTreeStore((state) => state.addNodeToStore);
+  const confirmCreatedNodeInStore = useTreeStore(
+    (state) => state.confirmCreatedNodeInStore,
+  );
+  const restoreStructureInStore = useTreeStore(
+    (state) => state.restoreStructureInStore,
+  );
   const expand = useCollapseStore((state) => state.expand);
+  const recordEdit = useEditHistoryStore((state) => state.record);
 
   const {
     mutate: addNodeOnServer,
@@ -81,10 +89,13 @@ export const useAddNode = ({
 
     /*
     부모가 접혀 있으면 새 자식이 숨겨진 채로 추가되므로 먼저 펼친다.
-    요청이 실패해 undo로 노드를 되돌려도 펼친 상태는 그대로 둔다. 사용자는 이 노드에 자식을 붙이려 했으므로
-    펼친 채로 두는 것이 자연스럽고, 접힘 상태는 undo history의 대상도 아니다.
+    요청이 실패해 노드를 되돌려도 펼친 상태는 그대로 둔다. 사용자는 이 노드에 자식을 붙이려 했으므로
+    펼친 채로 두는 것이 자연스럽고, 접힘 상태는 editor store의 구조가 아니라 되돌릴 대상도 아니다.
     */
     expand(treeId, parentServerId);
+
+    const { nodes: nodesBeforeAdd, edges: edgesBeforeAdd } =
+      useTreeStore.getState(); // 실패하면 이 추가 전 구조로 되돌린다.
 
     /*
     서버 응답을 기다리기 전에 editor store에 노드와 엣지를 추가한다.
@@ -105,34 +116,28 @@ export const useAddNode = ({
       },
       {
         /*
-        서버가 확정한 노드 ID를 노드 자신에게 채운다. 노드의 신원은 클라이언트가 정한 값이라
-        교체하지 않으므로 엣지도 손대지 않고, 레이아웃 입력이 되는 구조도 달라지지 않는다.
-        서버가 label이나 orderIndex를 보정할 수 있으므로 그 값은 응답으로 덮는다.
-        position은 화면 전용 값이라 그대로 둔다.
+        서버가 확정한 노드 ID를 채운다. 서버에 반영된 뒤에야 되돌릴 요청을 만들 수 있으므로 undo 기록도 이때 남긴다.
         */
         onSuccess: (createdNode) => {
-          useTreeStore.setState((state) => ({
-            nodes: state.nodes.map((node) =>
-              node.id === newClientId
-                ? {
-                    ...node,
-                    data: {
-                      ...node.data,
-                      serverId: createdNode.id, // 도메인 모델의 ID는 이미 문자열이다.
-                      label: createdNode.label,
-                      orderIndex: createdNode.orderIndex,
-                      memo: createdNode.memo,
-                    },
-                  }
-                : node,
-            ),
-          }));
+          confirmCreatedNodeInStore(newClientId, createdNode);
+
+          recordEdit({
+            type: "add",
+            clientId: newClientId,
+            parentClientId: selectedNode.id,
+            label: createdNode.label,
+            memo: null, // 막 만든 노드는 메모·태그가 없다.
+            tagIds: [],
+          });
         },
         /*
-        서버 요청이 실패하면 추가 전의 editor store 상태로 복구한다.
+        서버 요청이 실패하면 추가 전 구조로 되돌린다. 추가한 노드와 엣지만 빠진다.
         */
         onError: () => {
-          useTreeStore.temporal.getState().undo();
+          restoreStructureInStore({
+            nodes: nodesBeforeAdd,
+            edges: edgesBeforeAdd,
+          });
           alert("노드 추가에 실패했습니다.");
         },
       },

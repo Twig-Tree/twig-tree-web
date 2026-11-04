@@ -60,7 +60,7 @@ export const useAttachNodeTag = ({
 
   /*
   태그를 editor store에 먼저 붙이고 서버에 연결을 요청한다. 노드 ID는 호출 시점의 값을 받아, 응답 전에 선택이 바뀌어도 처음 노드를 되돌린다.
-  태그 store action은 history에 기록되지 않으므로 undo()가 아니라 그 태그만 떼어 되돌린다.
+  요청이 실패하면 이 action이 바꾼 값만 되돌린다. 그 태그만 뗀다.
   */
   const connectTagToNode = async (
     tagId: string,
