@@ -1,6 +1,13 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useReducer,
+  useRef,
+  useState,
+} from "react";
 import {
   Background,
   Panel,
@@ -31,20 +38,20 @@ import {
 import {
   getWorkspaceLabEdgeColor,
   getWorkspaceLabEdgeThickness,
-  workspaceLabEdgeStylePresets,
 } from "../model/edge-styles";
+import { getWorkspaceLabColorTokens } from "../model/color-roles";
 import {
-  getWorkspaceLabColorTokens,
-  workspaceLabDefaultColorRoles,
-} from "../model/color-roles";
-import { workspaceLabScenarios } from "../model/scenarios";
+  workspaceLabConfigReducer,
+  workspaceLabDefaultConfig,
+  type WorkspaceLabConfig,
+} from "../model/config";
+import { getWorkspaceLabScenario } from "../model/scenarios";
 import {
   getWorkspaceLabTheme,
   getWorkspaceLabThemeStyle,
 } from "../model/themes";
 import {
   getWorkspaceLabPanelStyle,
-  workspaceLabDefaultPanelStyle,
   type WorkspaceLabPanelKind,
 } from "../model/panels";
 import {
@@ -54,23 +61,9 @@ import {
   getWorkspaceLabNodeSize,
 } from "../model/visual-slots";
 import type {
-  LabCanvasStyle,
-  LabCollapseControlStyle,
-  LabColorRoles,
-  LabConnectionPointStyle,
-  LabDensity,
-  LabEdgeState,
-  LabEdgeStyle,
-  LabLayoutMode,
-  LabLayoutSpacing,
-  LabNodeShape,
-  LabNodeState,
   LabPanelStyle,
-  LabTheme,
-  LabViewport,
   WorkspaceLabEdge,
   WorkspaceLabNode,
-  WorkspaceLabScenario,
 } from "../model/types";
 import { WorkspaceLabEdge as WorkspaceLabEdgeView } from "./WorkspaceLabEdge";
 import { WorkspaceLabInspector } from "./WorkspaceLabInspector";
@@ -296,45 +289,27 @@ function PreviewPlayer() {
   );
 }
 
-function WorkspacePreview({
-  scenario,
-  nodeState,
-  edgeState,
-  edgeStyle,
-  layoutMode,
-  layoutSpacing,
-  nodeShape,
-  connectionPointStyle,
-  collapseControlStyle,
-  canvasStyle,
-  density,
-  viewport,
-  showLeftPanel,
-  showRightPanel,
-  showToolbar,
-  showPlayer,
-  leftPanelStyle,
-  memoPanelStyle,
-}: {
-  scenario: WorkspaceLabScenario;
-  nodeState: LabNodeState;
-  edgeState: LabEdgeState;
-  edgeStyle: LabEdgeStyle;
-  layoutMode: LabLayoutMode;
-  layoutSpacing: LabLayoutSpacing;
-  nodeShape: LabNodeShape;
-  connectionPointStyle: LabConnectionPointStyle;
-  collapseControlStyle: LabCollapseControlStyle;
-  canvasStyle: LabCanvasStyle;
-  density: LabDensity;
-  viewport: LabViewport;
-  showLeftPanel: boolean;
-  showRightPanel: boolean;
-  showToolbar: boolean;
-  showPlayer: boolean;
-  leftPanelStyle: LabPanelStyle;
-  memoPanelStyle: LabPanelStyle;
-}) {
+function WorkspacePreview({ config }: { config: WorkspaceLabConfig }) {
+  const {
+    nodeState,
+    edgeState,
+    edgeStyle,
+    layoutMode,
+    layoutSpacing,
+    nodeShape,
+    connectionPointStyle,
+    collapseControlStyle,
+    canvasStyle,
+    density,
+    viewport,
+    showLeftPanel,
+    showRightPanel,
+    showToolbar,
+    showPlayer,
+    leftPanelStyle,
+    memoPanelStyle,
+  } = config;
+  const scenario = getWorkspaceLabScenario(config.scenarioId);
   const activeLayoutSpacing = getWorkspaceLabLayoutSpacing(layoutSpacing);
   const activeNodeDensity = getWorkspaceLabNodeDensity(density);
   const fallbackNodeSize = useMemo(
@@ -524,62 +499,22 @@ function WorkspacePreview({
 }
 
 export function WorkspaceLab() {
-  const [scenarioId, setScenarioId] =
-    useState<WorkspaceLabScenario["id"]>("balanced");
-  const [nodeState, setNodeState] = useState<LabNodeState>("selected");
-  const [edgeState, setEdgeState] = useState<LabEdgeState>("default");
-  const [edgeStyle, setEdgeStyle] = useState<LabEdgeStyle>({
-    ...workspaceLabEdgeStylePresets[0].values,
-  });
-  const [layoutMode, setLayoutMode] = useState<LabLayoutMode>("vertical");
-  const [layoutSpacing, setLayoutSpacing] =
-    useState<LabLayoutSpacing>("balanced");
-  const [nodeShape, setNodeShape] = useState<LabNodeShape>("rounded");
-  const [connectionPointStyle, setConnectionPointStyle] =
-    useState<LabConnectionPointStyle>("dot");
-  const [collapseControlStyle, setCollapseControlStyle] =
-    useState<LabCollapseControlStyle>("floating");
-  const [canvasStyle, setCanvasStyle] = useState<LabCanvasStyle>("dots");
-  const [theme, setTheme] = useState<LabTheme>("quiet");
-  const [colorRoles, setColorRoles] = useState<LabColorRoles>({
-    ...workspaceLabDefaultColorRoles,
-  });
-  const [density, setDensity] = useState<LabDensity>("comfortable");
-  const [viewport, setViewport] = useState<LabViewport>("desktop");
-  const [showLeftPanel, setShowLeftPanel] = useState(true);
-  const [showRightPanel, setShowRightPanel] = useState(false);
-  const [showToolbar, setShowToolbar] = useState(true);
-  const [showPlayer, setShowPlayer] = useState(false);
-  const [leftPanelStyle, setLeftPanelStyle] = useState<LabPanelStyle>({
-    ...workspaceLabDefaultPanelStyle,
-  });
-  const [memoPanelStyle, setMemoPanelStyle] = useState<LabPanelStyle>({
-    ...workspaceLabDefaultPanelStyle,
-  });
-
-  /*
-  테마는 색 역할의 출발점이다. 테마를 바꾸면 이전 테마 위에 덧씌운 역할 선택을 버린다.
-  */
-  const handleThemeChange = (nextTheme: LabTheme) => {
-    setTheme(nextTheme);
-    setColorRoles({ ...workspaceLabDefaultColorRoles });
-  };
-
-  const scenario =
-    workspaceLabScenarios.find((item) => item.id === scenarioId) ??
-    workspaceLabScenarios[0];
-  const activeTheme = getWorkspaceLabTheme(theme);
-  const activeThemeTokens = useMemo(
-    () => getWorkspaceLabColorTokens(activeTheme.tokens, colorRoles),
-    [activeTheme, colorRoles],
+  const [config, changeConfig] = useReducer(
+    workspaceLabConfigReducer,
+    workspaceLabDefaultConfig,
   );
-  const activeNodeDensity = getWorkspaceLabNodeDensity(density);
+  const activeTheme = getWorkspaceLabTheme(config.theme);
+  const activeThemeTokens = useMemo(
+    () => getWorkspaceLabColorTokens(activeTheme.tokens, config.colorRoles),
+    [activeTheme, config.colorRoles],
+  );
+  const activeNodeDensity = getWorkspaceLabNodeDensity(config.density);
 
   return (
     <main
       className={`${styles.lab} flex h-full min-h-0 w-full bg-slate-100`}
-      data-theme={theme}
-      data-density={density}
+      data-theme={config.theme}
+      data-density={config.density}
       style={{
         ...getWorkspaceLabThemeStyle({
           ...activeTheme,
@@ -588,70 +523,8 @@ export function WorkspaceLab() {
         ...getWorkspaceLabNodeDensityStyle(activeNodeDensity),
       }}
     >
-      <WorkspacePreview
-        scenario={scenario}
-        nodeState={nodeState}
-        edgeState={edgeState}
-        edgeStyle={edgeStyle}
-        layoutMode={layoutMode}
-        layoutSpacing={layoutSpacing}
-        nodeShape={nodeShape}
-        connectionPointStyle={connectionPointStyle}
-        collapseControlStyle={collapseControlStyle}
-        canvasStyle={canvasStyle}
-        density={density}
-        viewport={viewport}
-        showLeftPanel={showLeftPanel}
-        showRightPanel={showRightPanel}
-        showToolbar={showToolbar}
-        showPlayer={showPlayer}
-        leftPanelStyle={leftPanelStyle}
-        memoPanelStyle={memoPanelStyle}
-      />
-
-      <WorkspaceLabInspector
-        scenarios={workspaceLabScenarios}
-        scenarioId={scenarioId}
-        nodeState={nodeState}
-        edgeState={edgeState}
-        edgeStyle={edgeStyle}
-        layoutMode={layoutMode}
-        layoutSpacing={layoutSpacing}
-        nodeShape={nodeShape}
-        connectionPointStyle={connectionPointStyle}
-        collapseControlStyle={collapseControlStyle}
-        canvasStyle={canvasStyle}
-        theme={theme}
-        colorRoles={colorRoles}
-        density={density}
-        viewport={viewport}
-        showLeftPanel={showLeftPanel}
-        showRightPanel={showRightPanel}
-        showToolbar={showToolbar}
-        showPlayer={showPlayer}
-        leftPanelStyle={leftPanelStyle}
-        memoPanelStyle={memoPanelStyle}
-        onScenarioChange={setScenarioId}
-        onNodeStateChange={setNodeState}
-        onEdgeStateChange={setEdgeState}
-        onEdgeStyleChange={setEdgeStyle}
-        onLayoutModeChange={setLayoutMode}
-        onLayoutSpacingChange={setLayoutSpacing}
-        onNodeShapeChange={setNodeShape}
-        onConnectionPointStyleChange={setConnectionPointStyle}
-        onCollapseControlStyleChange={setCollapseControlStyle}
-        onCanvasStyleChange={setCanvasStyle}
-        onThemeChange={handleThemeChange}
-        onColorRolesChange={setColorRoles}
-        onDensityChange={setDensity}
-        onViewportChange={setViewport}
-        onShowLeftPanelChange={setShowLeftPanel}
-        onShowRightPanelChange={setShowRightPanel}
-        onShowToolbarChange={setShowToolbar}
-        onShowPlayerChange={setShowPlayer}
-        onLeftPanelStyleChange={setLeftPanelStyle}
-        onMemoPanelStyleChange={setMemoPanelStyle}
-      />
+      <WorkspacePreview config={config} />
+      <WorkspaceLabInspector config={config} onChange={changeConfig} />
     </main>
   );
 }

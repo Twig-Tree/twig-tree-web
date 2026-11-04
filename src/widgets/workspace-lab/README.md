@@ -7,6 +7,7 @@
 ```text
 workspace-lab/
 ├── model/
+│   ├── config.ts          # Inspector가 바꾸는 실험 조합과 reducer
 │   ├── scenarios.ts       # 재현 가능한 트리 fixture
 │   ├── layouts.ts         # 세로·가로·방사형 좌표와 배치 간격
 │   ├── edge-routing.ts    # 직각 연결선의 기하학적 제약
@@ -18,10 +19,12 @@ workspace-lab/
 │   ├── panels.ts          # 왼쪽·메모 패널의 배치, 너비, 표면, 경계, 밀도 registry
 │   └── types.ts           # Lab에서 공유하는 타입
 ├── ui/
-│   ├── WorkspaceLab.tsx           # 상태 조합과 Preview
-│   ├── WorkspaceLabInspector.tsx  # 실험 옵션 제어판
-│   ├── WorkspaceLabColorSection.tsx  # 테마와 색 역할 제어
-│   ├── WorkspaceLabFields.tsx     # Inspector 공용 입력 컴포넌트
+│   ├── WorkspaceLab.tsx           # 조합 상태와 Preview
+│   ├── WorkspaceLabInspector.tsx  # Inspector 구획 배치
+│   ├── inspector/
+│   │   ├── InspectorFields.tsx    # 구획 틀과 공용 입력 컴포넌트
+│   │   ├── types.ts               # 구획 공통 props
+│   │   └── *Section.tsx           # 구획별 제어 항목
 │   ├── WorkspaceLabNode.tsx       # Lab 전용 node renderer
 │   ├── WorkspaceLabEdge.tsx       # Lab 전용 edge renderer
 │   └── WorkspaceLab.module.css    # token 소비와 slot 표현
@@ -31,6 +34,8 @@ workspace-lab/
 개발 route는 `app/(dev)/dev/workspace-lab/page.tsx`에 있다. route가 production에서 차단되더라도 Lab 모듈은 운영 기능의 dependency로 사용하지 않는다.
 
 ## 상태 흐름
+
+Inspector가 바꾸는 값은 `model/config.ts`의 `WorkspaceLabConfig` 한 객체에 모여 있다. `WorkspaceLab`은 `useReducer(workspaceLabConfigReducer)`로 이 객체를 들고, Preview에는 `config`를, Inspector의 각 구획에는 `config`와 `onChange(바꿀 필드)`를 내려준다. 구획 사이의 규칙(테마를 바꾸면 색 역할 초기화)은 reducer가 맡는다.
 
 ```text
 Inspector selection
@@ -110,8 +115,8 @@ Registry 배열에서 literal union 타입과 Inspector 옵션을 파생한다. 
 1. `visual-slots.ts`에 definition과 registry를 둔다.
 2. registry에서 ID 타입을 파생한다.
 3. `types.ts`에서 UI가 사용할 alias를 export한다.
-4. `WorkspaceLab.tsx`에 선택 상태와 기본값을 둔다.
-5. Inspector에 제어 항목을 연결한다.
+4. `config.ts`의 `WorkspaceLabConfig`에 필드를, `workspaceLabDefaultConfig`에 기본값을 둔다.
+5. 해당하는 `ui/inspector/*Section.tsx`에 제어 항목을 연결한다.
 6. renderer에는 의미 있는 prop 또는 `data-*` 값으로 전달한다.
 7. CSS와 단위 테스트를 추가한다.
 

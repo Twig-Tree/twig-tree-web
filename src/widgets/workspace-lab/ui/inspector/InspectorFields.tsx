@@ -1,3 +1,5 @@
+import type { ReactNode } from "react";
+
 export function SelectField<T extends string>({
   label,
   value,
@@ -146,3 +148,74 @@ export function SegmentedField<T extends string>({
     </div>
   );
 }
+
+export function InspectorSection({
+  title,
+  action,
+  isFirst = false,
+  children,
+}: {
+  title: string;
+  action?: ReactNode; // 제목 오른쪽에 둘 보조 동작
+  isFirst?: boolean; // 첫 구획은 위 구분선을 그리지 않는다
+  children: ReactNode;
+}) {
+  const heading = (
+    <h3 className="text-xs font-semibold tracking-wide text-slate-400 uppercase">
+      {title}
+    </h3>
+  );
+
+  return (
+    <section
+      className={
+        isFirst ? "space-y-3" : "space-y-3 border-t border-slate-100 pt-5"
+      }
+    >
+      {action ? (
+        <div className="flex items-center justify-between">
+          {heading}
+          {action}
+        </div>
+      ) : (
+        heading
+      )}
+      {children}
+    </section>
+  );
+}
+
+export function FieldDescription({ children }: { children: ReactNode }) {
+  return <p className="text-[11px] leading-4 text-slate-500">{children}</p>;
+}
+
+export function DisclosureButton({
+  label,
+  isOpen,
+  controls,
+  onToggle,
+}: {
+  label: string;
+  isOpen: boolean;
+  controls: string; // 펼쳐지는 영역의 id
+  onToggle: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      aria-expanded={isOpen}
+      aria-controls={controls}
+      onClick={onToggle}
+      className="flex w-full items-center justify-between rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-left text-xs font-medium text-slate-700 transition-colors hover:border-indigo-200 hover:bg-indigo-50"
+    >
+      <span>{label}</span>
+      <span aria-hidden="true" className="text-slate-400">
+        {isOpen ? "접기 −" : "열기 +"}
+      </span>
+    </button>
+  );
+}
+
+export const toSelectOptions = <T extends string>(
+  options: ReadonlyArray<{ id: T; name: string }>,
+) => options.map((option) => ({ value: option.id, label: option.name }));

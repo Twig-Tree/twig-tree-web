@@ -137,3 +137,7 @@ export const workspaceLabScenarios: WorkspaceLabScenario[] = [
     edges: [],
   },
 ];
+
+export const getWorkspaceLabScenario = (id: WorkspaceLabScenario["id"]) =>
+  workspaceLabScenarios.find((scenario) => scenario.id === id) ??
+  workspaceLabScenarios[0];

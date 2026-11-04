@@ -9,27 +9,24 @@ import {
   workspaceLabNeutralTones,
   workspaceLabRootColors,
   workspaceLabStatusColors,
-} from "../model/color-roles";
+} from "../../model/color-roles";
 import {
   getWorkspaceLabTheme,
   getWorkspaceLabThemePalette,
   workspaceLabThemes,
   type WorkspaceLabThemeTokens,
-} from "../model/themes";
-import type { LabColorRoles, LabTheme } from "../model/types";
+} from "../../model/themes";
+import type { LabColorRoles } from "../../model/types";
 import {
+  DisclosureButton,
+  InspectorSection,
   SegmentedField,
   SelectField,
   SwatchField,
+  toSelectOptions,
   type SwatchOption,
-} from "./WorkspaceLabFields";
-
-type WorkspaceLabColorSectionProps = {
-  theme: LabTheme; // 색 역할의 출발점이 되는 테마
-  colorRoles: LabColorRoles; // 테마 위에 덧씌운 역할별 선택
-  onThemeChange: (value: LabTheme) => void;
-  onColorRolesChange: (value: LabColorRoles) => void;
-};
+} from "./InspectorFields";
+import type { InspectorSectionProps } from "./types";
 
 /*
 테마 기본 선택지는 자체 견본이 없으므로 현재 테마 토큰에서 같은 자리의 색을 꺼내 보여준다.
@@ -48,16 +45,8 @@ const getSwatchOptions = <T extends string>(
     swatches: option.swatches ?? getThemeSwatches(),
   }));
 
-const toSelectOptions = <T extends string>(
-  options: ReadonlyArray<{ id: T; name: string }>,
-) => options.map((option) => ({ value: option.id, label: option.name }));
-
-export function WorkspaceLabColorSection({
-  theme,
-  colorRoles,
-  onThemeChange,
-  onColorRolesChange,
-}: WorkspaceLabColorSectionProps) {
+export function ColorSection({ config, onChange }: InspectorSectionProps) {
+  const { theme, colorRoles } = config;
   const [showDetail, setShowDetail] = useState(false);
   const currentTheme = getWorkspaceLabTheme(theme);
   const baseTokens: WorkspaceLabThemeTokens = currentTheme.tokens;
@@ -68,33 +57,31 @@ export function WorkspaceLabColorSection({
   const changeRole = <K extends keyof LabColorRoles>(
     role: K,
     value: LabColorRoles[K],
-  ) => onColorRolesChange({ ...colorRoles, [role]: value });
+  ) => onChange({ colorRoles: { ...colorRoles, [role]: value } });
 
   return (
-    <section className="space-y-3 border-t border-slate-100 pt-5">
-      <div className="flex items-center justify-between">
-        <h3 className="text-xs font-semibold tracking-wide text-slate-400 uppercase">
-          Color
-        </h3>
-        {isModified ? (
+    <InspectorSection
+      title="Color"
+      action={
+        isModified ? (
           <button
             type="button"
             onClick={() =>
-              onColorRolesChange({ ...workspaceLabDefaultColorRoles })
+              onChange({ colorRoles: { ...workspaceLabDefaultColorRoles } })
             }
             className="flex items-center gap-1.5 rounded-full bg-amber-50 px-2 py-0.5 text-[11px] font-medium text-amber-700 hover:bg-amber-100"
           >
             <span className="size-1.5 rounded-full bg-amber-500" />
             수정됨 · 초기화
           </button>
-        ) : null}
-      </div>
-
+        ) : null
+      }
+    >
       <SelectField
         label="기반 테마"
         value={theme}
         options={toSelectOptions(workspaceLabThemes)}
-        onChange={onThemeChange}
+        onChange={(value) => onChange({ theme: value })}
       />
       <div className="rounded-xl border border-slate-200 bg-slate-50 p-3">
         <div className="flex items-center gap-2">
@@ -151,18 +138,12 @@ export function WorkspaceLabColorSection({
         onChange={(value) => changeRole("contrast", value)}
       />
 
-      <button
-        type="button"
-        aria-expanded={showDetail}
-        aria-controls="workspace-lab-color-detail"
-        onClick={() => setShowDetail((current) => !current)}
-        className="flex w-full items-center justify-between rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-left text-xs font-medium text-slate-700 transition-colors hover:border-indigo-200 hover:bg-indigo-50"
-      >
-        <span>세부 설정</span>
-        <span aria-hidden="true" className="text-slate-400">
-          {showDetail ? "접기 −" : "열기 +"}
-        </span>
-      </button>
+      <DisclosureButton
+        label="세부 설정"
+        isOpen={showDetail}
+        controls="workspace-lab-color-detail"
+        onToggle={() => setShowDetail((current) => !current)}
+      />
 
       {showDetail ? (
         <div
@@ -187,6 +168,6 @@ export function WorkspaceLabColorSection({
           />
         </div>
       ) : null}
-    </section>
+    </InspectorSection>
   );
 }
