@@ -9,7 +9,7 @@ export function ScenarioSection({ config, onChange }: InspectorSectionProps) {
   const currentScenario = getWorkspaceLabScenario(config.scenarioId);
 
   return (
-    <InspectorSection title="Scenario">
+    <InspectorSection title="시나리오">
       <SelectField
         label="트리 구성"
         value={config.scenarioId}

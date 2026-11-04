@@ -15,7 +15,7 @@ export function CanvasSection({ config, onChange }: InspectorSectionProps) {
 
   return (
     <InspectorSection
-      title="Canvas"
+      title="캔버스"
       action={
         <DesignThemeSectionReset
           config={config}

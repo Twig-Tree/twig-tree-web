@@ -60,7 +60,7 @@ export function ColorSection({ config, onChange }: InspectorSectionProps) {
 
   return (
     <InspectorSection
-      title="Color"
+      title="컬러"
       action={
         <DesignThemeSectionReset
           config={config}

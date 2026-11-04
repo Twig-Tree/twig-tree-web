@@ -18,7 +18,7 @@ export function LayoutSection({ config, onChange }: InspectorSectionProps) {
   );
 
   return (
-    <InspectorSection title="Layout">
+    <InspectorSection title="레이아웃">
       <SelectField
         label="트리 전개"
         value={config.layoutMode}

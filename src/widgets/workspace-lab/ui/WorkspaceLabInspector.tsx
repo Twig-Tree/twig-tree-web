@@ -65,7 +65,7 @@ export function WorkspaceLabInspector({
         <>
           <RegionsSection {...sectionProps} />
           <PanelStyleSection
-            title="Left panel"
+            title="왼쪽 패널"
             action={
               <DesignThemeSectionReset {...sectionProps} section="leftPanel" />
             }
@@ -78,7 +78,7 @@ export function WorkspaceLabInspector({
             }
           />
           <PanelStyleSection
-            title="Memo panel"
+            title="메모 패널"
             action={
               <DesignThemeSectionReset {...sectionProps} section="memoPanel" />
             }

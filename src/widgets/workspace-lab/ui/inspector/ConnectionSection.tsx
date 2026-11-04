@@ -64,7 +64,7 @@ export function ConnectionSection({ config, onChange }: InspectorSectionProps) {
 
   return (
     <InspectorSection
-      title="Connection"
+      title="연결선"
       action={
         <DesignThemeSectionReset
           config={config}

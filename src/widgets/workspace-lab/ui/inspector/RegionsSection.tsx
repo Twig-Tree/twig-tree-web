@@ -3,7 +3,7 @@ import type { InspectorSectionProps } from "./types";
 
 export function RegionsSection({ config, onChange }: InspectorSectionProps) {
   return (
-    <InspectorSection title="Regions">
+    <InspectorSection title="화면 요소">
       <SegmentedField
         label="뷰포트"
         value={config.viewport}

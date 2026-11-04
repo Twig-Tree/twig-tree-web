@@ -21,7 +21,7 @@ const edgeStates: Array<{ value: LabEdgeState; label: string }> = [
 
 export function StateSection({ config, onChange }: InspectorSectionProps) {
   return (
-    <InspectorSection title="State">
+    <InspectorSection title="상태">
       <SelectField
         label="포커스 노드"
         value={config.nodeState}

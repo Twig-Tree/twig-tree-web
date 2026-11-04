@@ -25,7 +25,7 @@ export function NodeSection({ config, onChange }: InspectorSectionProps) {
 
   return (
     <InspectorSection
-      title="Node"
+      title="노드"
       action={
         <DesignThemeSectionReset
           config={config}

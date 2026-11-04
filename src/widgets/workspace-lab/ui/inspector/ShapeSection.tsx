@@ -15,7 +15,7 @@ export function ShapeSection({ config, onChange }: InspectorSectionProps) {
 
   return (
     <InspectorSection
-      title="Shape"
+      title="형태"
       action={
         <DesignThemeSectionReset
           config={config}
