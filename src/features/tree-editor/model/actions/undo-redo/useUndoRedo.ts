@@ -6,6 +6,7 @@ import {
   useGetTreeTagsQuery,
   useMoveNodeMutation,
   useUpdateMemoMutation,
+  type TreeNode,
 } from "@/src/entities/tree";
 import { createEditorEdge } from "../../../lib/add-node/createEditorEdge";
 import { createEditorNode } from "../../../lib/add-node/createEditorNode";
@@ -32,6 +33,21 @@ const FAILURE_MESSAGE: Record<HistoryDirection, string> = {
   undo: "되돌리기에 실패했습니다.",
   redo: "다시 실행에 실패했습니다.",
 };
+
+/*
+하위 트리 루트를 원래 자리로 옮긴 뒤에 되살리기가 실패했음을 알린다. 서버는 이동하면서 형제 순번을 다시 매기고
+정리 삭제 뒤에는 다시 매기지 않으므로, 구조 복구로 요청 전 순번을 되돌리면 store와 서버의 순번이 어긋난다.
+그러면 다음 추가의 orderIndex가 서버의 기존 노드와 겹쳐 DUPLICATED_ORDER_ID가 난다.
+그래서 이동 응답에서 루트만 뺀 형제 순번을 실어 보내고, 구조를 복구한 뒤 그 순번으로 맞춘다.
+*/
+class RecreateFailedAfterMoveError extends Error {
+  constructor(
+    readonly siblingsWithoutRoot: TreeNode[], // 이동 응답의 형제 목록에서 되살리던 루트를 뺀 값
+    cause: unknown, // 되살리기를 멈추게 한 실제 오류
+  ) {
+    super("하위 트리 루트를 옮긴 뒤 되살리기에 실패했습니다.", { cause });
+  }
+}
 
 /*
 기록이 가리키는 노드가 store에 없거나 아직 서버 ID가 없으면 요청을 만들 수 없다.
@@ -191,6 +207,7 @@ export const useUndoRedo = ({ treeId }: UseUndoRedoParams) => {
   3. 나머지 노드를 부모 → 자식 순서로 원래 순번에 만든다. 새로 만든 부모 밑이라 순번이 겹치지 않는다.
   4. 노드를 만들 때마다 메모와 태그를 되살린다. 그 사이 트리에서 지워진 태그는 건너뛴다.
   중간에 실패하면 만든 하위 트리 루트를 지워 서버에 일부만 남지 않게 한다. 하위 노드는 서버가 함께 지운다.
+  루트를 옮긴 뒤에 실패했다면 RecreateFailedAfterMoveError로 서버가 다시 매긴 형제 순번을 함께 넘긴다.
   */
   const recreateSubtree = async (
     treeId: string,
@@ -238,6 +255,7 @@ export const useUndoRedo = ({ treeId }: UseUndoRedoParams) => {
     if (!isAtEnd) moveNodeInStore({ clientId: rootClientId, ...placement });
 
     let createdRootServerId: string | null = null;
+    let siblingsAfterMove: TreeNode[] | null = null; // 루트 이동 응답의 형제 목록. 옮기지 않았으면 null
 
     try {
       for (const { node, parentClientId } of getSubtreeCreationOrder(
@@ -268,6 +286,7 @@ export const useUndoRedo = ({ treeId }: UseUndoRedoParams) => {
             });
 
             applySiblingOrderInStore([siblings, previousSiblings]);
+            siblingsAfterMove = siblings;
           }
         }
 
@@ -284,13 +303,20 @@ export const useUndoRedo = ({ treeId }: UseUndoRedoParams) => {
         }
       }
     } catch (error) {
-      if (createdRootServerId !== null) {
-        await deleteNodeOnServer({ treeId, nodeId: createdRootServerId }).catch(
-          () => {}, // 정리 요청까지 실패하면 서버에 일부가 남는다. 새로고침하면 그 상태가 보인다.
-        );
-      }
+      if (createdRootServerId === null) throw error;
 
-      throw error;
+      const rootServerId = createdRootServerId;
+
+      await deleteNodeOnServer({ treeId, nodeId: rootServerId }).catch(
+        () => {}, // 정리 요청까지 실패하면 서버에 일부가 남는다. 새로고침하면 그 상태가 보인다.
+      );
+
+      if (siblingsAfterMove === null) throw error;
+
+      throw new RecreateFailedAfterMoveError(
+        siblingsAfterMove.filter((sibling) => sibling.id !== rootServerId),
+        error,
+      );
     }
   };
 
@@ -355,8 +381,12 @@ export const useUndoRedo = ({ treeId }: UseUndoRedoParams) => {
 
     try {
       await applyHistoryEntry(treeId, entry, direction);
-    } catch {
+    } catch (error) {
       restoreStructureInStore({ nodes, edges });
+
+      if (error instanceof RecreateFailedAfterMoveError) {
+        applySiblingOrderInStore([error.siblingsWithoutRoot]);
+      }
 
       if (direction === "undo") {
         cancelUndo(entry);

@@ -420,6 +420,44 @@ describe("useUndoRedo", () => {
     });
 
     /*
+    루트를 옮기면 서버가 형제 순번을 다시 매긴다(c3 → 1, c2 → 2). 정리 삭제 뒤에는 다시 매기지 않으므로 서버의 c2는 2로 남는다.
+    store를 요청 전 순번(c2 → 1)으로 되돌리면 다음 추가가 2를 보내 서버의 c2와 겹친다.
+    */
+    it("루트를 옮긴 뒤 실패하면 서버가 다시 매긴 형제 순번으로 맞춘다", async () => {
+      const entry = createDeleteEntry();
+      useTreeStore.getState().deleteNodeFromStore(["c3", "c21"]);
+      useEditHistoryStore.getState().record(entry);
+      vi.spyOn(treeApi, "createNode").mockResolvedValueOnce(
+        createServerNode("30", "1", 2),
+      );
+      vi.spyOn(treeApi, "moveNode").mockResolvedValue({
+        siblings: [
+          createServerNode("30", "1", 1),
+          createServerNode("2", "1", 2),
+        ],
+        previousSiblings: [],
+      });
+      vi.spyOn(memoApi, "updateMemo").mockRejectedValue(new Error("failed"));
+      const deleteNodeSpy = vi
+        .spyOn(treeApi, "deleteNode")
+        .mockResolvedValue(undefined);
+      const alertSpy = vi.spyOn(window, "alert").mockImplementation(() => {});
+      const { result } = renderUndoRedo();
+
+      act(() => result.current.handleUndo());
+
+      await waitFor(() =>
+        expect(alertSpy).toHaveBeenCalledExactlyOnceWith(
+          "되돌리기에 실패했습니다.",
+        ),
+      );
+      expect(deleteNodeSpy).toHaveBeenCalledExactlyOnceWith(10, 30);
+      expect(getChildClientIds("c1")).toEqual(["c2"]);
+      expect(getNodeById("c2")?.data.orderIndex).toBe(2);
+      expect(getHistory()).toEqual({ past: [entry], future: [] });
+    });
+
+    /*
     되살린 뒤 고친 메모는 기록에 남지 않는다. 다시 지울 때 기록을 고쳐 쓰지 않으면 다음 undo가 처음 지운 시점의 메모로 되살린다.
     */
     it("redo하면 다시 지우고, 기록을 지우기 직전 값으로 고쳐 쓴다", async () => {
