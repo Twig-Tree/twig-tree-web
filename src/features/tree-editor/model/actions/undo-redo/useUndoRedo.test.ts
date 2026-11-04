@@ -1,4 +1,5 @@
 import { act, renderHook, waitFor } from "@testing-library/react";
+import { AxiosError, AxiosHeaders } from "axios";
 import { afterEach, beforeEach, describe, it, expect, vi } from "vitest";
 import {
   memoApi,
@@ -64,6 +65,19 @@ const getHistory = () => {
   const { past, future } = useEditHistoryStore.getState();
 
   return { past, future };
+};
+
+// 서버가 에러 코드를 담아 응답한 실패를 만든다.
+const createApiError = (status: number, code: string): AxiosError => {
+  const config = { headers: new AxiosHeaders() };
+
+  return new AxiosError("request failed", "ERR_BAD_REQUEST", config, null, {
+    status,
+    statusText: "",
+    headers: {},
+    config,
+    data: { isSuccess: false, code, message: "", data: null },
+  });
 };
 
 const TREE_TAGS: TreeTag[] = [{ id: "7", name: "남은 태그" }]; // 8번 태그는 지운 뒤 트리에서 사라졌다.
@@ -415,6 +429,49 @@ describe("useUndoRedo", () => {
       expect(getNodeById("c21")?.data.serverId).toBe("210");
       expect(getParentClientId("c21")).toBe("c3");
       expect(getChildClientIds("c1")).toEqual(["c3", "c2"]);
+    });
+
+    /*
+    트리 태그 목록이 낡아 7번이 남은 것처럼 보이지만, 서버에서는 이미 지워져 TAG404-1로 거절된다.
+    */
+    it("서버가 지워진 태그라고 거절하면 그 태그만 빼고 되살리기를 마친다", async () => {
+      const entry = createDeleteEntry();
+      useTreeStore.getState().deleteNodeFromStore(["c3", "c21"]);
+      useEditHistoryStore.getState().record(entry);
+      vi.spyOn(treeApi, "createNode")
+        .mockResolvedValueOnce(createServerNode("30", "1", 2))
+        .mockResolvedValueOnce(createServerNode("210", "30", 3));
+      vi.spyOn(treeApi, "moveNode").mockResolvedValue({
+        siblings: [
+          createServerNode("30", "1", 1),
+          createServerNode("2", "1", 2),
+        ],
+        previousSiblings: [],
+      });
+      vi.spyOn(memoApi, "updateMemo").mockResolvedValue({
+        title: "node 3",
+        content: "지운 메모",
+      });
+      vi.spyOn(tagApi, "addNodeTag").mockRejectedValue(
+        createApiError(404, "TAG404-1"),
+      );
+      const deleteNodeSpy = vi.spyOn(treeApi, "deleteNode");
+      const alertSpy = vi.spyOn(window, "alert").mockImplementation(() => {});
+      const { result } = renderUndoRedo();
+
+      act(() => result.current.handleUndo());
+
+      await waitFor(() =>
+        expect(getNodeById("c21")?.data.serverId).toBe("210"),
+      );
+      expect(getNodeById("c3")?.data).toMatchObject({
+        serverId: "30",
+        memo: "지운 메모",
+        tagIds: [],
+      });
+      expect(getHistory()).toEqual({ past: [], future: [entry] });
+      expect(deleteNodeSpy).not.toHaveBeenCalled();
+      expect(alertSpy).not.toHaveBeenCalled();
     });
 
     it("되살리는 도중 실패하면 만든 하위 트리 루트를 지우고 지운 상태로 되돌린다", async () => {

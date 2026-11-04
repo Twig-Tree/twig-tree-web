@@ -23,6 +23,7 @@ export const MAX_NODE_TAG_COUNT = 10;
 DUPLICATE_TAG_NAME과 DUPLICATE_NODE_TAG는 서비스 코드가 아니라 DB 유니크 제약 uk_tag_name, uk_node_tag 위반을 옮긴 코드다.
 */
 export const TAG_ERROR_CODE = {
+  TAG_NOT_FOUND: "TAG404-1", // 태그가 지워져 서버에 없음
   DUPLICATE_TAG_NAME: "TAG409-1",
   DUPLICATE_NODE_TAG: "TAG409-2",
   NODE_TAG_COUNT_EXCEEDED: "TAG409-3",

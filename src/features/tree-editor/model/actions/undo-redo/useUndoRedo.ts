@@ -6,8 +6,10 @@ import {
   useGetTreeTagsQuery,
   useMoveNodeMutation,
   useUpdateMemoMutation,
+  TAG_ERROR_CODE,
   type TreeNode,
 } from "@/src/entities/tree";
+import { getApiErrorCode } from "@/src/shared/api/authErrorCodes";
 import { createEditorEdge } from "../../../lib/add-node/createEditorEdge";
 import { createEditorNode } from "../../../lib/add-node/createEditorNode";
 import { getSubtreeCreationOrder } from "../../../lib/delete-node/getSubtreeCreationOrder";
@@ -87,6 +89,9 @@ export const useUndoRedo = ({ treeId }: UseUndoRedoParams) => {
   );
   const restoreStructureInStore = useTreeStore(
     (state) => state.restoreStructureInStore,
+  );
+  const removeTagFromNodeInStore = useTreeStore(
+    (state) => state.removeTagFromNodeInStore,
   );
   const expand = useCollapseStore((state) => state.expand);
 
@@ -220,7 +225,8 @@ export const useUndoRedo = ({ treeId }: UseUndoRedoParams) => {
   1. 하위 트리 루트를 원래 부모의 맨 끝에 만든다. 원래 순번은 그 사이 다른 노드가 차지했을 수 있다.
   2. 원래 자리가 맨 끝이 아니면 그 자리로 옮긴다.
   3. 나머지 노드를 부모 → 자식 순서로 원래 순번에 만든다. 새로 만든 부모 밑이라 순번이 겹치지 않는다.
-  4. 노드를 만들 때마다 메모와 태그를 되살린다. 그 사이 트리에서 지워진 태그는 건너뛴다.
+  4. 노드를 만들 때마다 메모와 태그를 되살린다. 그 사이 트리에서 지워진 태그는 건너뛴다. 트리 태그 목록으로 미리 거르고,
+     목록이 아직 없거나 낡아서 서버가 TAG404-1로 거절한 태그도 화면에서 빼고 넘어간다.
   중간에 실패하면 만든 하위 트리 루트를 지워 서버에 일부만 남지 않게 한다. 하위 노드는 서버가 함께 지운다.
   루트를 옮긴 뒤에 실패했다면 RecreateFailedAfterMoveError로 서버가 다시 매긴 형제 순번을 함께 넘긴다.
   */
@@ -314,7 +320,18 @@ export const useUndoRedo = ({ treeId }: UseUndoRedoParams) => {
         }
 
         for (const tagId of node.data.tagIds) {
-          await addNodeTagOnServer({ treeId, nodeId: createdNode.id, tagId });
+          try {
+            await addNodeTagOnServer({ treeId, nodeId: createdNode.id, tagId });
+          } catch (error) {
+            /*
+            지워진 태그 하나 때문에 하위 트리 전체를 되돌리지 않는다. 서버에 없는 태그이므로 화면에서도 빼고 다음 태그로 넘어간다.
+            */
+            if (getApiErrorCode(error) !== TAG_ERROR_CODE.TAG_NOT_FOUND) {
+              throw error;
+            }
+
+            removeTagFromNodeInStore(node.id, tagId);
+          }
         }
       }
     } catch (error) {
