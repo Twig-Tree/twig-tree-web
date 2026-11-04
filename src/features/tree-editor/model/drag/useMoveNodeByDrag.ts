@@ -59,7 +59,7 @@ export const useMoveNodeByDrag = ({
   const dragStartRef = useRef<DragStart | null>(null);
 
   /*
-  놓일 자리 표시는 store가 아니라 여기에 둔다. 화면에서만 쓰는 값이라 undo history와 무관하다.
+  놓일 자리 표시는 store가 아니라 여기에 둔다. 화면에서만 쓰는 값이다.
   */
   const [dropIndicator, setDropIndicator] = useState<DropIndicator | null>(
     null,
@@ -148,7 +148,7 @@ export const useMoveNodeByDrag = ({
 
       /*
       끈 좌표는 저장하지 않는다. 먼저 끌기 전 좌표로 되돌리고, 이동이 반영되면 레이아웃이 새 자리로 옮긴다.
-      좌표만 바꾸는 변경은 history 기록 조건에 걸리지 않으므로, 이동이 실패해 undo해도 이 좌표가 남는다.
+      이동이 실패해 구조를 되돌려도 좌표는 지금 값을 두므로 이 좌표가 남는다.
       */
       useTreeStore.setState((state) => ({
         nodes: state.nodes.map((currentNode) =>

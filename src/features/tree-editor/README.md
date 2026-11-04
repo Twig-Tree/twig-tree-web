@@ -4,7 +4,7 @@ Tree Editor는 사용자 행동, 서버 상태 동기화, 편집기 초기화, �
 
 ## model 책임
 
-- `actions`: 노드 추가·삭제 같은 사용자 행동을 mutation과 editor store에 연결한다. 페이지에는 개별 행동 훅 대신 `useTreeEditorActions` facade를 제공한다.
+- `actions`: 노드 추가·삭제·이동과 undo/redo 같은 사용자 행동을 mutation과 editor store에 연결한다. 페이지에는 개별 행동 훅 대신 `useTreeEditorActions` facade를 제공한다.
 - `initialization`: 서버에서 조회한 트리 데이터를 editor store의 초기 상태로 반영한다.
 - `collapse`: 서브트리 접힘 상태를 관리한다. 접힘 store, 화면에 보일 노드·엣지 계산, 다른 탭과의 동기화를 담는다.
 - `layout`: 노드와 edge의 배치를 계산하고 편집기 viewport를 조정한다.
@@ -14,7 +14,8 @@ Tree Editor는 사용자 행동, 서버 상태 동기화, 편집기 초기화, �
 - `highlight`: 검색어·태그에 일치한 노드의 강조 상태를 관리하고, 지금 보이는 결과를 강조에 반영한다.
 - `focus`: 결과 목록에서 고른 노드의 접힌 조상을 펼치고, 그 노드를 선택해 화면 가운데로 옮긴다. 태그를 고르면 보이는 태그 노드들을 한 화면에 모은다.
 - `react-flow`: React Flow가 요구하는 인터페이스와 Tree Editor store 사이를 연결한다.
-- `treeStore.ts`: 편집 중인 노드, edge 및 history를 관리한다.
+- `history`: 편집 단위 undo/redo 기록을 관리한다. 서버를 모르는 순수 store이고, 기록을 꺼내 요청하는 일은 `actions/undo-redo`가 맡는다(actions README의 "Undo/Redo").
+- `treeStore.ts`: 편집 중인 노드와 edge를 관리한다.
 - `types.ts`: Tree Editor에서 사용하는 node와 edge 타입을 정의한다.
 
 ## 노드 신원
@@ -69,7 +70,7 @@ React Flow의 `Handle`은 `isConnectable`을 받지 않으면 `true`로 둔다. 
 
 끄는 동안 `getDropIndicator`가 목적지를 화면에 표시할 모양과 위치를 정하고, `DropIndicatorOverlay`가 그린다. 형제 앞뒤면 기준 노드와 이웃 형제 사이 빈칸의 가운데에 삽입선을 그린다. 자식이면 기준 노드를 둘러싼 점선 테두리를 그린다. 선택·검색 강조와 구분되도록 점선과 다른 색을 쓴다.
 
-표시는 `ViewportPortal` 안에 그려 노드와 같은 flow 좌표계로 이동·확대된다. 표시 상태는 화면에서만 쓰는 값이라 editor store가 아니라 `useMoveNodeByDrag`의 로컬 상태에 둔다. undo history와 무관하다.
+표시는 `ViewportPortal` 안에 그려 노드와 같은 flow 좌표계로 이동·확대된다. 표시 상태는 화면에서만 쓰는 값이라 editor store가 아니라 `useMoveNodeByDrag`의 로컬 상태에 둔다.
 
 ## 초기화 규칙
 
@@ -87,19 +88,16 @@ editor store 초기화는 트리당 한 번만 수행한다. `useInitializeTree`
 
 ### editor store와 따로 두는 이유
 
-접힘 상태를 editor store에 넣고 `partialize`에서 빼도 지금은 동작한다. 토글은 노드·엣지 개수와 `orderIndex`를 바꾸지 않아 `handleSet`의 기록 조건에 걸리지 않기 때문이다. 그래도 따로 둔다.
-
-- **토글이 undo history에 들어가지 않는다는 보장이 `handleSet` 조건 하나에 기대지 않는다.** 조건이 바뀌거나 zundo의 `equality`·`diff` 옵션이 추가되면 토글이 기록될 수 있다. 별도 store는 zundo를 거치지 않는다.
 - **생명주기와 부수효과가 다르다.** 접힘 상태는 `localStorage`와 다른 탭의 `storage` 이벤트를 따라 바뀐다. editor store는 서버 데이터와 맞춰 가는 편집 상태다.
-- **토글할 때 `handleSet`의 비교 비용이 들지 않는다.** `handleSet`은 editor store의 `set`마다 노드를 짝지어 비교한다.
+- **접기·펼치기는 undo 대상이 아니다.** 서버와 무관한 화면 상태다.
 
-같은 이유로 React Flow 노드의 `hidden` 속성도 쓰지 않는다. `nodes`는 history 기록 대상이라 `hidden`이 스냅숏에 들어가고, undo가 접힘 상태까지 되돌린다. 숨길 노드는 `useVisibleElements`가 배열에서 걸러 내고, 걸러 낸 배열을 레이아웃 계산과 화면 표시에 함께 넘긴다.
+같은 이유로 React Flow 노드의 `hidden` 속성도 쓰지 않는다. `nodes`에 두면 삭제 기록과 실패 복구용으로 보관하는 노드에 `hidden`이 함께 담겨, 되살릴 때 그때의 접힘 상태가 돌아온다. 숨길 노드는 `useVisibleElements`가 배열에서 걸러 내고, 걸러 낸 배열을 레이아웃 계산과 화면 표시에 함께 넘긴다.
 
 ### 삭제된 노드의 ID는 복원할 때만 정리한다
 
 저장된 접힘 목록에는 그 사이 삭제된 노드의 `serverId`가 남을 수 있다. 편집기에 들어와 `restoreCollapse`로 복원할 때, 조회한 트리에 있는 노드만 남기고 줄었으면 다시 저장한다.
 
-- **세션 중 노드를 삭제할 때는 정리하지 않는다.** 삭제를 undo하면 노드가 돌아오는데, 목록에서 이미 지웠다면 펼쳐진 채로 돌아온다.
+- **세션 중 노드를 삭제할 때는 정리하지 않는다.** 삭제 요청이 실패하면 노드가 같은 `serverId`로 돌아오는데, 목록에서 이미 지웠다면 펼쳐진 채로 돌아온다. 삭제를 undo해 되살린 노드는 `serverId`가 새로 정해지므로 접힘 상태가 돌아오지 않는다.
 - **다른 탭에서 받은 목록도 정리하지 않는다.** 이 탭에 없는 `serverId`는 다른 탭에서 방금 만든 노드일 수 있다. 걸러 낸 채로 이 탭이 저장하면 그 탭의 접힘을 덮어쓴다. 이 탭의 어떤 노드와도 맞지 않는 ID는 화면에 영향이 없고, 정말 삭제된 노드라면 다음 복원 때 걸러진다.
 
 ## 강조와 포커싱
@@ -116,7 +114,7 @@ editor store 초기화는 트리당 한 번만 수행한다. `useInitializeTree`
 
 ### 강조를 editor store와 따로 두는 이유
 
-접힘 상태와 같은 이유다. 강조는 undo 대상이 아니고, editor store의 `set`마다 도는 `handleSet` 비교를 거칠 이유도 없다. React Flow 노드의 `className`에 써 넣는 방식도 `nodes`가 history 스냅숏에 들어가므로 쓰지 않는다.
+접힘 상태와 같은 이유다. 강조는 서버와 무관한 화면 상태라 undo 대상이 아니다. React Flow 노드의 `className`에 써 넣는 방식도 삭제 기록과 실패 복구용 보관값에 함께 담기므로 쓰지 않는다.
 
 `CustomNode`는 자기 `id`가 강조 집합에 있는지만 boolean으로 구독한다. 강조 집합이 바뀌어도 결과가 같은 노드는 다시 그려지지 않는다. 테두리는 래퍼 `.react-flow__node`가 그리므로 `.custom-node`의 `data-highlighted`를 `:has()`로 읽어 래퍼에 `outline`을 그린다. 선택은 `border-color`를 바꾸므로 강조된 노드를 선택해도 둘 다 보인다.
 
@@ -136,7 +134,7 @@ editor store 초기화는 트리당 한 번만 수행한다. `useInitializeTree`
 
 여러 조상은 `expandAll`로 한 번에 펼친다. `expand`를 조상마다 부르면 그때마다 `localStorage`에 쓰고 다른 탭에 `storage` 이벤트를 일으킨다.
 
-선택은 `selectOnlyNodeInStore`로 바꾼다. `selected`만 바뀌므로 `handleSet`의 기록 조건에 걸리지 않아 undo history에 들어가지 않는다.
+선택은 `selectOnlyNodeInStore`로 바꾼다.
 
 ### 화면 이동은 레이아웃 뒤에 한다
 
@@ -162,7 +160,7 @@ editor store 초기화는 트리당 한 번만 수행한다. `useInitializeTree`
 
 노드에 태그를 붙이고 떼는 일은 store에 먼저 반영하고 서버에 요청한다. 새 이름으로 붙이면 태그 ID가 있어야 하므로 트리 태그를 먼저 만들고 응답을 받은 뒤 붙인다. 이때 연결만 실패하면 태그는 트리에 남는다. 서버에 저장되기 전인 노드(`serverId`가 `null`)에는 요청을 보낼 수 없어 막는다.
 
-태그 store action은 `tagIds`만 바꾸므로 `handleSet`의 기록 조건에 걸리지 않는다. 요청이 실패하면 `undo()`가 아니라 반대 action으로 되돌린다(actions README의 "예외: history에 기록되지 않는 action"). 반대로 노드 추가·삭제를 undo하면 스냅숏의 `nodes`로 통째로 돌아가, 그 뒤에 바꾼 `tagIds`도 되돌아간다. `label`·`memo`에도 있는 한계다.
+태그 store action은 `tagIds`만 바꾼다. 요청이 실패하면 반대 action으로 그 태그만 되돌린다(actions README의 "값 단위 편집은 바꾼 값만 되돌린다"). 태그를 붙이고 떼는 편집 자체는 undo 대상이 아니다. 노드 추가·삭제를 undo/redo해 노드를 되살릴 때는 지운 시점의 `tagIds`와 메모를 함께 되살린다.
 
 태그 이름이 같은지는 앞뒤 공백을 지우고 대소문자를 무시해 비교한다(`getNormalizedTagName`). 백엔드의 이름 유니크 제약은 대소문자를 구분하지만, 같은 개념의 태그가 표기만 달리해 갈라지지 않도록 프론트가 정한 제품 규칙이다. 프론트가 더 엄격하므로 이 차이로 거절되지는 않는다. 다른 경로로 대소문자만 다른 두 태그가 이미 있으면 먼저 찾은 태그를 쓴다.
 

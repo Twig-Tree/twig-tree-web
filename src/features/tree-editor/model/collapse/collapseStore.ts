@@ -78,8 +78,8 @@ export const useCollapseStore = create<CollapseState>()((set, get) => {
       }
 
       /*
-      노드를 삭제해도 접힘 목록에서는 바로 지우지 않는다(삭제를 undo하면 접힘 상태도 돌아와야 한다).
-      그래서 삭제된 노드의 serverId가 남아 있을 수 있어, 여기서 조회한 트리에 있는 노드만 남긴다.
+      노드를 삭제해도 접힘 목록에서는 바로 지우지 않는다(삭제 요청이 실패하면 노드가 같은 serverId로 돌아오므로,
+      지워 두면 펼쳐진 채로 돌아온다). 그래서 삭제된 노드의 serverId가 남아 있을 수 있어, 여기서 조회한 트리에 있는 노드만 남긴다.
       */
       const existingServerIds = new Set(
         nodes.flatMap((node) =>
