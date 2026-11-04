@@ -512,6 +512,47 @@ describe("useUndoRedo", () => {
     });
 
     /*
+    정리 삭제까지 실패하면 서버에 만든 루트가 남는다. 기록을 돌려놓으면 다음 undo가 같은 하위 트리를 또 만들므로 기록을 비운다.
+    */
+    it("정리 요청까지 실패하면 지운 상태로 되돌리고, 기록을 비우고 새로고침을 안내한다", async () => {
+      const entry = createDeleteEntry();
+      useTreeStore.getState().deleteNodeFromStore(["c3", "c21"]);
+      const { nodes: deletedNodes, edges: deletedEdges } =
+        useTreeStore.getState();
+      useEditHistoryStore.getState().record(moveEntry);
+      useEditHistoryStore.getState().record(entry);
+      vi.spyOn(treeApi, "createNode")
+        .mockResolvedValueOnce(createServerNode("30", "1", 2))
+        .mockRejectedValueOnce(new Error("failed"));
+      vi.spyOn(treeApi, "moveNode").mockResolvedValue({
+        siblings: [],
+        previousSiblings: [],
+      });
+      vi.spyOn(memoApi, "updateMemo").mockResolvedValue({
+        title: "node 3",
+        content: "지운 메모",
+      });
+      vi.spyOn(tagApi, "addNodeTag").mockResolvedValue(TREE_TAGS[0]);
+      const deleteNodeSpy = vi
+        .spyOn(treeApi, "deleteNode")
+        .mockRejectedValue(new Error("cleanup failed"));
+      const alertSpy = vi.spyOn(window, "alert").mockImplementation(() => {});
+      const { result } = renderUndoRedo();
+
+      act(() => result.current.handleUndo());
+
+      await waitFor(() =>
+        expect(alertSpy).toHaveBeenCalledExactlyOnceWith(
+          "되돌리기에 실패했습니다. 일부 노드가 서버에 남았을 수 있으니 새로고침해 주세요.",
+        ),
+      );
+      expect(deleteNodeSpy).toHaveBeenCalledExactlyOnceWith(10, 30);
+      expect(useTreeStore.getState().nodes).toEqual(deletedNodes);
+      expect(useTreeStore.getState().edges).toEqual(deletedEdges);
+      expect(getHistory()).toEqual({ past: [], future: [] });
+    });
+
+    /*
     루트를 옮기면 서버가 형제 순번을 다시 매긴다(c3 → 1, c2 → 2). 정리 삭제 뒤에는 다시 매기지 않으므로 서버의 c2는 2로 남는다.
     store를 요청 전 순번(c2 → 1)으로 되돌리면 다음 추가가 2를 보내 서버의 c2와 겹친다.
     */

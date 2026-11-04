@@ -36,18 +36,26 @@ const FAILURE_MESSAGE: Record<HistoryDirection, string> = {
   redo: "다시 실행에 실패했습니다.",
 };
 
+const CLEANUP_FAILURE_GUIDE =
+  "일부 노드가 서버에 남았을 수 있으니 새로고침해 주세요."; // 삭제의 undo와 추가의 redo가 함께 쓴다.
+
 /*
-하위 트리 루트를 원래 자리로 옮긴 뒤에 되살리기가 실패했음을 알린다. 서버는 이동하면서 형제 순번을 다시 매기고
-정리 삭제 뒤에는 다시 매기지 않으므로, 구조 복구로 요청 전 순번을 되돌리면 store와 서버의 순번이 어긋난다.
-그러면 다음 추가의 orderIndex가 서버의 기존 노드와 겹쳐 DUPLICATED_ORDER_ID가 난다.
-그래서 이동 응답에서 루트만 뺀 형제 순번을 실어 보내고, 구조를 복구한 뒤 그 순번으로 맞춘다.
+하위 트리 루트를 서버에 만든 뒤 되살리기가 실패했음을 알린다. 실패 처리는 runHistory가 구조를 복구한 뒤에 하므로,
+그때 필요한 서버 상태를 실어 보낸다.
+
+- siblingsWithoutRoot: 서버는 이동하면서 형제 순번을 다시 매기고 정리 삭제 뒤에는 다시 매기지 않는다. 구조 복구로
+  요청 전 순번을 되돌리면 다음 추가의 orderIndex가 서버의 기존 노드와 겹쳐 DUPLICATED_ORDER_ID가 나므로,
+  이동 응답에서 루트만 뺀 형제 순번으로 맞춘다.
+- isCleanupFailed: 정리 삭제까지 실패하면 서버에 만든 노드가 남는다. 이 기록을 돌려놓으면 다음 undo가 같은 하위 트리를
+  또 만들어 서버에 중복이 생기므로, 기록을 비우고 새로고침을 안내한다.
 */
-class RecreateFailedAfterMoveError extends Error {
+class RecreateSubtreeFailedError extends Error {
   constructor(
-    readonly siblingsWithoutRoot: TreeNode[], // 이동 응답의 형제 목록에서 되살리던 루트를 뺀 값
+    readonly siblingsWithoutRoot: TreeNode[] | null, // 이동 응답의 형제 목록에서 되살리던 루트를 뺀 값. 옮기지 않았으면 null
+    readonly isCleanupFailed: boolean, // 만든 하위 트리 루트를 지우는 정리 요청까지 실패했는가
     cause: unknown, // 되살리기를 멈추게 한 실제 오류
   ) {
-    super("하위 트리 루트를 옮긴 뒤 되살리기에 실패했습니다.", { cause });
+    super("하위 트리 루트를 만든 뒤 되살리기에 실패했습니다.", { cause });
   }
 }
 
@@ -228,7 +236,7 @@ export const useUndoRedo = ({ treeId }: UseUndoRedoParams) => {
   4. 노드를 만들 때마다 메모와 태그를 되살린다. 그 사이 트리에서 지워진 태그는 건너뛴다. 트리 태그 목록으로 미리 거르고,
      목록이 아직 없거나 낡아서 서버가 TAG404-1로 거절한 태그도 화면에서 빼고 넘어간다.
   중간에 실패하면 만든 하위 트리 루트를 지워 서버에 일부만 남지 않게 한다. 하위 노드는 서버가 함께 지운다.
-  루트를 옮긴 뒤에 실패했다면 RecreateFailedAfterMoveError로 서버가 다시 매긴 형제 순번을 함께 넘긴다.
+  루트를 만든 뒤에 실패했다면 RecreateSubtreeFailedError로 서버가 다시 매긴 형제 순번과 정리 성공 여부를 함께 넘긴다.
   */
   const recreateSubtree = async (
     treeId: string,
@@ -339,14 +347,18 @@ export const useUndoRedo = ({ treeId }: UseUndoRedoParams) => {
 
       const rootServerId = createdRootServerId;
 
-      await deleteNodeOnServer({ treeId, nodeId: rootServerId }).catch(
-        () => {}, // 정리 요청까지 실패하면 서버에 일부가 남는다. 새로고침하면 그 상태가 보인다.
+      const isCleanupFailed = await deleteNodeOnServer({
+        treeId,
+        nodeId: rootServerId,
+      }).then(
+        () => false,
+        () => true,
       );
 
-      if (siblingsAfterMove === null) throw error;
-
-      throw new RecreateFailedAfterMoveError(
-        siblingsAfterMove.filter((sibling) => sibling.id !== rootServerId),
+      throw new RecreateSubtreeFailedError(
+        siblingsAfterMove?.filter((sibling) => sibling.id !== rootServerId) ??
+          null,
+        isCleanupFailed,
         error,
       );
     }
@@ -418,8 +430,19 @@ export const useUndoRedo = ({ treeId }: UseUndoRedoParams) => {
 
       restoreStructureInStore({ nodes, edges });
 
-      if (error instanceof RecreateFailedAfterMoveError) {
-        applySiblingOrderInStore([error.siblingsWithoutRoot]);
+      if (error instanceof RecreateSubtreeFailedError) {
+        if (error.siblingsWithoutRoot) {
+          applySiblingOrderInStore([error.siblingsWithoutRoot]);
+        }
+
+        /*
+        서버에 노드가 남았으므로 기록을 돌려놓지 않는다. 화면과 서버가 어긋난 상태라 이전 기록도 믿을 수 없어 함께 비운다.
+        */
+        if (error.isCleanupFailed) {
+          useEditHistoryStore.getState().clear();
+          alert(`${FAILURE_MESSAGE[direction]} ${CLEANUP_FAILURE_GUIDE}`);
+          return;
+        }
       }
 
       if (direction === "undo") {
