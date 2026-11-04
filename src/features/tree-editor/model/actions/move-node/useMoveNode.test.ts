@@ -139,7 +139,7 @@ describe("useMoveNode", () => {
     );
   });
 
-  it("서버가 거절하면 undo로 되돌리고 사유를 알린다", async () => {
+  it("서버가 거절하면 이동 전 구조로 되돌리고 사유를 알린다", async () => {
     server.use(
       http.patch("*/api/trees/:treeId/nodes/:nodeId/move", () =>
         HttpResponse.json(
@@ -171,6 +171,7 @@ describe("useMoveNode", () => {
     );
     expect(getChildClientIds("c2")).toEqual(["c21", "c22", "c23"]);
     expect(getChildClientIds("c3")).toEqual([]);
+    expect(useTreeStore.temporal.getState().pastStates).toHaveLength(0);
   });
 
   it("저장되지 않은 노드는 알리고 옮기지 않는다", () => {

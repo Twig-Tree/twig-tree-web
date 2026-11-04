@@ -43,6 +43,9 @@ interface TreeState {
   removeTagFromAllNodesInStore: (tagId: string) => void;
   moveNodeInStore: (params: MoveNodeParams) => void;
   applySiblingOrderInStore: (siblingGroups: TreeNode[][]) => void;
+  restoreStructureInStore: (
+    previousElements: Pick<TreeState, "nodes" | "edges">,
+  ) => void;
 }
 
 export const useTreeStore = create<TreeState>()(
@@ -241,6 +244,55 @@ export const useTreeStore = create<TreeState>()(
         const nextNodes = getNodesInServerSiblingOrder(nodes, siblingGroups);
 
         if (nextNodes !== nodes) set({ nodes: nextNodes });
+      },
+
+      /*
+      요청 전에 보관한 노드·엣지로 구조만 되돌린다. 먼저 반영한 추가·삭제·이동이 서버에서 실패했을 때 쓴다.
+      구조는 노드 집합과 배열 순서, orderIndex, 엣지다. 지금 store에만 있는 노드는 먼저 반영한 추가이므로 빠지고,
+      보관한 값에만 있는 노드는 먼저 반영한 삭제이므로 보관한 값으로 되살아난다.
+
+      이동을 반대로 다시 적용하지 않는 것은 형제 orderIndex를 1..n으로 다시 매기기 때문이다. 서버는 삭제 뒤 순번을
+      다시 매기지 않아 빈 번호가 있을 수 있는데, store만 다시 매기면 다음 추가의 orderIndex가 서버의 기존 노드와 겹친다.
+
+      label·memo·tagIds와 선택·좌표 같은 나머지 값은 지금 값을 둔다. 요청 중에도 제목·메모·태그 편집은 막혀 있지 않아,
+      보관한 값으로 덮으면 그 사이 서버에 저장된 편집이 화면에서 사라진다.
+      */
+      restoreStructureInStore: (previousElements) => {
+        const currentNodeById = new Map(
+          get().nodes.map((node) => [node.id, node]),
+        );
+
+        const restoredNodes = previousElements.nodes.map((previousNode) => {
+          const currentNode = currentNodeById.get(previousNode.id);
+
+          if (!currentNode) return previousNode;
+
+          // orderIndex가 그대로인 노드는 객체를 재사용해 다시 그려지지 않게 한다.
+          return currentNode.data.orderIndex === previousNode.data.orderIndex
+            ? currentNode
+            : {
+                ...currentNode,
+                data: {
+                  ...currentNode.data,
+                  orderIndex: previousNode.data.orderIndex,
+                },
+              };
+        });
+
+        /*
+        복구는 history에 남기지 않고, 먼저 반영한 편집의 기록도 지운다. 복구를 기록하면 Undo가 복구를 되돌려 실패한 편집이
+        화면에 다시 나타나고, 먼저 반영한 편집을 남기면 서버에 반영된 적 없는 편집이 Undo·Redo 대상이 된다.
+        요청 중에는 구조 편집이 잠겨 있으므로 history의 마지막 항목이 먼저 반영한 편집이다.
+        */
+        const { isTracking, pause, resume } = useTreeStore.temporal.getState();
+
+        pause();
+        set({ nodes: restoredNodes, edges: previousElements.edges });
+        if (isTracking) resume();
+
+        useTreeStore.temporal.setState(({ pastStates }) => ({
+          pastStates: pastStates.slice(0, -1),
+        }));
       },
     }),
     {

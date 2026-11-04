@@ -9,7 +9,7 @@ interface UseDeleteNodeParams {
 
 /*
 함수 이름 : useDeleteNode
-기능 : 선택된 노드를 루트로 하는 서브트리를 optimistic update로 editor store에서 삭제하고, 서버 요청 실패 시 삭제 전 상태로 rollback한다.
+기능 : 선택된 노드를 루트로 하는 서브트리를 optimistic update로 editor store에서 삭제하고, 서버 요청 실패 시 삭제 전 구조로 rollback한다.
 인자 : UseDeleteNodeParams
 반환값 : 노드 삭제 핸들러와 노드 삭제 mutation 상태
 */
@@ -19,6 +19,9 @@ export const useDeleteNode = ({
 }: UseDeleteNodeParams) => {
   const deleteNodeFromStore = useTreeStore(
     (state) => state.deleteNodeFromStore,
+  );
+  const restoreStructureInStore = useTreeStore(
+    (state) => state.restoreStructureInStore,
   );
   const {
     mutate: deleteNodeOnServer,
@@ -42,7 +45,7 @@ export const useDeleteNode = ({
       return;
     }
 
-    const edges = useTreeStore.getState().edges;
+    const { nodes, edges } = useTreeStore.getState(); // 실패하면 이 삭제 전 구조로 되돌린다.
 
     const hasParent = edges.some((edge) => edge.target === selectedNode.id); // 부모 엣지가 없으면 루트 노드로 판단한다.
 
@@ -87,10 +90,10 @@ export const useDeleteNode = ({
       },
       {
         /*
-        서버 요청이 실패하면 삭제 전의 editor store 상태로 복구한다.
+        서버 요청이 실패하면 삭제 전 구조로 되돌린다. 지운 노드는 삭제 전 값으로 되살아난다.
         */
         onError: () => {
-          useTreeStore.temporal.getState().undo();
+          restoreStructureInStore({ nodes, edges });
           alert("노드 삭제에 실패했습니다.");
         },
       },

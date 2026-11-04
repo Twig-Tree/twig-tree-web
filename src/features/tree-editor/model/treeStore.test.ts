@@ -313,3 +313,125 @@ describe("onNodesChange", () => {
     });
   });
 });
+
+describe("restoreStructureInStore", () => {
+  const createOrderedNode = (clientId: string, orderIndex: number) =>
+    createEditorNode({
+      clientId,
+      serverId: `s-${clientId}`,
+      label: clientId,
+      orderIndex,
+      x: 0,
+      y: 0,
+    });
+
+  /*
+  r 밑에 a(1), b(2), d(4)가 있다. 3번 노드가 지워진 뒤라 서버 순번에 빈 번호가 있다.
+  */
+  beforeEach(() => {
+    useTreeStore.getState().initializeTree({
+      treeId: "5",
+      nodes: [
+        createOrderedNode("r", 1),
+        createOrderedNode("a", 1),
+        createOrderedNode("b", 2),
+        createOrderedNode("d", 4),
+      ],
+      edges: [
+        createEditorEdge({ sourceClientId: "r", targetClientId: "a" }),
+        createEditorEdge({ sourceClientId: "r", targetClientId: "b" }),
+        createEditorEdge({ sourceClientId: "r", targetClientId: "d" }),
+      ],
+    });
+    useTreeStore.temporal.getState().clear();
+  });
+
+  afterEach(() => {
+    useTreeStore.getState().resetTree();
+    useTreeStore.temporal.getState().clear();
+  });
+
+  const getOrder = () =>
+    useTreeStore
+      .getState()
+      .nodes.map((node) => `${node.id}:${node.data.orderIndex}`);
+
+  it("이동을 되돌리면 다시 매기지 않고 보관한 배열 순서와 orderIndex로 돌아간다", () => {
+    const { nodes, edges } = useTreeStore.getState();
+
+    useTreeStore
+      .getState()
+      .moveNodeInStore({ clientId: "d", parentClientId: "r", position: 1 });
+    useTreeStore.getState().restoreStructureInStore({ nodes, edges });
+
+    expect(getOrder()).toEqual(["r:1", "a:1", "b:2", "d:4"]);
+    expect(useTreeStore.getState().edges).toBe(edges);
+  });
+
+  it("그 사이 바뀐 label과 tagIds는 지금 값을 둔다", () => {
+    const { nodes, edges } = useTreeStore.getState();
+    const { moveNodeInStore, updateNodeLabelInStore, addTagToNodeInStore } =
+      useTreeStore.getState();
+
+    moveNodeInStore({ clientId: "d", parentClientId: "r", position: 1 });
+    updateNodeLabelInStore("a", "renamed");
+    addTagToNodeInStore("d", "t1");
+    useTreeStore.getState().restoreStructureInStore({ nodes, edges });
+
+    const nodeById = new Map(
+      useTreeStore.getState().nodes.map((node) => [node.id, node]),
+    );
+    expect(nodeById.get("a")?.data.label).toBe("renamed");
+    expect(nodeById.get("d")?.data.tagIds).toEqual(["t1"]);
+  });
+
+  it("삭제를 되돌리면 지운 노드와 엣지가 원래 자리로 돌아온다", () => {
+    const { nodes, edges } = useTreeStore.getState();
+
+    useTreeStore.getState().deleteNodeFromStore(["b"]);
+    useTreeStore.getState().restoreStructureInStore({ nodes, edges });
+
+    expect(getOrder()).toEqual(["r:1", "a:1", "b:2", "d:4"]);
+    expect(useTreeStore.getState().edges).toEqual(edges);
+  });
+
+  it("추가를 되돌리면 추가한 노드와 엣지만 빠진다", () => {
+    const { nodes, edges } = useTreeStore.getState();
+
+    useTreeStore
+      .getState()
+      .addNodeToStore(
+        createOrderedNode("e", 5),
+        createEditorEdge({ sourceClientId: "r", targetClientId: "e" }),
+      );
+    useTreeStore.getState().restoreStructureInStore({ nodes, edges });
+
+    expect(getOrder()).toEqual(["r:1", "a:1", "b:2", "d:4"]);
+    expect(useTreeStore.getState().edges).toEqual(edges);
+  });
+
+  /*
+  복구가 기록되면 Undo가 실패한 편집을 다시 보여 주고, 먼저 반영한 편집이 남으면 서버에 없는 편집이 Undo 대상이 된다.
+  */
+  it("먼저 반영한 편집의 기록을 지우고 복구는 기록하지 않는다", () => {
+    const { deleteNodeFromStore, moveNodeInStore } = useTreeStore.getState();
+
+    deleteNodeFromStore(["a"]);
+    const { nodes, edges } = useTreeStore.getState();
+
+    moveNodeInStore({ clientId: "d", parentClientId: "r", position: 1 });
+    useTreeStore.getState().restoreStructureInStore({ nodes, edges });
+
+    const { pastStates, futureStates, isTracking } =
+      useTreeStore.temporal.getState();
+    expect(pastStates).toHaveLength(1);
+    expect(pastStates[0].nodes?.map((node) => node.id)).toEqual([
+      "r",
+      "a",
+      "b",
+      "d",
+    ]);
+    expect(futureStates).toHaveLength(0);
+    expect(isTracking).toBe(true);
+  });
+});

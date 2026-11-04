@@ -37,7 +37,7 @@ const getMoveNodeErrorMessage = (error: unknown): string => {
 /*
 함수 이름 : useMoveNode
 기능 : 노드를 하위 트리째 목적지 부모 밑의 position 번째로 옮기는 함수를 만든다. editor store에 먼저 반영하고,
-성공하면 서버가 다시 매긴 형제 순서로 store를 맞추며, 실패하면 undo로 되돌린다.
+성공하면 서버가 다시 매긴 형제 순서로 store를 맞추며, 실패하면 이동 전 구조로 되돌린다.
 인자 : UseMoveNodeParams
 반환값 : 노드 이동 함수와 노드 이동 mutation 상태
 */
@@ -45,6 +45,9 @@ export const useMoveNode = ({ treeId }: UseMoveNodeParams) => {
   const moveNodeInStore = useTreeStore((state) => state.moveNodeInStore);
   const applySiblingOrderInStore = useTreeStore(
     (state) => state.applySiblingOrderInStore,
+  );
+  const restoreStructureInStore = useTreeStore(
+    (state) => state.restoreStructureInStore,
   );
   const { mutate: moveNodeOnServer, isPending: isMovingNode } =
     useMoveNodeMutation();
@@ -78,7 +81,7 @@ export const useMoveNode = ({ treeId }: UseMoveNodeParams) => {
     }
 
     /*
-    서버 응답을 기다리기 전에 editor store에 이동을 반영한다. 부모나 orderIndex가 바뀌므로 history에 기록되어 실패 시 undo로 되돌릴 수 있다.
+    서버 응답을 기다리기 전에 editor store에 이동을 반영한다. 실패하면 위에서 읽어 둔 이동 전 nodes·edges로 구조를 되돌린다.
     */
     moveNodeInStore({ clientId, parentClientId, position });
 
@@ -91,11 +94,8 @@ export const useMoveNode = ({ treeId }: UseMoveNodeParams) => {
         onSuccess: ({ siblings, previousSiblings }) => {
           applySiblingOrderInStore([siblings, previousSiblings]);
         },
-        /*
-        요청 중에는 편집이 잠겨 있으므로 history의 마지막 항목이 방금 반영한 이동이다.
-        */
         onError: (error) => {
-          useTreeStore.temporal.getState().undo();
+          restoreStructureInStore({ nodes, edges });
           alert(getMoveNodeErrorMessage(error));
         },
       },
