@@ -16,15 +16,17 @@ describe("workspaceLabConfigReducer", () => {
   });
 
   it("테마를 바꾸면 색 역할을 테마 기본으로 되돌린다", () => {
-    const next = workspaceLabConfigReducer(modifiedConfig, { theme: "soft" });
+    const next = workspaceLabConfigReducer(modifiedConfig, {
+      colorTheme: "soft",
+    });
 
-    expect(next.theme).toBe("soft");
+    expect(next.colorTheme).toBe("soft");
     expect(next.colorRoles).toEqual(workspaceLabDefaultColorRoles);
   });
 
   it("같은 테마를 다시 고르면 색 역할을 유지한다", () => {
     const next = workspaceLabConfigReducer(modifiedConfig, {
-      theme: modifiedConfig.theme,
+      colorTheme: modifiedConfig.colorTheme,
     });
 
     expect(next.colorRoles.accent).toBe("teal");
@@ -32,7 +34,7 @@ describe("workspaceLabConfigReducer", () => {
 
   it("테마와 색 역할을 함께 넘기면 넘긴 색 역할을 쓴다", () => {
     const next = workspaceLabConfigReducer(modifiedConfig, {
-      theme: "soft",
+      colorTheme: "soft",
       colorRoles: { ...workspaceLabDefaultColorRoles, accent: "rose" },
     });
 

@@ -1,6 +1,6 @@
 import type { CSSProperties } from "react";
 
-export interface WorkspaceLabThemeTokens {
+export interface WorkspaceLabColorThemeTokens {
   previewBackground: string;
   previewPattern: string;
   previewPatternSize: string;
@@ -20,15 +20,12 @@ export interface WorkspaceLabThemeTokens {
   lecture: string;
   danger: string;
   edge: string;
-  nodeRadius: string;
-  nodeShadow: string;
+  shadowInk: string; // 형태 슬롯의 그림자가 섞어 쓰는 색
   selectedRing: string;
-  selectedShadow: string;
   rootSurface: string;
   rootBorder: string;
   rootText: string;
   rootMutedText: string;
-  rootShadow: string;
   rootControlSurface: string;
   rootControlText: string;
   savedSurface: string;
@@ -50,20 +47,18 @@ export interface WorkspaceLabThemeTokens {
   toolbarText: string;
   toolbarHoverSurface: string;
   toolbarHoverText: string;
-  toolbarShadow: string;
   playerSurface: string;
   playerBorder: string;
-  playerShadow: string;
 }
 
-export interface WorkspaceLabThemeDefinition {
+export interface WorkspaceLabColorThemeDefinition {
   id: string;
   name: string;
   description: string;
-  tokens: WorkspaceLabThemeTokens;
+  tokens: WorkspaceLabColorThemeTokens;
 }
 
-const neutralTokens: WorkspaceLabThemeTokens = {
+const neutralTokens: WorkspaceLabColorThemeTokens = {
   previewBackground: "#e9edf2",
   previewPattern: "radial-gradient(#cbd2dc 0.75px, transparent 0.75px)",
   previewPatternSize: "12px 12px",
@@ -83,15 +78,12 @@ const neutralTokens: WorkspaceLabThemeTokens = {
   lecture: "#06b6d4",
   danger: "#dc2626",
   edge: "#a6afbe",
-  nodeRadius: "14px",
-  nodeShadow: "0 8px 24px rgb(15 23 42 / 8%)",
+  shadowInk: "#0f172a",
   selectedRing: "rgb(79 70 229 / 18%)",
-  selectedShadow: "0 8px 24px rgb(15 23 42 / 8%)",
   rootSurface: "#ffffff",
   rootBorder: "#b9b5e8",
   rootText: "#172033",
   rootMutedText: "#778195",
-  rootShadow: "0 8px 24px rgb(15 23 42 / 8%)",
   rootControlSurface: "#ffffff",
   rootControlText: "#778195",
   savedSurface: "#ecfdf5",
@@ -113,13 +105,11 @@ const neutralTokens: WorkspaceLabThemeTokens = {
   toolbarText: "#64748b",
   toolbarHoverSurface: "#f1f5f9",
   toolbarHoverText: "#4f46e5",
-  toolbarShadow: "0 10px 24px rgb(15 23 42 / 12%)",
   playerSurface: "rgb(255 255 255 / 95%)",
   playerBorder: "#e2e8f0",
-  playerShadow: "0 10px 24px rgb(15 23 42 / 12%)",
 };
 
-const quietTokens: WorkspaceLabThemeTokens = {
+const quietTokens: WorkspaceLabColorThemeTokens = {
   ...neutralTokens,
   previewBackground: "#dfe5de",
   previewPattern:
@@ -139,15 +129,12 @@ const quietTokens: WorkspaceLabThemeTokens = {
   lecture: "#168c87",
   danger: "#c84949",
   edge: "#9caaa2",
-  nodeRadius: "12px",
-  nodeShadow: "0 1px 2px rgb(23 42 33 / 7%), 0 8px 24px rgb(23 42 33 / 6%)",
+  shadowInk: "#172a21",
   selectedRing: "rgb(103 87 217 / 18%)",
-  selectedShadow: "0 12px 30px rgb(23 42 33 / 20%)",
   rootSurface: "#203029",
   rootBorder: "#203029",
   rootText: "#f9fbf8",
   rootMutedText: "#aebbb4",
-  rootShadow: "0 1px 2px rgb(9 20 14 / 22%), 0 12px 30px rgb(23 42 33 / 20%)",
   rootControlSurface: "#6757d9",
   rootControlText: "#ffffff",
   savedSurface: "#ecf4ec",
@@ -169,13 +156,11 @@ const quietTokens: WorkspaceLabThemeTokens = {
   toolbarText: "#cbd5cf",
   toolbarHoverSurface: "rgb(255 255 255 / 10%)",
   toolbarHoverText: "#ffffff",
-  toolbarShadow: "0 14px 32px rgb(23 42 33 / 22%)",
   playerSurface: "rgb(255 254 250 / 95%)",
   playerBorder: "#d4dcd2",
-  playerShadow: "0 14px 34px rgb(23 42 33 / 14%)",
 };
 
-const softTokens: WorkspaceLabThemeTokens = {
+const softTokens: WorkspaceLabColorThemeTokens = {
   ...neutralTokens,
   canvas: "#f7f5ff",
   surface: "#fffafd",
@@ -190,15 +175,12 @@ const softTokens: WorkspaceLabThemeTokens = {
   highlight: "#ec4899",
   lecture: "#0ea5e9",
   edge: "#b9a9c6",
-  nodeRadius: "20px",
-  nodeShadow: "0 10px 30px rgb(89 64 120 / 11%)",
+  shadowInk: "#594078",
   selectedRing: "rgb(139 92 246 / 18%)",
-  selectedShadow: "0 10px 30px rgb(89 64 120 / 15%)",
   rootSurface: "#fffafd",
   rootBorder: "#cbb8e0",
   rootText: "#31233d",
   rootMutedText: "#8a7895",
-  rootShadow: "0 10px 30px rgb(89 64 120 / 11%)",
   searchSurface: "#f7f1fb",
   outlineHoverSurface: "#f7f1fb",
   tagSurface: "#f7f1fb",
@@ -207,7 +189,7 @@ const softTokens: WorkspaceLabThemeTokens = {
   toolbarHoverText: "#8b5cf6",
 };
 
-const contrastTokens: WorkspaceLabThemeTokens = {
+const contrastTokens: WorkspaceLabColorThemeTokens = {
   ...neutralTokens,
   canvas: "#f4f5f7",
   surfaceMuted: "#eef0f3",
@@ -219,12 +201,9 @@ const contrastTokens: WorkspaceLabThemeTokens = {
   highlight: "#b45309",
   lecture: "#0369a1",
   edge: "#111827",
-  nodeRadius: "6px",
-  nodeShadow: "3px 3px 0 rgb(17 24 39 / 88%)",
+  shadowInk: "#111827",
   selectedRing: "rgb(67 56 202 / 24%)",
-  selectedShadow: "3px 3px 0 rgb(17 24 39 / 88%)",
   rootBorder: "#111827",
-  rootShadow: "3px 3px 0 rgb(17 24 39 / 88%)",
   rootControlText: "#111827",
   shareBorder: "#111827",
   searchSurface: "#eef0f3",
@@ -233,16 +212,14 @@ const contrastTokens: WorkspaceLabThemeTokens = {
   tagBorder: "#111827",
   tagText: "#111827",
   toolbarBorder: "#111827",
-  toolbarShadow: "3px 3px 0 rgb(17 24 39 / 88%)",
   playerBorder: "#111827",
-  playerShadow: "3px 3px 0 rgb(17 24 39 / 88%)",
 };
 
 /*
 새 테마는 기존 tokens를 펼쳐 필요한 값만 덮어쓴 뒤 이 배열에 정의한다.
 id union, Inspector 옵션, 팔레트, CSS 변수 주입은 이 registry에서 자동으로 파생된다.
 */
-export const workspaceLabThemes = [
+export const workspaceLabColorThemes = [
   {
     id: "quiet",
     name: "Draft 01 · Quiet Focus",
@@ -268,10 +245,11 @@ export const workspaceLabThemes = [
     description: "강한 외곽선과 그림자로 정보 경계를 뚜렷하게 구분합니다.",
     tokens: contrastTokens,
   },
-] as const satisfies readonly WorkspaceLabThemeDefinition[];
+] as const satisfies readonly WorkspaceLabColorThemeDefinition[];
 
-export type WorkspaceLabThemeId = (typeof workspaceLabThemes)[number]["id"];
-export type WorkspaceLabTheme = (typeof workspaceLabThemes)[number];
+export type WorkspaceLabColorThemeId =
+  (typeof workspaceLabColorThemes)[number]["id"];
+export type WorkspaceLabColorTheme = (typeof workspaceLabColorThemes)[number];
 
 const tokenCssVariables = {
   previewBackground: "--lab-preview-background",
@@ -293,15 +271,12 @@ const tokenCssVariables = {
   lecture: "--lab-lecture",
   danger: "--lab-danger",
   edge: "--lab-edge",
-  nodeRadius: "--lab-node-radius",
-  nodeShadow: "--lab-node-shadow",
+  shadowInk: "--lab-shadow-ink",
   selectedRing: "--lab-selected-ring",
-  selectedShadow: "--lab-selected-shadow",
   rootSurface: "--lab-root-surface",
   rootBorder: "--lab-root-border",
   rootText: "--lab-root-text",
   rootMutedText: "--lab-root-muted",
-  rootShadow: "--lab-root-shadow",
   rootControlSurface: "--lab-root-control-surface",
   rootControlText: "--lab-root-control-text",
   savedSurface: "--lab-saved-surface",
@@ -323,28 +298,30 @@ const tokenCssVariables = {
   toolbarText: "--lab-toolbar-text",
   toolbarHoverSurface: "--lab-toolbar-hover-surface",
   toolbarHoverText: "--lab-toolbar-hover-text",
-  toolbarShadow: "--lab-toolbar-shadow",
   playerSurface: "--lab-player-surface",
   playerBorder: "--lab-player-border",
-  playerShadow: "--lab-player-shadow",
-} as const satisfies Record<keyof WorkspaceLabThemeTokens, `--lab-${string}`>;
+} as const satisfies Record<
+  keyof WorkspaceLabColorThemeTokens,
+  `--lab-${string}`
+>;
 
-type WorkspaceLabThemeStyle = CSSProperties &
+type WorkspaceLabColorThemeStyle = CSSProperties &
   Record<(typeof tokenCssVariables)[keyof typeof tokenCssVariables], string>;
 
-export function getWorkspaceLabTheme(id: WorkspaceLabThemeId) {
+export function getWorkspaceLabColorTheme(id: WorkspaceLabColorThemeId) {
   return (
-    workspaceLabThemes.find((theme) => theme.id === id) ?? workspaceLabThemes[0]
+    workspaceLabColorThemes.find((theme) => theme.id === id) ??
+    workspaceLabColorThemes[0]
   );
 }
 
-export function getWorkspaceLabThemeStyle(
-  theme: WorkspaceLabThemeDefinition,
-): WorkspaceLabThemeStyle {
-  const style = {} as WorkspaceLabThemeStyle;
+export function getWorkspaceLabColorThemeStyle(
+  theme: WorkspaceLabColorThemeDefinition,
+): WorkspaceLabColorThemeStyle {
+  const style = {} as WorkspaceLabColorThemeStyle;
 
   for (const tokenName of Object.keys(tokenCssVariables) as Array<
-    keyof WorkspaceLabThemeTokens
+    keyof WorkspaceLabColorThemeTokens
   >) {
     style[tokenCssVariables[tokenName]] = theme.tokens[tokenName];
   }
@@ -352,8 +329,8 @@ export function getWorkspaceLabThemeStyle(
   return style;
 }
 
-export function getWorkspaceLabThemePalette(
-  theme: WorkspaceLabThemeDefinition,
+export function getWorkspaceLabColorThemePalette(
+  theme: WorkspaceLabColorThemeDefinition,
 ) {
   return [
     { label: "Canvas", color: theme.tokens.canvas },

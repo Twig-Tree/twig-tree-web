@@ -47,9 +47,13 @@ import {
 } from "../model/config";
 import { getWorkspaceLabScenario } from "../model/scenarios";
 import {
-  getWorkspaceLabTheme,
-  getWorkspaceLabThemeStyle,
-} from "../model/themes";
+  getWorkspaceLabShapeCssStyle,
+  getWorkspaceLabShapeStyle,
+} from "../model/shape-styles";
+import {
+  getWorkspaceLabColorTheme,
+  getWorkspaceLabColorThemeStyle,
+} from "../model/color-themes";
 import {
   getWorkspaceLabPanelStyle,
   type WorkspaceLabPanelKind,
@@ -503,7 +507,7 @@ export function WorkspaceLab() {
     workspaceLabConfigReducer,
     workspaceLabDefaultConfig,
   );
-  const activeTheme = getWorkspaceLabTheme(config.theme);
+  const activeTheme = getWorkspaceLabColorTheme(config.colorTheme);
   const activeThemeTokens = useMemo(
     () => getWorkspaceLabColorTokens(activeTheme.tokens, config.colorRoles),
     [activeTheme, config.colorRoles],
@@ -513,13 +517,16 @@ export function WorkspaceLab() {
   return (
     <main
       className={`${styles.lab} flex h-full min-h-0 w-full bg-slate-100`}
-      data-theme={config.theme}
+      data-color-theme={config.colorTheme}
       data-density={config.density}
       style={{
-        ...getWorkspaceLabThemeStyle({
+        ...getWorkspaceLabColorThemeStyle({
           ...activeTheme,
           tokens: activeThemeTokens,
         }),
+        ...getWorkspaceLabShapeCssStyle(
+          getWorkspaceLabShapeStyle(config.shapeStyle),
+        ),
         ...getWorkspaceLabNodeDensityStyle(activeNodeDensity),
       }}
     >

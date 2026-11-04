@@ -10,7 +10,10 @@ import {
   workspaceLabRootColors,
   workspaceLabStatusColors,
 } from "./color-roles";
-import { getWorkspaceLabTheme, workspaceLabThemes } from "./themes";
+import {
+  getWorkspaceLabColorTheme,
+  workspaceLabColorThemes,
+} from "./color-themes";
 
 const roleCollections = [
   workspaceLabNeutralTones,
@@ -21,7 +24,7 @@ const roleCollections = [
   workspaceLabColorContrasts,
 ];
 
-const quietTokens = getWorkspaceLabTheme("quiet").tokens;
+const quietTokens = getWorkspaceLabColorTheme("quiet").tokens;
 
 describe("workspaceLab color roles", () => {
   it("각 역할 안의 ID가 겹치지 않고 테마 기본으로 시작한다", () => {
@@ -34,7 +37,7 @@ describe("workspaceLab color roles", () => {
   });
 
   it("모든 역할이 테마 기본이면 어느 테마든 토큰을 바꾸지 않는다", () => {
-    for (const theme of workspaceLabThemes) {
+    for (const theme of workspaceLabColorThemes) {
       expect(
         getWorkspaceLabColorTokens(theme.tokens, workspaceLabDefaultColorRoles),
       ).toEqual(theme.tokens);

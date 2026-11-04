@@ -14,7 +14,8 @@ import type {
   LabNodeShape,
   LabNodeState,
   LabPanelStyle,
-  LabTheme,
+  LabColorTheme,
+  LabShapeStyle,
   LabViewport,
   WorkspaceLabScenario,
 } from "./types";
@@ -29,8 +30,9 @@ export type WorkspaceLabConfig = {
   layoutSpacing: LabLayoutSpacing;
   nodeState: LabNodeState; // 첫 노드에 입힐 상태
   edgeState: LabEdgeState; // 첫 연결선에 입힐 상태
-  theme: LabTheme;
+  colorTheme: LabColorTheme;
   colorRoles: LabColorRoles;
+  shapeStyle: LabShapeStyle; // 곡률과 그림자
   canvasStyle: LabCanvasStyle;
   viewport: LabViewport;
   nodeShape: LabNodeShape;
@@ -54,8 +56,9 @@ export const workspaceLabDefaultConfig: WorkspaceLabConfig = {
   layoutSpacing: "balanced",
   nodeState: "selected",
   edgeState: "default",
-  theme: "quiet",
+  colorTheme: "quiet",
   colorRoles: workspaceLabDefaultColorRoles,
+  shapeStyle: "layered",
   canvasStyle: "dots",
   viewport: "desktop",
   nodeShape: "rounded",
@@ -73,7 +76,7 @@ export const workspaceLabDefaultConfig: WorkspaceLabConfig = {
 
 /*
 함수 이름 : workspaceLabConfigReducer
-기능 : 바뀐 필드를 현재 조합에 합친다. 테마가 바뀌고 색 역할을 함께 넘기지 않았으면 색 역할을 테마 기본으로 되돌린다.
+기능 : 바뀐 필드를 현재 조합에 합친다. 컬러 테마가 바뀌고 색 역할을 함께 넘기지 않았으면 색 역할을 테마 기본으로 되돌린다.
 인자 : WorkspaceLabConfig config -> 현재 조합
 WorkspaceLabConfigChange change -> 바꿀 필드
 반환값 : 다음 조합
@@ -85,11 +88,11 @@ export function workspaceLabConfigReducer(
   const next = { ...config, ...change };
 
   /*
-  테마는 색 역할의 출발점이다. 테마를 바꾸면 이전 테마 위에 덧씌운 역할 선택을 버린다.
+  컬러 테마는 색 역할의 출발점이다. 컬러 테마를 바꾸면 이전 테마 위에 덧씌운 역할 선택을 버린다.
   */
   if (
-    change.theme !== undefined &&
-    change.theme !== config.theme &&
+    change.colorTheme !== undefined &&
+    change.colorTheme !== config.colorTheme &&
     change.colorRoles === undefined
   ) {
     next.colorRoles = workspaceLabDefaultColorRoles;

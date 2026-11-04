@@ -1,6 +1,6 @@
-import type { WorkspaceLabThemeTokens } from "./themes";
+import type { WorkspaceLabColorThemeTokens } from "./color-themes";
 
-type ColorRoleOverride = Partial<WorkspaceLabThemeTokens>;
+type ColorRoleOverride = Partial<WorkspaceLabColorThemeTokens>;
 
 interface ColorRoleOptionDefinition {
   id: string;
@@ -11,7 +11,7 @@ interface ColorRoleOptionDefinition {
   앞선 역할까지 덧씌운 토큰을 받아 이 선택이 바꿀 토큰만 돌려준다.
   앞선 역할의 결과를 받아야 루트나 크롬이 새 강조색·중립 톤을 따라간다.
   */
-  apply: (tokens: WorkspaceLabThemeTokens) => ColorRoleOverride;
+  apply: (tokens: WorkspaceLabColorThemeTokens) => ColorRoleOverride;
 }
 
 const mix = (color: string, percent: number, base: string) =>
@@ -148,11 +148,11 @@ const createAccentOption = (id: string, name: string, color: string) =>
     name,
     description: `${name} 계열 강조색입니다.`,
     swatches: [color],
-    apply: (tokens: WorkspaceLabThemeTokens) => {
+    apply: (tokens: WorkspaceLabColorThemeTokens) => {
       const override: ColorRoleOverride = {};
 
       for (const key of Object.keys(tokens) as Array<
-        keyof WorkspaceLabThemeTokens
+        keyof WorkspaceLabColorThemeTokens
       >) {
         if (tokens[key] === tokens.accent) override[key] = color;
       }
@@ -379,14 +379,14 @@ const colorRoleRegistries = [
 /*
 함수 이름 : getWorkspaceLabColorTokens
 기능 : 테마 토큰 위에 역할별 색 선택을 정해진 순서로 덧씌운다. 모든 역할이 테마 기본이면 테마 토큰을 그대로 돌려준다.
-인자 : WorkspaceLabThemeTokens baseTokens -> 출발점이 되는 테마 토큰
+인자 : WorkspaceLabColorThemeTokens baseTokens -> 출발점이 되는 테마 토큰
 WorkspaceLabColorRoleSelection selection -> 역할별 색 선택값
 반환값 : 화면에 적용할 테마 토큰
 */
 export function getWorkspaceLabColorTokens(
-  baseTokens: WorkspaceLabThemeTokens,
+  baseTokens: WorkspaceLabColorThemeTokens,
   selection: WorkspaceLabColorRoleSelection,
-): WorkspaceLabThemeTokens {
+): WorkspaceLabColorThemeTokens {
   let tokens = baseTokens;
 
   for (const [role, options] of colorRoleRegistries) {

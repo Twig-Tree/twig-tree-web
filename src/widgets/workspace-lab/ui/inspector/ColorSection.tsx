@@ -11,11 +11,11 @@ import {
   workspaceLabStatusColors,
 } from "../../model/color-roles";
 import {
-  getWorkspaceLabTheme,
-  getWorkspaceLabThemePalette,
-  workspaceLabThemes,
-  type WorkspaceLabThemeTokens,
-} from "../../model/themes";
+  getWorkspaceLabColorTheme,
+  getWorkspaceLabColorThemePalette,
+  workspaceLabColorThemes,
+  type WorkspaceLabColorThemeTokens,
+} from "../../model/color-themes";
 import type { LabColorRoles } from "../../model/types";
 import {
   DisclosureButton,
@@ -46,12 +46,12 @@ const getSwatchOptions = <T extends string>(
   }));
 
 export function ColorSection({ config, onChange }: InspectorSectionProps) {
-  const { theme, colorRoles } = config;
+  const { colorTheme, colorRoles } = config;
   const [showDetail, setShowDetail] = useState(false);
-  const currentTheme = getWorkspaceLabTheme(theme);
-  const baseTokens: WorkspaceLabThemeTokens = currentTheme.tokens;
+  const currentTheme = getWorkspaceLabColorTheme(colorTheme);
+  const baseTokens: WorkspaceLabColorThemeTokens = currentTheme.tokens;
   const tokens = getWorkspaceLabColorTokens(baseTokens, colorRoles);
-  const palette = getWorkspaceLabThemePalette({ ...currentTheme, tokens });
+  const palette = getWorkspaceLabColorThemePalette({ ...currentTheme, tokens });
   const isModified = isWorkspaceLabColorRolesModified(colorRoles);
 
   const changeRole = <K extends keyof LabColorRoles>(
@@ -78,10 +78,10 @@ export function ColorSection({ config, onChange }: InspectorSectionProps) {
       }
     >
       <SelectField
-        label="기반 테마"
-        value={theme}
-        options={toSelectOptions(workspaceLabThemes)}
-        onChange={(value) => onChange({ theme: value })}
+        label="컬러 테마"
+        value={colorTheme}
+        options={toSelectOptions(workspaceLabColorThemes)}
+        onChange={(value) => onChange({ colorTheme: value })}
       />
       <div className="rounded-xl border border-slate-200 bg-slate-50 p-3">
         <div className="flex items-center gap-2">

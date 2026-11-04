@@ -12,8 +12,9 @@ workspace-lab/
 │   ├── layouts.ts         # 세로·가로·방사형 좌표와 배치 간격
 │   ├── edge-routing.ts    # 직각 연결선의 기하학적 제약
 │   ├── edge-styles.ts     # 형태, 패턴, 두께, 색상, 투명도, 효과 registry
-│   ├── themes.ts          # 테마 token schema와 registry
-│   ├── color-roles.ts     # 테마 위에 덧씌우는 역할별 색 선택 registry
+│   ├── color-themes.ts    # 컬러 테마 token schema와 registry
+│   ├── color-roles.ts     # 컬러 테마 위에 덧씌우는 역할별 색 선택 registry
+│   ├── shape-styles.ts    # 곡률과 그림자 registry
 │   ├── node-shapes.ts     # 노드 외곽 형태 registry
 │   ├── visual-slots.ts    # edge, port, collapse, canvas, density registry
 │   ├── panels.ts          # 왼쪽·메모 패널의 배치, 너비, 표면, 경계, 밀도 registry
@@ -36,7 +37,7 @@ workspace-lab/
 
 ## 상태 흐름
 
-Inspector가 바꾸는 값은 `model/config.ts`의 `WorkspaceLabConfig` 한 객체에 모여 있다. `WorkspaceLab`은 `useReducer(workspaceLabConfigReducer)`로 이 객체를 들고, Preview에는 `config`를, Inspector의 각 구획에는 `config`와 `onChange(바꿀 필드)`를 내려준다. 구획 사이의 규칙(테마를 바꾸면 색 역할 초기화)은 reducer가 맡는다.
+Inspector가 바꾸는 값은 `model/config.ts`의 `WorkspaceLabConfig` 한 객체에 모여 있다. `WorkspaceLab`은 `useReducer(workspaceLabConfigReducer)`로 이 객체를 들고, Preview에는 `config`를, Inspector의 각 구획에는 `config`와 `onChange(바꿀 필드)`를 내려준다. 구획 사이의 규칙(컬러 테마를 바꾸면 색 역할 초기화)은 reducer가 맡는다.
 
 Inspector는 "무엇을 결정하는가"로 탭을 나눈다. 새 구획은 이 기준으로 탭을 고른다.
 
@@ -68,26 +69,40 @@ Registry 배열에서 literal union 타입과 Inspector 옵션을 파생한다. 
 
 ## 확장 방법
 
-### 테마 추가
+### 테마 용어
 
-1. `themes.ts`에서 기존 token 집합을 펼친 뒤 필요한 값만 덮어쓴다.
-2. `workspaceLabThemes` registry에 새 정의를 추가한다.
-3. 새 색상이나 표현 책임이 필요하면 `WorkspaceLabThemeTokens`와 `tokenCssVariables`를 함께 확장한다.
+Lab의 "테마"는 범위에 따라 둘로 나눈다.
+
+| 용어        | 범위                                                                   | 정의 위치          |
+| ----------- | ---------------------------------------------------------------------- | ------------------ |
+| 컬러 테마   | 색 토큰만. 그 위에 색 역할이 덧씌워진다                                | `color-themes.ts`  |
+| 디자인 테마 | 컬러 테마, 형태, 노드, 연결선, 캔버스, 패널 표현을 묶은 이름 있는 조합 | 다음 단계에서 추가 |
+
+곡률과 그림자는 색이 아니므로 컬러 테마에 두지 않고 `shape-styles.ts`의 형태 슬롯으로 둔다.
+
+### 컬러 테마 추가
+
+1. `color-themes.ts`에서 기존 token 집합을 펼친 뒤 필요한 값만 덮어쓴다.
+2. `workspaceLabColorThemes` registry에 새 정의를 추가한다.
+3. 새 색상 책임이 필요하면 `WorkspaceLabColorThemeTokens`와 `tokenCssVariables`를 함께 확장한다.
 4. CSS에서는 직접 색을 추가하기보다 `--lab-*` 변수를 소비한다.
-5. theme 테스트에서 모든 token이 CSS 변수로 변환되는지 확인한다.
+5. 컬러 테마 테스트에서 모든 token이 CSS 변수로 변환되는지 확인한다.
 
-테마는 한 화면의 시각 언어를 통째로 바꾸는 단위다. 연결선 종류나 노드 형태처럼 독립적으로 비교할 항목을 테마 안에 숨기지 않는다.
+컬러 테마에는 색만 둔다. 곡률, 그림자 모양, 연결선 종류처럼 독립적으로 비교할 항목을 컬러 테마 안에 숨기지 않는다. 예외로 `previewBackground`, `previewPattern`, `frameShadow`는 Workspace 바깥의 Lab 배경이라 컬러 테마에 남겨 둔다.
+
+### 형태 추가
+
+`shape-styles.ts`의 `workspaceLabShapeStyles`에 노드 곡률과 노드·루트·선택·툴바·플레이어 그림자를 정의한다. 그림자 색은 직접 쓰지 않고 컬러 테마의 `--lab-shadow-ink`를 `color-mix`로 섞는다. 그래야 어떤 컬러 테마와 조합해도 그림자가 바탕색과 어긋나지 않는다. 테스트가 그림자 값에 직접 쓴 색이 없는지 확인한다.
 
 ### 색 역할 추가
 
-테마는 색의 출발점이고, `color-roles.ts`의 역할 선택이 그 위에 덧씌워진다. 역할은 중립 톤, 강조색, 루트 노드, 상태 색, 크롬, 대비 여섯 개다. 각 역할의 첫 선택지는 `theme`(테마 기본)이고, 모두 `theme`이면 테마 토큰이 그대로 쓰인다.
+컬러 테마는 색의 출발점이고, `color-roles.ts`의 역할 선택이 그 위에 덧씌워진다. 역할은 중립 톤, 강조색, 루트 노드, 상태 색, 크롬, 대비 여섯 개다. 각 역할의 첫 선택지는 `theme`(테마 기본)이고, 모두 `theme`이면 테마 토큰이 그대로 쓰인다.
 
 - 선택지의 `apply`는 앞선 역할까지 덧씌운 토큰을 받아 바꿀 토큰만 돌려준다.
 - `getWorkspaceLabColorTokens`는 neutral → accent → root → status → chrome → contrast 순서로 적용한다. 루트와 크롬이 새 강조색·중립 톤을 따라가고, 대비가 마지막 결과를 같은 비율로 조정하려면 이 순서를 지켜야 한다.
 - 강조색은 고정 목록 대신 이전 강조색과 같은 값을 쓰던 토큰을 모두 바꾼다. 테마마다 강조색을 쓰는 토큰이 다르기 때문이다.
-- 테마를 바꾸면 역할 선택은 테마 기본으로 돌아간다.
+- 컬러 테마를 바꾸면 역할 선택은 테마 기본으로 돌아간다.
 - Inspector의 Color 구획은 역할이 하나라도 테마 기본이 아니면 `수정됨 · 초기화`를 보여준다. `테마 기본` 견본은 자체 색이 없으므로 현재 테마 토큰의 같은 자리 색을 보여준다.
-- 곡률과 그림자는 색이 아니므로 역할에서 다루지 않는다.
 
 ### 노드 모양 추가
 
