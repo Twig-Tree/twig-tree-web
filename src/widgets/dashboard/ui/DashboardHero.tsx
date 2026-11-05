@@ -7,10 +7,10 @@
 export function DashboardHero() {
   return (
     <header className="text-center">
-      <h1 className="text-4xl font-semibold tracking-tight text-slate-900">
+      <h1 className="text-4xl font-semibold tracking-tight text-content">
         What shall we build?
       </h1>
-      <p className="mx-auto mt-3 max-w-md text-base leading-relaxed text-slate-500">
+      <p className="mx-auto mt-3 max-w-md text-base leading-relaxed text-content-muted">
         Combine your research files with synthesis to create something
         remarkable.
       </p>

@@ -91,7 +91,7 @@ export function PromptComposer({
       최대 높이까지 자라 있다. 위에 두면 안내가 화면 밖으로 밀려 잠긴 전송 버튼만 남는다.
       */}
       {isMessageTooLong ? (
-        <p role="alert" className="px-1 text-xs text-amber-700">
+        <p role="alert" className="px-1 text-xs text-warning">
           지시문은 최대 {MAX_PROMPT_MESSAGE_LENGTH}자까지 보낼 수 있습니다. 현재{" "}
           {text.trim().length}자입니다.
         </p>

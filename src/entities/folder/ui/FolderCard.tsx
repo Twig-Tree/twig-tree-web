@@ -20,11 +20,11 @@ export function FolderCard({
   onRename,
 }: FolderCardProps) {
   return (
-    <article className="group relative flex min-h-36 flex-col justify-between rounded-xl border border-slate-100 bg-white p-5 shadow-sm transition-shadow hover:shadow-md">
+    <article className="group relative flex min-h-36 flex-col justify-between rounded-card border border-line-subtle bg-surface p-5 shadow-card transition-shadow hover:shadow-card-hover">
       <Link
         href={routes.directory(folder.id)}
         aria-label={`${folder.name} 폴더 열기`}
-        className="absolute inset-0 rounded-xl outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2"
+        className="absolute inset-0 rounded-card outline-none focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-offset-2"
       />
 
       <div className="absolute right-3 top-3 z-10">
@@ -48,12 +48,12 @@ export function FolderCard({
       </div>
 
       <div
-        className="pointer-events-none relative flex h-10 w-10 items-center justify-center rounded-lg bg-indigo-50"
+        className="pointer-events-none relative flex h-10 w-10 items-center justify-center rounded-control bg-accent-subtle"
         aria-hidden="true"
       >
-        <Folder className="h-5 w-5 text-indigo-600 fill-current" />
+        <Folder className="h-5 w-5 text-accent fill-current" />
       </div>
-      <h2 className="pointer-events-none relative text-base font-semibold leading-snug text-slate-800 transition-colors group-hover:text-indigo-700">
+      <h2 className="pointer-events-none relative text-base font-semibold leading-snug text-content transition-colors group-hover:text-accent-hover">
         {folder.name}
       </h2>
     </article>

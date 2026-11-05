@@ -16,11 +16,11 @@ export function DirectoryNotFound() {
       role="alert"
       className="flex h-full w-full flex-col items-center justify-center gap-2 px-5 text-center"
     >
-      <h1 className="text-lg font-semibold text-slate-900">
+      <h1 className="text-lg font-semibold text-content">
         폴더를 찾을 수 없습니다
       </h1>
 
-      <p className="text-sm text-slate-500">
+      <p className="text-sm text-content-muted">
         삭제되었거나 접근할 수 없는 폴더입니다.
       </p>
 
@@ -30,7 +30,7 @@ export function DirectoryNotFound() {
         */}
         <Link
           href={routes.directoryRoot}
-          className="inline-flex h-10 items-center justify-center rounded-lg bg-indigo-600 px-4 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-indigo-700"
+          className="inline-flex h-10 items-center justify-center rounded-control bg-accent px-4 text-sm font-semibold text-on-accent shadow-control transition-colors hover:bg-accent-hover"
         >
           디렉토리로 이동
         </Link>

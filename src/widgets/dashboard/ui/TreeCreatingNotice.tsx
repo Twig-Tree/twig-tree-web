@@ -13,13 +13,13 @@ export function TreeCreatingNotice() {
   return (
     <div
       role="status"
-      className="flex items-center gap-3 rounded-xl border border-indigo-200 bg-indigo-50 px-4 py-3 text-sm text-indigo-800"
+      className="flex items-center gap-3 rounded-control border border-accent-line bg-accent-subtle px-4 py-3 text-sm text-accent-hover"
     >
       <Loader2 className="size-4 shrink-0 animate-spin" aria-hidden="true" />
 
       <div className="min-w-0">
         <p className="font-medium">트리를 만들고 있습니다</p>
-        <p className="mt-0.5 text-xs text-indigo-700">
+        <p className="mt-0.5 text-xs text-accent-hover">
           내용에 따라 1분 정도 걸릴 수 있습니다. 창을 닫지 말고 기다려 주세요.
         </p>
       </div>

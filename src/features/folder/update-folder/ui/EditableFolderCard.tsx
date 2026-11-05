@@ -148,12 +148,12 @@ export function EditableFolderCard({
   );
 
   return (
-    <article className="flex min-h-36 flex-col justify-between rounded-xl border border-indigo-200 bg-white p-5 shadow-sm ring-2 ring-indigo-100">
+    <article className="flex min-h-36 flex-col justify-between rounded-card border border-accent-line bg-surface p-5 shadow-card ring-2 ring-accent-subtle">
       <div
-        className="flex h-10 w-10 items-center justify-center rounded-lg bg-indigo-50"
+        className="flex h-10 w-10 items-center justify-center rounded-control bg-accent-subtle"
         aria-hidden="true"
       >
-        <Folder className="h-5 w-5 text-indigo-600 fill-current" />
+        <Folder className="h-5 w-5 text-accent fill-current" />
       </div>
 
       <div>
@@ -170,13 +170,13 @@ export function EditableFolderCard({
           onBlur={handleBlur}
           onChange={handleChange}
           onKeyDown={handleKeyDown}
-          className="w-full rounded border border-indigo-400 bg-white px-2 py-1 text-base font-semibold leading-snug text-slate-800 outline-none ring-2 ring-indigo-100 disabled:cursor-wait disabled:bg-slate-50"
+          className="w-full rounded-control border border-accent bg-surface px-2 py-1 text-base font-semibold leading-snug text-content outline-none ring-2 ring-accent-subtle disabled:cursor-wait disabled:bg-surface-muted"
         />
         {errorMessage ? (
           <p
             id={`folder-name-error-${folder.id}`}
             role="alert"
-            className="mt-1 text-xs font-medium text-red-600"
+            className="mt-1 text-xs font-medium text-danger"
           >
             {errorMessage}
           </p>

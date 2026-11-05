@@ -70,6 +70,8 @@ hover, 비활성, 경고, 성공, 정보 색은 Lab에 없어 제품 사용처�
     color-mix(in srgb, var(--theme-shadow-ink) 10%, transparent);
   --theme-shadow-card: 0 10px 30px
     color-mix(in srgb, var(--theme-shadow-ink) 11%, transparent);
+  --theme-shadow-card-hover: 0 14px 36px
+    color-mix(in srgb, var(--theme-shadow-ink) 15%, transparent);
   --theme-shadow-overlay: 0 18px 48px
     color-mix(in srgb, var(--theme-shadow-ink) 18%, transparent);
   --theme-shadow-node: 0 10px 30px

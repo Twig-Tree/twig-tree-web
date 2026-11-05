@@ -66,6 +66,7 @@ inline이어야 유틸리티가 var(--theme-*)를 그대로 참조해 data-theme
   --radius-node: var(--theme-radius-node);
   --shadow-control: var(--theme-shadow-control);
   --shadow-card: var(--theme-shadow-card);
+  --shadow-card-hover: var(--theme-shadow-card-hover);
   --shadow-overlay: var(--theme-shadow-overlay);
   --shadow-node: var(--theme-shadow-node);
   --shadow-node-selected: var(--theme-shadow-node-selected);

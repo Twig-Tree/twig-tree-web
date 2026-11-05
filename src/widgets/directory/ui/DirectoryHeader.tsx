@@ -27,7 +27,7 @@ export function DirectoryHeader({
     <header className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
       <div>
         <Breadcrumb items={breadcrumbs} />
-        <h1 className="mt-2 text-3xl font-bold tracking-tight text-slate-900">
+        <h1 className="mt-2 text-3xl font-bold tracking-tight text-content">
           {isTitleLoading ? (
             <>
               <span className="sr-only">폴더 이름을 불러오는 중입니다.</span>
@@ -35,7 +35,7 @@ export function DirectoryHeader({
               자리표시자의 높이를 text-3xl의 line-height에 맞춰, 제목이 도착해도 높이가 변하지 않게 한다.
               */}
               <span
-                className="block h-9 w-48 animate-pulse rounded-lg bg-slate-200"
+                className="block h-9 w-48 animate-pulse rounded-control bg-surface-strong"
                 aria-hidden="true"
               />
             </>
@@ -49,7 +49,7 @@ export function DirectoryHeader({
         정상 화면과 구분되지 않으므로 그 값들 바로 아래에서 알린다.
         */}
         {isPathError ? (
-          <p role="alert" className="mt-2 text-sm font-medium text-red-600">
+          <p role="alert" className="mt-2 text-sm font-medium text-danger">
             현재 폴더 위치를 확인하지 못했습니다.
           </p>
         ) : null}
