@@ -66,7 +66,7 @@ export function Modal({
           onClose();
         }
       }}
-      className={`m-auto w-[calc(100%-2rem)] rounded-xl border border-slate-100 bg-white p-0 shadow-xl backdrop:bg-slate-900/45 ${widthClassName}`}
+      className={`m-auto w-[calc(100%-2rem)] rounded-card border border-line-subtle bg-surface p-0 shadow-overlay backdrop:bg-overlay ${widthClassName}`}
     >
       {isOpen ? children : null}
     </dialog>

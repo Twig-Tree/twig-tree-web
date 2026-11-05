@@ -18,7 +18,7 @@ interface KebabMenuProps {
 }
 
 const DEFAULT_TRIGGER_CLASS_NAME =
-  "flex h-8 w-8 items-center justify-center rounded-md text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500";
+  "flex h-8 w-8 items-center justify-center rounded-control text-content-muted transition-colors hover:bg-surface-hover hover:text-content focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus";
 
 const DEFAULT_TRIGGER = (
   <span className="flex flex-col gap-0.5" aria-hidden="true">
@@ -95,7 +95,7 @@ export function KebabMenu({
       {isOpen ? (
         <div
           role="menu"
-          className="absolute right-0 top-9 z-30 min-w-36 rounded-lg border border-slate-200 bg-white p-1 shadow-lg"
+          className="absolute right-0 top-9 z-30 min-w-36 rounded-control border border-line bg-surface p-1 shadow-overlay"
         >
           {items.map((item) => (
             <button
@@ -110,10 +110,10 @@ export function KebabMenu({
                 setIsOpen(false);
                 item.onSelect?.();
               }}
-              className={`flex w-full items-center rounded-md px-3 py-2 text-left text-sm transition-colors disabled:cursor-not-allowed disabled:text-slate-300 ${
+              className={`flex w-full items-center rounded-control px-3 py-2 text-left text-sm transition-colors disabled:cursor-not-allowed disabled:text-content-disabled ${
                 item.tone === "danger"
-                  ? "text-red-600 hover:bg-red-50"
-                  : "text-slate-700 hover:bg-slate-100"
+                  ? "text-danger hover:bg-danger-subtle"
+                  : "text-content-secondary hover:bg-surface-hover"
               }`}
             >
               {item.label}
