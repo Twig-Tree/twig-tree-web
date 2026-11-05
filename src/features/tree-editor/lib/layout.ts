@@ -14,13 +14,20 @@ export const NODE_WIDTH = 168;
 const NODE_HEIGHT = 60;
 
 /*
+형제가 모이는 세로 간격과 연결선이 지나가는 층 사이 간격. 처음 열 때의 배율은 대개 트리 높이가 정하므로
+형제 간격을 좁혀 글자를 키우고, 층 사이는 연결선과 접기 버튼이 지나갈 폭을 남긴다.
+*/
+const SIBLING_GAP = 32;
+const LAYER_GAP = 64;
+
+/*
 mrtree는 트리 전용 알고리즘이라 모든 부모를 자식들의 가운데에 둔다. 서브트리를 접어도 나머지 노드는
 접힌 높이만큼 함께 움직일 뿐 서로의 위치 관계가 유지된다. layered는 부모 위치를 보장하지 않아
 접기 하나로 루트가 맨 위에서 맨 아래로 튈 수 있었다.
 */
 export const elkOptions = {
   "elk.algorithm": "mrtree",
-  "elk.spacing.nodeNode": "80", // mrtree는 이 값 하나를 층 사이 간격과 형제 간격에 함께 쓴다.
+  "elk.spacing.nodeNode": String(SIBLING_GAP), // mrtree는 이 값 하나를 층 사이 간격과 형제 간격에 함께 쓴다.
   "elk.mrtree.weighting": "MODEL_ORDER", // 형제를 입력 순서대로 놓는다. 형제 순서가 기본값에 기대지 않도록 명시한다.
 };
 
@@ -59,7 +66,11 @@ export const getLayoutedElements = async (
       ...node,
       targetPosition: isHorizontal ? Position.Left : Position.Top,
       sourcePosition: isHorizontal ? Position.Right : Position.Bottom,
-      width: NODE_WIDTH,
+      /*
+      mrtree에는 층 사이 간격만 정하는 옵션이 없다. 층 방향으로 배치 상자를 늘려 그 차이만큼 층 사이를 벌리고,
+      결과에서는 그려지는 크기로 되돌린다.
+      */
+      width: isHorizontal ? NODE_WIDTH + LAYER_GAP - SIBLING_GAP : NODE_WIDTH,
       height: NODE_HEIGHT,
     })),
     edges: sortEdgesByTargetOrder(nodes, edges).map((edge) => ({
@@ -77,6 +88,7 @@ export const getLayoutedElements = async (
     nodes: (layoutedGraph.children ?? []).map((node) => ({
       // ELK에서 반환한 node의 x, y 좌표 직접 참조
       ...node,
+      width: NODE_WIDTH,
       position: { x: node.x ?? 0, y: node.y ?? 0 },
     })),
     edges: layoutedGraph.edges,

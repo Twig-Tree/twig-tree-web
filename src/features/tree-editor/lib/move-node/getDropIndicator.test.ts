@@ -72,7 +72,7 @@ describe("getDropIndicator", () => {
       ),
     ).toEqual({
       kind: "line",
-      rect: { x: 230, y: -42, width: 100, height: 4 },
+      rect: { x: 230, y: -18, width: 100, height: 4 },
     });
   });
 
@@ -93,7 +93,7 @@ describe("getDropIndicator", () => {
       ),
     ).toEqual({
       kind: "line",
-      rect: { x: 230, y: 178, width: 100, height: 4 },
+      rect: { x: 230, y: 154, width: 100, height: 4 },
     });
   });
 

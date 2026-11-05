@@ -319,6 +319,18 @@ describe("getLayoutedElements", () => {
     return new Map(layoutedNodes.map((node) => [node.id, node]));
   };
 
+  it("형제 간격과 층 간격을 따로 두고 그려지는 크기로 되돌린다", async () => {
+    const { nodes, edges } = createTree({ root: null, a: "root", b: "root" });
+
+    const layouted = await layout(nodes, edges);
+    const [root, a, b] = ["root", "a", "b"].map((id) => layouted.get(id)!);
+
+    expect(root.width).toBe(168);
+    expect(a.width).toBe(168);
+    expect(a.position.x - (root.position.x + root.width!)).toBe(64);
+    expect(b.position.y - (a.position.y + a.height!)).toBe(32);
+  });
+
   /*
   형제가 많을수록 배치 단계가 순서를 바꿀 여지가 커지므로 형제를 넉넉히 둔다.
   */
