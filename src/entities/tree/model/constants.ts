@@ -23,6 +23,7 @@ export const MAX_NODE_TAG_COUNT = 10;
 DUPLICATE_TAG_NAME과 DUPLICATE_NODE_TAG는 서비스 코드가 아니라 DB 유니크 제약 uk_tag_name, uk_node_tag 위반을 옮긴 코드다.
 */
 export const TAG_ERROR_CODE = {
+  TAG_NOT_FOUND: "TAG404-1", // 태그가 지워져 서버에 없음
   DUPLICATE_TAG_NAME: "TAG409-1",
   DUPLICATE_NODE_TAG: "TAG409-2",
   NODE_TAG_COUNT_EXCEEDED: "TAG409-3",
@@ -32,9 +33,13 @@ export const TAG_ERROR_CODE = {
 /*
 노드 요청에서 분기에 필요한 백엔드 에러 코드. 백엔드 NodeErrorCode.java가 출처다.
 ONE_ROOT_PER_TREE는 서비스 코드가 아니라 DB 유니크 인덱스 uk_nodes_root_per_tree 위반을 옮긴 코드다.
+NODE400 계열은 노드 이동의 거절 사유다.
 */
 export const NODE_ERROR_CODE = {
   ONE_ROOT_PER_TREE: "NODE409-2",
+  ROOT_NODE_NOT_MOVABLE: "NODE400-1",
+  INVALID_MOVE_TARGET: "NODE400-2", // 자기 자신이나 하위 노드 밑으로 이동
+  INVALID_POSITION: "NODE400-3", // 같은 부모면 1..n, 다른 부모면 1..n+1을 벗어난 순번
 } as const;
 
 /*

@@ -9,6 +9,7 @@ import { getApiErrorCode } from "@/src/shared/api/authErrorCodes";
 import { ROOT_NODE_LABEL } from "../../../constants/node";
 import { createEditorNode } from "../../../lib/add-node/createEditorNode";
 import { createClientNodeId } from "../../../lib/createClientNodeId";
+import { useEditHistoryStore } from "../../history/editHistoryStore";
 import { useTreeStore } from "../../treeStore";
 import { CustomEditorNode } from "../../types";
 
@@ -64,6 +65,7 @@ export const useAddRootNode = ({
   nodes,
 }: UseAddRootNodeParams) => {
   const initializeTree = useTreeStore((state) => state.initializeTree);
+  const clearEditHistory = useEditHistoryStore((state) => state.clear);
   const setWorkspaceTreeIdInCache = useSetWorkspaceTreeIdInCache();
 
   const {
@@ -137,10 +139,9 @@ export const useAddRootNode = ({
         });
 
         /*
-        추가 직후 undo 기록을 비운다. undo는 서버와 연결되어 있지 않아, 되돌리면 서버에 루트가 남은 채 store만 비고
-        버튼이 다시 루트 추가로 바뀌어 409가 난다. 루트는 지울 수 없으므로 트리 초기화처럼 편집의 시작점으로 둔다.
+        추가 직후 undo 기록을 비운다. 루트는 지울 수 없어 되돌릴 요청이 없으므로 트리 초기화처럼 편집의 시작점으로 둔다.
         */
-        useTreeStore.temporal.getState().clear();
+        clearEditHistory();
       } catch (error) {
         alert(getAddRootNodeErrorMessage(error));
       } finally {

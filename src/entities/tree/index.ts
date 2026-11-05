@@ -8,6 +8,9 @@ export type {
   GetTreeResponse,
   EditNodeNameRequest,
   EditNodeNameResponse,
+  MoveNodeRequest,
+  MoveNodeResultDTO,
+  MoveNodeResponse,
   LlmProvider,
   TreeMockScenario,
   MemoDTO,
@@ -19,7 +22,7 @@ export type {
   GetTreeTagsResponse,
   AddNodeTagResponse,
 } from "./api/types";
-export type { CreatedTree, TreeNode, TreeTag } from "./model/types";
+export type { CreatedTree, MovedNodes, TreeNode, TreeTag } from "./model/types";
 export {
   LLM_PROVIDER,
   MAX_MEMO_LENGTH,
@@ -36,6 +39,7 @@ export { memoApi } from "./api/memoApi";
 export { tagApi } from "./api/tagApi";
 export {
   mapCreatedTreeDtoToDomain,
+  mapMoveNodeResultDtoToDomain,
   mapNodeDtoToDomain,
   mapNodesDtoToDomain,
   mapTagDtoToDomain,
@@ -46,6 +50,7 @@ export { useAddNodeMutation } from "./model/mutations/useAddNodeMutation";
 export { useCreateTreeFromPromptMutation } from "./model/mutations/useCreateTreeFromPromptMutation";
 export { useDeleteNodeMutation } from "./model/mutations/useDeleteNodeMutation";
 export { useEditNodeNameMutation } from "./model/mutations/useEditNodeNameMutation";
+export { useMoveNodeMutation } from "./model/mutations/useMoveNodeMutation";
 export { useUpdateMemoMutation } from "./model/mutations/useUpdateMemoMutation";
 export { useDeleteMemoMutation } from "./model/mutations/useDeleteMemoMutation";
 export { useCreateTreeTagMutation } from "./model/mutations/useCreateTreeTagMutation";

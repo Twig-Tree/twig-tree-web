@@ -1,21 +1,22 @@
 "use client";
 import { ReactFlow, ReactFlowProvider, Panel } from "@xyflow/react";
 import {
+  DropIndicatorOverlay,
   MemoSidePanel,
   edgeTypes,
   nodeTypes,
   useEditorLayout,
   useFocusNode,
   useInitializeTree,
+  useMoveNodeByDrag,
   useReactFlowStoreSetters,
   useSyncCollapseAcrossTabs,
   useTreeEditorActions,
-  useTreeHistory,
   useTreeStore,
   useVisibleElements,
   type NodeResult,
 } from "@/src/features/tree-editor";
-import { use, useCallback, useEffect, useState } from "react";
+import { use, useCallback, useState } from "react";
 import { useGetTreeQuery } from "@/src/entities/tree/model/queries";
 import { useGetWorkspaceQuery } from "@/src/entities/workspace";
 import { isClientError } from "@/src/shared/api/httpErrors";
@@ -48,11 +49,6 @@ function LayoutFlow({ workspaceId, treeId }: LayoutFlowProps) {
   // Zustand 스토어에서 액션(Actions) 구독
   const onNodesChange = useTreeStore((state) => state.onNodesChange);
   const onEdgesChange = useTreeStore((state) => state.onEdgesChange);
-  const onConnect = useTreeStore((state) => state.onConnect);
-  const onReconnect = useTreeStore((state) => state.onReconnect);
-
-  const { undo, redo, clear, pause, resume, canUndo, canRedo } =
-    useTreeHistory();
 
   const { setNodes } = useReactFlowStoreSetters();
 
@@ -63,17 +59,18 @@ function LayoutFlow({ workspaceId, treeId }: LayoutFlowProps) {
     handleAddNode,
     isDeletingNode,
     handleDeleteNode,
+    moveNode,
+    isMovingNode,
+    handleUndo,
+    handleRedo,
+    canUndo,
+    canRedo,
+    isUndoingOrRedoing,
   } = useTreeEditorActions({ workspaceId, treeId });
-
-  // 1. 컴포넌트 마운트 시 일단 기록 중지 (트리 레이아웃 정렬 전 히스토리 기록 방지)
-  useEffect(() => {
-    pause();
-  }, [pause]);
 
   useInitializeTree({
     treeId,
     treeData,
-    clear,
   });
 
   useSyncCollapseAcrossTabs();
@@ -100,6 +97,18 @@ function LayoutFlow({ workspaceId, treeId }: LayoutFlowProps) {
   });
 
   /*
+  노드를 끌어 놓으면 위치가 아니라 부모와 순서가 바뀐다. 레이아웃 계산에는 visibleNodes를 그대로 쓰고,
+  화면에는 루트를 끌 수 없게 표시한 draggableNodes를 넘긴다.
+  */
+  const {
+    draggableNodes,
+    dropIndicator,
+    onNodeDragStart,
+    onNodeDrag,
+    onNodeDragStop,
+  } = useMoveNodeByDrag({ treeId, visibleNodes, visibleEdges, moveNode });
+
+  /*
   결과로 고른 노드를 선택하고 화면 가운데로 옮긴다. 메모에서 일치한 노드는 일치한 내용을 바로 볼 수 있도록 메모 패널도 연다.
   */
   const handleSelectResult = (result: NodeResult) => {
@@ -108,13 +117,8 @@ function LayoutFlow({ workspaceId, treeId }: LayoutFlowProps) {
     if (result.isMemoMatched) setIsMemoPanelOpen(true);
   };
 
-  // 2. React Flow 초기화가 끝났을 때 히스토리 기록 재개
-  const handleInit = () => {
-    clear();
-    resume();
-  };
-
-  const isMutating = isAddingNode || isDeletingNode;
+  const isMutating =
+    isAddingNode || isDeletingNode || isMovingNode || isUndoingOrRedoing;
 
   if (isLoading) {
     return <div>Loading...</div>;
@@ -134,25 +138,30 @@ function LayoutFlow({ workspaceId, treeId }: LayoutFlowProps) {
 
       <div className="min-h-0 min-w-0 flex-1">
         <ReactFlow
-          nodes={visibleNodes}
+          nodes={draggableNodes}
           edges={visibleEdges}
-          onInit={handleInit}
           nodeTypes={nodeTypes}
           edgeTypes={edgeTypes}
           onNodesChange={onNodesChange}
           onEdgesChange={onEdgesChange}
-          onConnect={onConnect}
-          onReconnect={onReconnect}
+          onNodeDragStart={onNodeDragStart}
+          onNodeDrag={onNodeDrag}
+          onNodeDragStop={onNodeDragStop}
           disableKeyboardA11y={isMutating}
           nodesDraggable={!isMutating}
-          nodesConnectable={!isMutating}
-          edgesReconnectable={!isMutating}
+          /*
+          부모와 순서는 노드를 끌어 바꾼다. 엣지를 잇거나 끝을 옮기는 편집은 서버에 저장할 수 없어 막는다.
+          */
+          nodesConnectable={false}
+          edgesReconnectable={false}
           elementsSelectable={!isMutating}
         >
+          <DropIndicatorOverlay indicator={dropIndicator} />
+
           <Panel position="top-right">
             <button
               className="xy-theme__button"
-              onClick={() => undo()}
+              onClick={handleUndo}
               disabled={!canUndo || isMutating}
             >
               Undo
@@ -160,7 +169,7 @@ function LayoutFlow({ workspaceId, treeId }: LayoutFlowProps) {
 
             <button
               className="xy-theme__button"
-              onClick={() => redo()}
+              onClick={handleRedo}
               disabled={!canRedo || isMutating}
             >
               Redo

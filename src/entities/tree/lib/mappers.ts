@@ -1,5 +1,10 @@
-import { NodeDTO, TagDTO, TreeDTO } from "@/src/entities/tree/api/types";
-import { CreatedTree, TreeNode, TreeTag } from "../model/types";
+import {
+  MoveNodeResultDTO,
+  NodeDTO,
+  TagDTO,
+  TreeDTO,
+} from "@/src/entities/tree/api/types";
+import { CreatedTree, MovedNodes, TreeNode, TreeTag } from "../model/types";
 
 /**
  * 단일 NodeDTO를 TreeNode(Domain Entity)로 변환합니다.
@@ -29,6 +34,19 @@ export const mapCreatedTreeDtoToDomain = (dto: TreeDTO): CreatedTree => ({
   workspaceId: String(dto.workspaceId),
   treeId: String(dto.treeId),
   nodes: mapNodesDtoToDomain(dto.nodes),
+});
+
+/*
+함수 이름 : mapMoveNodeResultDtoToDomain
+기능 : 노드 이동 결과 DTO를 도메인 모델로 변환한다. 부모 ID는 각 노드의 parentId와 겹치므로 옮기지 않는다.
+인자 : MoveNodeResultDTO dto -> 서버가 돌려준 이동 결과
+반환값 : 순서가 다시 매겨진 목적지 형제와 원래 형제 목록
+*/
+export const mapMoveNodeResultDtoToDomain = (
+  dto: MoveNodeResultDTO,
+): MovedNodes => ({
+  siblings: mapNodesDtoToDomain(dto.siblings),
+  previousSiblings: mapNodesDtoToDomain(dto.previousSiblings),
 });
 
 /*
