@@ -1,5 +1,5 @@
 import { act, renderHook } from "@testing-library/react";
-import { afterEach, beforeEach, describe, it, expect } from "vitest";
+import { afterEach, beforeEach, describe, it, expect, vi } from "vitest";
 import { useCollapseStore } from "./collapseStore";
 import { useTreeLevelControl } from "./useTreeLevelControl";
 import { createEditorNode } from "../../lib/add-node/createEditorNode";
@@ -45,7 +45,7 @@ const edges = [
 /*
 접힘 store를 읽어 보이는 목록을 만드는 일은 useVisibleElements가 맡으므로, 여기서는 같은 계산으로 만들어 넘긴다.
 */
-const renderControl = () =>
+const renderControl = (onBeforeLevelChange = vi.fn()) =>
   renderHook(() => {
     const collapsedServerIds = useCollapseStore(
       (state) => state.collapsedServerIds,
@@ -66,6 +66,7 @@ const renderControl = () =>
           !hiddenClientIds.has(edge.source) &&
           !hiddenClientIds.has(edge.target),
       ),
+      onBeforeLevelChange,
     });
   });
 
@@ -97,6 +98,20 @@ describe("useTreeLevelControl", () => {
 
     act(() => result.current.handleExpandLevel());
     expect(result.current.treeLevel).toBe(3);
+  });
+
+  it("접힘을 바꾸기 전에 화면 이동을 맡기도록 알린다", () => {
+    const onBeforeLevelChange = vi.fn(() => {
+      expect(useCollapseStore.getState().collapsedServerIds.size).toBe(0);
+    });
+    const { result } = renderControl(onBeforeLevelChange);
+
+    act(() => result.current.handleCollapseLevel());
+
+    expect(onBeforeLevelChange).toHaveBeenCalledOnce();
+    expect(useCollapseStore.getState().collapsedServerIds.size).toBeGreaterThan(
+      0,
+    );
   });
 
   it("루트만 보이면 더 접을 수 없다", () => {
@@ -141,6 +156,7 @@ describe("useTreeLevelControl", () => {
         edges: [],
         visibleNodes: [],
         visibleEdges: [],
+        onBeforeLevelChange: vi.fn(),
       }),
     );
 

@@ -34,7 +34,7 @@ const FIT_TREE_VIEW_OPTIONS: FitViewOptions = {
 인자 : CustomEditorNode[] nodes -> 배치를 계산할 노드 목록(화면에 보이는 노드)
 CustomEditorEdge[] edges -> 배치를 계산할 엣지 목록(화면에 보이는 엣지)
 Dispatch<SetStateAction<CustomEditorNode[]>> setNodes -> 계산 결과를 얹을 store setter
-반환값 : 배치를 다시 계산하는 함수, 트리 전체를 화면에 맞추는 함수, 다음 레이아웃 결과를 얹은 뒤 실행할 함수를 맡기는 함수, 계산 중인지 확인하는 함수
+반환값 : 배치를 다시 계산하는 함수, 트리 전체를 화면에 맞추는 함수, 다음 레이아웃 뒤에 트리 전체를 맞추는 함수, 다음 레이아웃 결과를 얹은 뒤 실행할 함수를 맡기는 함수, 계산 중인지 확인하는 함수
 */
 export function useEditorLayout(
   nodes: CustomEditorNode[],
@@ -84,6 +84,13 @@ export function useEditorLayout(
   const fitTreeView = useCallback(() => {
     void fitView(FIT_TREE_VIEW_OPTIONS);
   }, [fitView]);
+
+  /*
+  접힘이 바뀌면 레이아웃이 끝나야 새 좌표가 생기고, 막 나타난 노드는 그 뒤에 그려지므로 다음 프레임에 맞춘다.
+  */
+  const fitTreeViewAfterNextLayout = useCallback(() => {
+    runAfterNextLayout(() => window.requestAnimationFrame(fitTreeView));
+  }, [fitTreeView, runAfterNextLayout]);
 
   const onLayout = useCallback(() => {
     latestLayoutRunIdRef.current += 1;
@@ -149,5 +156,11 @@ export function useEditorLayout(
     onLayout();
   }, [nodes, edges, onLayout]);
 
-  return { onLayout, fitTreeView, runAfterNextLayout, isLayoutRunning };
+  return {
+    onLayout,
+    fitTreeView,
+    fitTreeViewAfterNextLayout,
+    runAfterNextLayout,
+    isLayoutRunning,
+  };
 }

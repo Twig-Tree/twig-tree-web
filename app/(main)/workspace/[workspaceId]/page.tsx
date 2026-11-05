@@ -105,6 +105,16 @@ function LayoutFlow({ workspaceId, treeId }: LayoutFlowProps) {
   });
 
   const {
+    fitTreeView,
+    fitTreeViewAfterNextLayout,
+    runAfterNextLayout,
+    isLayoutRunning,
+  } = useEditorLayout(visibleNodes, visibleEdges, setNodes);
+
+  /*
+  계층을 바꾸면 트리 크기가 크게 달라지므로 화면을 다시 맞춘다. 노드별 접기와 달리 보던 지점보다 전체 모양을 보려는 동작이다.
+  */
+  const {
     treeLevel,
     handleCollapseLevel,
     handleExpandLevel,
@@ -116,13 +126,8 @@ function LayoutFlow({ workspaceId, treeId }: LayoutFlowProps) {
     edges,
     visibleNodes,
     visibleEdges,
+    onBeforeLevelChange: fitTreeViewAfterNextLayout,
   });
-
-  const { fitTreeView, runAfterNextLayout, isLayoutRunning } = useEditorLayout(
-    visibleNodes,
-    visibleEdges,
-    setNodes,
-  );
 
   const { focusNode, fitNodes } = useFocusNode({
     visibleNodes,

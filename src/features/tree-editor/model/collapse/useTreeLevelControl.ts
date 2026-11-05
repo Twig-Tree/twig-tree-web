@@ -8,6 +8,7 @@ type UseTreeLevelControlParams = {
   edges: CustomEditorEdge[]; // editor store의 전체 엣지 목록
   visibleNodes: CustomEditorNode[]; // 접힌 노드의 하위를 걸러 낸 노드 목록
   visibleEdges: CustomEditorEdge[]; // 접힌 노드의 하위를 걸러 낸 엣지 목록
+  onBeforeLevelChange: () => void; // 계층을 바꾸기 직전에 부른다. 바뀐 배치가 끝난 뒤의 화면 이동을 맡긴다
 };
 
 /*
@@ -23,6 +24,7 @@ export const useTreeLevelControl = ({
   edges,
   visibleNodes,
   visibleEdges,
+  onBeforeLevelChange,
 }: UseTreeLevelControlParams) => {
   const expandToDepth = useCollapseStore((state) => state.expandToDepth);
 
@@ -37,6 +39,7 @@ export const useTreeLevelControl = ({
   const changeDepth = (expandedDepth: number) => {
     if (treeId === null) return;
 
+    onBeforeLevelChange();
     expandToDepth({ treeId, nodes, edges, expandedDepth });
   };
 
