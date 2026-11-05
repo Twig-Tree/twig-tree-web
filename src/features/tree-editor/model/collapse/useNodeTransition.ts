@@ -1,34 +1,39 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import {
-  getNodePositions,
+  addEnteringFrames,
+  getNodeFrames,
+  getTransitionEdges,
   getTransitionNodes,
-  hasMovedNode,
-  NodePositions,
+  hasChangingNode,
+  NodeFrames,
 } from "../../lib/collapse/getTransitionNodes";
 import { easeCubicInOut, getMotionDuration } from "../../lib/motion";
-import { CustomEditorNode } from "../types";
+import { CustomEditorEdge, CustomEditorNode } from "../types";
 import { useCollapseStore } from "./collapseStore";
 
 type UseNodeTransitionParams = {
   nodes: CustomEditorNode[]; // 레이아웃이 정한 최종 좌표를 가진 노드 목록
+  edges: CustomEditorEdge[]; // 보이는 엣지 목록. 새로 나타난 노드의 조상을 찾고 함께 드러낸다
   isLayoutRunning: () => boolean; // 레이아웃 계산이 진행 중인지. 끝나야 목표 좌표가 정해진다
 };
 
 type NodeTransition = {
-  fromPositions: NodePositions; // 전환을 시작한 좌표
+  fromFrames: NodeFrames; // 전환을 시작한 모습
   progress: number; // 0과 1 사이의 이동 진행률
 };
 
 /*
 함수 이름 : useNodeTransition
-기능 : 접힘이 바뀌어 배치가 달라지면 노드를 이전 좌표에서 새 좌표로 옮기며 그릴 노드 목록을 만든다.
+기능 : 접힘이 바뀌어 배치가 달라지면 노드를 이전 좌표에서 새 좌표로 옮기며 그릴 노드와 엣지 목록을 만든다.
+새로 나타난 노드는 이전 화면에 있던 조상의 자리에서 투명하게 출발해 제자리로 간다.
 store에는 최종 좌표만 두고 화면에 그릴 좌표만 따로 계산하므로, 드롭 판정·레이아웃·undo는 전환을 모른다.
 연결선은 React Flow가 노드 좌표로 그리므로 함께 움직인다.
 인자 : UseNodeTransitionParams
-반환값 : 화면에 그릴 노드 목록과 전환 중인지 여부
+반환값 : 화면에 그릴 노드 목록과 엣지 목록, 전환 중인지 여부
 */
 export const useNodeTransition = ({
   nodes,
+  edges,
   isLayoutRunning,
 }: UseNodeTransitionParams) => {
   const collapsedServerIds = useCollapseStore(
@@ -41,18 +46,22 @@ export const useNodeTransition = ({
   const transitionNodes = useMemo(
     () =>
       transition
-        ? getTransitionNodes(
-            nodes,
-            transition.fromPositions,
-            transition.progress,
-          )
+        ? getTransitionNodes(nodes, transition.fromFrames, transition.progress)
         : nodes,
     [nodes, transition],
   );
 
-  const renderedPositionsRef = useRef<NodePositions>(new Map()); // 직전 렌더에 그린 좌표
+  const transitionEdges = useMemo(
+    () =>
+      transition
+        ? getTransitionEdges(edges, transition.fromFrames, transition.progress)
+        : edges,
+    [edges, transition],
+  );
+
+  const renderedFramesRef = useRef<NodeFrames>(new Map()); // 직전 렌더에 그린 모습
   const seenCollapseRef = useRef({ collapsedServerIds, collapseTreeId });
-  const pendingFromPositionsRef = useRef<NodePositions | null>(null); // 레이아웃 결과를 기다리는 전환의 시작 좌표
+  const pendingFromFramesRef = useRef<NodeFrames | null>(null); // 레이아웃 결과를 기다리는 전환의 시작 모습
   const frameRef = useRef<number | null>(null);
 
   useEffect(
@@ -65,7 +74,7 @@ export const useNodeTransition = ({
   /*
   접힘이 바뀐 렌더에는 아직 이전 좌표가 들어 있고 새 좌표는 레이아웃이 끝난 뒤의 렌더에 온다. 그래서 접힘이 바뀌는 순간
   시작 좌표를 잡아 두고, 레이아웃 결과가 온 렌더에서 전환을 시작한다. 두 렌더 모두 페인트 전에 끝나므로 새 좌표가 먼저 보이지 않는다.
-  시작 좌표는 접힘이 바뀌기 전의 것이어야 새로 나타난 노드가 숨겨져 있던 때의 낡은 좌표에서 출발하지 않는다.
+  시작 모습은 접힘이 바뀌기 전의 것이어야 새로 나타난 노드를 가려낼 수 있다. 숨겨져 있던 때의 낡은 좌표에서 출발하지 않게 하는 기준이기도 하다.
 
   저장된 접힘을 복원할 때는 트리 ID가 함께 바뀌므로 잡지 않는다. 잡으면 페이지를 열 때마다 노드가 움직인다.
   */
@@ -75,21 +84,23 @@ export const useNodeTransition = ({
     if (seenCollapse.collapsedServerIds !== collapsedServerIds) {
       if (
         seenCollapse.collapseTreeId === collapseTreeId &&
-        pendingFromPositionsRef.current === null
+        pendingFromFramesRef.current === null
       ) {
-        pendingFromPositionsRef.current = renderedPositionsRef.current;
+        pendingFromFramesRef.current = renderedFramesRef.current;
       }
 
       seenCollapseRef.current = { collapsedServerIds, collapseTreeId };
     }
 
-    renderedPositionsRef.current = getNodePositions(transitionNodes);
+    renderedFramesRef.current = getNodeFrames(transitionNodes);
 
-    const fromPositions = pendingFromPositionsRef.current;
+    const pendingFromFrames = pendingFromFramesRef.current;
 
-    if (fromPositions === null || isLayoutRunning()) return;
+    if (pendingFromFrames === null || isLayoutRunning()) return;
 
-    pendingFromPositionsRef.current = null;
+    pendingFromFramesRef.current = null;
+
+    const fromFrames = addEnteringFrames(nodes, edges, pendingFromFrames);
 
     const duration = getMotionDuration();
     const isDragging = nodes.some((node) => node.dragging); // 끄는 노드의 좌표는 포인터가 정한다. 다른 탭의 접힘 변경으로 여기에 올 수 있다.
@@ -100,13 +111,13 @@ export const useNodeTransition = ({
     }
 
     const shouldMove =
-      duration > 0 && !isDragging && hasMovedNode(nodes, fromPositions);
+      duration > 0 && !isDragging && hasChangingNode(nodes, fromFrames);
 
     /*
     새 좌표가 페인트되기 전에 시작 좌표로 되돌려야 하므로 layout effect 안에서 바로 바꾼다. 다음 프레임으로 미루면 노드가 새 자리에 한 번 보였다가 돌아온다.
     */
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    setTransition(shouldMove ? { fromPositions, progress: 0 } : null);
+    setTransition(shouldMove ? { fromFrames, progress: 0 } : null);
 
     if (!shouldMove) return;
 
@@ -122,7 +133,7 @@ export const useNodeTransition = ({
       }
 
       setTransition({
-        fromPositions,
+        fromFrames,
         progress: easeCubicInOut(elapsed / duration),
       });
       frameRef.current = requestAnimationFrame(advanceTransition);
@@ -131,11 +142,16 @@ export const useNodeTransition = ({
     frameRef.current = requestAnimationFrame(advanceTransition);
   }, [
     nodes,
+    edges,
     transitionNodes,
     collapsedServerIds,
     collapseTreeId,
     isLayoutRunning,
   ]);
 
-  return { transitionNodes, isTransitioning: transition !== null };
+  return {
+    transitionNodes,
+    transitionEdges,
+    isTransitioning: transition !== null,
+  };
 };

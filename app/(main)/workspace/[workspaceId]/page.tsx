@@ -152,10 +152,12 @@ function LayoutFlow({ workspaceId, treeId }: LayoutFlowProps) {
   store에는 최종 좌표만 두고, 접힘이 바뀔 때 움직이는 좌표는 화면에 넘기는 노드에만 입힌다.
   전환 중에는 노드를 잡지 못하게 한다. 움직이는 노드를 잡으면 놓일 자리를 잴 기준이 계속 바뀐다.
   */
-  const { transitionNodes, isTransitioning } = useNodeTransition({
-    nodes: draggableNodes,
-    isLayoutRunning,
-  });
+  const { transitionNodes, transitionEdges, isTransitioning } =
+    useNodeTransition({
+      nodes: draggableNodes,
+      edges: visibleEdges,
+      isLayoutRunning,
+    });
 
   /*
   결과로 고른 노드를 선택하고 화면 가운데로 옮긴다. 메모에서 일치한 노드는 일치한 내용을 바로 볼 수 있도록 메모 패널도 연다.
@@ -232,7 +234,7 @@ function LayoutFlow({ workspaceId, treeId }: LayoutFlowProps) {
       >
         <ReactFlow
           nodes={transitionNodes}
-          edges={visibleEdges}
+          edges={transitionEdges}
           nodeTypes={nodeTypes}
           edgeTypes={edgeTypes}
           minZoom={MIN_ZOOM}

@@ -2,11 +2,13 @@
 import { act, renderHook } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { MOTION_DURATION_MS } from "../../constants/motion";
+import { createEditorEdge } from "../../lib/add-node/createEditorEdge";
 import { createEditorNode } from "../../lib/add-node/createEditorNode";
 import { useCollapseStore } from "./collapseStore";
 import { useNodeTransition } from "./useNodeTransition";
 
 const TREE_ID = "1";
+const EDGES = [createEditorEdge({ sourceClientId: "a", targetClientId: "b" })];
 
 const createNode = (clientId: string, x: number, y: number) =>
   createEditorNode({
@@ -48,9 +50,10 @@ const renderTransition = (nodes: ReturnType<typeof createNode>[]) =>
     (props) =>
       useNodeTransition({
         nodes: props.nodes,
+        edges: props.edges,
         isLayoutRunning: () => isLayoutRunning,
       }),
-    { initialProps: { nodes } },
+    { initialProps: { nodes, edges: EDGES } },
   );
 
 /*
@@ -91,10 +94,10 @@ describe("useNodeTransition", () => {
     const { result, rerender } = renderTransition([createNode("a", 0, 0)]);
 
     toggleCollapse();
-    rerender({ nodes: [createNode("a", 0, 0)] });
+    rerender({ edges: EDGES, nodes: [createNode("a", 0, 0)] });
 
     isLayoutRunning = false;
-    rerender({ nodes: [createNode("a", 100, 0)] });
+    rerender({ edges: EDGES, nodes: [createNode("a", 100, 0)] });
 
     expect(result.current.isTransitioning).toBe(true);
     expect(result.current.transitionNodes[0].position).toEqual({ x: 0, y: 0 });
@@ -115,12 +118,12 @@ describe("useNodeTransition", () => {
 
     toggleCollapse();
     isLayoutRunning = false;
-    rerender({ nodes: [createNode("a", 100, 0)] });
+    rerender({ edges: EDGES, nodes: [createNode("a", 100, 0)] });
     runFrameAt(MOTION_DURATION_MS / 2);
 
     toggleCollapse();
     isLayoutRunning = false;
-    rerender({ nodes: [createNode("a", 0, 0)] });
+    rerender({ edges: EDGES, nodes: [createNode("a", 0, 0)] });
 
     expect(result.current.transitionNodes[0].position.x).toBeCloseTo(50);
   });
@@ -128,7 +131,7 @@ describe("useNodeTransition", () => {
   it("접힘이 그대로면 좌표가 바뀌어도 바로 옮긴다", () => {
     const { result, rerender } = renderTransition([createNode("a", 0, 0)]);
 
-    rerender({ nodes: [createNode("a", 100, 0)] });
+    rerender({ edges: EDGES, nodes: [createNode("a", 100, 0)] });
 
     expect(result.current.isTransitioning).toBe(false);
     expect(result.current.transitionNodes[0].position.x).toBe(100);
@@ -139,8 +142,8 @@ describe("useNodeTransition", () => {
 
     toggleCollapse();
     isLayoutRunning = false;
-    rerender({ nodes: [createNode("a", 0, 0)] });
-    rerender({ nodes: [createNode("a", 100, 0)] });
+    rerender({ edges: EDGES, nodes: [createNode("a", 0, 0)] });
+    rerender({ edges: EDGES, nodes: [createNode("a", 100, 0)] });
 
     expect(result.current.isTransitioning).toBe(false);
   });
@@ -155,24 +158,36 @@ describe("useNodeTransition", () => {
         collapsedServerIds: new Set(["s-a"]),
       }),
     );
-    rerender({ nodes: [createNode("a", 100, 0)] });
+    rerender({ edges: EDGES, nodes: [createNode("a", 100, 0)] });
 
     expect(result.current.isTransitioning).toBe(false);
   });
 
-  it("새로 나타난 노드는 낡은 좌표에서 출발하지 않는다", () => {
-    const { result, rerender } = renderTransition([createNode("a", 0, 0)]);
+  it("새로 나타난 노드는 낡은 좌표가 아니라 부모 자리에서 투명하게 출발한다", () => {
+    const { result, rerender } = renderTransition([createNode("a", 10, 20)]);
 
     toggleCollapse();
-    rerender({ nodes: [createNode("a", 0, 0), createNode("b", 999, 999)] });
+    rerender({
+      edges: EDGES,
+      nodes: [createNode("a", 10, 20), createNode("b", 999, 999)],
+    });
 
     isLayoutRunning = false;
-    rerender({ nodes: [createNode("a", 100, 0), createNode("b", 200, 0)] });
+    rerender({
+      edges: EDGES,
+      nodes: [createNode("a", 10, 20), createNode("b", 200, 20)],
+    });
 
     expect(result.current.transitionNodes[1].position).toEqual({
-      x: 200,
-      y: 0,
+      x: 10,
+      y: 20,
     });
+    expect(result.current.transitionNodes[1].style?.opacity).toBe(0);
+    expect(result.current.transitionEdges[0].style?.opacity).toBe(0);
+
+    runFrameAt(MOTION_DURATION_MS);
+    expect(result.current.transitionNodes[1].style?.opacity).toBeUndefined();
+    expect(result.current.transitionEdges[0]).toBe(EDGES[0]);
   });
 
   it("동작 줄이기를 켜면 움직이지 않는다", () => {
@@ -181,7 +196,7 @@ describe("useNodeTransition", () => {
 
     toggleCollapse();
     isLayoutRunning = false;
-    rerender({ nodes: [createNode("a", 100, 0)] });
+    rerender({ edges: EDGES, nodes: [createNode("a", 100, 0)] });
 
     expect(result.current.isTransitioning).toBe(false);
   });
