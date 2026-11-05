@@ -1,4 +1,4 @@
-import { MOTION_DURATION_MS } from "../constants/motion";
+import { EDGE_FADE_DURATION_MS, MOTION_DURATION_MS } from "../constants/motion";
 
 /*
 함수 이름 : prefersReducedMotion
@@ -26,3 +26,25 @@ export const getMotionDuration = (): number =>
 */
 export const easeCubicInOut = (progress: number): number =>
   progress < 0.5 ? 4 * progress ** 3 : 1 - (-2 * progress + 2) ** 3 / 2;
+
+/*
+함수 이름 : getExitingEdgeOpacity
+기능 : 사라지는 노드의 연결선 투명도를 구한다. 노드가 움직이기 시작하면서 먼저 흐려진다.
+인자 : number elapsed -> 전환 시작 후 지난 시간(ms)
+반환값 : 1에서 0으로 줄어드는 투명도
+*/
+export const getExitingEdgeOpacity = (elapsed: number): number =>
+  Math.max(0, 1 - elapsed / EDGE_FADE_DURATION_MS);
+
+/*
+함수 이름 : getEnteringEdgeOpacity
+기능 : 나타나는 노드의 연결선 투명도를 구한다. 노드가 제자리에 도착한 뒤에 드러난다.
+인자 : number elapsed -> 전환 시작 후 지난 시간(ms)
+number duration -> 노드가 움직이는 시간(ms)
+반환값 : 0에서 1로 늘어나는 투명도
+*/
+export const getEnteringEdgeOpacity = (
+  elapsed: number,
+  duration: number,
+): number =>
+  Math.min(1, Math.max(0, (elapsed - duration) / EDGE_FADE_DURATION_MS));

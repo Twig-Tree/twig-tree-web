@@ -1,7 +1,10 @@
 // @vitest-environment jsdom
 import { act, renderHook } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { MOTION_DURATION_MS } from "../../constants/motion";
+import {
+  EDGE_FADE_DURATION_MS,
+  MOTION_DURATION_MS,
+} from "../../constants/motion";
 import { createEditorEdge } from "../../lib/add-node/createEditorEdge";
 import { createEditorNode } from "../../lib/add-node/createEditorNode";
 import { useTreeStore } from "../treeStore";
@@ -9,6 +12,7 @@ import { useCollapseStore } from "./collapseStore";
 import { useNodeTransition } from "./useNodeTransition";
 
 const TREE_ID = "1";
+const TRANSITION_END_MS = MOTION_DURATION_MS + EDGE_FADE_DURATION_MS;
 const EDGES = [createEditorEdge({ sourceClientId: "a", targetClientId: "b" })];
 
 const createNode = (clientId: string, x: number, y: number) =>
@@ -106,7 +110,7 @@ describe("useNodeTransition", () => {
     runFrameAt(MOTION_DURATION_MS / 2);
     expect(result.current.transitionNodes[0].position.x).toBeCloseTo(50);
 
-    runFrameAt(MOTION_DURATION_MS);
+    runFrameAt(TRANSITION_END_MS);
     expect(result.current.isTransitioning).toBe(false);
     expect(result.current.transitionNodes[0].position).toEqual({
       x: 100,
@@ -184,9 +188,16 @@ describe("useNodeTransition", () => {
       y: 20,
     });
     expect(result.current.transitionNodes[1].style?.opacity).toBe(0);
-    expect(result.current.transitionEdges).toEqual([]);
+    expect(result.current.transitionEdges[0].style?.opacity).toBe(0);
 
-    runFrameAt(MOTION_DURATION_MS);
+    runFrameAt(MOTION_DURATION_MS / 2);
+    expect(result.current.transitionEdges[0].style?.opacity).toBe(0);
+
+    runFrameAt(MOTION_DURATION_MS + EDGE_FADE_DURATION_MS / 2);
+    expect(result.current.transitionNodes[1].position.x).toBe(200);
+    expect(result.current.transitionEdges[0].style?.opacity).toBeCloseTo(0.5);
+
+    runFrameAt(TRANSITION_END_MS);
     expect(result.current.transitionNodes[1].style?.opacity).toBeUndefined();
     expect(result.current.transitionEdges[0]).toBe(EDGES[0]);
   });
@@ -209,6 +220,13 @@ describe("useNodeTransition", () => {
       "ghost:b",
       "a",
     ]);
+    expect(result.current.transitionEdges[0].target).toBe("ghost:b");
+    expect(result.current.transitionEdges[0].style?.opacity).toBe(1);
+
+    runFrameAt(EDGE_FADE_DURATION_MS / 2);
+    expect(result.current.transitionEdges[0].style?.opacity).toBeCloseTo(0.5);
+
+    runFrameAt(EDGE_FADE_DURATION_MS);
     expect(result.current.transitionEdges).toEqual([]);
 
     runFrameAt(MOTION_DURATION_MS / 2);
@@ -217,10 +235,11 @@ describe("useNodeTransition", () => {
       y: 50,
     });
 
-    runFrameAt(MOTION_DURATION_MS);
+    runFrameAt(TRANSITION_END_MS);
     expect(result.current.transitionNodes.map((node) => node.id)).toEqual([
       "a",
     ]);
+    expect(result.current.transitionEdges).toEqual([]);
 
     useTreeStore.setState({ nodes: [] });
   });
