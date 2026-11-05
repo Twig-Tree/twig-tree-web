@@ -26,7 +26,7 @@ import {
   useVisibleElements,
   type NodeResult,
 } from "@/src/features/tree-editor";
-import { use, useCallback, useRef, useState } from "react";
+import { use, useRef } from "react";
 import { useGetTreeQuery } from "@/src/entities/tree/model/queries";
 import { useGetWorkspaceQuery } from "@/src/entities/workspace";
 import { isClientError } from "@/src/shared/api/httpErrors";
@@ -36,7 +36,7 @@ import {
   WorkspaceLoadError,
   WorkspacePanel,
   WorkspacePanelOpenButton,
-  useWorkspacePanelVisibility,
+  useResponsivePanelVisibility,
 } from "@/src/widgets/workspace";
 
 interface LayoutFlowProps {
@@ -45,8 +45,16 @@ interface LayoutFlowProps {
 }
 
 function LayoutFlow({ workspaceId, treeId }: LayoutFlowProps) {
-  const [isMemoPanelOpen, setIsMemoPanelOpen] = useState(false);
-  const closeMemoPanel = useCallback(() => setIsMemoPanelOpen(false), []); // 렌더마다 새 함수가 되면 useVisibleElements의 effect가 매번 다시 돈다.
+  /*
+  메모 패널은 노드를 골라야 의미가 있으므로 사용자가 열 때만 연다. 화면이 좁아지면 검색 패널과 함께 닫는다.
+  closePanel은 렌더마다 새로 만들어지지 않으므로 useVisibleElements의 effect를 다시 돌리지 않는다.
+  */
+  const {
+    isPanelOpen: isMemoPanelOpen,
+    isPanelOverlay: isMemoPanelOverlay,
+    openPanel: openMemoPanel,
+    closePanel: closeMemoPanel,
+  } = useResponsivePanelVisibility({ isOpenOnWideScreen: false });
   // todo: React Server Component 사용
   const {
     data: treeData,
@@ -126,20 +134,21 @@ function LayoutFlow({ workspaceId, treeId }: LayoutFlowProps) {
   const handleSelectResult = (result: NodeResult) => {
     focusNode(result.clientId);
 
-    if (result.isMemoMatched) setIsMemoPanelOpen(true);
+    if (result.isMemoMatched) openMemoPanel();
   };
 
   const isMutating =
     isAddingNode || isDeletingNode || isMovingNode || isUndoingOrRedoing;
 
   const { isPanelOpen, isPanelOverlay, openPanel, closePanel } =
-    useWorkspacePanelVisibility();
+    useResponsivePanelVisibility({ isOpenOnWideScreen: true });
 
   /*
-  좁은 화면에서 패널은 캔버스 위에 겹쳐 뜨므로, 캔버스 빈 곳을 누르면 닫아 다시 캔버스를 보여 준다.
+  좁은 화면에서 양옆 패널은 캔버스 위에 겹쳐 뜨므로, 캔버스 빈 곳을 누르면 닫아 다시 캔버스를 보여 준다.
   */
   const handlePaneClick = () => {
     if (isPanelOverlay) closePanel();
+    if (isMemoPanelOverlay) closeMemoPanel();
   };
 
   const canvasRef = useRef<HTMLDivElement>(null);
@@ -233,7 +242,7 @@ function LayoutFlow({ workspaceId, treeId }: LayoutFlowProps) {
             key={contextMenu.clientId}
             x={contextMenu.x}
             y={contextMenu.y}
-            onOpenMemo={() => setIsMemoPanelOpen(true)}
+            onOpenMemo={openMemoPanel}
             onAddNode={handleAddNode}
             onDeleteNode={handleDeleteNode}
             onClose={closeContextMenu}
@@ -250,7 +259,8 @@ function LayoutFlow({ workspaceId, treeId }: LayoutFlowProps) {
         <MemoSidePanel
           treeId={treeId}
           selectedNode={selectedNode}
-          onClose={() => setIsMemoPanelOpen(false)}
+          onClose={closeMemoPanel}
+          isOverlay={isMemoPanelOverlay}
         />
       ) : null}
     </div>
