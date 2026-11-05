@@ -34,7 +34,6 @@ export function CustomEdge({
   targetY,
   sourcePosition,
   targetPosition,
-  style,
 }: EdgeProps<CustomEditorEdge>) {
   const { theme } = useTheme();
 
@@ -79,11 +78,7 @@ export function CustomEdge({
         id={id}
         path={edgePath}
         markerEnd={`url(#${markerId})`}
-        style={{
-          ...style,
-          strokeWidth: EDGE_STROKE_WIDTH,
-          strokeLinecap: "round",
-        }}
+        style={{ strokeWidth: EDGE_STROKE_WIDTH, strokeLinecap: "round" }}
       />
     </>
   );

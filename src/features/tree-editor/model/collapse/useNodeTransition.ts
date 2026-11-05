@@ -1,8 +1,7 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import {
-  ExitingElements,
-  getExitingElements,
-  getGhostEdges,
+  ExitingNode,
+  getExitingNodes,
   getGhostNodes,
 } from "../../lib/collapse/getGhostElements";
 import {
@@ -20,7 +19,7 @@ import { useCollapseStore } from "./collapseStore";
 
 type UseNodeTransitionParams = {
   nodes: CustomEditorNode[]; // 레이아웃이 정한 최종 좌표를 가진 노드 목록
-  edges: CustomEditorEdge[]; // 보이는 엣지 목록. 새로 나타난 노드의 조상을 찾고 함께 드러낸다
+  edges: CustomEditorEdge[]; // 보이는 엣지 목록. 새로 나타난 노드의 조상을 찾는 데 쓴다
   isLayoutRunning: () => boolean; // 레이아웃 계산이 진행 중인지. 끝나야 목표 좌표가 정해진다
 };
 
@@ -32,7 +31,7 @@ type RenderedElements = {
 
 type NodeTransition = {
   fromFrames: NodeFrames; // 전환을 시작한 모습
-  exiting: ExitingElements; // 접혀서 사라지는 노드와 엣지. 더미로 그린다
+  exitingNodes: ExitingNode[]; // 접혀서 사라지는 노드. 더미로 그린다
   progress: number; // 0과 1 사이의 이동 진행률
 };
 
@@ -40,9 +39,9 @@ type NodeTransition = {
 함수 이름 : useNodeTransition
 기능 : 접힘이 바뀌어 배치가 달라지면 노드를 이전 좌표에서 새 좌표로 옮기며 그릴 노드와 엣지 목록을 만든다.
 새로 나타난 노드는 이전 화면에 있던 조상의 자리에서 투명하게 출발해 제자리로 간다. 접혀서 사라지는 노드는 이미 데이터에서 빠졌으므로,
-화면에 넘기는 목록에만 더미를 더해 조상의 자리로 들여보낸다.
+화면에 넘기는 목록에만 더미를 더해 조상의 자리로 들여보낸다. 나타나고 사라지는 노드의 연결선은 전환 중에 그리지 않는다.
 store에는 최종 좌표만 두고 화면에 그릴 좌표만 따로 계산하므로, 드롭 판정·레이아웃·undo는 전환을 모른다.
-연결선은 React Flow가 노드 좌표로 그리므로 함께 움직인다.
+계속 보이는 노드의 연결선은 React Flow가 노드 좌표로 그리므로 함께 움직인다.
 인자 : UseNodeTransitionParams
 반환값 : 화면에 그릴 노드 목록과 엣지 목록, 전환 중인지 여부
 */
@@ -66,25 +65,12 @@ export const useNodeTransition = ({
     [nodes, transition],
   );
 
-  const movedEdges = useMemo(
-    () =>
-      transition
-        ? getTransitionEdges(edges, transition.fromFrames, transition.progress)
-        : edges,
-    [edges, transition],
-  );
-
   const ghostNodes = useMemo(
     () =>
       transition
-        ? getGhostNodes(transition.exiting, nodes, transition.progress)
+        ? getGhostNodes(transition.exitingNodes, nodes, transition.progress)
         : [],
     [nodes, transition],
-  );
-
-  const ghostEdges = useMemo(
-    () => (transition ? getGhostEdges(transition.exiting, ghostNodes) : []),
-    [ghostNodes, transition],
   );
 
   const transitionNodes = useMemo(
@@ -92,9 +78,14 @@ export const useNodeTransition = ({
     [ghostNodes, movedNodes],
   );
 
+  const fromFrames = transition?.fromFrames;
+
+  /*
+  시작 모습은 전환이 시작될 때만 바뀌므로 프레임마다 엣지 목록을 새로 만들지 않는다.
+  */
   const transitionEdges = useMemo(
-    () => (ghostEdges.length > 0 ? [...ghostEdges, ...movedEdges] : movedEdges),
-    [ghostEdges, movedEdges],
+    () => (fromFrames ? getTransitionEdges(edges, fromFrames) : edges),
+    [edges, fromFrames],
   );
 
   const renderedRef = useRef<RenderedElements>({
@@ -146,8 +137,8 @@ export const useNodeTransition = ({
 
     pendingFromRef.current = null;
 
-    const fromFrames = addEnteringFrames(nodes, edges, pendingFrom.frames);
-    const exiting = getExitingElements({
+    const nextFromFrames = addEnteringFrames(nodes, edges, pendingFrom.frames);
+    const exitingNodes = getExitingNodes({
       renderedNodes: pendingFrom.nodes,
       renderedEdges: pendingFrom.edges,
       nodes,
@@ -167,13 +158,17 @@ export const useNodeTransition = ({
     const shouldMove =
       duration > 0 &&
       !isDragging &&
-      (exiting.nodes.length > 0 || hasChangingNode(nodes, fromFrames));
+      (exitingNodes.length > 0 || hasChangingNode(nodes, nextFromFrames));
 
     /*
     새 좌표가 페인트되기 전에 시작 좌표로 되돌려야 하므로 layout effect 안에서 바로 바꾼다. 다음 프레임으로 미루면 노드가 새 자리에 한 번 보였다가 돌아온다.
     */
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    setTransition(shouldMove ? { fromFrames, exiting, progress: 0 } : null);
+    setTransition(
+      shouldMove
+        ? { fromFrames: nextFromFrames, exitingNodes, progress: 0 }
+        : null,
+    );
 
     if (!shouldMove) return;
 
@@ -189,8 +184,8 @@ export const useNodeTransition = ({
       }
 
       setTransition({
-        fromFrames,
-        exiting,
+        fromFrames: nextFromFrames,
+        exitingNodes,
         progress: easeCubicInOut(elapsed / duration),
       });
       frameRef.current = requestAnimationFrame(advanceTransition);

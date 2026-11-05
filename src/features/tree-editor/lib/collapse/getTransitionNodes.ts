@@ -131,24 +131,13 @@ export const getTransitionNodes = (
 
 /*
 함수 이름 : getTransitionEdges
-기능 : 투명하게 출발한 노드로 들어가는 엣지를 그 노드와 같은 투명도로 만든다. 나머지 엣지는 객체를 그대로 재사용한다.
+기능 : 드러나는 중인 노드로 들어가는 엣지를 뺀다. 나타나는 노드의 연결선은 노드가 제자리에 도착한 뒤에 그린다. 나머지 엣지는 객체를 그대로 재사용한다.
 인자 : CustomEditorEdge[] edges -> 보이는 엣지 목록
 NodeFrames fromFrames -> 시작 모습
-number progress -> 0과 1 사이의 이동 진행률
 반환값 : 화면에 그릴 엣지 목록
 */
 export const getTransitionEdges = (
   edges: CustomEditorEdge[],
   fromFrames: NodeFrames,
-  progress: number,
 ): CustomEditorEdge[] =>
-  edges.map((edge) => {
-    const fromOpacity = fromFrames.get(edge.target)?.opacity ?? 1;
-
-    if (fromOpacity === 1) return edge;
-
-    return {
-      ...edge,
-      style: { ...edge.style, opacity: getOpacityAt(fromOpacity, progress) },
-    };
-  });
+  edges.filter((edge) => (fromFrames.get(edge.target)?.opacity ?? 1) === 1);

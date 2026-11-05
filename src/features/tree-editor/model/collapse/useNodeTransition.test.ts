@@ -184,7 +184,7 @@ describe("useNodeTransition", () => {
       y: 20,
     });
     expect(result.current.transitionNodes[1].style?.opacity).toBe(0);
-    expect(result.current.transitionEdges[0].style?.opacity).toBe(0);
+    expect(result.current.transitionEdges).toEqual([]);
 
     runFrameAt(MOTION_DURATION_MS);
     expect(result.current.transitionNodes[1].style?.opacity).toBeUndefined();
@@ -209,7 +209,7 @@ describe("useNodeTransition", () => {
       "ghost:b",
       "a",
     ]);
-    expect(result.current.transitionEdges[0].target).toBe("ghost:b");
+    expect(result.current.transitionEdges).toEqual([]);
 
     runFrameAt(MOTION_DURATION_MS / 2);
     expect(result.current.transitionNodes[0].position).toEqual({
@@ -221,7 +221,6 @@ describe("useNodeTransition", () => {
     expect(result.current.transitionNodes.map((node) => node.id)).toEqual([
       "a",
     ]);
-    expect(result.current.transitionEdges).toEqual([]);
 
     useTreeStore.setState({ nodes: [] });
   });

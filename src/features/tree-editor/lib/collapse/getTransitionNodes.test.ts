@@ -158,21 +158,16 @@ describe("hasChangingNode", () => {
 describe("getTransitionEdges", () => {
   const edge = createEditorEdge({ sourceClientId: "a", targetClientId: "b" });
 
-  it("투명하게 출발한 노드로 들어가는 엣지는 같은 투명도가 된다", () => {
-    const [result] = getTransitionEdges(
-      [edge],
-      new Map([["b", createFrame(0, 0, 0)]]),
-      0.5,
-    );
-
-    expect(result.style?.opacity).toBe(0.5);
+  it("드러나는 중인 노드로 들어가는 엣지는 뺀다", () => {
+    expect(
+      getTransitionEdges([edge], new Map([["b", createFrame(0, 0, 0)]])),
+    ).toEqual([]);
   });
 
   it("나머지 엣지는 객체를 그대로 재사용한다", () => {
     const [result] = getTransitionEdges(
       [edge],
       new Map([["b", createFrame(0, 0)]]),
-      0.5,
     );
 
     expect(result).toBe(edge);

@@ -1,11 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { createEditorEdge } from "../add-node/createEditorEdge";
 import { createEditorNode } from "../add-node/createEditorNode";
-import {
-  getExitingElements,
-  getGhostEdges,
-  getGhostNodes,
-} from "./getGhostElements";
+import { getExitingNodes, getGhostNodes } from "./getGhostElements";
 
 const createNode = (clientId: string, x: number, y: number) =>
   createEditorNode({
@@ -31,19 +27,17 @@ const edges = [
 ];
 
 const getExiting = (storedClientIds = ["r", "a", "b", "c"]) =>
-  getExitingElements({
+  getExitingNodes({
     renderedNodes: [r, a, b, c],
     renderedEdges: edges,
     nodes: [r, { ...a, position: { x: 100, y: 50 } }],
     storedClientIds: new Set(storedClientIds),
   });
 
-describe("getExitingElements", () => {
-  it("화면에서 빠진 노드와 들어갈 조상, 그 노드로 들어가는 엣지를 찾는다", () => {
-    const exiting = getExiting();
-
+describe("getExitingNodes", () => {
+  it("화면에서 빠진 노드와 들어갈 조상을 찾는다", () => {
     expect(
-      exiting.nodes.map(({ node, ancestorClientId }) => [
+      getExiting().map(({ node, ancestorClientId }) => [
         node.id,
         ancestorClientId,
       ]),
@@ -51,14 +45,12 @@ describe("getExitingElements", () => {
       ["b", "a"],
       ["c", "a"],
     ]);
-    expect(exiting.edges.map((edge) => edge.target)).toEqual(["b", "c"]);
   });
 
   it("store에서도 사라진 노드는 삭제된 것이므로 대상이 아니다", () => {
-    const exiting = getExiting(["r", "a", "b"]);
-
-    expect(exiting.nodes.map(({ node }) => node.id)).toEqual(["b"]);
-    expect(exiting.edges.map((edge) => edge.target)).toEqual(["b"]);
+    expect(getExiting(["r", "a", "b"]).map(({ node }) => node.id)).toEqual([
+      "b",
+    ]);
   });
 });
 
@@ -91,29 +83,5 @@ describe("getGhostNodes", () => {
 
   it("조상이 사라졌으면 만들지 않는다", () => {
     expect(getGhostNodes(getExiting(), [r], 0.5)).toEqual([]);
-  });
-});
-
-describe("getGhostEdges", () => {
-  const visibleNodes = [r, a];
-
-  it("보이는 조상에서 더미로, 더미에서 더미로 잇고 대상 더미의 투명도를 따른다", () => {
-    const exiting = getExiting();
-    const ghostEdges = getGhostEdges(
-      exiting,
-      getGhostNodes(exiting, visibleNodes, 0.25),
-    );
-
-    expect(ghostEdges.map(({ source, target }) => [source, target])).toEqual([
-      ["a", "ghost:b"],
-      ["ghost:b", "ghost:c"],
-    ]);
-    expect(ghostEdges[0].style?.opacity).toBe(0.75);
-    expect(ghostEdges[0].id).toBe("ghost:e-a-b");
-    expect(ghostEdges[0].selectable).toBe(false);
-  });
-
-  it("대상 더미를 그리지 않으면 엣지도 만들지 않는다", () => {
-    expect(getGhostEdges(getExiting(), [])).toEqual([]);
   });
 });
