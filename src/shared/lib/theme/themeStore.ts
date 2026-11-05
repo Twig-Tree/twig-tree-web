@@ -68,8 +68,26 @@ export const subscribeTheme = (onStoreChange: () => void): (() => void) => {
 };
 
 /*
+함수 이름 : syncThemeFromStorage
+기능 : 저장된 테마를 다시 읽어 문서에 적용한다. 저장값이 지워졌거나 제품에 없는 테마면 기본 테마로 돌아간다. 저장소를 읽을 수 없으면 지금 테마를 유지한다.
+인자 : 없음
+반환값 : 없음
+*/
+export const syncThemeFromStorage = (): void => {
+  let storedTheme: string | null;
+
+  try {
+    storedTheme = window.localStorage.getItem(THEME_STORAGE_KEY);
+  } catch {
+    return;
+  }
+
+  applyTheme(isThemeId(storedTheme) ? storedTheme : DEFAULT_THEME);
+};
+
+/*
 함수 이름 : syncThemeFromStorageEvent
-기능 : 다른 탭이 테마를 바꾸면 이 탭에도 적용한다. 저장값이 지워졌거나 제품에 없는 테마면 기본 테마로 돌아간다.
+기능 : 다른 탭이 테마를 바꾸면 이 탭에도 적용한다. 이벤트가 큐에 있는 동안 이 탭에서 다시 고를 수 있으므로, 이벤트의 값이 아니라 저장소의 최신 값을 따른다.
 인자 : StorageEvent event -> window의 storage 이벤트
 반환값 : 없음
 */
@@ -78,5 +96,5 @@ export const syncThemeFromStorageEvent = (event: StorageEvent): void => {
 
   if (!isClearAll && event.key !== THEME_STORAGE_KEY) return;
 
-  applyTheme(isThemeId(event.newValue) ? event.newValue : DEFAULT_THEME);
+  syncThemeFromStorage();
 };

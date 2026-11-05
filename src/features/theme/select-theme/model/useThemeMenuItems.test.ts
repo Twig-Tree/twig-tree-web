@@ -31,7 +31,10 @@ describe("useThemeMenuItems", () => {
 
     expect(document.documentElement.dataset.theme).toBe("soft");
     expect(
-      result.current.find((item) => item.label === "Soft 테마")?.checked,
-    ).toBe(true);
+      result.current.map(({ label, checked }) => [label, checked]),
+    ).toEqual([
+      ["Neutral 테마", false],
+      ["Soft 테마", true],
+    ]);
   });
 });

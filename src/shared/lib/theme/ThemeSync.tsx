@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { syncThemeFromStorageEvent } from "./themeStore";
+import { syncThemeFromStorage, syncThemeFromStorageEvent } from "./themeStore";
 
 /*
 함수 이름 : ThemeSync
@@ -12,6 +12,11 @@ import { syncThemeFromStorageEvent } from "./themeStore";
 export function ThemeSync() {
   useEffect(() => {
     window.addEventListener("storage", syncThemeFromStorageEvent);
+
+    /*
+    초기 스크립트가 돈 뒤 구독을 시작하기 전까지 다른 탭이 바꾼 값은 이벤트로 받지 못하므로 한 번 맞춘다.
+    */
+    syncThemeFromStorage();
 
     return () =>
       window.removeEventListener("storage", syncThemeFromStorageEvent);

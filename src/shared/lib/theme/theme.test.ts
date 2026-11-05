@@ -94,7 +94,28 @@ describe("syncThemeFromStorageEvent", () => {
     new StorageEvent("storage", { key, newValue });
 
   it("다른 탭이 고른 테마를 적용한다", () => {
+    window.localStorage.setItem(THEME_STORAGE_KEY, "soft");
+
     syncThemeFromStorageEvent(createStorageEvent(THEME_STORAGE_KEY, "soft"));
+
+    expect(document.documentElement.dataset.theme).toBe("soft");
+  });
+
+  it("이벤트의 값이 낡았으면 저장소의 최신 값을 따른다", () => {
+    window.localStorage.setItem(THEME_STORAGE_KEY, "neutral");
+
+    syncThemeFromStorageEvent(createStorageEvent(THEME_STORAGE_KEY, "soft"));
+
+    expect(document.documentElement.dataset.theme).toBe("neutral");
+  });
+
+  it("저장소를 읽을 수 없으면 지금 테마를 유지한다", () => {
+    document.documentElement.dataset.theme = "soft";
+    vi.spyOn(Storage.prototype, "getItem").mockImplementation(() => {
+      throw new Error("blocked");
+    });
+
+    syncThemeFromStorageEvent(createStorageEvent(THEME_STORAGE_KEY, "neutral"));
 
     expect(document.documentElement.dataset.theme).toBe("soft");
   });
