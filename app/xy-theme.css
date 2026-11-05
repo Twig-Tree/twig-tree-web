@@ -91,7 +91,9 @@ React Flow가 읽는 CSS 변수에 값을 넣어야 하므로 Tailwind 유틸리
 }
 
 .react-flow__edge.selectable:hover .react-flow__edge-path,
-.react-flow__edge.selectable.selected .react-flow__edge-path {
+.react-flow__edge.selectable.selected .react-flow__edge-path,
+.react-flow__edge.selectable:hover .custom-edge__marker,
+.react-flow__edge.selectable.selected .custom-edge__marker {
   stroke: var(--xy-theme-edge-hover);
 }
 
