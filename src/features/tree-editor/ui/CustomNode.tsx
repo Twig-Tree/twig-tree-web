@@ -194,7 +194,7 @@ export function CustomNode({
             onBlur={handleBlur}
             onChange={handleChange}
             onKeyDown={handleKeyDown}
-            className="nodrag nopan w-full rounded border border-accent/50 bg-node-content/7 px-1 py-0.5 text-center text-xs text-node-content outline-none disabled:cursor-wait disabled:bg-node-content/4"
+            className="nodrag nopan w-full rounded-control border border-accent/50 bg-node-content/7 px-1 py-0.5 text-center text-xs text-node-content outline-none disabled:cursor-wait disabled:bg-node-content/4"
           />
           {errorMessage ? (
             <p

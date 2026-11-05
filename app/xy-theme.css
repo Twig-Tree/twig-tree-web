@@ -17,14 +17,12 @@ React Flow가 읽는 CSS 변수에 값을 넣어야 하므로 Tailwind 유틸리
   --xy-node-color-default: var(--theme-node-content);
   --xy-node-border-default: 1px solid var(--theme-node-line);
 
-  --xy-node-boxshadow-default:
-    0px 3.54px 4.55px 0px #00000005, 0px 3.54px 4.55px 0px #0000000d,
-    0px 0.51px 1.01px 0px #0000001a;
+  --xy-node-boxshadow-default: var(--theme-shadow-node);
 
-  --xy-node-border-radius-default: 8px;
+  --xy-node-border-radius-default: var(--theme-radius-node);
 
-  --xy-handle-background-color-default: var(--theme-surface);
-  --xy-handle-border-color-default: var(--theme-line-strong);
+  --xy-handle-background-color-default: var(--theme-handle-fill);
+  --xy-handle-border-color-default: var(--theme-handle-line);
 
   --xy-edge-label-color-default: var(--theme-content-secondary);
 
@@ -74,7 +72,9 @@ React Flow가 읽는 CSS 변수에 값을 넣어야 하므로 Tailwind 유틸리
 
 .react-flow__node.selectable.selected {
   border-color: var(--xy-theme-selected);
-  box-shadow: var(--xy-node-boxshadow-default);
+  box-shadow:
+    0 0 0 4px var(--theme-selected-ring),
+    var(--theme-shadow-node-selected);
 }
 
 /*
@@ -91,6 +91,9 @@ React Flow가 읽는 CSS 변수에 값을 넣어야 하므로 Tailwind 유틸리
 }
 
 .react-flow__handle {
+  width: var(--theme-handle-size);
+  height: var(--theme-handle-size);
+  border-width: var(--theme-handle-border-width);
   background-color: var(--xy-handle-background-color-default);
 }
 
@@ -115,7 +118,7 @@ React Flow가 읽는 CSS 변수에 값을 넣어야 하므로 Tailwind 유틸리
   justify-content: center;
   height: 2.5rem;
   padding: 0 1rem;
-  border-radius: 100px;
+  border-radius: var(--theme-radius-control);
   border: 1px solid var(--theme-line);
   background-color: var(--theme-surface);
   color: var(--theme-content-secondary);

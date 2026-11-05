@@ -24,7 +24,7 @@ export function DropIndicatorOverlay({ indicator }: DropIndicatorOverlayProps) {
         className={
           kind === "line"
             ? "pointer-events-none absolute top-0 left-0 rounded-full bg-accent"
-            : "pointer-events-none absolute top-0 left-0 rounded-lg border-2 border-dashed border-accent"
+            : "pointer-events-none absolute top-0 left-0 rounded-node border-2 border-dashed border-accent"
         }
         style={{
           transform: `translate(${rect.x}px, ${rect.y}px)`,

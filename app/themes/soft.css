@@ -74,6 +74,10 @@ hover, 비활성, 경고, 성공, 정보 색은 Lab에 없어 제품 사용처�
   --theme-root-content: #31233d;
   --theme-root-content-muted: #6f5d7a;
   --theme-selected-ring: rgb(124 58 237 / 18%);
+  --theme-handle-size: 10px;
+  --theme-handle-border-width: 2px;
+  --theme-handle-line: var(--theme-accent);
+  --theme-handle-fill: var(--theme-canvas);
 
   /* 형태 */
   --theme-radius-control: 12px;
