@@ -1,7 +1,9 @@
+import type { Ref } from "react";
 import { PanelLeftOpen } from "lucide-react";
 
 export interface WorkspacePanelOpenButtonProps {
   onOpen: () => void; // 닫힌 워크스페이스 패널을 연다.
+  ref?: Ref<HTMLButtonElement>; // 패널을 닫은 뒤 focus를 옮겨 올 때 쓴다.
 }
 
 /*
@@ -12,9 +14,11 @@ export interface WorkspacePanelOpenButtonProps {
 */
 export function WorkspacePanelOpenButton({
   onOpen,
+  ref,
 }: WorkspacePanelOpenButtonProps) {
   return (
     <button
+      ref={ref}
       type="button"
       aria-label="검색·태그 패널 열기"
       title="검색·태그 패널 열기"

@@ -26,7 +26,7 @@ import {
   useVisibleElements,
   type NodeResult,
 } from "@/src/features/tree-editor";
-import { use, useRef } from "react";
+import { use, useCallback, useRef, useState } from "react";
 import { useGetTreeQuery } from "@/src/entities/tree/model/queries";
 import { useGetWorkspaceQuery } from "@/src/entities/workspace";
 import { isClientError } from "@/src/shared/api/httpErrors";
@@ -36,6 +36,7 @@ import {
   WorkspaceLoadError,
   WorkspacePanel,
   WorkspacePanelOpenButton,
+  useIsNarrowScreen,
   useResponsivePanelVisibility,
 } from "@/src/widgets/workspace";
 
@@ -46,15 +47,13 @@ interface LayoutFlowProps {
 
 function LayoutFlow({ workspaceId, treeId }: LayoutFlowProps) {
   /*
-  메모 패널은 노드를 골라야 의미가 있으므로 사용자가 열 때만 연다. 화면이 좁아지면 검색 패널과 함께 닫는다.
-  closePanel은 렌더마다 새로 만들어지지 않으므로 useVisibleElements의 effect를 다시 돌리지 않는다.
+  메모 패널은 노드를 골라야 의미가 있으므로 사용자가 열 때만 연다. 닫히면 저장하지 않은 초안이 사라지므로
+  화면이 좁아져도 닫지 않고, 캔버스 위에 겹쳐 띄우기만 한다.
   */
-  const {
-    isPanelOpen: isMemoPanelOpen,
-    isPanelOverlay: isMemoPanelOverlay,
-    openPanel: openMemoPanel,
-    closePanel: closeMemoPanel,
-  } = useResponsivePanelVisibility({ isOpenOnWideScreen: false });
+  const [isMemoPanelOpen, setIsMemoPanelOpen] = useState(false);
+  const openMemoPanel = useCallback(() => setIsMemoPanelOpen(true), []);
+  const closeMemoPanel = useCallback(() => setIsMemoPanelOpen(false), []); // 렌더마다 새 함수가 되면 useVisibleElements의 effect가 매번 다시 돈다.
+  const isMemoPanelOverlay = useIsNarrowScreen();
   // todo: React Server Component 사용
   const {
     data: treeData,
@@ -141,7 +140,18 @@ function LayoutFlow({ workspaceId, treeId }: LayoutFlowProps) {
     isAddingNode || isDeletingNode || isMovingNode || isUndoingOrRedoing;
 
   const { isPanelOpen, isPanelOverlay, openPanel, closePanel } =
-    useResponsivePanelVisibility({ isOpenOnWideScreen: true });
+    useResponsivePanelVisibility();
+
+  /*
+  닫기 버튼을 누르면 그 버튼이 패널과 함께 사라져 focus가 갈 곳을 잃으므로, 대신 나타나는 열기 버튼으로 옮긴다.
+  click 처리 중의 state 변경은 이벤트가 끝날 때 바로 반영되므로 다음 프레임에는 열기 버튼이 있다.
+  화면이 좁아져 자동으로 닫힐 때는 사용자가 보던 곳의 focus를 빼앗지 않도록 옮기지 않는다.
+  */
+  const openPanelButtonRef = useRef<HTMLButtonElement>(null);
+  const handleClosePanel = () => {
+    closePanel();
+    window.requestAnimationFrame(() => openPanelButtonRef.current?.focus());
+  };
 
   /*
   캔버스 빈 곳을 누르면 노드 선택이 풀려 메모 패널이 보여 줄 노드가 없어지므로 화면 폭과 관계없이 닫는다.
@@ -153,8 +163,19 @@ function LayoutFlow({ workspaceId, treeId }: LayoutFlowProps) {
   };
 
   const canvasRef = useRef<HTMLDivElement>(null);
-  const { contextMenu, handleNodeContextMenu, closeContextMenu } =
-    useNodeContextMenu({ containerRef: canvasRef, isDisabled: isMutating });
+  const {
+    contextMenu,
+    handleNodeContextMenu,
+    closeContextMenu,
+    closeContextMenuAndFocusNode,
+  } = useNodeContextMenu({ containerRef: canvasRef, isDisabled: isMutating });
+
+  /*
+  루트는 삭제할 수 없으므로 메뉴에서 처음부터 막는다. 편집기에서 구조는 엣지가 들고 있어, 들어오는 엣지가 없는 노드가 루트다.
+  */
+  const isSelectedNodeRoot =
+    selectedNode !== undefined &&
+    !edges.some((edge) => edge.target === selectedNode.id);
 
   if (isLoading) {
     return <div>Loading...</div>;
@@ -172,7 +193,7 @@ function LayoutFlow({ workspaceId, treeId }: LayoutFlowProps) {
         onFitNodes={fitNodes}
         isOpen={isPanelOpen}
         isOverlay={isPanelOverlay}
-        onClose={closePanel}
+        onClose={handleClosePanel}
       />
 
       <div
@@ -218,7 +239,10 @@ function LayoutFlow({ workspaceId, treeId }: LayoutFlowProps) {
 
           {isPanelOpen ? null : (
             <Panel position="top-left">
-              <WorkspacePanelOpenButton onOpen={openPanel} />
+              <WorkspacePanelOpenButton
+                ref={openPanelButtonRef}
+                onOpen={openPanel}
+              />
             </Panel>
           )}
 
@@ -247,8 +271,12 @@ function LayoutFlow({ workspaceId, treeId }: LayoutFlowProps) {
             onAddNode={handleAddNode}
             onDeleteNode={handleDeleteNode}
             onClose={closeContextMenu}
+            onEscape={closeContextMenuAndFocusNode}
+            isOpenMemoDisabled={!selectedNode}
             isAddNodeDisabled={!isAddNodeEnabled || isMutating}
-            isDeleteNodeDisabled={!selectedNode || isMutating}
+            isDeleteNodeDisabled={
+              !selectedNode || isSelectedNodeRoot || isMutating
+            }
           />
         ) : null}
       </div>

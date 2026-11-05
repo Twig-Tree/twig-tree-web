@@ -1,4 +1,5 @@
 import {
+  type FocusEvent,
   type KeyboardEvent,
   useEffect,
   useLayoutEffect,
@@ -16,6 +17,8 @@ type NodeContextMenuProps = {
   onAddNode: () => void; // 선택한 노드에 자식 노드를 추가한다.
   onDeleteNode: () => void; // 선택한 노드를 삭제한다.
   onClose: () => void; // 메뉴를 닫는다.
+  onEscape: () => void; // Escape로 닫는다. 메뉴를 열기 전의 자리로 focus를 돌려준다.
+  isOpenMemoDisabled: boolean;
   isAddNodeDisabled: boolean;
   isDeleteNodeDisabled: boolean;
 };
@@ -30,7 +33,7 @@ type MenuItem = {
 
 /*
 함수 이름 : NodeContextMenu
-기능 : 우클릭한 위치에 노드 메뉴를 그린다. 메뉴 밖을 누르거나 Escape를 누르면 닫히고,
+기능 : 우클릭한 위치에 노드 메뉴를 그린다. 메뉴 밖을 누르거나 Escape를 누르거나 focus가 메뉴 밖으로 나가면 닫히고,
 항목을 고르면 그 동작을 실행한 뒤 닫힌다. 캔버스 밖으로 넘치면 안쪽으로 당겨 놓는다.
 인자 : NodeContextMenuProps
 반환값 : 노드 메뉴
@@ -42,6 +45,8 @@ export function NodeContextMenu({
   onAddNode,
   onDeleteNode,
   onClose,
+  onEscape,
+  isOpenMemoDisabled,
   isAddNodeDisabled,
   isDeleteNodeDisabled,
 }: NodeContextMenuProps) {
@@ -53,7 +58,7 @@ export function NodeContextMenu({
       label: "메모 열기",
       icon: StickyNote,
       onSelect: onOpenMemo,
-      isDisabled: false,
+      isDisabled: isOpenMemoDisabled,
     },
     {
       label: "노드 추가",
@@ -121,7 +126,7 @@ export function NodeContextMenu({
 
     if (event.key === "Escape") {
       event.preventDefault();
-      onClose();
+      onEscape();
       return;
     }
 
@@ -146,12 +151,25 @@ export function NodeContextMenu({
     enabledItems[nextIndex].focus();
   };
 
+  /*
+  Tab으로 focus가 메뉴 밖의 요소로 옮겨 가면 닫는다. 항목 사이를 오갈 때는 다음 focus가 메뉴 안이라 닫지 않는다.
+  메뉴 여백을 누르면 focus가 갈 요소가 없어(relatedTarget이 null) 닫지 않고, 메뉴 밖 클릭은 pointerdown이 닫는다.
+  */
+  const handleBlur = (event: FocusEvent<HTMLDivElement>) => {
+    const nextFocused = event.relatedTarget;
+    if (!(nextFocused instanceof Node)) return;
+    if (menuRef.current?.contains(nextFocused)) return;
+
+    onClose();
+  };
+
   return (
     <div
       ref={menuRef}
       role="menu"
       aria-label="노드 메뉴"
       onKeyDown={handleKeyDown}
+      onBlur={handleBlur}
       onContextMenu={(event) => event.preventDefault()}
       style={{ left: position.left, top: position.top }}
       className="absolute z-20 min-w-40 rounded-control border border-line bg-surface p-1 shadow-overlay"

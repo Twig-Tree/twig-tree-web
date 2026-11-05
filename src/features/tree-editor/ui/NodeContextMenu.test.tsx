@@ -4,6 +4,7 @@ import { describe, it, expect, vi } from "vitest";
 import { NodeContextMenu } from "./NodeContextMenu";
 
 const renderMenu = ({
+  isOpenMemoDisabled = false,
   isAddNodeDisabled = false,
   isDeleteNodeDisabled = false,
 } = {}) => {
@@ -12,6 +13,7 @@ const renderMenu = ({
     onAddNode: vi.fn(),
     onDeleteNode: vi.fn(),
     onClose: vi.fn(),
+    onEscape: vi.fn(),
   };
 
   render(
@@ -20,6 +22,7 @@ const renderMenu = ({
       <NodeContextMenu
         x={10}
         y={10}
+        isOpenMemoDisabled={isOpenMemoDisabled}
         isAddNodeDisabled={isAddNodeDisabled}
         isDeleteNodeDisabled={isDeleteNodeDisabled}
         {...handlers}
@@ -54,11 +57,24 @@ describe("NodeContextMenu", () => {
     expect(screen.getByRole("menuitem", { name: "메모 열기" })).toHaveFocus();
   });
 
-  it("Escape를 누르면 닫는다", async () => {
+  it("Escape를 누르면 focus를 돌려주며 닫는다", async () => {
     const user = userEvent.setup();
-    const { onClose } = renderMenu();
+    const { onEscape, onClose } = renderMenu();
 
     await user.keyboard("{Escape}");
+
+    expect(onEscape).toHaveBeenCalledTimes(1);
+    expect(onClose).not.toHaveBeenCalled();
+  });
+
+  it("Tab으로 focus가 메뉴 밖으로 나가면 닫는다", async () => {
+    const user = userEvent.setup();
+    const { onClose } = renderMenu({
+      isAddNodeDisabled: true,
+      isDeleteNodeDisabled: true,
+    });
+
+    await user.tab({ shift: true });
 
     expect(onClose).toHaveBeenCalledTimes(1);
   });
@@ -75,6 +91,12 @@ describe("NodeContextMenu", () => {
 
     await user.click(screen.getByRole("button", { name: "캔버스" }));
     expect(onClose).toHaveBeenCalled();
+  });
+
+  it("선택한 노드가 없으면 메모 열기를 막는다", () => {
+    renderMenu({ isOpenMemoDisabled: true });
+
+    expect(screen.getByRole("menuitem", { name: "메모 열기" })).toBeDisabled();
   });
 
   it("비활성 항목은 눌러도 실행하지 않는다", async () => {

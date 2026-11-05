@@ -34,11 +34,9 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
-describe("useResponsivePanelVisibility — 넓은 화면에서 열어 두는 패널", () => {
+describe("useResponsivePanelVisibility", () => {
   it("넓은 화면에서는 열린 채 캔버스 옆에 붙어 시작한다", () => {
-    const { result } = renderHook(() =>
-      useResponsivePanelVisibility({ isOpenOnWideScreen: true }),
-    );
+    const { result } = renderHook(() => useResponsivePanelVisibility());
 
     expect(result.current.isPanelOpen).toBe(true);
     expect(result.current.isPanelOverlay).toBe(false);
@@ -46,9 +44,7 @@ describe("useResponsivePanelVisibility — 넓은 화면에서 열어 두는 패
 
   it("좁은 화면에서는 닫힌 채 시작하고, 열면 캔버스 위에 겹쳐 띄운다", () => {
     isNarrow = true;
-    const { result } = renderHook(() =>
-      useResponsivePanelVisibility({ isOpenOnWideScreen: true }),
-    );
+    const { result } = renderHook(() => useResponsivePanelVisibility());
 
     expect(result.current.isPanelOpen).toBe(false);
 
@@ -59,9 +55,7 @@ describe("useResponsivePanelVisibility — 넓은 화면에서 열어 두는 패
   });
 
   it("화면이 좁아지면 닫고, 다시 넓어지면 연다", () => {
-    const { result } = renderHook(() =>
-      useResponsivePanelVisibility({ isOpenOnWideScreen: true }),
-    );
+    const { result } = renderHook(() => useResponsivePanelVisibility());
 
     setNarrowScreen(true);
     expect(result.current.isPanelOpen).toBe(false);
@@ -71,37 +65,9 @@ describe("useResponsivePanelVisibility — 넓은 화면에서 열어 두는 패
   });
 
   it("기준을 넘지 않는 동안에는 사용자가 닫은 상태를 유지한다", () => {
-    const { result } = renderHook(() =>
-      useResponsivePanelVisibility({ isOpenOnWideScreen: true }),
-    );
+    const { result } = renderHook(() => useResponsivePanelVisibility());
 
     act(() => result.current.closePanel());
-    setNarrowScreen(false);
-
-    expect(result.current.isPanelOpen).toBe(false);
-  });
-});
-
-describe("useResponsivePanelVisibility — 사용자가 열 때만 여는 패널", () => {
-  it("닫힌 채 시작하고, 열어 둔 뒤 화면이 좁아지면 닫는다", () => {
-    const { result } = renderHook(() =>
-      useResponsivePanelVisibility({ isOpenOnWideScreen: false }),
-    );
-
-    expect(result.current.isPanelOpen).toBe(false);
-
-    act(() => result.current.openPanel());
-    setNarrowScreen(true);
-
-    expect(result.current.isPanelOpen).toBe(false);
-  });
-
-  it("화면이 다시 넓어져도 저절로 열지 않는다", () => {
-    const { result } = renderHook(() =>
-      useResponsivePanelVisibility({ isOpenOnWideScreen: false }),
-    );
-
-    setNarrowScreen(true);
     setNarrowScreen(false);
 
     expect(result.current.isPanelOpen).toBe(false);
