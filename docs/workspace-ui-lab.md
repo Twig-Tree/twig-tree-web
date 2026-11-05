@@ -114,3 +114,27 @@ Lab의 결과를 실제 Workspace로 옮기기 전에 다음을 확인한다.
 7. 선택한 결정에 회귀 테스트를 붙일 수 있는가?
 
 Lab은 결정을 빠르게 만드는 곳이고, 실제 Workspace는 그 결정을 제품의 데이터 흐름과 접근성, 성능 요구에 맞게 책임지는 곳이다.
+
+## 제품에 반영한 결정
+
+Lab에서 비교한 끝에 제품 테마로 `Soft`를 골랐다. 제품 코드는 Lab을 import하지 않고 값을 옮겼으며, 구조와 새 테마 추가 절차는 [테마 규칙](./conventions/theming.md)에 있다.
+
+| Lab 슬롯                   | Soft 값                                 | 제품 위치                                  |
+| -------------------------- | --------------------------------------- | ------------------------------------------ |
+| 컬러 테마, 형태(`diffuse`) | 색, 곡률 20px, 번지는 그림자            | `app/themes/soft.css`                      |
+| 캔버스                     | `paper`                                 | `app/themes/soft.css`, `app/xy-theme.css`  |
+| 노드 밀도                  | `spacious` 168×60, 여백 22/18px, 14px   | `lib/layout.ts`, `app/themes/soft.css`     |
+| 연결 포인트                | `ring`                                  | `app/themes/soft.css`, `app/xy-theme.css`  |
+| 접기 버튼                  | `notch`                                 | `ui/CollapseToggleButton.tsx`              |
+| 연결선                     | `soft-guide`                            | `ui/CustomEdge.tsx`, `app/themes/soft.css` |
+| 패널                       | `muted` 표면, `shadow` 경계, `spacious` | `app/themes/soft.css`, 각 패널 컴포넌트    |
+
+`lib/`, `ui/`는 `src/features/tree-editor` 아래다.
+
+Lab과 값을 다르게 둔 곳은 다음과 같다.
+
+- 강조색과 보조 글자: Lab 값(`#8b5cf6`, `#8a7895`)이 작은 글자 대비 4.5:1에 못 미쳐 `#7c3aed`, `#6f5d7a`로 진하게 했다.
+- 패널 글자: Lab의 `spacious`는 13px이지만 제품 패널이 이미 14px이라 줄이지 않았다.
+- 노드 크기: Lab은 렌더 후 측정한 크기로 다시 배치하지만, 제품은 ELK가 고정 크기로 배치한다. 긴 제목이 있어도 노드 높이는 늘어나지 않는다.
+- 배치: 제품은 ELK `mrtree`와 간격 80을 그대로 쓴다.
+- 도구 버튼: Lab의 아이콘 도구 막대가 아니라 제품의 글자 버튼에 색과 곡률만 입혔다.
