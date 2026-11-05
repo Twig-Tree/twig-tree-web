@@ -62,6 +62,6 @@ React Flow는 자기 CSS 변수를 읽으므로 `app/xy-theme.css`가 그 변수
 | ------------------------- | ------------------------------------------------------ |
 | 노드 크기 (168×60)        | `src/features/tree-editor/lib/layout.ts`               |
 | 노드 간격 (80)            | `src/features/tree-editor/lib/layout.ts`               |
-| 연결선 곡선, 굵기, 화살촉 | `src/features/tree-editor/ui/CustomEdge.tsx`           |
+| 연결선 경로, 굵기, 화살촉 | `src/features/tree-editor/ui/CustomEdge.tsx`           |
 | 접기 버튼 모양과 위치     | `src/features/tree-editor/ui/CollapseToggleButton.tsx` |
 | 축소 하한 (0.3)           | `src/features/tree-editor/constants/flowConfig.ts`     |

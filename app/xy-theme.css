@@ -86,14 +86,8 @@ React Flow가 읽는 CSS 변수에 값을 넣어야 하므로 Tailwind 유틸리
   outline-offset: 2px;
 }
 
-.react-flow__edge-path {
-  stroke-opacity: var(--theme-edge-opacity);
-  filter: var(--theme-edge-filter);
-}
-
 .custom-edge__marker {
   stroke: var(--theme-edge);
-  opacity: var(--theme-edge-opacity);
 }
 
 .react-flow__edge.selectable:hover .react-flow__edge-path,

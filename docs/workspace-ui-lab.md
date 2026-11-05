@@ -126,7 +126,7 @@ Lab에서 비교한 끝에 제품 테마로 `Soft`를 골랐다. 제품 코드�
 | 노드 밀도                  | `spacious` 168×60, 여백 22/18px, 14px   | `lib/layout.ts`, `app/themes/soft.css`     |
 | 연결 포인트                | `ring`                                  | `app/themes/soft.css`, `app/xy-theme.css`  |
 | 접기 버튼                  | `notch`                                 | `ui/CollapseToggleButton.tsx`              |
-| 연결선                     | `soft-guide`                            | `ui/CustomEdge.tsx`, `app/themes/soft.css` |
+| 연결선                     | `soft-guide`를 변형 (아래 참고)         | `ui/CustomEdge.tsx`, `app/themes/soft.css` |
 | 패널                       | `muted` 표면, `shadow` 경계, `spacious` | `app/themes/soft.css`, 각 패널 컴포넌트    |
 
 `lib/`, `ui/`는 `src/features/tree-editor` 아래다.
@@ -134,6 +134,7 @@ Lab에서 비교한 끝에 제품 테마로 `Soft`를 골랐다. 제품 코드�
 Lab과 값을 다르게 둔 곳은 다음과 같다.
 
 - 강조색과 보조 글자: Lab 값(`#8b5cf6`, `#8a7895`)이 작은 글자 대비 4.5:1에 못 미쳐 `#7c3aed`, `#6f5d7a`로 진하게 했다.
+- 연결선: `soft-guide`의 곡선은 자식이 많은 노드에서 시작점에 뭉쳐, 둥근 직각으로 바꿨다. 형제 선이 줄기를 공유하므로 투명도와 그림자를 빼고 단색(`#cfc4da`)을 쓴다. 열린 화살촉과 1.5px 굵기는 그대로다.
 - 패널 글자: Lab의 `spacious`는 13px이지만 제품 패널이 이미 14px이라 줄이지 않았다.
 - 노드 크기: Lab은 렌더 후 측정한 크기로 다시 배치하지만, 제품은 ELK가 고정 크기로 배치한다. 긴 제목이 있어도 노드 높이는 늘어나지 않는다.
 - 배치: 제품은 ELK `mrtree`와 간격 80을 그대로 쓴다.

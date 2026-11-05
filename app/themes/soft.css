@@ -63,11 +63,8 @@ hover, 비활성, 경고, 성공, 정보 색은 Lab에 없어 제품 사용처�
       transparent 52% 100%
     );
   --theme-canvas-image-size: auto, 36px 36px;
-  --theme-edge: #b9a9c6;
-  --theme-edge-opacity: 0.65;
-  --theme-edge-filter: drop-shadow(
-    0 2px 2px color-mix(in srgb, var(--theme-node-content) 24%, transparent)
-  );
+  /* 형제 연결선이 포개져도 진해지지 않도록 투명도 없는 단색으로 둔다. Lab의 #b9a9c6을 캔버스에 65%로 섞은 값이다. */
+  --theme-edge: #cfc4da;
   --theme-highlight: #ec4899;
   --theme-node: #fffafd;
   --theme-node-line: #e7dff0;
