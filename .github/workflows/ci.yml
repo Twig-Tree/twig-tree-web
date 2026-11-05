@@ -27,6 +27,9 @@ jobs:
 
       - run: pnpm run format:check
 
+      # next-env.d.ts는 커밋하지 않는 생성 파일이다. CSS Module 같은 Next 전역 타입이 여기서 온다.
+      - run: pnpm exec next typegen
+
       - run: pnpm exec tsc --noEmit
 
       # vitest는 CI 환경 변수로 watch를 끄지만, 그 감지에 기대지 않고 명시한다.
