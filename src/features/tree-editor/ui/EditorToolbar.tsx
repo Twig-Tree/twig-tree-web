@@ -1,33 +1,25 @@
 import type { ComponentProps, ReactNode } from "react";
-import {
-  Plus,
-  Redo2,
-  Scan,
-  StickyNote,
-  Trash2,
-  Undo2,
-  type LucideIcon,
-} from "lucide-react";
+import { Plus, Redo2, Scan, Undo2, type LucideIcon } from "lucide-react";
 
 type EditorToolbarProps = {
   onUndo: () => void; // 직전 편집을 되돌린다.
   onRedo: () => void; // 되돌린 편집을 다시 실행한다.
   onFitView: () => void; // 트리 전체를 화면에 맞춘다.
-  onAddNode: () => void; // 선택한 노드에 자식 노드를, 빈 트리면 루트 노드를 추가한다.
-  onDeleteNode: () => void; // 선택한 노드를 삭제한다.
-  onOpenMemo: () => void; // 선택한 노드의 메모 패널을 연다.
+  /*
+  빈 트리에 루트 노드를 추가한다. 노드가 있으면 추가·삭제·메모는 노드 우클릭 메뉴가 맡으므로,
+  우클릭할 노드가 없는 빈 트리에서만 넘겨 버튼을 보인다.
+  */
+  onAddRootNode?: () => void;
   isUndoDisabled: boolean;
   isRedoDisabled: boolean;
-  isAddNodeDisabled: boolean;
-  isDeleteNodeDisabled: boolean;
-  isOpenMemoDisabled: boolean;
+  isAddRootNodeDisabled: boolean;
 };
 
 type ToolbarButtonProps = ComponentProps<"button"> & {
   icon: LucideIcon;
   label: string; // 버튼 이름. 글자가 숨겨져도 aria-label과 툴팁으로 남는다.
   isIconOnly?: boolean;
-  variant?: "default" | "primary" | "danger";
+  variant?: "default" | "primary";
 };
 
 /*
@@ -41,8 +33,6 @@ const VARIANT_CLASS_NAMES: Record<
     "text-content-secondary hover:bg-surface-hover hover:text-content disabled:text-content-disabled",
   primary:
     "bg-accent text-on-accent hover:bg-accent-hover disabled:bg-accent-disabled",
-  danger:
-    "text-content-secondary hover:bg-danger-subtle hover:text-danger disabled:text-content-disabled",
 };
 
 function ToolbarButton({
@@ -82,7 +72,7 @@ function ToolbarDivider() {
 
 /*
 함수 이름 : EditorToolbar
-기능 : 트리 편집기의 기록·화면·노드 편집 버튼을 한 줄의 도구 모음으로 그린다. 버튼이 하는 일은 호출부가 정한다.
+기능 : 트리 편집기의 기록·화면 버튼과 빈 트리의 루트 추가 버튼을 한 줄의 도구 모음으로 그린다. 버튼이 하는 일은 호출부가 정한다.
 인자 : EditorToolbarProps
 반환값 : 편집기 도구 모음
 */
@@ -90,14 +80,10 @@ export function EditorToolbar({
   onUndo,
   onRedo,
   onFitView,
-  onAddNode,
-  onDeleteNode,
-  onOpenMemo,
+  onAddRootNode,
   isUndoDisabled,
   isRedoDisabled,
-  isAddNodeDisabled,
-  isDeleteNodeDisabled,
-  isOpenMemoDisabled,
+  isAddRootNodeDisabled,
 }: EditorToolbarProps) {
   return (
     <div
@@ -128,31 +114,21 @@ export function EditorToolbar({
         <ToolbarButton icon={Scan} label="전체 보기" onClick={onFitView} />
       </ToolbarGroup>
 
-      <ToolbarDivider />
+      {onAddRootNode ? (
+        <>
+          <ToolbarDivider />
 
-      <ToolbarGroup>
-        <ToolbarButton
-          icon={StickyNote}
-          label="메모 추가"
-          onClick={onOpenMemo}
-          disabled={isOpenMemoDisabled}
-        />
-        <ToolbarButton
-          icon={Trash2}
-          label="노드 삭제"
-          variant="danger"
-          onClick={onDeleteNode}
-          disabled={isDeleteNodeDisabled}
-        />
-        <ToolbarButton
-          icon={Plus}
-          label="노드 추가"
-          variant="primary"
-          className="ml-1"
-          onClick={onAddNode}
-          disabled={isAddNodeDisabled}
-        />
-      </ToolbarGroup>
+          <ToolbarGroup>
+            <ToolbarButton
+              icon={Plus}
+              label="노드 추가"
+              variant="primary"
+              onClick={onAddRootNode}
+              disabled={isAddRootNodeDisabled}
+            />
+          </ToolbarGroup>
+        </>
+      ) : null}
     </div>
   );
 }

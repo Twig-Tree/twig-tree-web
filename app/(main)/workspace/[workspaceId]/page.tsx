@@ -10,12 +10,14 @@ import {
   DropIndicatorOverlay,
   EditorToolbar,
   MemoSidePanel,
+  NodeContextMenu,
   edgeTypes,
   MIN_ZOOM,
   nodeTypes,
   useEditorLayout,
   useFocusNode,
   useInitializeTree,
+  useNodeContextMenu,
   useMoveNodeByDrag,
   useReactFlowStoreSetters,
   useSyncCollapseAcrossTabs,
@@ -24,7 +26,7 @@ import {
   useVisibleElements,
   type NodeResult,
 } from "@/src/features/tree-editor";
-import { use, useCallback, useState } from "react";
+import { use, useCallback, useRef, useState } from "react";
 import { useGetTreeQuery } from "@/src/entities/tree/model/queries";
 import { useGetWorkspaceQuery } from "@/src/entities/workspace";
 import { isClientError } from "@/src/shared/api/httpErrors";
@@ -128,6 +130,10 @@ function LayoutFlow({ workspaceId, treeId }: LayoutFlowProps) {
   const isMutating =
     isAddingNode || isDeletingNode || isMovingNode || isUndoingOrRedoing;
 
+  const canvasRef = useRef<HTMLDivElement>(null);
+  const { contextMenu, handleNodeContextMenu, closeContextMenu } =
+    useNodeContextMenu({ containerRef: canvasRef, isDisabled: isMutating });
+
   if (isLoading) {
     return <div>Loading...</div>;
   }
@@ -144,7 +150,10 @@ function LayoutFlow({ workspaceId, treeId }: LayoutFlowProps) {
         onFitNodes={fitNodes}
       />
 
-      <div className="@container min-h-0 min-w-0 flex-1">
+      <div
+        ref={canvasRef}
+        className="@container relative min-h-0 min-w-0 flex-1"
+      >
         <ReactFlow
           nodes={draggableNodes}
           edges={visibleEdges}
@@ -153,7 +162,12 @@ function LayoutFlow({ workspaceId, treeId }: LayoutFlowProps) {
           minZoom={MIN_ZOOM}
           onNodesChange={onNodesChange}
           onEdgesChange={onEdgesChange}
-          onNodeDragStart={onNodeDragStart}
+          onNodeDragStart={(event, node, draggedNodes) => {
+            closeContextMenu();
+            onNodeDragStart(event, node, draggedNodes);
+          }}
+          onNodeContextMenu={handleNodeContextMenu}
+          onMoveStart={closeContextMenu}
           onNodeDrag={onNodeDrag}
           onNodeDragStop={onNodeDragStop}
           disableKeyboardA11y={isMutating}
@@ -181,17 +195,30 @@ function LayoutFlow({ workspaceId, treeId }: LayoutFlowProps) {
               onUndo={handleUndo}
               onRedo={handleRedo}
               onFitView={fitTreeView}
-              onAddNode={handleAddNode}
-              onDeleteNode={handleDeleteNode}
-              onOpenMemo={() => setIsMemoPanelOpen(true)}
+              onAddRootNode={nodes.length === 0 ? handleAddNode : undefined}
               isUndoDisabled={!canUndo || isMutating}
               isRedoDisabled={!canRedo || isMutating}
-              isAddNodeDisabled={!isAddNodeEnabled || isMutating}
-              isDeleteNodeDisabled={!selectedNode || isMutating}
-              isOpenMemoDisabled={!selectedNode || isMutating}
+              isAddRootNodeDisabled={!isAddNodeEnabled || isMutating}
             />
           </Panel>
         </ReactFlow>
+
+        {/*
+        노드 추가·삭제·메모는 우클릭한 노드를 대상으로 한다. 메뉴를 열 때 그 노드를 선택해 두므로 handler는 선택된 노드를 기준으로 동작한다.
+        */}
+        {contextMenu ? (
+          <NodeContextMenu
+            key={contextMenu.clientId}
+            x={contextMenu.x}
+            y={contextMenu.y}
+            onOpenMemo={() => setIsMemoPanelOpen(true)}
+            onAddNode={handleAddNode}
+            onDeleteNode={handleDeleteNode}
+            onClose={closeContextMenu}
+            isAddNodeDisabled={!isAddNodeEnabled || isMutating}
+            isDeleteNodeDisabled={!selectedNode || isMutating}
+          />
+        ) : null}
       </div>
 
       {/*
