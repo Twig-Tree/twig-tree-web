@@ -1,5 +1,5 @@
 import type { ComponentProps, ReactNode } from "react";
-import { Plus, Redo2, Scan, Undo2, type LucideIcon } from "lucide-react";
+import { Minus, Plus, Redo2, Scan, Undo2, type LucideIcon } from "lucide-react";
 
 type EditorToolbarProps = {
   onUndo: () => void; // 직전 편집을 되돌린다.
@@ -13,6 +13,11 @@ type EditorToolbarProps = {
   isUndoDisabled: boolean;
   isRedoDisabled: boolean;
   isAddRootNodeDisabled: boolean;
+  treeLevel: number | null; // 지금 보이는 가장 깊은 계층. 루트가 1이고, 접고 펼칠 트리가 없으면 null
+  onCollapseLevel: () => void; // 보이는 계층을 한 단계 줄인다.
+  onExpandLevel: () => void; // 보이는 계층을 한 단계 늘린다.
+  isCollapseLevelDisabled: boolean;
+  isExpandLevelDisabled: boolean;
 };
 
 type ToolbarButtonProps = ComponentProps<"button"> & {
@@ -72,7 +77,7 @@ function ToolbarDivider() {
 
 /*
 함수 이름 : EditorToolbar
-기능 : 트리 편집기의 기록·화면 버튼과 빈 트리의 루트 추가 버튼을 한 줄의 도구 모음으로 그린다. 버튼이 하는 일은 호출부가 정한다.
+기능 : 트리 편집기의 기록·화면·계층 조절 버튼과 빈 트리의 루트 추가 버튼을 한 줄의 도구 모음으로 그린다. 버튼이 하는 일은 호출부가 정한다.
 인자 : EditorToolbarProps
 반환값 : 편집기 도구 모음
 */
@@ -84,6 +89,11 @@ export function EditorToolbar({
   isUndoDisabled,
   isRedoDisabled,
   isAddRootNodeDisabled,
+  treeLevel,
+  onCollapseLevel,
+  onExpandLevel,
+  isCollapseLevelDisabled,
+  isExpandLevelDisabled,
 }: EditorToolbarProps) {
   return (
     <div
@@ -113,6 +123,37 @@ export function EditorToolbar({
       <ToolbarGroup>
         <ToolbarButton icon={Scan} label="전체 보기" onClick={onFitView} />
       </ToolbarGroup>
+
+      {treeLevel !== null ? (
+        <>
+          <ToolbarDivider />
+
+          <ToolbarGroup>
+            <ToolbarButton
+              icon={Minus}
+              label="한 계층 접기"
+              isIconOnly
+              onClick={onCollapseLevel}
+              disabled={isCollapseLevelDisabled}
+            />
+            <span
+              role="status"
+              aria-label={`${treeLevel}계층까지 보임`}
+              className="min-w-6 text-center text-[13px] font-medium whitespace-nowrap text-content-secondary tabular-nums"
+            >
+              <span className="hidden @2xl:inline">계층 </span>
+              {treeLevel}
+            </span>
+            <ToolbarButton
+              icon={Plus}
+              label="한 계층 펼치기"
+              isIconOnly
+              onClick={onExpandLevel}
+              disabled={isExpandLevelDisabled}
+            />
+          </ToolbarGroup>
+        </>
+      ) : null}
 
       {onAddRootNode ? (
         <>

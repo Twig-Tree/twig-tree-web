@@ -8,6 +8,7 @@ export { useDeleteTreeTag } from "./model/actions/delete-tree-tag/useDeleteTreeT
 export { useInitializeTree } from "./model/initialization/useInitializeTree";
 export { useSyncCollapseAcrossTabs } from "./model/collapse/useSyncCollapseAcrossTabs";
 export { useVisibleElements } from "./model/collapse/useVisibleElements";
+export { useTreeLevelControl } from "./model/collapse/useTreeLevelControl";
 export { useEditorLayout } from "./model/layout/useEditorLayout";
 export { useFocusNode } from "./model/focus/useFocusNode";
 export { useNodeContextMenu } from "./model/context-menu/useNodeContextMenu";

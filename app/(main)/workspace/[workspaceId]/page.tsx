@@ -22,6 +22,7 @@ import {
   useReactFlowStoreSetters,
   useSyncCollapseAcrossTabs,
   useTreeEditorActions,
+  useTreeLevelControl,
   useTreeStore,
   useVisibleElements,
   type NodeResult,
@@ -101,6 +102,20 @@ function LayoutFlow({ workspaceId, treeId }: LayoutFlowProps) {
     nodes,
     edges,
     onSelectedNodeHidden: closeMemoPanel,
+  });
+
+  const {
+    treeLevel,
+    handleCollapseLevel,
+    handleExpandLevel,
+    isCollapseLevelDisabled,
+    isExpandLevelDisabled,
+  } = useTreeLevelControl({
+    treeId,
+    nodes,
+    edges,
+    visibleNodes,
+    visibleEdges,
   });
 
   const { fitTreeView, runAfterNextLayout, isLayoutRunning } = useEditorLayout(
@@ -251,6 +266,11 @@ function LayoutFlow({ workspaceId, treeId }: LayoutFlowProps) {
               onUndo={handleUndo}
               onRedo={handleRedo}
               onFitView={fitTreeView}
+              treeLevel={treeLevel}
+              onCollapseLevel={handleCollapseLevel}
+              onExpandLevel={handleExpandLevel}
+              isCollapseLevelDisabled={isCollapseLevelDisabled}
+              isExpandLevelDisabled={isExpandLevelDisabled}
               onAddRootNode={nodes.length === 0 ? handleAddNode : undefined}
               isUndoDisabled={!canUndo || isMutating}
               isRedoDisabled={!canRedo || isMutating}
