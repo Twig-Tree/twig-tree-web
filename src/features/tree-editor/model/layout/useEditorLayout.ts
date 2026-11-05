@@ -21,7 +21,13 @@ import { Direction } from "@/src/features/tree-editor/model/types";
 /*
 노드가 한두 개뿐인 트리에 맞추면 기본 최대 배율(2)까지 확대되므로 100%보다 크게 확대하지 않는다.
 */
-const FIT_TREE_VIEW_OPTIONS: FitViewOptions = { maxZoom: 1 };
+/*
+도구 버튼이 캔버스 위쪽에 떠 있어, 위 여백을 버튼 높이보다 크게 두어 맨 위 노드를 가리지 않게 한다.
+*/
+const FIT_TREE_VIEW_OPTIONS: FitViewOptions = {
+  maxZoom: 1,
+  padding: { top: "72px", right: "24px", bottom: "24px", left: "24px" },
+};
 
 /*
 함수 이름 : useEditorLayout

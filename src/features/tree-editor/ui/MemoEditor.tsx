@@ -25,9 +25,9 @@ export const MemoEditor = ({
 
   return (
     <>
-      <div className="flex min-h-0 flex-1 flex-col gap-2 p-5">
+      <div className="flex min-h-0 flex-1 flex-col gap-2 p-panel">
         <textarea
-          className="min-h-0 w-full flex-1 resize-none rounded-md border border-slate-200 p-3 text-sm text-slate-700 outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 aria-[invalid=true]:border-red-400 aria-[invalid=true]:focus:border-red-400 aria-[invalid=true]:focus:ring-red-100"
+          className="min-h-0 w-full flex-1 resize-none rounded-control border border-line bg-surface p-3 text-sm text-content-secondary outline-none focus:border-accent focus:ring-2 focus:ring-accent-subtle aria-[invalid=true]:border-danger-line aria-[invalid=true]:focus:border-danger-line aria-[invalid=true]:focus:ring-danger-subtle"
           value={memo}
           onChange={(event) => setMemo(event.target.value)}
           placeholder="Write a memo for this node."
@@ -44,7 +44,7 @@ export const MemoEditor = ({
           className="flex items-baseline justify-between gap-2 text-xs"
         >
           {errorMessage ? (
-            <p role="alert" className="font-medium text-red-600">
+            <p role="alert" className="font-medium text-danger">
               {errorMessage}
             </p>
           ) : (
@@ -53,7 +53,9 @@ export const MemoEditor = ({
 
           <span
             className={
-              errorMessage ? "shrink-0 text-red-600" : "shrink-0 text-slate-400"
+              errorMessage
+                ? "shrink-0 text-danger"
+                : "shrink-0 text-content-muted"
             }
           >
             {memoLength} / {MAX_MEMO_LENGTH}
@@ -63,10 +65,10 @@ export const MemoEditor = ({
 
       {children}
 
-      <footer className="flex h-16 shrink-0 items-center justify-end gap-2 border-t border-slate-200 px-5">
+      <footer className="flex h-16 shrink-0 items-center justify-end gap-2 border-t border-line px-panel">
         <button
           type="button"
-          className="rounded-md border border-slate-200 px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50 disabled:opacity-50"
+          className="rounded-control border border-line px-4 py-2 text-sm font-medium text-content-secondary hover:bg-surface-hover disabled:opacity-50"
           onClick={() => setMemo(initialMemo)}
           disabled={isSaving}
         >
@@ -74,7 +76,7 @@ export const MemoEditor = ({
         </button>
         <button
           type="button"
-          className="rounded-md bg-slate-900 px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
+          className="rounded-control bg-inverse px-4 py-2 text-sm font-medium text-on-inverse disabled:opacity-50"
           onClick={() => onSave(memo)}
           disabled={isSaving || errorMessage !== null}
         >

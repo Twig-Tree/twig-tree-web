@@ -46,7 +46,7 @@ export function NodeSearchInput({
   return (
     <div className="relative">
       <Search
-        className="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-slate-400"
+        className="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-content-muted"
         aria-hidden="true"
       />
       <input
@@ -57,7 +57,7 @@ export function NodeSearchInput({
         placeholder="노드 이름이나 메모 검색"
         onChange={handleChange}
         onKeyDown={handleKeyDown}
-        className="h-9 w-full rounded-md border border-slate-200 bg-white pr-9 pl-8 text-sm text-slate-800 placeholder:text-slate-400 focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 focus:outline-none"
+        className="h-9 w-full rounded-control border border-line bg-surface pr-9 pl-8 text-sm text-content placeholder:text-content-muted focus:border-accent focus:ring-2 focus:ring-accent-subtle focus:outline-none"
       />
       {value !== "" ? (
         <IconButton

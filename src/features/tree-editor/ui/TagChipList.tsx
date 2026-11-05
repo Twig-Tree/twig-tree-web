@@ -22,15 +22,17 @@ export const TagChipList = ({
   return (
     <section
       aria-label="노드 태그"
-      className="shrink-0 border-t border-slate-200 px-5 py-4"
+      className="shrink-0 border-t border-line p-panel"
     >
-      <h3 className="text-xs font-medium tracking-wide text-slate-400">태그</h3>
+      <h3 className="text-xs font-medium tracking-wide text-content-muted">
+        태그
+      </h3>
 
       <ul className="mt-2 flex flex-wrap items-start gap-1.5">
         {nodeTags.map((tag) => (
           <li
             key={tag.id}
-            className="flex h-7 max-w-full items-center gap-1 rounded-full bg-slate-100 pr-1 pl-2.5 text-xs text-slate-700"
+            className="flex h-7 max-w-full items-center gap-1 rounded-full bg-surface-strong pr-1 pl-2.5 text-xs text-content-secondary"
           >
             <span className="min-w-0 truncate" title={tag.name}>
               {tag.name}
@@ -39,7 +41,7 @@ export const TagChipList = ({
               type="button"
               aria-label={`${tag.name} 태그 제거`}
               onClick={() => onDetach(tag.id)}
-              className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full text-slate-400 hover:bg-slate-200 hover:text-slate-700 focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none"
+              className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full text-content-muted hover:bg-surface hover:text-content focus-visible:ring-2 focus-visible:ring-focus focus-visible:outline-none"
             >
               <span aria-hidden="true">×</span>
             </button>

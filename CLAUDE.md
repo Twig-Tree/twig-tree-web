@@ -3,6 +3,7 @@
 @docs/conventions/api-type-boundaries.md
 @docs/conventions/typescript-comments.md
 @docs/conventions/function-naming.md
+@docs/conventions/theming.md
 
 ## 계획 수행 규칙
 

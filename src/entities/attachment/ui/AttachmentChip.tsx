@@ -30,14 +30,14 @@ export function AttachmentChip({ attachment, onRemove }: AttachmentChipProps) {
   const kind = getFileKind(attachment.name);
 
   return (
-    <div className="flex items-center gap-3 rounded-xl border border-slate-200 bg-white px-3 py-2 shadow-sm">
+    <div className="flex items-center gap-3 rounded-control border border-line bg-surface px-3 py-2 shadow-control">
       <FileTypeIcon kind={kind} />
 
       <div className="min-w-0">
-        <p className="truncate text-sm font-medium text-slate-800">
+        <p className="truncate text-sm font-medium text-content">
           {attachment.name}
         </p>
-        <p className="text-[11px] tracking-wide text-slate-400">
+        <p className="text-[11px] tracking-wide text-content-muted">
           {formatFileSize(attachment.sizeInBytes)} • {KIND_LABELS[kind]}
         </p>
       </div>

@@ -35,10 +35,10 @@ export function ProfileMenu() {
   return (
     <KebabMenu
       ariaLabel="프로필 메뉴"
-      triggerClassName="group flex h-8 w-8 items-center justify-center rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+      triggerClassName="group flex h-8 w-8 items-center justify-center rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
       trigger={
         <span
-          className="h-8 w-8 rounded-full bg-slate-200 ring-1 ring-slate-300 transition-colors group-hover:bg-slate-300"
+          className="h-8 w-8 rounded-full bg-surface-strong ring-1 ring-line-strong transition-colors group-hover:bg-line-strong"
           aria-hidden="true"
         />
       }

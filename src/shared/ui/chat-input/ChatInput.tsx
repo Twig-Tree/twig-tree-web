@@ -69,7 +69,7 @@ export function ChatInput({
   };
 
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white p-3 shadow-sm focus-within:border-indigo-300 focus-within:ring-2 focus-within:ring-indigo-100">
+    <div className="rounded-card border border-line bg-surface p-3 shadow-card focus-within:border-accent-line focus-within:ring-2 focus-within:ring-accent-subtle">
       <textarea
         ref={textareaRef}
         rows={1}
@@ -82,7 +82,7 @@ export function ChatInput({
         키보드와 스크린 리더로 훑을 수 없는데, 기다리는 동안 무엇을 보냈는지는 계속 읽을 수 있어야 한다.
         */
         readOnly={isReadOnly}
-        className="w-full resize-none bg-transparent px-2 py-1 text-sm text-slate-700 outline-none placeholder:text-slate-400"
+        className="w-full resize-none bg-transparent px-2 py-1 text-sm text-content-secondary outline-none placeholder:text-content-muted"
       />
 
       <div className="mt-2 flex items-center justify-between gap-2">

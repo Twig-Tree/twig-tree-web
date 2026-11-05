@@ -47,7 +47,7 @@ export function DirectoryContentsGrid({
   if (isError) {
     return (
       <section aria-label="Directory contents">
-        <p role="alert" className="text-sm font-medium text-red-600">
+        <p role="alert" className="text-sm font-medium text-danger">
           목록을 불러오지 못했습니다.
         </p>
       </section>
@@ -74,7 +74,7 @@ export function DirectoryContentsGrid({
   if (isLoaded && folders.length === 0 && workspaces.length === 0) {
     return (
       <section aria-label="Directory contents">
-        <p className="text-sm text-slate-500">
+        <p className="text-sm text-content-muted">
           아직 폴더나 워크스페이스가 없습니다.
         </p>
       </section>

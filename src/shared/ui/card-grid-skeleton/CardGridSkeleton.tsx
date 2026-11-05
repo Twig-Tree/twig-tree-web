@@ -37,10 +37,10 @@ export function CardGridSkeleton({
         {Array.from({ length: cardCount }, (_, index) => (
           <div
             key={index}
-            className="flex min-h-36 flex-col justify-between rounded-xl border border-slate-100 bg-white p-5 shadow-sm"
+            className="flex min-h-36 flex-col justify-between rounded-card border border-line-subtle bg-surface p-5 shadow-card"
           >
-            <span className="block h-5 w-2/3 animate-pulse rounded bg-slate-200" />
-            <span className="block h-3 w-1/3 animate-pulse rounded bg-slate-200" />
+            <span className="block h-5 w-2/3 animate-pulse rounded bg-surface-strong" />
+            <span className="block h-3 w-1/3 animate-pulse rounded bg-surface-strong" />
           </div>
         ))}
       </div>

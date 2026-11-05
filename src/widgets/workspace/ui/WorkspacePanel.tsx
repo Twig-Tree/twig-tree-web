@@ -83,9 +83,9 @@ export function WorkspacePanel({
   return (
     <aside
       aria-label="워크스페이스 패널"
-      className="flex h-full w-64 shrink-0 flex-col border-r border-slate-200 bg-white"
+      className="relative z-10 flex h-full w-64 shrink-0 flex-col bg-surface-muted shadow-panel"
     >
-      <div className="shrink-0 p-3">
+      <div className="shrink-0 p-panel">
         <NodeSearchInput
           value={keyword}
           onChange={handleKeywordChange}
@@ -97,7 +97,7 @@ export function WorkspacePanel({
       검색어도 고른 태그도 없으면 목록을 그리지 않는다. "일치하는 노드가 없습니다"는 무언가를 찾았을 때만 의미가 있다.
       목록이 없을 때도 이 칸이 남은 높이를 차지해 태그 목록을 패널 맨 아래에 둔다.
       */}
-      <div className="min-h-0 flex-1 overflow-y-auto px-2 pb-3">
+      <div className="min-h-0 flex-1 overflow-y-auto px-panel pb-panel">
         {hasKeyword || isTagActive ? (
           <NodeResultList
             results={results}

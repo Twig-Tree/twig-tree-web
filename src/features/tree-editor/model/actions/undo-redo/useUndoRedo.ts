@@ -14,6 +14,7 @@ import { createEditorEdge } from "../../../lib/add-node/createEditorEdge";
 import { createEditorNode } from "../../../lib/add-node/createEditorNode";
 import { getSubtreeCreationOrder } from "../../../lib/delete-node/getSubtreeCreationOrder";
 import { getSubtreeClientIds } from "../../../lib/getSubtreeClientIds";
+import { NODE_WIDTH } from "../../../lib/layout";
 import { type NodePlacement } from "../../../lib/move-node/getNodePlacement";
 import { getNextOrderIndex } from "../../../lib/node";
 import { useCollapseStore } from "../../collapse/collapseStore";
@@ -187,7 +188,7 @@ export const useUndoRedo = ({ treeId }: UseUndoRedoParams) => {
       serverId: null,
       label,
       orderIndex: 0, // recreateSubtree가 맨 끝 순번으로 정한다.
-      x: (parentNode?.position.x ?? 0) + 150,
+      x: (parentNode?.position.x ?? 0) + NODE_WIDTH,
       y: parentNode?.position.y ?? 0,
     });
 

@@ -1,4 +1,5 @@
 import { type MouseEvent, useCallback } from "react";
+import { ChevronDown } from "lucide-react";
 import { useCollapseStore } from "@/src/features/tree-editor/model/collapse/collapseStore";
 import { useTreeStore } from "@/src/features/tree-editor/model/treeStore";
 
@@ -55,9 +56,12 @@ export function CollapseToggleButton({
       aria-label={isCollapsed ? "하위 노드 펼치기" : "하위 노드 접기"}
       aria-expanded={!isCollapsed}
       onClick={handleClick}
-      className="nodrag nopan absolute -right-2 -bottom-2 flex size-4 items-center justify-center rounded-full border border-slate-300 bg-white text-[8px] leading-none text-slate-500 hover:border-indigo-400 hover:text-indigo-500"
+      className="nodrag nopan absolute right-1/2 -bottom-2 flex h-5 w-6 translate-x-1/2 items-center justify-center rounded-[7px] border border-line bg-surface text-node-content-muted hover:border-accent hover:text-accent"
     >
-      {isCollapsed ? "▶" : "◀"}
+      <ChevronDown
+        aria-hidden
+        className={`size-[11px] transition-transform ${isCollapsed ? "-rotate-90" : ""}`}
+      />
     </button>
   );
 }

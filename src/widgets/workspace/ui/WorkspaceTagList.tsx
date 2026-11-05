@@ -29,14 +29,14 @@ export function WorkspaceTagList({
   return (
     <section
       aria-label="트리 태그"
-      className="flex max-h-[40%] min-h-0 shrink-0 flex-col border-t border-slate-200"
+      className="flex max-h-[40%] min-h-0 shrink-0 flex-col border-t border-line"
     >
       <button
         type="button"
         aria-expanded={isExpanded}
         aria-controls={listId}
         onClick={() => setIsExpanded((expanded) => !expanded)}
-        className="flex shrink-0 items-center justify-between px-4 py-3 text-xs font-medium text-slate-500 hover:bg-slate-50 focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none focus-visible:ring-inset"
+        className="flex shrink-0 items-center justify-between px-panel py-3 text-xs font-medium text-content-muted hover:bg-surface-hover focus-visible:ring-2 focus-visible:ring-focus focus-visible:outline-none focus-visible:ring-inset"
       >
         <span>태그 {tags.length}</span>
         <ChevronDown
@@ -49,13 +49,16 @@ export function WorkspaceTagList({
         /*
         스크롤 영역은 바깥으로 그려지는 ring을 잘라 내므로, 첫 줄 칩의 선택 테두리가 보이도록 위쪽 여백을 둔다.
         */
-        <div id={listId} className="min-h-0 overflow-y-auto px-2 pt-1 pb-3">
+        <div
+          id={listId}
+          className="min-h-0 overflow-y-auto px-panel pt-1 pb-panel"
+        >
           {tags.length === 0 ? (
-            <p className="px-2 py-2 text-xs text-slate-400">
+            <p className="py-2 text-xs text-content-muted">
               노드의 메모 패널에서 태그를 추가할 수 있습니다.
             </p>
           ) : (
-            <ul className="flex flex-wrap gap-1.5 px-2">
+            <ul className="flex flex-wrap gap-1.5">
               {tags.map((tag) => {
                 const isSelected = tag.id === selectedTagId;
 
@@ -64,8 +67,8 @@ export function WorkspaceTagList({
                     key={tag.id}
                     className={`flex h-7 max-w-full items-center rounded-full pr-1 text-xs ${
                       isSelected
-                        ? "bg-amber-50 font-medium text-amber-800 ring-1 ring-amber-300"
-                        : "bg-slate-100 text-slate-700"
+                        ? "bg-warning-subtle font-medium text-warning-strong ring-1 ring-warning-line"
+                        : "bg-surface-strong text-content-secondary"
                     }`}
                   >
                     <button
@@ -73,7 +76,7 @@ export function WorkspaceTagList({
                       title={tag.name}
                       aria-pressed={isSelected}
                       onClick={() => onSelectTag(tag.id)}
-                      className="h-full min-w-0 truncate rounded-l-full pr-1 pl-2.5 hover:underline focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none"
+                      className="h-full min-w-0 truncate rounded-l-full pr-1 pl-2.5 hover:underline focus-visible:ring-2 focus-visible:ring-focus focus-visible:outline-none"
                     >
                       {tag.name}
                     </button>
@@ -81,10 +84,10 @@ export function WorkspaceTagList({
                       type="button"
                       aria-label={`${tag.name} 태그 삭제`}
                       onClick={() => onDeleteTag(tag.id)}
-                      className={`flex h-4 w-4 shrink-0 items-center justify-center rounded-full focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none ${
+                      className={`flex h-4 w-4 shrink-0 items-center justify-center rounded-full focus-visible:ring-2 focus-visible:ring-focus focus-visible:outline-none ${
                         isSelected
-                          ? "text-amber-600 hover:bg-amber-100 hover:text-amber-900"
-                          : "text-slate-400 hover:bg-slate-200 hover:text-slate-700"
+                          ? "text-warning hover:bg-warning-line hover:text-warning-strong"
+                          : "text-content-muted hover:bg-surface hover:text-content"
                       }`}
                     >
                       <span aria-hidden="true">×</span>

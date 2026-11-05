@@ -13,9 +13,9 @@ hover 변형을 함께 적는 것은 잠긴 버튼에 마우스를 올렸을 때
 */
 const variantStyles = {
   ghost:
-    "text-slate-500 hover:bg-slate-100 hover:text-slate-800 disabled:text-slate-300 disabled:hover:bg-transparent aria-disabled:text-slate-300 aria-disabled:hover:bg-transparent aria-disabled:hover:text-slate-300",
+    "text-content-muted hover:bg-surface-hover hover:text-content disabled:text-content-disabled disabled:hover:bg-transparent aria-disabled:text-content-disabled aria-disabled:hover:bg-transparent aria-disabled:hover:text-content-disabled",
   primary:
-    "bg-indigo-600 text-white shadow-sm hover:bg-indigo-700 disabled:bg-indigo-300 aria-disabled:bg-indigo-300 aria-disabled:hover:bg-indigo-300",
+    "bg-accent text-on-accent shadow-control hover:bg-accent-hover disabled:bg-accent-disabled aria-disabled:bg-accent-disabled aria-disabled:hover:bg-accent-disabled",
 } as const;
 
 const sizeStyles = {
@@ -57,7 +57,7 @@ export function IconButton({
     <button
       {...props}
       type={type}
-      className={`inline-flex shrink-0 items-center justify-center rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 disabled:cursor-not-allowed aria-disabled:cursor-not-allowed ${sizeStyles[size]} ${variantStyles[variant]} ${className ?? ""}`}
+      className={`inline-flex shrink-0 items-center justify-center rounded-control transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus disabled:cursor-not-allowed aria-disabled:cursor-not-allowed ${sizeStyles[size]} ${variantStyles[variant]} ${className ?? ""}`}
     />
   );
 }

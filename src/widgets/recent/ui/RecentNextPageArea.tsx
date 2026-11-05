@@ -42,7 +42,7 @@ export function RecentNextPageArea({
   if (isFetchNextPageError) {
     return (
       <div className="flex flex-col items-center gap-3 py-4">
-        <p role="alert" className="text-sm font-medium text-red-600">
+        <p role="alert" className="text-sm font-medium text-danger">
           다음 목록을 불러오지 못했습니다.
         </p>
         <Button onClick={onLoadMore}>다시 시도</Button>

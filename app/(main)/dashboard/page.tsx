@@ -47,7 +47,7 @@ export default function DashboardPage() {
           }
         />
 
-        <p className="text-center text-xs text-slate-400">
+        <p className="text-center text-xs text-content-muted">
           The Architect may produce inaccurate information about people, places,
           or facts.
         </p>

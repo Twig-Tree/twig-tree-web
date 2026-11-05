@@ -8,6 +8,12 @@ import ELK from "elkjs/lib/elk.bundled.js";
 const elk = new ELK();
 
 /*
+노드 크기는 내용과 상관없이 고정이다. 레이아웃이 이 크기로 위치를 계산하고 React Flow도 같은 크기로 노드를 그린다.
+*/
+export const NODE_WIDTH = 168;
+const NODE_HEIGHT = 60;
+
+/*
 mrtree는 트리 전용 알고리즘이라 모든 부모를 자식들의 가운데에 둔다. 서브트리를 접어도 나머지 노드는
 접힌 높이만큼 함께 움직일 뿐 서로의 위치 관계가 유지된다. layered는 부모 위치를 보장하지 않아
 접기 하나로 루트가 맨 위에서 맨 아래로 튈 수 있었다.
@@ -53,8 +59,8 @@ export const getLayoutedElements = async (
       ...node,
       targetPosition: isHorizontal ? Position.Left : Position.Top,
       sourcePosition: isHorizontal ? Position.Right : Position.Bottom,
-      width: 150,
-      height: 50,
+      width: NODE_WIDTH,
+      height: NODE_HEIGHT,
     })),
     edges: sortEdgesByTargetOrder(nodes, edges).map((edge) => ({
       ...edge,

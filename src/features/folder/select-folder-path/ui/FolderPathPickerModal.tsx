@@ -26,7 +26,7 @@ const SKELETON_WIDTH_CLASS_NAMES = ["w-3/5", "w-2/5", "w-2/3"];
 경로를 옮길 때마다 팝업 크기가 흔들린다. 높이를 넘는 목록은 이 영역 안에서 스크롤한다.
 */
 const CONTENTS_LIST_CLASS_NAME =
-  "flex h-56 flex-col overflow-hidden rounded-xl border border-slate-100";
+  "flex h-56 flex-col overflow-hidden rounded-control border border-line-subtle";
 
 // 목록 대신 안내 문구를 보여주는 상태는 고정된 높이 안에서 가운데 정렬한다.
 const LIST_NOTICE_CLASS_NAME =
@@ -122,7 +122,7 @@ function FolderPathPickerContent({
       <div className="flex items-start justify-between gap-3 px-5 pb-4 pt-5">
         <div className="min-w-0">
           <Breadcrumb items={breadcrumbItems} />
-          <h2 className="mt-2 text-xl font-bold tracking-tight text-slate-900">
+          <h2 className="mt-2 text-xl font-bold tracking-tight text-content">
             {MODAL_TITLE}
           </h2>
         </div>
@@ -130,7 +130,7 @@ function FolderPathPickerContent({
           type="button"
           aria-label="닫기"
           onClick={onClose}
-          className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+          className="flex h-8 w-8 shrink-0 items-center justify-center rounded-control text-content-muted transition-colors hover:bg-surface-hover hover:text-content-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
         >
           <X className="h-4 w-4" aria-hidden="true" />
         </button>
@@ -142,15 +142,15 @@ function FolderPathPickerContent({
             <button
               type="button"
               onClick={handleGoToParentFolder}
-              className="flex w-full shrink-0 items-center gap-3 border-b border-slate-100 bg-slate-50 px-3.5 py-2.5 text-left transition-colors hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-indigo-500"
+              className="flex w-full shrink-0 items-center gap-3 border-b border-line-subtle bg-surface-muted px-3.5 py-2.5 text-left transition-colors hover:bg-surface-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-focus"
             >
               <span
-                className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-slate-100 text-slate-500"
+                className="flex h-7 w-7 shrink-0 items-center justify-center rounded-control bg-surface-hover text-content-muted"
                 aria-hidden="true"
               >
                 <CornerUpLeft className="h-4 w-4" />
               </span>
-              <span className="text-sm font-medium text-slate-500">
+              <span className="text-sm font-medium text-content-muted">
                 상위 폴더로
               </span>
             </button>
@@ -161,7 +161,7 @@ function FolderPathPickerContent({
               <ContentsListSkeleton />
             ) : isListError ? (
               <div className={LIST_NOTICE_CLASS_NAME}>
-                <p role="alert" className="text-sm font-medium text-red-600">
+                <p role="alert" className="text-sm font-medium text-danger">
                   목록을 불러오지 못했습니다.
                 </p>
                 <Button className="mt-3.5" onClick={handleRetry}>
@@ -188,7 +188,7 @@ function FolderPathPickerContent({
         </div>
       </div>
 
-      <div className="flex items-center justify-end gap-3 border-t border-slate-100 bg-slate-50 px-5 py-3.5">
+      <div className="flex items-center justify-end gap-3 border-t border-line-subtle bg-surface-muted px-5 py-3.5">
         <Button onClick={onClose}>취소</Button>
         <Button
           variant="primary"
@@ -218,19 +218,19 @@ function FolderRow({ folder, onEnter }: FolderRowProps) {
     <button
       type="button"
       onClick={onEnter}
-      className="group flex w-full items-center gap-3 border-b border-slate-100 px-3.5 py-2.5 text-left transition-colors last:border-b-0 hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-indigo-500"
+      className="group flex w-full items-center gap-3 border-b border-line-subtle px-3.5 py-2.5 text-left transition-colors last:border-b-0 hover:bg-surface-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-focus"
     >
       <span
-        className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-indigo-50 text-indigo-600"
+        className="flex h-7 w-7 shrink-0 items-center justify-center rounded-control bg-accent-subtle text-accent"
         aria-hidden="true"
       >
         <Folder className="h-4 w-4" />
       </span>
-      <span className="flex-1 truncate text-sm font-semibold text-slate-800 transition-colors group-hover:text-indigo-700">
+      <span className="flex-1 truncate text-sm font-semibold text-content transition-colors group-hover:text-accent-hover">
         {folder.name}
       </span>
       <ChevronRight
-        className="h-4 w-4 shrink-0 text-slate-300 transition-colors group-hover:text-indigo-400"
+        className="h-4 w-4 shrink-0 text-content-disabled transition-colors group-hover:text-accent"
         aria-hidden="true"
       />
     </button>
@@ -252,14 +252,14 @@ interface WorkspaceRowProps {
 */
 function WorkspaceRow({ workspace }: WorkspaceRowProps) {
   return (
-    <div className="flex w-full items-center gap-3 border-b border-slate-100 px-3.5 py-2.5 last:border-b-0">
+    <div className="flex w-full items-center gap-3 border-b border-line-subtle px-3.5 py-2.5 last:border-b-0">
       <span
-        className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-slate-100 text-slate-400"
+        className="flex h-7 w-7 shrink-0 items-center justify-center rounded-control bg-surface-hover text-content-muted"
         aria-hidden="true"
       >
         <Archive className="h-4 w-4" />
       </span>
-      <span className="flex-1 truncate text-sm font-medium text-slate-500">
+      <span className="flex-1 truncate text-sm font-medium text-content-muted">
         {workspace.name}
       </span>
     </div>
@@ -278,11 +278,11 @@ function ContentsListSkeleton() {
       {SKELETON_WIDTH_CLASS_NAMES.map((widthClassName) => (
         <div
           key={widthClassName}
-          className="flex items-center gap-3 border-b border-slate-100 px-3.5 py-2.5 last:border-b-0"
+          className="flex items-center gap-3 border-b border-line-subtle px-3.5 py-2.5 last:border-b-0"
         >
-          <span className="h-7 w-7 shrink-0 animate-pulse rounded-lg bg-slate-100" />
+          <span className="h-7 w-7 shrink-0 animate-pulse rounded-control bg-surface-hover" />
           <span
-            className={`h-3 animate-pulse rounded-full bg-slate-200 ${widthClassName}`}
+            className={`h-3 animate-pulse rounded-full bg-surface-strong ${widthClassName}`}
           />
         </div>
       ))}
@@ -300,15 +300,15 @@ function EmptyContentsNotice() {
   return (
     <div className={LIST_NOTICE_CLASS_NAME}>
       <span
-        className="mb-2.5 flex h-9 w-9 items-center justify-center rounded-[10px] bg-indigo-50 text-indigo-400"
+        className="mb-2.5 flex h-9 w-9 items-center justify-center rounded-control bg-accent-subtle text-accent"
         aria-hidden="true"
       >
         <FolderOpen className="h-5 w-5" />
       </span>
-      <p className="text-sm font-medium text-slate-700">
+      <p className="text-sm font-medium text-content-secondary">
         하위 폴더와 워크스페이스가 없습니다
       </p>
-      <p className="mt-1 text-sm text-slate-400">여기에 만들 수 있습니다</p>
+      <p className="mt-1 text-sm text-content-muted">여기에 만들 수 있습니다</p>
     </div>
   );
 }

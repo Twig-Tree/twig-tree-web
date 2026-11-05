@@ -11,7 +11,7 @@ export interface BreadcrumbProps {
 }
 
 const INTERACTIVE_ITEM_CLASS_NAME =
-  "transition-colors hover:text-slate-700 hover:underline";
+  "transition-colors hover:text-content-secondary hover:underline";
 
 /*
 함수 이름 : Breadcrumb
@@ -25,7 +25,7 @@ href는 페이지 이동에, onClick은 팝업 안에서처럼 화면 이동 없
 export function Breadcrumb({ items }: BreadcrumbProps) {
   return (
     <nav aria-label="Breadcrumb">
-      <ol className="flex flex-wrap items-center gap-2 text-xs font-medium uppercase text-slate-400">
+      <ol className="flex flex-wrap items-center gap-2 text-xs font-medium uppercase text-content-muted">
         {items.map((item, index) => (
           <li
             key={`${item.label}-${index}`}
@@ -45,7 +45,7 @@ export function Breadcrumb({ items }: BreadcrumbProps) {
                 {item.label}
               </button>
             ) : (
-              <span className="text-indigo-500" aria-current="page">
+              <span className="text-accent" aria-current="page">
                 {item.label}
               </span>
             )}

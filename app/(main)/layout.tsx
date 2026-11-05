@@ -11,7 +11,7 @@ export default function MainLayout({ children }: MainLayoutProps) {
     <AuthGate>
       <div className="flex h-full min-h-0">
         <Sidebar />
-        <main className="min-h-0 min-w-0 flex-1 bg-white">{children}</main>
+        <main className="min-h-0 min-w-0 flex-1 bg-surface">{children}</main>
       </div>
     </AuthGate>
   );
