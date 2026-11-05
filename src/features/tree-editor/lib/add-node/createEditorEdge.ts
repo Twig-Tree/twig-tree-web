@@ -11,7 +11,7 @@ export const createEditorEdge = ({
 }: CreateEditorEdgeParams): CustomEditorEdge => {
   return {
     id: `e-${sourceClientId}-${targetClientId}`,
-    type: "smoothstep",
+    type: "custom",
     source: sourceClientId,
     target: targetClientId,
   };
