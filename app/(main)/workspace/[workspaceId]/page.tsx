@@ -35,6 +35,8 @@ import {
   WorkspaceHeader,
   WorkspaceLoadError,
   WorkspacePanel,
+  WorkspacePanelOpenButton,
+  useWorkspacePanelVisibility,
 } from "@/src/widgets/workspace";
 
 interface LayoutFlowProps {
@@ -130,6 +132,16 @@ function LayoutFlow({ workspaceId, treeId }: LayoutFlowProps) {
   const isMutating =
     isAddingNode || isDeletingNode || isMovingNode || isUndoingOrRedoing;
 
+  const { isPanelOpen, isPanelOverlay, openPanel, closePanel } =
+    useWorkspacePanelVisibility();
+
+  /*
+  좁은 화면에서 패널은 캔버스 위에 겹쳐 뜨므로, 캔버스 빈 곳을 누르면 닫아 다시 캔버스를 보여 준다.
+  */
+  const handlePaneClick = () => {
+    if (isPanelOverlay) closePanel();
+  };
+
   const canvasRef = useRef<HTMLDivElement>(null);
   const { contextMenu, handleNodeContextMenu, closeContextMenu } =
     useNodeContextMenu({ containerRef: canvasRef, isDisabled: isMutating });
@@ -143,11 +155,14 @@ function LayoutFlow({ workspaceId, treeId }: LayoutFlowProps) {
   }
 
   return (
-    <div className="flex h-full min-h-0 w-full">
+    <div className="relative flex h-full min-h-0 w-full">
       <WorkspacePanel
         onSelectResult={handleSelectResult}
         isResultSelectDisabled={isMutating}
         onFitNodes={fitNodes}
+        isOpen={isPanelOpen}
+        isOverlay={isPanelOverlay}
+        onClose={closePanel}
       />
 
       <div
@@ -168,6 +183,7 @@ function LayoutFlow({ workspaceId, treeId }: LayoutFlowProps) {
           }}
           onNodeContextMenu={handleNodeContextMenu}
           onMoveStart={closeContextMenu}
+          onPaneClick={handlePaneClick}
           onNodeDrag={onNodeDrag}
           onNodeDragStop={onNodeDragStop}
           disableKeyboardA11y={isMutating}
@@ -189,6 +205,12 @@ function LayoutFlow({ workspaceId, treeId }: LayoutFlowProps) {
             bgColor="transparent"
           />
           <DropIndicatorOverlay indicator={dropIndicator} />
+
+          {isPanelOpen ? null : (
+            <Panel position="top-left">
+              <WorkspacePanelOpenButton onOpen={openPanel} />
+            </Panel>
+          )}
 
           <Panel position="top-right">
             <EditorToolbar
