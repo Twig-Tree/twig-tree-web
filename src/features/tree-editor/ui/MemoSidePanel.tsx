@@ -59,10 +59,10 @@ export const MemoSidePanel = ({
       <header className="flex h-16 shrink-0 items-center justify-between border-b border-line px-panel">
         <div className="min-w-0">
           <p className="text-xs font-medium uppercase tracking-wide text-content-muted">
-            Memo
+            메모
           </p>
           <h2 className="truncate text-lg font-semibold text-content">
-            {selectedNode?.data.label ?? "No node selected"}
+            {selectedNode?.data.label ?? "선택한 노드 없음"}
           </h2>
         </div>
         <IconButton size="sm" aria-label="메모 패널 닫기" onClick={onClose}>
@@ -99,7 +99,7 @@ export const MemoSidePanel = ({
         <>
           <div className="min-h-0 flex-1 p-panel">
             <div className="flex h-full items-center justify-center rounded-control border border-dashed border-line text-sm text-content-muted">
-              Select a node to add a memo.
+              노드를 선택하면 메모를 남길 수 있습니다.
             </div>
           </div>
 
