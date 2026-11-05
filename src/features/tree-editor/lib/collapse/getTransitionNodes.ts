@@ -125,6 +125,7 @@ export const getTransitionNodes = (
         from.opacity < 1
           ? { ...node.style, opacity: getOpacityAt(from.opacity, progress) }
           : node.style,
+      zIndex: from.opacity < 1 ? -1 : node.zIndex, // 부모 뒤에서 나오게 한다.
     };
   });
 

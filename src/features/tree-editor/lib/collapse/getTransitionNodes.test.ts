@@ -44,6 +44,7 @@ describe("getTransitionNodes", () => {
     );
 
     expect(node.style?.opacity).toBe(0.25);
+    expect(node.zIndex).toBe(-1);
   });
 
   it("중간에 멈춘 투명도에서 이어서 드러난다", () => {

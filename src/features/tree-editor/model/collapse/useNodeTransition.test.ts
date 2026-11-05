@@ -4,6 +4,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { MOTION_DURATION_MS } from "../../constants/motion";
 import { createEditorEdge } from "../../lib/add-node/createEditorEdge";
 import { createEditorNode } from "../../lib/add-node/createEditorNode";
+import { useTreeStore } from "../treeStore";
 import { useCollapseStore } from "./collapseStore";
 import { useNodeTransition } from "./useNodeTransition";
 
@@ -70,7 +71,7 @@ const toggleCollapse = () => {
 beforeEach(() => {
   frameCallback = null;
   isLayoutRunning = false;
-  startTime = performance.now();
+  startTime = 1000; // 실제 시각을 쓰면 뺄셈의 소수 오차로 좌표 비교가 가끔 틀린다.
   vi.stubGlobal("requestAnimationFrame", (callback: FrameRequestCallback) => {
     frameCallback = callback;
 
@@ -188,6 +189,62 @@ describe("useNodeTransition", () => {
     runFrameAt(MOTION_DURATION_MS);
     expect(result.current.transitionNodes[1].style?.opacity).toBeUndefined();
     expect(result.current.transitionEdges[0]).toBe(EDGES[0]);
+  });
+
+  it("접혀서 빠진 노드는 더미로 부모 자리까지 들어간 뒤 사라진다", () => {
+    const parent = createNode("a", 0, 0);
+    const child = createNode("b", 200, 100);
+
+    useTreeStore.setState({ nodes: [parent, child] });
+
+    const { result, rerender } = renderTransition([parent, child]);
+
+    toggleCollapse();
+    rerender({ edges: [], nodes: [parent] });
+    isLayoutRunning = false;
+    rerender({ edges: [], nodes: [{ ...parent }] });
+
+    expect(result.current.isTransitioning).toBe(true);
+    expect(result.current.transitionNodes.map((node) => node.id)).toEqual([
+      "ghost:b",
+      "a",
+    ]);
+    expect(result.current.transitionEdges[0].target).toBe("ghost:b");
+
+    runFrameAt(MOTION_DURATION_MS / 2);
+    expect(result.current.transitionNodes[0].position).toEqual({
+      x: 100,
+      y: 50,
+    });
+
+    runFrameAt(MOTION_DURATION_MS);
+    expect(result.current.transitionNodes.map((node) => node.id)).toEqual([
+      "a",
+    ]);
+    expect(result.current.transitionEdges).toEqual([]);
+
+    useTreeStore.setState({ nodes: [] });
+  });
+
+  it("삭제된 노드는 더미를 만들지 않는다", () => {
+    const parent = createNode("a", 0, 0);
+    const child = createNode("b", 200, 100);
+
+    useTreeStore.setState({ nodes: [parent] });
+
+    const { result, rerender } = renderTransition([parent, child]);
+
+    toggleCollapse();
+    rerender({ edges: [], nodes: [parent] });
+    isLayoutRunning = false;
+    rerender({ edges: [], nodes: [{ ...parent }] });
+
+    expect(result.current.isTransitioning).toBe(false);
+    expect(result.current.transitionNodes.map((node) => node.id)).toEqual([
+      "a",
+    ]);
+
+    useTreeStore.setState({ nodes: [] });
   });
 
   it("동작 줄이기를 켜면 움직이지 않는다", () => {

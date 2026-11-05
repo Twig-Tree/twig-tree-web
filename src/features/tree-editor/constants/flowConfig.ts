@@ -1,8 +1,10 @@
 import { CustomNode } from "@/src/features/tree-editor/ui/CustomNode";
+import { GhostNode } from "@/src/features/tree-editor/ui/GhostNode";
 import { CustomEdge } from "@/src/features/tree-editor/ui/CustomEdge";
 
 export const nodeTypes = {
   custom: CustomNode,
+  ghost: GhostNode,
 };
 
 export const edgeTypes = {
