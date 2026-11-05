@@ -1,5 +1,7 @@
 import { CustomEditorEdge, CustomEditorNode } from "../../model/types";
 
+const GHOST_ID_PREFIX = "ghost:";
+
 type ExitingNode = {
   node: CustomEditorNode; // 사라지기 직전 화면에 그린 노드
   ancestorClientId: string; // 들어갈 자리인, 계속 보이는 가장 가까운 조상
@@ -15,6 +17,7 @@ type GetExitingElementsParams = {
   renderedEdges: CustomEditorEdge[]; // 접히기 직전 화면에 그린 엣지 목록
   nodes: CustomEditorNode[]; // 접힌 뒤 보이는 노드 목록
   storedClientIds: ReadonlySet<string>; // store에 남아 있는 노드 ID. 삭제된 노드를 가려낸다
+  storedEdges: CustomEditorEdge[]; // store의 전체 엣지 목록. 숨겨진 조상까지 거슬러 올라간다
 };
 
 /*
@@ -23,12 +26,27 @@ type GetExitingElementsParams = {
 인자 : string clientId -> 원래 노드의 ID
 반환값 : 더미 노드의 ID
 */
-const getGhostClientId = (clientId: string) => `ghost:${clientId}`;
+const getGhostClientId = (clientId: string) => `${GHOST_ID_PREFIX}${clientId}`;
+
+/*
+함수 이름 : getOriginalNodes
+기능 : 더미 노드를 지금 그려진 모습 그대로 원래 ID의 노드로 되돌린다. 전환 중에 새 전환이 시작될 때 더미가 있던 자리에서 이어 가려고 쓴다.
+인자 : CustomEditorNode[] ghostNodes -> 더미 노드 목록
+반환값 : 원래 ID를 가진 노드 목록
+*/
+export const getOriginalNodes = (
+  ghostNodes: CustomEditorNode[],
+): CustomEditorNode[] =>
+  ghostNodes.map((node) => ({
+    ...node,
+    id: node.id.slice(GHOST_ID_PREFIX.length),
+    type: "custom" as const,
+  }));
 
 /*
 함수 이름 : getExitingElements
 기능 : 접혀서 화면에서 빠진 노드와 그 노드로 들어가는 엣지를 찾는다. 삭제된 노드는 store에도 없으므로 대상이 아니다.
-노드의 들어갈 자리는 접히기 전 엣지를 따라 올라가 찾은, 계속 보이는 가장 가까운 조상이다.
+노드의 들어갈 자리는 store의 엣지를 따라 올라가 찾은, 계속 보이는 가장 가까운 조상이다.
 인자 : GetExitingElementsParams
 반환값 : 사라지는 노드와 엣지
 */
@@ -37,10 +55,11 @@ export const getExitingElements = ({
   renderedEdges,
   nodes,
   storedClientIds,
+  storedEdges,
 }: GetExitingElementsParams): ExitingElements => {
   const visibleClientIds = new Set(nodes.map((node) => node.id));
   const parentByChild = new Map(
-    renderedEdges.map((edge) => [edge.target, edge.source]),
+    storedEdges.map((edge) => [edge.target, edge.source]),
   );
 
   const exitingNodes = renderedNodes.flatMap((node) => {

@@ -4,6 +4,7 @@ import {
   getExitingElements,
   getGhostEdges,
   getGhostNodes,
+  getOriginalNodes,
 } from "../../lib/collapse/getGhostElements";
 import {
   addEnteringFrames,
@@ -34,6 +35,7 @@ type RenderedElements = {
   frames: NodeFrames; // 그린 모습
   nodes: CustomEditorNode[]; // 그린 노드 목록. 더미는 뺀다
   edges: CustomEditorEdge[]; // 그린 엣지 목록. 더미는 뺀다
+  ghostNodes: CustomEditorNode[]; // 그린 더미 노드 목록
 };
 
 type NodeTransition = {
@@ -123,6 +125,7 @@ export const useNodeTransition = ({
     frames: new Map(),
     nodes: [],
     edges: [],
+    ghostNodes: [],
   }); // 직전 렌더에 그린 요소
   const seenCollapseRef = useRef({ collapsedServerIds, collapseTreeId });
   const pendingFromRef = useRef<RenderedElements | null>(null); // 레이아웃 결과를 기다리는 전환의 시작 상태
@@ -160,6 +163,7 @@ export const useNodeTransition = ({
       frames: getNodeFrames(movedNodes),
       nodes: movedNodes,
       edges,
+      ghostNodes,
     };
 
     const pendingFrom = pendingFromRef.current;
@@ -168,14 +172,23 @@ export const useNodeTransition = ({
 
     pendingFromRef.current = null;
 
-    const nextFromFrames = addEnteringFrames(nodes, edges, pendingFrom.frames);
+    /*
+    전환 중에 다시 접거나 펼치면 더미가 있던 자리에서 이어 간다. 다시 나타난 노드는 더미의 모습에서 제자리로 가고,
+    계속 숨겨진 노드는 다시 더미가 되어 새 조상의 자리로 간다. 이어 가는 더미의 연결선은 이미 흐려지는 중이라 다시 그리지 않는다.
+    */
+    const originalNodes = getOriginalNodes(pendingFrom.ghostNodes);
+    const nextFromFrames = addEnteringFrames(
+      nodes,
+      edges,
+      new Map([...getNodeFrames(originalNodes), ...pendingFrom.frames]),
+    );
+    const { nodes: storedNodes, edges: storedEdges } = useTreeStore.getState();
     const exiting = getExitingElements({
-      renderedNodes: pendingFrom.nodes,
+      renderedNodes: [...pendingFrom.nodes, ...originalNodes],
       renderedEdges: pendingFrom.edges,
       nodes,
-      storedClientIds: new Set(
-        useTreeStore.getState().nodes.map((node) => node.id),
-      ),
+      storedClientIds: new Set(storedNodes.map((node) => node.id)),
+      storedEdges,
     });
 
     const duration = getMotionDuration();
@@ -235,6 +248,7 @@ export const useNodeTransition = ({
     nodes,
     edges,
     movedNodes,
+    ghostNodes,
     collapsedServerIds,
     collapseTreeId,
     isLayoutRunning,

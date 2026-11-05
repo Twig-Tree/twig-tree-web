@@ -92,6 +92,7 @@ afterEach(() => {
   vi.unstubAllGlobals();
   vi.restoreAllMocks();
   useCollapseStore.getState().resetCollapse();
+  useTreeStore.setState({ nodes: [], edges: [] });
 });
 
 describe("useNodeTransition", () => {
@@ -206,7 +207,7 @@ describe("useNodeTransition", () => {
     const parent = createNode("a", 0, 0);
     const child = createNode("b", 200, 100);
 
-    useTreeStore.setState({ nodes: [parent, child] });
+    useTreeStore.setState({ nodes: [parent, child], edges: EDGES });
 
     const { result, rerender } = renderTransition([parent, child]);
 
@@ -263,6 +264,62 @@ describe("useNodeTransition", () => {
     ]);
 
     useTreeStore.setState({ nodes: [] });
+  });
+
+  it("접히는 중에 다시 펼치면 더미가 있던 자리와 투명도에서 이어 간다", () => {
+    const parent = createNode("a", 0, 0);
+    const child = createNode("b", 200, 100);
+
+    useTreeStore.setState({ nodes: [parent, child], edges: EDGES });
+
+    const { result, rerender } = renderTransition([parent, child]);
+
+    toggleCollapse();
+    rerender({ edges: [], nodes: [parent] });
+    isLayoutRunning = false;
+    rerender({ edges: [], nodes: [{ ...parent }] });
+    runFrameAt(MOTION_DURATION_MS / 2);
+
+    toggleCollapse();
+    rerender({ edges: EDGES, nodes: [parent, child] });
+    isLayoutRunning = false;
+    rerender({ edges: EDGES, nodes: [{ ...parent }, { ...child }] });
+
+    expect(result.current.transitionNodes.map((node) => node.id)).toEqual([
+      "a",
+      "b",
+    ]);
+    expect(result.current.transitionNodes[1].position.x).toBeCloseTo(100);
+    expect(result.current.transitionNodes[1].position.y).toBeCloseTo(50);
+    expect(result.current.transitionNodes[1].style?.opacity).toBeCloseTo(0.5);
+
+    useTreeStore.setState({ nodes: [], edges: [] });
+  });
+
+  it("접히는 중에 다른 노드를 접어도 더미는 끊기지 않고 이어 간다", () => {
+    const parent = createNode("a", 0, 0);
+    const child = createNode("b", 200, 100);
+
+    useTreeStore.setState({ nodes: [parent, child], edges: EDGES });
+
+    const { result, rerender } = renderTransition([parent, child]);
+
+    toggleCollapse();
+    rerender({ edges: [], nodes: [parent] });
+    isLayoutRunning = false;
+    rerender({ edges: [], nodes: [{ ...parent }] });
+    runFrameAt(MOTION_DURATION_MS / 2);
+
+    toggleCollapse();
+    rerender({ edges: [], nodes: [parent] });
+    isLayoutRunning = false;
+    rerender({ edges: [], nodes: [{ ...parent }] });
+
+    expect(result.current.transitionNodes[0].id).toBe("ghost:b");
+    expect(result.current.transitionNodes[0].position.x).toBeCloseTo(100);
+    expect(result.current.transitionNodes[0].style?.opacity).toBeCloseTo(0.5);
+
+    useTreeStore.setState({ nodes: [], edges: [] });
   });
 
   it("동작 줄이기를 켜면 움직이지 않는다", () => {

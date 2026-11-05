@@ -5,6 +5,7 @@ import {
   getExitingElements,
   getGhostEdges,
   getGhostNodes,
+  getOriginalNodes,
 } from "./getGhostElements";
 
 const createNode = (clientId: string, x: number, y: number) =>
@@ -36,6 +37,7 @@ const getExiting = (storedClientIds = ["r", "a", "b", "c"]) =>
     renderedEdges: edges,
     nodes: [r, { ...a, position: { x: 100, y: 50 } }],
     storedClientIds: new Set(storedClientIds),
+    storedEdges: edges,
   });
 
 describe("getExitingElements", () => {
@@ -118,5 +120,32 @@ describe("getGhostEdges", () => {
   it("다 흐려졌거나 대상 더미를 그리지 않으면 만들지 않는다", () => {
     expect(getGhostEdges(exiting, ghostNodes, 0)).toEqual([]);
     expect(getGhostEdges(exiting, [], 0.5)).toEqual([]);
+  });
+});
+
+describe("getOriginalNodes", () => {
+  it("더미를 그려진 좌표와 투명도 그대로 원래 ID의 노드로 되돌린다", () => {
+    const [ghost] = getGhostNodes(getExiting(), [r, a], 0.5);
+    const [original] = getOriginalNodes([ghost]);
+
+    expect(original.id).toBe("b");
+    expect(original.type).toBe("custom");
+    expect(original.position).toEqual(ghost.position);
+    expect(original.style?.opacity).toBe(ghost.style?.opacity);
+  });
+
+  it("되돌린 노드를 다시 사라지는 노드로 찾으면 그 자리에서 이어 간다", () => {
+    const [ghost] = getGhostNodes(getExiting(), [r, a], 0.5);
+    const exiting = getExitingElements({
+      renderedNodes: [r, ...getOriginalNodes([ghost])],
+      renderedEdges: [],
+      nodes: [r],
+      storedClientIds: new Set(["r", "a", "b", "c"]),
+      storedEdges: edges,
+    });
+
+    expect(exiting.nodes[0].ancestorClientId).toBe("r");
+    expect(exiting.nodes[0].node.position).toEqual(ghost.position);
+    expect(exiting.edges).toEqual([]);
   });
 });
