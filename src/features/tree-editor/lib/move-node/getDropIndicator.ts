@@ -1,5 +1,5 @@
 import { CustomEditorEdge, CustomEditorNode } from "../../model/types";
-import { elkOptions } from "../layout";
+import { SIBLING_GAP } from "../layout";
 import { DropTarget } from "./getDropTarget";
 
 export type Rect = {
@@ -16,11 +16,6 @@ export type DropIndicator = {
   kind: "line" | "anchor";
   rect: Rect;
 };
-
-/*
-레이아웃이 형제 사이에 두는 간격. 앞뒤에 이웃이 없을 때 삽입선을 기준 노드에서 이 간격의 절반만큼 떨어뜨린다.
-*/
-const NODE_SPACING = Number(elkOptions["elk.spacing.nodeNode"]);
 
 const LINE_THICKNESS = 4; // 삽입선 두께. flow 좌표
 const ANCHOR_PADDING = 6; // 강조 상자가 기준 노드 바깥으로 벌어지는 폭. flow 좌표
@@ -96,16 +91,16 @@ export const getDropIndicator = (
   const neighborRect = neighborNode && getRenderedRect(neighborNode);
 
   /*
-  이웃 형제가 있으면 두 노드 사이 빈칸의 가운데에, 없으면 기준 노드에서 간격의 절반만큼 떨어진 자리에 둔다.
+  이웃 형제가 있으면 두 노드 사이 빈칸의 가운데에, 없으면 기준 노드에서 형제 간격의 절반만큼 떨어진 자리에 둔다.
   */
   const lineCenterY =
     dropTarget.kind === "before"
       ? neighborRect
         ? (neighborRect.y + neighborRect.height + anchorRect.y) / 2
-        : anchorRect.y - NODE_SPACING / 2
+        : anchorRect.y - SIBLING_GAP / 2
       : neighborRect
         ? (anchorRect.y + anchorRect.height + neighborRect.y) / 2
-        : anchorRect.y + anchorRect.height + NODE_SPACING / 2;
+        : anchorRect.y + anchorRect.height + SIBLING_GAP / 2;
 
   return {
     kind: "line",

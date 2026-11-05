@@ -64,7 +64,7 @@ export const useVisibleElements = ({
     }
 
     /*
-    엣지는 양 끝 노드가 모두 보일 때만 남긴다. 한쪽 끝이 걸러진 엣지를 넘기면 React Flow와 ELK가
+    엣지는 양 끝 노드가 모두 보일 때만 남긴다. 한쪽 끝이 걸러진 엣지를 넘기면 React Flow가
     없는 노드를 가리키는 엣지를 받는다.
     */
     return {

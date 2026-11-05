@@ -1,6 +1,5 @@
 import { describe, it, expect } from "vitest";
 import {
-  elkOptions,
   getLayoutedElements,
   getLayoutStructureSignature,
   mergeLayoutResult,
@@ -24,7 +23,7 @@ const createNode = (
 });
 
 /*
-ELK 계산 결과의 노드는 좌표뿐 아니라 배치 상자 크기와 핸들 위치를 함께 들고 온다.
+배치 계산 결과의 노드는 좌표뿐 아니라 배치 상자 크기와 핸들 위치를 함께 들고 온다.
 */
 const createLayoutedNode = (
   id: string,
@@ -280,8 +279,6 @@ describe("getLayoutStructureSignature", () => {
 });
 
 describe("getLayoutedElements", () => {
-  const layoutOptions = { "elk.direction": "RIGHT", ...elkOptions };
-
   const createEdge = (source: string, target: string): CustomEditorEdge => ({
     id: `e-${source}-${target}`,
     source,
@@ -310,11 +307,7 @@ describe("getLayoutedElements", () => {
     nodes: CustomEditorNode[],
     edges: CustomEditorEdge[],
   ) => {
-    const { nodes: layoutedNodes } = await getLayoutedElements(
-      nodes,
-      edges,
-      layoutOptions,
-    );
+    const { nodes: layoutedNodes } = await getLayoutedElements(nodes, edges);
 
     return new Map(layoutedNodes.map((node) => [node.id, node]));
   };
@@ -366,8 +359,8 @@ describe("getLayoutedElements", () => {
   });
 
   /*
-  mrtree는 형제 순서를 엣지 입력 순서로 정한다. 노드 이동은 노드 배열만 다시 놓으므로
-  엣지 배열이 노드 배열과 어긋날 수 있는데, 그래도 형제 순서는 노드 배열을 따라야 한다.
+  노드 이동은 노드 배열만 다시 놓으므로 엣지 배열이 노드 배열과 어긋날 수 있는데,
+  그래도 형제 순서는 노드 배열을 따라야 한다.
   */
   it("엣지 배열 순서가 노드 배열 순서와 달라도 노드 배열 순서를 따른다", async () => {
     const layouted = await layout(fanTree.nodes, [...fanTree.edges].reverse());
@@ -376,7 +369,7 @@ describe("getLayoutedElements", () => {
   });
 
   /*
-  자식 수가 서로 다른 서브트리를 섞어, 한쪽이 무거워도 부모가 자식들의 가운데에 오는지 본다.
+  자식 수가 서로 다른 서브트리를 섞어, 한쪽이 무거워도 부모가 첫 자식과 나란하고 서브트리가 겹치지 않는지 본다.
   */
   const unevenTree = createTree({
     root: null,
@@ -394,24 +387,35 @@ describe("getLayoutedElements", () => {
     c1: "c",
   });
 
-  it("모든 부모를 자식들의 세로 가운데에 놓는다", async () => {
+  it("모든 부모를 첫 자식과 같은 높이에 놓는다", async () => {
     const layouted = await layout(unevenTree.nodes, unevenTree.edges);
 
-    const childIdsByParent = new Map<string, string[]>();
-    unevenTree.edges.forEach((edge) => {
-      childIdsByParent.set(edge.source, [
-        ...(childIdsByParent.get(edge.source) ?? []),
-        edge.target,
-      ]);
-    });
+    expect(layouted.get("root")!.position.y).toBe(
+      layouted.get("a")!.position.y,
+    );
+    expect(layouted.get("a")!.position.y).toBe(layouted.get("a1")!.position.y);
+    expect(layouted.get("b")!.position.y).toBe(layouted.get("b1")!.position.y);
+    expect(layouted.get("b1")!.position.y).toBe(
+      layouted.get("b11")!.position.y,
+    );
+    expect(layouted.get("c")!.position.y).toBe(layouted.get("c1")!.position.y);
+  });
 
-    childIdsByParent.forEach((childIds, parentId) => {
-      const childCenters = childIds.map((id) => getCenterY(layouted.get(id)!));
-      const middle =
-        (Math.min(...childCenters) + Math.max(...childCenters)) / 2;
+  it("다음 형제를 앞선 형제의 서브트리가 끝나는 곳 아래에 놓는다", async () => {
+    const layouted = await layout(unevenTree.nodes, unevenTree.edges);
+    const b5 = layouted.get("b5")!;
 
-      expect(getCenterY(layouted.get(parentId)!)).toBeCloseTo(middle);
-    });
+    expect(layouted.get("c")!.position.y).toBe(b5.position.y + b5.height! + 32);
+  });
+
+  it("순환이 있어도 계산이 끝나고 모든 노드에 자리를 준다", async () => {
+    const nodes = ["a", "b", "c"].map((id) => createNode(id, { x: 0, y: 0 }));
+    const edges = [createEdge("a", "b"), createEdge("b", "a")];
+
+    const layouted = await layout(nodes, edges);
+    const tops = [...layouted.values()].map((node) => node.position.y);
+
+    expect(new Set(tops).size).toBeGreaterThan(1);
   });
 
   it("어떤 두 노드의 배치 상자도 겹치지 않는다", async () => {

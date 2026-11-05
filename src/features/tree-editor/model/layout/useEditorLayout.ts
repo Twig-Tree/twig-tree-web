@@ -14,9 +14,7 @@ import {
   getLayoutedElements,
   getLayoutStructureSignature,
   mergeLayoutResult,
-  elkOptions,
 } from "@/src/features/tree-editor/lib/layout";
-import { Direction } from "@/src/features/tree-editor/model/types";
 
 /*
 노드가 한두 개뿐인 트리에 맞추면 기본 최대 배율(2)까지 확대되므로 100%보다 크게 확대하지 않는다.
@@ -31,7 +29,7 @@ const FIT_TREE_VIEW_OPTIONS: FitViewOptions = {
 
 /*
 함수 이름 : useEditorLayout
-기능 : 노드·엣지 구조가 바뀔 때마다 ELK로 배치를 다시 계산해 store에 얹는다. 트리 전체를 화면에 맞추는 것은
+기능 : 노드·엣지 구조가 바뀔 때마다 배치를 다시 계산해 store에 얹는다. 트리 전체를 화면에 맞추는 것은
 트리를 처음 열었을 때의 첫 배치 뒤에만 하고, 그 뒤에는 사용자가 요청할 때만 한다.
 인자 : CustomEditorNode[] nodes -> 배치를 계산할 노드 목록(화면에 보이는 노드)
 CustomEditorEdge[] edges -> 배치를 계산할 엣지 목록(화면에 보이는 엣지)
@@ -87,58 +85,53 @@ export function useEditorLayout(
     void fitView(FIT_TREE_VIEW_OPTIONS);
   }, [fitView]);
 
-  const onLayout = useCallback(
-    ({ direction }: { direction: Direction }) => {
-      const opts = { "elk.direction": direction, ...elkOptions };
+  const onLayout = useCallback(() => {
+    latestLayoutRunIdRef.current += 1;
+    const runId = latestLayoutRunIdRef.current; // 이 계산이 최신인지 판단할 때 사용한다.
+    isLayoutRunningRef.current = true;
 
-      latestLayoutRunIdRef.current += 1;
-      const runId = latestLayoutRunIdRef.current; // 이 계산이 최신인지 판단할 때 사용한다.
-      isLayoutRunningRef.current = true;
+    // 레이아웃 계산 후 노드 위치를 업데이트한다.
+    getLayoutedElements(nodes, edges)
+      .then(({ nodes: layoutedNodes }) => {
+        if (runId !== latestLayoutRunIdRef.current) return;
 
-      // ELK 레이아웃 계산 후 노드 위치를 업데이트한다.
-      getLayoutedElements(nodes, edges, opts)
-        .then(({ nodes: layoutedNodes }) => {
-          if (runId !== latestLayoutRunIdRef.current) return;
+        isLayoutRunningRef.current = false;
 
-          isLayoutRunningRef.current = false;
-
-          /*
-          ELK 계산은 비동기라, 계산이 끝나는 사이에 서버 응답에 따른 serverId 채움이나
+        /*
+          계산 결과는 비동기로 오므로, 계산이 끝나는 사이에 서버 응답에 따른 serverId 채움이나
           제목·메모 수정이 store에 반영될 수 있다. 계산 시작 시점의 배열로 store를 교체하면
           그 변경이 사라지므로, 최신 store 노드에 배치 값만 병합한다.
-          엣지는 React Flow가 노드 위치로 경로를 계산하므로 ELK 결과를 반영하지 않는다.
+          엣지는 React Flow가 노드 위치로 경로를 계산하므로 계산 결과를 반영하지 않는다.
           */
-          setNodes((currentNodes) =>
-            mergeLayoutResult(currentNodes, layoutedNodes),
-          );
+        setNodes((currentNodes) =>
+          mergeLayoutResult(currentNodes, layoutedNodes),
+        );
 
-          const afterNextLayout = afterNextLayoutRef.current;
-          afterNextLayoutRef.current = null;
-          afterNextLayout?.();
+        const afterNextLayout = afterNextLayoutRef.current;
+        afterNextLayoutRef.current = null;
+        afterNextLayout?.();
 
-          /*
+        /*
           노드가 없는 첫 계산(트리 조회 전, 빈 워크스페이스)은 맞출 대상이 없으므로 건너뛴다. 빈 워크스페이스에서
           루트를 처음 추가하면 그때가 첫 배치가 되어, 원점 근처에 놓인 루트가 화면 밖에 남지 않는다.
           React Flow가 새 좌표로 노드를 그린 뒤에 맞추도록 다음 프레임으로 미룬다.
           */
-          if (!hasFittedTreeViewRef.current && layoutedNodes.length > 0) {
-            hasFittedTreeViewRef.current = true;
-            window.requestAnimationFrame(fitTreeView);
-          }
-        })
-        .catch((error) => {
-          console.error(error);
+        if (!hasFittedTreeViewRef.current && layoutedNodes.length > 0) {
+          hasFittedTreeViewRef.current = true;
+          window.requestAnimationFrame(fitTreeView);
+        }
+      })
+      .catch((error) => {
+        console.error(error);
 
-          // 이미 더 새로운 계산이 시작되었다면 그쪽이 결과를 책임진다.
-          if (runId !== latestLayoutRunIdRef.current) return;
+        // 이미 더 새로운 계산이 시작되었다면 그쪽이 결과를 책임진다.
+        if (runId !== latestLayoutRunIdRef.current) return;
 
-          isLayoutRunningRef.current = false;
-          requestedStructureRef.current = null;
-          afterNextLayoutRef.current = null; // 좌표가 확정되지 않았으므로 맡긴 함수도 버린다. 남기면 나중의 관계없는 레이아웃 뒤에 실행된다.
-        });
-    },
-    [nodes, edges, setNodes, fitTreeView],
-  );
+        isLayoutRunningRef.current = false;
+        requestedStructureRef.current = null;
+        afterNextLayoutRef.current = null; // 좌표가 확정되지 않았으므로 맡긴 함수도 버린다. 남기면 나중의 관계없는 레이아웃 뒤에 실행된다.
+      });
+  }, [nodes, edges, setNodes, fitTreeView]);
 
   /*
   레이아웃 정렬 시점 결정.
@@ -153,7 +146,7 @@ export function useEditorLayout(
 
     requestedStructureRef.current = structure;
 
-    onLayout({ direction: "RIGHT" });
+    onLayout();
   }, [nodes, edges, onLayout]);
 
   return { onLayout, fitTreeView, runAfterNextLayout, isLayoutRunning };
