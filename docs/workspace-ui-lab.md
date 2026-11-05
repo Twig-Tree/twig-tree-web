@@ -117,7 +117,7 @@ Lab은 결정을 빠르게 만드는 곳이고, 실제 Workspace는 그 결정�
 
 ## 제품에 반영한 결정
 
-Lab에서 비교한 끝에 제품 테마로 `Soft`를 골랐다. 제품 코드는 Lab을 import하지 않고 값을 옮겼으며, 구조와 새 테마 추가 절차는 [테마 규칙](./conventions/theming.md)에 있다.
+Lab에서 비교한 끝에 제품 테마로 `Soft`와 `Neutral`을 옮겼다. 기본값은 `Neutral`이고 사용자가 프로필 메뉴에서 고른다. 제품 코드는 Lab을 import하지 않고 값을 옮겼으며, 구조와 새 테마 추가 절차는 [테마 규칙](./conventions/theming.md)에 있다.
 
 | Lab 슬롯                   | Soft 값                                 | 제품 위치                                  |
 | -------------------------- | --------------------------------------- | ------------------------------------------ |
@@ -125,13 +125,15 @@ Lab에서 비교한 끝에 제품 테마로 `Soft`를 골랐다. 제품 코드�
 | 캔버스                     | `paper`                                 | `app/themes/soft.css`, `app/xy-theme.css`  |
 | 노드 밀도                  | `spacious` 168×60, 여백 22/18px, 14px   | `lib/layout.ts`, `app/themes/soft.css`     |
 | 연결 포인트                | `ring`                                  | `app/themes/soft.css`, `app/xy-theme.css`  |
-| 접기 버튼                  | `notch`                                 | `ui/CollapseToggleButton.tsx`              |
+| 접기 버튼                  | `notch`                                 | `app/themes/soft.css`, `app/xy-theme.css`  |
 | 연결선                     | `soft-guide`를 변형 (아래 참고)         | `ui/CustomEdge.tsx`, `app/themes/soft.css` |
 | 패널                       | `muted` 표면, `shadow` 경계, `spacious` | `app/themes/soft.css`, 각 패널 컴포넌트    |
 
 `lib/`, `ui/`는 `src/features/tree-editor` 아래다.
 
-Lab과 값을 다르게 둔 곳은 다음과 같다.
+### Soft
+
+위 표가 Soft의 값이다. Lab과 값을 다르게 둔 곳은 다음과 같다.
 
 - 강조색과 보조 글자: Lab 값(`#8b5cf6`, `#8a7895`)이 작은 글자 대비 4.5:1에 못 미쳐 `#7c3aed`, `#6f5d7a`로 진하게 했다.
 - 연결선: `soft-guide`의 곡선은 자식이 많은 노드에서 시작점에 뭉쳐, 둥근 직각으로 바꿨다. 형제 선이 줄기를 공유하므로 투명도와 그림자를 빼고 단색(`#cfc4da`)을 쓴다. 열린 화살촉과 1.5px 굵기는 그대로다.
@@ -139,3 +141,22 @@ Lab과 값을 다르게 둔 곳은 다음과 같다.
 - 노드 크기: Lab은 렌더 후 측정한 크기로 다시 배치하지만, 제품은 ELK가 고정 크기로 배치한다. 긴 제목이 있어도 노드 높이는 늘어나지 않는다.
 - 배치: 제품은 ELK `mrtree`와 간격 80을 그대로 쓴다.
 - 도구 버튼: Lab의 아이콘 도구 막대가 아니라 제품의 글자 버튼에 색과 곡률만 입혔다.
+
+### Neutral
+
+| Lab 슬롯                    | Neutral 값                       | 제품 위치                                     |
+| --------------------------- | -------------------------------- | --------------------------------------------- |
+| 컬러 테마, 형태(`standard`) | 색, 곡률 14px, 한 겹 그림자      | `app/themes/neutral.css`                      |
+| 캔버스                      | `fine-dots`                      | `app/themes/neutral.css`, 워크스페이스 페이지 |
+| 노드 밀도                   | `comfortable` 여백 16/13px, 13px | `app/themes/neutral.css`                      |
+| 연결 포인트                 | `dot`                            | `app/themes/neutral.css`, `app/xy-theme.css`  |
+| 접기 버튼                   | `floating`                       | `app/themes/neutral.css`, `app/xy-theme.css`  |
+| 연결선                      | `quiet-structure`, 둥근 직각     | `ui/CustomEdge.tsx`, `app/themes/neutral.css` |
+| 패널                        | `line` 경계, `comfortable`       | `app/themes/neutral.css`, 각 패널 컴포넌트    |
+
+Lab과 값을 다르게 둔 곳은 다음과 같다.
+
+- 보조 글자와 danger: Lab 값(`#778195`, `#dc2626`)이 대비 4.5:1에 못 미치는 바탕이 있어 `#5c687b`, `#c81e1e`로 진하게 했다.
+- 노드 크기: Lab의 `comfortable`은 최소 148×48이지만 제품은 168×60을 유지한다. 테마를 바꿔도 트리 위치가 움직이지 않게 하려는 것이다.
+- 패널: 제품 패널에는 경계선이 없어 그림자 토큰의 1px 윤곽으로 선을 그린다. 표면은 Lab의 흰색 대신 `surface-muted`(`#f8fafc`)를 쓴다.
+- 화살촉: Lab은 닫힌 경로를 쓰지만 제품은 Soft와 같은 경로에 채움만 더한다.

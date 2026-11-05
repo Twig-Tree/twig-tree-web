@@ -7,10 +7,28 @@
     ↓
 app/themes/tokens.css   역할 이름을 --theme-* 에 잇는다
     ↓
-app/themes/soft.css     :root[data-theme="soft"] 에서 --theme-* 값을 정한다
+app/themes/<이름>.css   :root[data-theme="<이름>"] 에서 --theme-* 값을 정한다
 ```
 
-테마는 `app/layout.tsx`의 `<html data-theme="soft">`로 고른다. 지금은 Soft 하나뿐이고 사용자가 바꾸는 화면은 없다.
+지금 테마는 Neutral과 Soft이고 기본값은 Neutral이다.
+
+## 테마 선택
+
+사용자는 프로필 메뉴에서 테마를 고른다. 고른 값은 `localStorage`에 기기별로 저장한다.
+
+```text
+프로필 메뉴        features/theme/select-theme
+    ↓
+현재 테마와 저장   shared/lib/theme
+    ↓
+<html data-theme>  CSS가 읽는 현재 테마의 단일 원본
+```
+
+`shared/lib/theme`에 두는 이유는 선택 UI와 `features/tree-editor`의 연결선이 함께 쓰기 때문이다. feature에 두면 같은 계층끼리 의존하게 된다.
+
+서버는 저장값을 모르므로 `app/layout.tsx`가 기본 테마로 HTML을 그린다. `<head>`의 인라인 스크립트가 첫 페인트 전에 저장값을 적용해, 다른 테마를 고른 사용자에게 기본 테마가 잠깐 보이지 않게 한다. `next/script`의 `beforeInteractive`는 실행이 hydration을 막지 않으므로 쓰지 않는다. 스크립트가 서버 HTML의 속성을 바꾸므로 `<html>`에 `suppressHydrationWarning`이 필요하다.
+
+JS에서 현재 테마가 필요하면 `useTheme`을 쓴다. CSS 토큰으로 정할 수 있는 값은 토큰으로 정한다.
 
 ## 컴포넌트에서
 
@@ -47,21 +65,35 @@ React Flow는 자기 CSS 변수를 읽으므로 `app/xy-theme.css`가 그 변수
 
 ## 새 테마 추가
 
-1. `app/themes/soft.css`를 복사해 `app/themes/<이름>.css`를 만들고, 선택자를 `:root[data-theme="<이름>"]`로 바꿔 값을 정한다.
+1. 기존 테마 파일을 복사해 `app/themes/<이름>.css`를 만들고, 선택자를 `:root[data-theme="<이름>"]`로 바꿔 값을 정한다.
 2. `app/globals.css`에 import를 추가한다.
 3. `pnpm exec vitest run app/themes`를 실행한다. `themes.test.ts`가 `app/themes`의 CSS를 모두 찾아, 빠진 값과 글자 대비(4.5:1 미만)를 알려 준다. 대비를 계산하는 색은 `#rrggbb`로 적는다.
-4. `<html data-theme>`를 바꿔 화면을 확인한다. 트리 캔버스는 끌어서 옮기기, undo/redo, 제목 편집, 접기, 검색 강조까지 본다.
+4. `shared/lib/theme/themes.ts`의 `THEME_IDS`에 추가한다. 타입 검사가 메뉴 이름(`useThemeMenuItems`)과 연결선 경로(`CustomEdge`)의 빈자리를 알려 준다.
+5. 프로필 메뉴에서 테마를 골라 화면을 확인한다. 트리 캔버스는 끌어서 옮기기, undo/redo, 제목 편집, 접기, 검색 강조까지 본다.
 
 테스트의 글자 대비 목록(`textPairs`)은 화면에서 실제로 겹치는 조합만 담는다. 새로운 조합이 생기면 목록에 추가한다.
 
 ## CSS로 정할 수 없는 값
 
-아래 값은 JS가 읽거나 컴포넌트 구조에 묶여 있어 테마 파일로 바꿀 수 없다. 지금은 Soft 값이 코드에 직접 있고, 다른 값을 쓰는 테마가 생길 때 테마 설정으로 뺀다. 쓰는 곳이 하나인 동안 미리 추상화하지 않는다.
+아래 값은 JS가 읽거나 좌표 계산에 쓰여 테마 파일로 바꿀 수 없다.
 
-| 값                        | 위치                                                   |
-| ------------------------- | ------------------------------------------------------ |
-| 노드 크기 (168×60)        | `src/features/tree-editor/lib/layout.ts`               |
-| 노드 간격 (80)            | `src/features/tree-editor/lib/layout.ts`               |
-| 연결선 경로, 굵기, 화살촉 | `src/features/tree-editor/ui/CustomEdge.tsx`           |
-| 접기 버튼 모양과 위치     | `src/features/tree-editor/ui/CollapseToggleButton.tsx` |
-| 축소 하한 (0.3)           | `src/features/tree-editor/constants/flowConfig.ts`     |
+연결선 경로는 테마별 설정이 있고, 지금은 두 테마의 값이 같다.
+
+| 값                  | 위치                                         |
+| ------------------- | -------------------------------------------- |
+| 연결선 곡률, offset | `src/features/tree-editor/ui/CustomEdge.tsx` |
+
+아래 값은 모든 테마가 함께 쓴다. 다른 값을 쓰는 테마가 생길 때 테마 설정으로 뺀다. 쓰는 곳이 하나인 동안 미리 추상화하지 않는다.
+
+노드 크기를 테마별로 나누면 테마를 바꿀 때 트리를 다시 배치해야 하고, 노드 위치가 움직인다.
+
+| 값                     | 위치                                               |
+| ---------------------- | -------------------------------------------------- |
+| 노드 크기 (168×60)     | `src/features/tree-editor/lib/layout.ts`           |
+| 노드 간격 (80)         | `src/features/tree-editor/lib/layout.ts`           |
+| 연결선 굵기            | `src/features/tree-editor/ui/CustomEdge.tsx`       |
+| 화살촉 크기와 모양     | `src/features/tree-editor/ui/CustomEdge.tsx`       |
+| 캔버스 도트 간격, 크기 | `app/(main)/workspace/[workspaceId]/page.tsx`      |
+| 축소 하한 (0.3)        | `src/features/tree-editor/constants/flowConfig.ts` |
+
+화살촉의 채움, 도트 색, 접기 버튼의 모양과 위치는 테마 파일에서 정한다.
