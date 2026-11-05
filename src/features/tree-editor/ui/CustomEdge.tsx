@@ -8,7 +8,7 @@ const EDGE_OFFSET = 20; // 노드에서 직선으로 빠져나온 뒤 꺾기 시
 
 /*
 함수 이름 : CustomEdge
-기능 : 부모와 자식 노드를 둥근 직각 선으로 잇고 자식 쪽 끝에 열린 화살촉을 그린다. 색은 테마 값을 따른다.
+기능 : 부모와 자식 노드를 둥근 직각 선으로 잇고 자식 쪽 끝에 화살촉을 그린다. 색과 화살촉 채움은 테마 값을 따른다.
 형제 연결선이 줄기 하나를 공유해 곡선처럼 시작점에 뭉치지 않는다.
 인자 : EdgeProps<CustomEditorEdge>
 반환값 : 연결선과 화살촉 정의
@@ -54,7 +54,6 @@ export function CustomEdge({
           <path
             className="custom-edge__marker"
             d="M2 1.5 L9 5 L2 8.5"
-            fill="none"
             strokeLinecap="round"
             strokeLinejoin="round"
             strokeWidth={(EDGE_STROKE_WIDTH * 10) / EDGE_MARKER_SIZE}

@@ -51,12 +51,11 @@ hover, 비활성, 경고, 정보 색은 Lab에 없어 제품 사용처에 맞춰
 
   /* 트리 편집기 */
   --theme-canvas: #f7f8fa;
-  --theme-canvas-image: radial-gradient(
-    color-mix(in srgb, var(--theme-edge) 24%, transparent) 0.8px,
-    transparent 0.8px
-  );
-  --theme-canvas-image-size: 12px 12px;
+  --theme-canvas-image: none;
+  --theme-canvas-image-size: auto;
+  --theme-canvas-dots: color-mix(in srgb, var(--theme-edge) 24%, transparent);
   --theme-edge: #a6afbe;
+  --theme-edge-marker-fill: currentColor;
   --theme-highlight: #f59e0b;
   --theme-node: #ffffff;
   --theme-node-line: #dce1e8;
@@ -75,6 +74,10 @@ hover, 비활성, 경고, 정보 색은 Lab에 없어 제품 사용처에 맞춰
   --theme-handle-border-width: 1px;
   --theme-handle-line: var(--theme-edge);
   --theme-handle-fill: var(--theme-surface);
+  --theme-collapse-right: -8px;
+  --theme-collapse-width: 20px;
+  --theme-collapse-radius: 999px;
+  --theme-collapse-offset-x: 0;
 
   /* 형태 */
   --theme-radius-control: 8px;

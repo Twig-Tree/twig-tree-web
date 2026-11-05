@@ -1,5 +1,11 @@
 "use client";
-import { ReactFlow, ReactFlowProvider, Panel } from "@xyflow/react";
+import {
+  Background,
+  BackgroundVariant,
+  ReactFlow,
+  ReactFlowProvider,
+  Panel,
+} from "@xyflow/react";
 import {
   DropIndicatorOverlay,
   MemoSidePanel,
@@ -158,6 +164,15 @@ function LayoutFlow({ workspaceId, treeId }: LayoutFlowProps) {
           edgesReconnectable={false}
           elementsSelectable={!isMutating}
         >
+          {/*
+          도트 색은 테마가 정한다. 바탕은 캔버스의 테마 이미지가 보이도록 투명하게 둔다.
+          */}
+          <Background
+            variant={BackgroundVariant.Dots}
+            gap={12}
+            size={0.8}
+            bgColor="transparent"
+          />
           <DropIndicatorOverlay indicator={dropIndicator} />
 
           <Panel position="top-right">
