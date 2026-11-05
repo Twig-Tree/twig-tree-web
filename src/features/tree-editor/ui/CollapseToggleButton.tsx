@@ -56,7 +56,7 @@ export function CollapseToggleButton({
       aria-label={isCollapsed ? "하위 노드 펼치기" : "하위 노드 접기"}
       aria-expanded={!isCollapsed}
       onClick={handleClick}
-      className="nodrag nopan absolute right-1/2 -bottom-2 flex h-5 w-6 translate-x-1/2 items-center justify-center rounded-[7px] border border-line bg-surface text-node-content-muted hover:border-accent hover:text-accent"
+      className="custom-node__collapse nodrag nopan absolute -bottom-2 flex h-5 items-center justify-center border border-line bg-surface text-node-content-muted hover:border-accent hover:text-accent"
     >
       <ChevronDown
         aria-hidden

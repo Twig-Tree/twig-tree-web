@@ -61,7 +61,7 @@ const MIN_TEXT_CONTRAST = 4.5; // WCAG AA의 일반 글자 기준
 
 /*
 화면에서 실제로 겹치는 글자와 바탕의 조합이다.
-비활성 글자와 연결선은 WCAG 대비 기준의 대상이 아니므로 넣지 않는다.
+비활성 글자는 WCAG 대비 기준의 대상이 아니고, 연결선은 글자가 아니라 이 목록에 넣지 않는다.
 */
 const textPairs: Array<[text: string, background: string]> = [
   ["content", "surface"],
