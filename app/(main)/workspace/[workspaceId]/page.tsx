@@ -4,6 +4,7 @@ import {
   DropIndicatorOverlay,
   MemoSidePanel,
   edgeTypes,
+  MIN_ZOOM,
   nodeTypes,
   useEditorLayout,
   useFocusNode,
@@ -142,6 +143,7 @@ function LayoutFlow({ workspaceId, treeId }: LayoutFlowProps) {
           edges={visibleEdges}
           nodeTypes={nodeTypes}
           edgeTypes={edgeTypes}
+          minZoom={MIN_ZOOM}
           onNodesChange={onNodesChange}
           onEdgesChange={onEdgesChange}
           onNodeDragStart={onNodeDragStart}

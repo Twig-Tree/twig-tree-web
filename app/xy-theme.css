@@ -40,8 +40,9 @@ React Flow가 읽는 CSS 변수에 값을 넣어야 하므로 Tailwind 유틸리
   justify-content: center;
   align-items: center;
   text-align: center;
-  padding: 10px;
-  font-size: 12px;
+  padding: var(--theme-node-padding-y) var(--theme-node-padding-x);
+  font-size: var(--theme-node-font-size);
+  font-weight: var(--theme-node-font-weight);
   flex-direction: column;
   border: var(--xy-node-border-default);
   color: var(--xy-node-color, var(--xy-node-color-default));

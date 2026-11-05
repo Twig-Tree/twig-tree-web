@@ -2,6 +2,7 @@ import { useAddNodeMutation } from "@/src/entities/tree/model/mutations/useAddNo
 import { createEditorEdge } from "../../../lib/add-node/createEditorEdge";
 import { createEditorNode } from "../../../lib/add-node/createEditorNode";
 import { createClientNodeId } from "../../../lib/createClientNodeId";
+import { NODE_WIDTH } from "../../../lib/layout";
 import { getNextOrderIndex } from "../../../lib/node";
 import { useCollapseStore } from "../../collapse/collapseStore";
 import { useEditHistoryStore } from "../../history/editHistoryStore";
@@ -78,7 +79,7 @@ export const useAddNode = ({
       serverId: null, // 서버 응답을 받기 전이라 아직 서버 ID가 없다.
       label,
       orderIndex: nextOrderIndex,
-      x: selectedNode.position.x + 150,
+      x: selectedNode.position.x + NODE_WIDTH,
       y: selectedNode.position.y,
     });
 
