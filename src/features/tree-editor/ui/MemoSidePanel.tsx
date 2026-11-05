@@ -1,3 +1,5 @@
+import { X } from "lucide-react";
+import { IconButton } from "@/src/shared/ui/icon-button";
 import { MemoEditor } from "./MemoEditor";
 import { TagChipList } from "./TagChipList";
 import { TagInput } from "./TagInput";
@@ -12,12 +14,14 @@ type MemoSidePanelProps = {
   treeId: string;
   selectedNode: CustomEditorNode | undefined;
   onClose: () => void;
+  isOverlay: boolean; // 좁은 화면이면 캔버스를 밀어내지 않고 그 위에 겹쳐 띄운다
 };
 
 export const MemoSidePanel = ({
   treeId,
   selectedNode,
   onClose,
+  isOverlay,
 }: MemoSidePanelProps) => {
   const savedMemo = selectedNode?.data.memo ?? null; // 저장된 메모가 없으면 null이다.
 
@@ -46,24 +50,24 @@ export const MemoSidePanel = ({
   });
 
   return (
-    <aside className="relative z-10 flex h-full w-[360px] shrink-0 flex-col bg-surface-muted shadow-panel">
+    <aside
+      aria-label="메모 패널"
+      className={`z-10 flex h-full w-[360px] max-w-full shrink-0 flex-col bg-surface-muted shadow-panel ${
+        isOverlay ? "absolute inset-y-0 right-0 z-30" : "relative"
+      }`}
+    >
       <header className="flex h-16 shrink-0 items-center justify-between border-b border-line px-panel">
         <div className="min-w-0">
           <p className="text-xs font-medium uppercase tracking-wide text-content-muted">
-            Memo
+            메모
           </p>
           <h2 className="truncate text-lg font-semibold text-content">
-            {selectedNode?.data.label ?? "No node selected"}
+            {selectedNode?.data.label ?? "선택한 노드 없음"}
           </h2>
         </div>
-        <button
-          type="button"
-          className="flex h-8 w-8 items-center justify-center rounded-control text-content-muted hover:bg-surface-hover hover:text-content"
-          aria-label="Close memo panel"
-          onClick={onClose}
-        >
-          x
-        </button>
+        <IconButton size="sm" aria-label="메모 패널 닫기" onClick={onClose}>
+          <X aria-hidden="true" />
+        </IconButton>
       </header>
 
       {selectedNode ? (
@@ -95,7 +99,7 @@ export const MemoSidePanel = ({
         <>
           <div className="min-h-0 flex-1 p-panel">
             <div className="flex h-full items-center justify-center rounded-control border border-dashed border-line text-sm text-content-muted">
-              Select a node to add a memo.
+              노드를 선택하면 메모를 남길 수 있습니다.
             </div>
           </div>
 

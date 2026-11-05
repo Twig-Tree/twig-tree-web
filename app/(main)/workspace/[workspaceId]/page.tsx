@@ -8,13 +8,16 @@ import {
 } from "@xyflow/react";
 import {
   DropIndicatorOverlay,
+  EditorToolbar,
   MemoSidePanel,
+  NodeContextMenu,
   edgeTypes,
   MIN_ZOOM,
   nodeTypes,
   useEditorLayout,
   useFocusNode,
   useInitializeTree,
+  useNodeContextMenu,
   useMoveNodeByDrag,
   useReactFlowStoreSetters,
   useSyncCollapseAcrossTabs,
@@ -23,7 +26,7 @@ import {
   useVisibleElements,
   type NodeResult,
 } from "@/src/features/tree-editor";
-import { use, useCallback, useState } from "react";
+import { use, useCallback, useRef, useState } from "react";
 import { useGetTreeQuery } from "@/src/entities/tree/model/queries";
 import { useGetWorkspaceQuery } from "@/src/entities/workspace";
 import { isClientError } from "@/src/shared/api/httpErrors";
@@ -32,6 +35,9 @@ import {
   WorkspaceHeader,
   WorkspaceLoadError,
   WorkspacePanel,
+  WorkspacePanelOpenButton,
+  useIsNarrowScreen,
+  useResponsivePanelVisibility,
 } from "@/src/widgets/workspace";
 
 interface LayoutFlowProps {
@@ -40,8 +46,14 @@ interface LayoutFlowProps {
 }
 
 function LayoutFlow({ workspaceId, treeId }: LayoutFlowProps) {
+  /*
+  메모 패널은 노드를 골라야 의미가 있으므로 사용자가 열 때만 연다. 닫히면 저장하지 않은 초안이 사라지므로
+  화면이 좁아져도 닫지 않고, 캔버스 위에 겹쳐 띄우기만 한다.
+  */
   const [isMemoPanelOpen, setIsMemoPanelOpen] = useState(false);
+  const openMemoPanel = useCallback(() => setIsMemoPanelOpen(true), []);
   const closeMemoPanel = useCallback(() => setIsMemoPanelOpen(false), []); // 렌더마다 새 함수가 되면 useVisibleElements의 effect가 매번 다시 돈다.
+  const isMemoPanelOverlay = useIsNarrowScreen();
   // todo: React Server Component 사용
   const {
     data: treeData,
@@ -121,11 +133,49 @@ function LayoutFlow({ workspaceId, treeId }: LayoutFlowProps) {
   const handleSelectResult = (result: NodeResult) => {
     focusNode(result.clientId);
 
-    if (result.isMemoMatched) setIsMemoPanelOpen(true);
+    if (result.isMemoMatched) openMemoPanel();
   };
 
   const isMutating =
     isAddingNode || isDeletingNode || isMovingNode || isUndoingOrRedoing;
+
+  const { isPanelOpen, isPanelOverlay, openPanel, closePanel } =
+    useResponsivePanelVisibility();
+
+  /*
+  닫기 버튼을 누르면 그 버튼이 패널과 함께 사라져 focus가 갈 곳을 잃으므로, 대신 나타나는 열기 버튼으로 옮긴다.
+  click 처리 중의 state 변경은 이벤트가 끝날 때 바로 반영되므로 다음 프레임에는 열기 버튼이 있다.
+  화면이 좁아져 자동으로 닫힐 때는 사용자가 보던 곳의 focus를 빼앗지 않도록 옮기지 않는다.
+  */
+  const openPanelButtonRef = useRef<HTMLButtonElement>(null);
+  const handleClosePanel = () => {
+    closePanel();
+    window.requestAnimationFrame(() => openPanelButtonRef.current?.focus());
+  };
+
+  /*
+  캔버스 빈 곳을 누르면 노드 선택이 풀려 메모 패널이 보여 줄 노드가 없어지므로 화면 폭과 관계없이 닫는다.
+  검색 패널은 선택과 관계없이 쓰므로, 좁은 화면에서 캔버스 위에 겹쳐 떴을 때만 닫아 다시 캔버스를 보여 준다.
+  */
+  const handlePaneClick = () => {
+    closeMemoPanel();
+    if (isPanelOverlay) closePanel();
+  };
+
+  const canvasRef = useRef<HTMLDivElement>(null);
+  const {
+    contextMenu,
+    handleNodeContextMenu,
+    closeContextMenu,
+    closeContextMenuAndFocusNode,
+  } = useNodeContextMenu({ containerRef: canvasRef, isDisabled: isMutating });
+
+  /*
+  루트는 삭제할 수 없으므로 메뉴에서 처음부터 막는다. 편집기에서 구조는 엣지가 들고 있어, 들어오는 엣지가 없는 노드가 루트다.
+  */
+  const isSelectedNodeRoot =
+    selectedNode !== undefined &&
+    !edges.some((edge) => edge.target === selectedNode.id);
 
   if (isLoading) {
     return <div>Loading...</div>;
@@ -136,14 +186,20 @@ function LayoutFlow({ workspaceId, treeId }: LayoutFlowProps) {
   }
 
   return (
-    <div className="flex h-full min-h-0 w-full">
+    <div className="relative flex h-full min-h-0 w-full">
       <WorkspacePanel
         onSelectResult={handleSelectResult}
         isResultSelectDisabled={isMutating}
         onFitNodes={fitNodes}
+        isOpen={isPanelOpen}
+        isOverlay={isPanelOverlay}
+        onClose={handleClosePanel}
       />
 
-      <div className="min-h-0 min-w-0 flex-1">
+      <div
+        ref={canvasRef}
+        className="@container relative min-h-0 min-w-0 flex-1"
+      >
         <ReactFlow
           nodes={draggableNodes}
           edges={visibleEdges}
@@ -152,7 +208,13 @@ function LayoutFlow({ workspaceId, treeId }: LayoutFlowProps) {
           minZoom={MIN_ZOOM}
           onNodesChange={onNodesChange}
           onEdgesChange={onEdgesChange}
-          onNodeDragStart={onNodeDragStart}
+          onNodeDragStart={(event, node, draggedNodes) => {
+            closeContextMenu();
+            onNodeDragStart(event, node, draggedNodes);
+          }}
+          onNodeContextMenu={handleNodeContextMenu}
+          onMoveStart={closeContextMenu}
+          onPaneClick={handlePaneClick}
           onNodeDrag={onNodeDrag}
           onNodeDragStop={onNodeDragStop}
           disableKeyboardA11y={isMutating}
@@ -175,52 +237,48 @@ function LayoutFlow({ workspaceId, treeId }: LayoutFlowProps) {
           />
           <DropIndicatorOverlay indicator={dropIndicator} />
 
+          {isPanelOpen ? null : (
+            <Panel position="top-left">
+              <WorkspacePanelOpenButton
+                ref={openPanelButtonRef}
+                onOpen={openPanel}
+              />
+            </Panel>
+          )}
+
           <Panel position="top-right">
-            <button
-              className="xy-theme__button"
-              onClick={handleUndo}
-              disabled={!canUndo || isMutating}
-            >
-              Undo
-            </button>
-
-            <button
-              className="xy-theme__button"
-              onClick={handleRedo}
-              disabled={!canRedo || isMutating}
-            >
-              Redo
-            </button>
-
-            <button className="xy-theme__button" onClick={fitTreeView}>
-              Fit View
-            </button>
-
-            <button
-              className="xy-theme__button"
-              onClick={handleAddNode}
-              disabled={!isAddNodeEnabled || isMutating}
-            >
-              Add Node
-            </button>
-
-            <button
-              className="xy-theme__button"
-              onClick={handleDeleteNode}
-              disabled={!selectedNode || isMutating}
-            >
-              Delete Node
-            </button>
-
-            <button
-              className="xy-theme__button"
-              onClick={() => setIsMemoPanelOpen(true)}
-              disabled={!selectedNode || isMutating}
-            >
-              Add Memo
-            </button>
+            <EditorToolbar
+              onUndo={handleUndo}
+              onRedo={handleRedo}
+              onFitView={fitTreeView}
+              onAddRootNode={nodes.length === 0 ? handleAddNode : undefined}
+              isUndoDisabled={!canUndo || isMutating}
+              isRedoDisabled={!canRedo || isMutating}
+              isAddRootNodeDisabled={!isAddNodeEnabled || isMutating}
+            />
           </Panel>
         </ReactFlow>
+
+        {/*
+        노드 추가·삭제·메모는 우클릭한 노드를 대상으로 한다. 메뉴를 열 때 그 노드를 선택해 두므로 handler는 선택된 노드를 기준으로 동작한다.
+        */}
+        {contextMenu ? (
+          <NodeContextMenu
+            key={contextMenu.clientId}
+            x={contextMenu.x}
+            y={contextMenu.y}
+            onOpenMemo={openMemoPanel}
+            onAddNode={handleAddNode}
+            onDeleteNode={handleDeleteNode}
+            onClose={closeContextMenu}
+            onEscape={closeContextMenuAndFocusNode}
+            isOpenMemoDisabled={!selectedNode}
+            isAddNodeDisabled={!isAddNodeEnabled || isMutating}
+            isDeleteNodeDisabled={
+              !selectedNode || isSelectedNodeRoot || isMutating
+            }
+          />
+        ) : null}
       </div>
 
       {/*
@@ -230,7 +288,8 @@ function LayoutFlow({ workspaceId, treeId }: LayoutFlowProps) {
         <MemoSidePanel
           treeId={treeId}
           selectedNode={selectedNode}
-          onClose={() => setIsMemoPanelOpen(false)}
+          onClose={closeMemoPanel}
+          isOverlay={isMemoPanelOverlay}
         />
       ) : null}
     </div>

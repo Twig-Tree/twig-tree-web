@@ -30,7 +30,7 @@ export const MemoEditor = ({
           className="min-h-0 w-full flex-1 resize-none rounded-control border border-line bg-surface p-3 text-sm text-content-secondary outline-none focus:border-accent focus:ring-2 focus:ring-accent-subtle aria-[invalid=true]:border-danger-line aria-[invalid=true]:focus:border-danger-line aria-[invalid=true]:focus:ring-danger-subtle"
           value={memo}
           onChange={(event) => setMemo(event.target.value)}
-          placeholder="Write a memo for this node."
+          placeholder="이 노드에 대한 메모를 남겨 보세요."
           aria-invalid={errorMessage !== null}
           aria-describedby="memo-length"
         />
