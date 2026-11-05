@@ -1,0 +1,100 @@
+/*
+Workspace Lab의 Neutral 디자인 테마를 제품으로 옮긴 값이다.
+보조 글자는 Lab 값(#778195)이 작은 글자 대비 4.5:1에 못 미쳐 진하게 조정했고, danger도 옅은 바탕에서 기준을 맞추도록 조정했다.
+hover, 비활성, 경고, 정보 색은 Lab에 없어 제품 사용처에 맞춰 새로 정했다.
+패널은 Lab에서 그림자 없이 선으로 구분하지만 제품 패널에는 경계선이 없으므로, 그림자 토큰의 1px 윤곽으로 선을 그린다.
+*/
+:root[data-theme="neutral"] {
+  --theme-shadow-ink: #0f172a;
+
+  /* 표면 */
+  --theme-surface: #ffffff;
+  --theme-surface-muted: #f8fafc;
+  --theme-surface-hover: #f1f5f9;
+  --theme-surface-strong: #e2e8f0;
+  --theme-inverse: #0f172a;
+  --theme-on-inverse: #ffffff;
+  --theme-overlay: rgb(15 23 42 / 45%);
+
+  /* 글자 */
+  --theme-content: #172033;
+  --theme-content-secondary: #475569;
+  --theme-content-muted: #5c687b;
+  --theme-content-disabled: #a6afbe;
+
+  /* 경계 */
+  --theme-line: #e2e8f0;
+  --theme-line-subtle: #f1f5f9;
+  --theme-line-strong: #c5ccd8;
+
+  /* 강조 */
+  --theme-accent: #4f46e5;
+  --theme-accent-hover: #4338ca;
+  --theme-accent-disabled: #c7d2fe;
+  --theme-accent-subtle: #eef2ff;
+  --theme-accent-line: #c7d2fe;
+  --theme-on-accent: #ffffff;
+  --theme-focus: #6366f1;
+
+  /* 상태 */
+  --theme-danger: #c81e1e;
+  --theme-danger-subtle: #fef2f2;
+  --theme-danger-line: #fecaca;
+  --theme-warning: #b45309;
+  --theme-warning-strong: #92400e;
+  --theme-warning-subtle: #fffbeb;
+  --theme-warning-line: #fde68a;
+  --theme-success: #047857;
+  --theme-success-subtle: #ecfdf5;
+  --theme-info: #2563eb;
+  --theme-info-subtle: #eff6ff;
+
+  /* 트리 편집기 */
+  --theme-canvas: #f7f8fa;
+  --theme-canvas-image: radial-gradient(
+    color-mix(in srgb, var(--theme-edge) 24%, transparent) 0.8px,
+    transparent 0.8px
+  );
+  --theme-canvas-image-size: 12px 12px;
+  --theme-edge: #a6afbe;
+  --theme-highlight: #f59e0b;
+  --theme-node: #ffffff;
+  --theme-node-line: #dce1e8;
+  --theme-node-content: #172033;
+  --theme-node-content-muted: #5c687b;
+  --theme-root: #ffffff;
+  --theme-root-line: #b9b5e8;
+  --theme-root-content: #172033;
+  --theme-root-content-muted: #5c687b;
+  --theme-selected-ring: rgb(79 70 229 / 18%);
+  --theme-node-padding-x: 16px;
+  --theme-node-padding-y: 13px;
+  --theme-node-font-size: 13px;
+  --theme-node-font-weight: 600;
+  --theme-handle-size: 7px;
+  --theme-handle-border-width: 1px;
+  --theme-handle-line: var(--theme-edge);
+  --theme-handle-fill: var(--theme-surface);
+
+  /* 형태 */
+  --theme-radius-control: 8px;
+  --theme-radius-card: 14px;
+  --theme-radius-node: 14px;
+  --theme-shadow-control: 0 1px 3px
+    color-mix(in srgb, var(--theme-shadow-ink) 10%, transparent);
+  --theme-shadow-card: 0 8px 24px
+    color-mix(in srgb, var(--theme-shadow-ink) 8%, transparent);
+  --theme-shadow-card-hover: 0 10px 24px
+    color-mix(in srgb, var(--theme-shadow-ink) 12%, transparent);
+  --theme-shadow-overlay: 0 18px 48px
+    color-mix(in srgb, var(--theme-shadow-ink) 16%, transparent);
+  --theme-shadow-node: 0 8px 24px
+    color-mix(in srgb, var(--theme-shadow-ink) 8%, transparent);
+  --theme-shadow-node-selected: 0 8px 24px
+    color-mix(in srgb, var(--theme-shadow-ink) 8%, transparent);
+  --theme-shadow-panel: 0 0 0 1px var(--theme-line);
+
+  /* 패널 밀도 */
+  --theme-panel-padding: 12px;
+  --theme-panel-item-padding: 6px;
+}
