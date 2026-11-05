@@ -10,8 +10,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="ko" className="h-full">
-      <body className="h-full overflow-hidden bg-white text-slate-900">
+    <html lang="ko" data-theme="soft" className="h-full">
+      <body className="h-full overflow-hidden bg-surface text-content">
         <QueryProvider>
           <div className="flex h-dvh flex-col">
             {/* Topbar */}

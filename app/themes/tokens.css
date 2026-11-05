@@ -1,0 +1,72 @@
+/*
+컴포넌트가 쓰는 Tailwind 유틸리티와 테마 값을 잇는다.
+컴포넌트는 역할 이름(bg-surface, text-content)만 알고, 실제 값은 테마 파일의 --theme-* 가 정한다.
+inline이어야 유틸리티가 var(--theme-*)를 그대로 참조해 data-theme을 따라간다.
+*/
+@theme inline {
+  /* 표면 */
+  --color-surface: var(--theme-surface);
+  --color-surface-muted: var(--theme-surface-muted);
+  --color-surface-hover: var(--theme-surface-hover);
+  --color-surface-strong: var(--theme-surface-strong);
+  --color-inverse: var(--theme-inverse);
+  --color-on-inverse: var(--theme-on-inverse);
+  --color-overlay: var(--theme-overlay);
+
+  /* 글자 */
+  --color-content: var(--theme-content);
+  --color-content-secondary: var(--theme-content-secondary);
+  --color-content-muted: var(--theme-content-muted);
+  --color-content-disabled: var(--theme-content-disabled);
+
+  /* 경계 */
+  --color-line: var(--theme-line);
+  --color-line-subtle: var(--theme-line-subtle);
+  --color-line-strong: var(--theme-line-strong);
+
+  /* 강조 */
+  --color-accent: var(--theme-accent);
+  --color-accent-hover: var(--theme-accent-hover);
+  --color-accent-disabled: var(--theme-accent-disabled);
+  --color-accent-subtle: var(--theme-accent-subtle);
+  --color-accent-line: var(--theme-accent-line);
+  --color-on-accent: var(--theme-on-accent);
+  --color-focus: var(--theme-focus);
+
+  /* 상태 */
+  --color-danger: var(--theme-danger);
+  --color-danger-subtle: var(--theme-danger-subtle);
+  --color-danger-line: var(--theme-danger-line);
+  --color-warning: var(--theme-warning);
+  --color-warning-strong: var(--theme-warning-strong);
+  --color-warning-subtle: var(--theme-warning-subtle);
+  --color-warning-line: var(--theme-warning-line);
+  --color-success: var(--theme-success);
+  --color-success-subtle: var(--theme-success-subtle);
+  --color-info: var(--theme-info);
+  --color-info-subtle: var(--theme-info-subtle);
+
+  /* 트리 편집기 */
+  --color-canvas: var(--theme-canvas);
+  --color-edge: var(--theme-edge);
+  --color-highlight: var(--theme-highlight);
+  --color-node: var(--theme-node);
+  --color-node-line: var(--theme-node-line);
+  --color-node-content: var(--theme-node-content);
+  --color-node-content-muted: var(--theme-node-content-muted);
+  --color-root: var(--theme-root);
+  --color-root-line: var(--theme-root-line);
+  --color-root-content: var(--theme-root-content);
+  --color-root-content-muted: var(--theme-root-content-muted);
+  --color-selected-ring: var(--theme-selected-ring);
+
+  /* 형태 */
+  --radius-control: var(--theme-radius-control);
+  --radius-card: var(--theme-radius-card);
+  --radius-node: var(--theme-radius-node);
+  --shadow-control: var(--theme-shadow-control);
+  --shadow-card: var(--theme-shadow-card);
+  --shadow-overlay: var(--theme-shadow-overlay);
+  --shadow-node: var(--theme-shadow-node);
+  --shadow-node-selected: var(--theme-shadow-node-selected);
+}

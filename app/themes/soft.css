@@ -1,0 +1,79 @@
+/*
+Workspace Lab의 Soft 디자인 테마를 제품으로 옮긴 값이다.
+accent와 보조 글자는 Lab 값(#8b5cf6, #8a7895)이 작은 글자 대비 4.5:1에 못 미쳐 진하게 조정했다.
+hover, 비활성, 경고, 성공, 정보 색은 Lab에 없어 제품 사용처에 맞춰 새로 정했다.
+*/
+:root[data-theme="soft"] {
+  --theme-shadow-ink: #594078;
+
+  /* 표면 */
+  --theme-surface: #fffafd;
+  --theme-surface-muted: #f7f1fb;
+  --theme-surface-hover: #f0e8f6;
+  --theme-surface-strong: #e7dff0;
+  --theme-inverse: #31233d;
+  --theme-on-inverse: #fffafd;
+  --theme-overlay: rgb(49 35 61 / 45%);
+
+  /* 글자 */
+  --theme-content: #31233d;
+  --theme-content-secondary: #5c4a68;
+  --theme-content-muted: #6f5d7a;
+  --theme-content-disabled: #b3a5bd;
+
+  /* 경계 */
+  --theme-line: #e7dff0;
+  --theme-line-subtle: #f0e8f6;
+  --theme-line-strong: #cbb8e0;
+
+  /* 강조 */
+  --theme-accent: #7c3aed;
+  --theme-accent-hover: #6d28d9;
+  --theme-accent-disabled: #c4b5fd;
+  --theme-accent-subtle: #f3edff;
+  --theme-accent-line: #d9c9f7;
+  --theme-on-accent: #ffffff;
+  --theme-focus: #8b5cf6;
+
+  /* 상태 */
+  --theme-danger: #c81e3a;
+  --theme-danger-subtle: #fdf0f3;
+  --theme-danger-line: #f3b4c0;
+  --theme-warning: #a14a0b;
+  --theme-warning-strong: #7c3a0a;
+  --theme-warning-subtle: #fff7e6;
+  --theme-warning-line: #f6d58e;
+  --theme-success: #047857;
+  --theme-success-subtle: #ecfdf5;
+  --theme-info: #2563eb;
+  --theme-info-subtle: #eff6ff;
+
+  /* 트리 편집기 */
+  --theme-canvas: #f7f5ff;
+  --theme-edge: #b9a9c6;
+  --theme-highlight: #ec4899;
+  --theme-node: #fffafd;
+  --theme-node-line: #e7dff0;
+  --theme-node-content: #31233d;
+  --theme-node-content-muted: #6f5d7a;
+  --theme-root: #fffafd;
+  --theme-root-line: #cbb8e0;
+  --theme-root-content: #31233d;
+  --theme-root-content-muted: #6f5d7a;
+  --theme-selected-ring: rgb(124 58 237 / 18%);
+
+  /* 형태 */
+  --theme-radius-control: 12px;
+  --theme-radius-card: 20px;
+  --theme-radius-node: 20px;
+  --theme-shadow-control: 0 2px 8px
+    color-mix(in srgb, var(--theme-shadow-ink) 10%, transparent);
+  --theme-shadow-card: 0 10px 30px
+    color-mix(in srgb, var(--theme-shadow-ink) 11%, transparent);
+  --theme-shadow-overlay: 0 18px 48px
+    color-mix(in srgb, var(--theme-shadow-ink) 18%, transparent);
+  --theme-shadow-node: 0 10px 30px
+    color-mix(in srgb, var(--theme-shadow-ink) 11%, transparent);
+  --theme-shadow-node-selected: 0 10px 30px
+    color-mix(in srgb, var(--theme-shadow-ink) 15%, transparent);
+}

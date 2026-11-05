@@ -1,3 +1,5 @@
 @import "tailwindcss";
 @import "@xyflow/react/dist/style.css";
 @import "./xy-theme.css";
+@import "./themes/tokens.css";
+@import "./themes/soft.css";
