@@ -1,7 +1,6 @@
 import { useCallback } from "react";
-import { useReactFlow } from "@xyflow/react";
-import { CAMERA_MOVE_DURATION_MS } from "../../constants/camera";
 import { getAncestorClientIds } from "../../lib/getAncestorClientIds";
+import { useCameraMove } from "../camera/useCameraMove";
 import { useCollapseStore } from "../collapse/collapseStore";
 import { useTreeStore } from "../treeStore";
 import { CustomEditorNode } from "../types";
@@ -26,8 +25,7 @@ export const useFocusNode = ({
   runAfterNextLayout,
   isLayoutRunning,
 }: UseFocusNodeParams) => {
-  const { fitView, getInternalNode, getNodesBounds, getZoom, setCenter } =
-    useReactFlow();
+  const { fitFinalNodes, centerFinalNode } = useCameraMove();
   const selectOnlyNodeInStore = useTreeStore(
     (state) => state.selectOnlyNodeInStore,
   );
@@ -57,23 +55,13 @@ export const useFocusNode = ({
   );
 
   /*
-  React Flow가 새 좌표로 노드를 그린 뒤에 읽도록 다음 프레임으로 미루고, 렌더된 노드의 실제 상자 가운데로 옮긴다.
-  setCenter는 zoom을 넘기지 않으면 maxZoom으로 확대하므로 현재 배율을 그대로 넘긴다.
+  펼친 노드가 React Flow에 그려진 뒤에 옮기도록 다음 프레임으로 미룬다.
   */
   const moveToNodeCenter = useCallback(
     (clientId: string) => {
-      window.requestAnimationFrame(() => {
-        if (!getInternalNode(clientId)) return; // 그 사이 삭제되었거나 여전히 숨겨져 있으면 옮기지 않는다.
-
-        const { x, y, width, height } = getNodesBounds([clientId]);
-
-        void setCenter(x + width / 2, y + height / 2, {
-          zoom: getZoom(),
-          duration: CAMERA_MOVE_DURATION_MS,
-        });
-      });
+      window.requestAnimationFrame(() => centerFinalNode(clientId));
     },
-    [getInternalNode, getNodesBounds, getZoom, setCenter],
+    [centerFinalNode],
   );
 
   /*
@@ -117,19 +105,9 @@ export const useFocusNode = ({
   const fitNodes = useCallback(
     (clientIds: string[]) => {
       const fitRenderedNodes = () => {
-        window.requestAnimationFrame(() => {
-          const renderedNodes = clientIds.flatMap((clientId) =>
-            getInternalNode(clientId) ? [{ id: clientId }] : [],
-          ); // 화면에 그려진 노드만 남긴다. 숨겨진 노드는 React Flow에 없다.
-
-          if (renderedNodes.length === 0) return;
-
-          void fitView({
-            nodes: renderedNodes,
-            maxZoom: FIT_NODES_MAX_ZOOM,
-            duration: CAMERA_MOVE_DURATION_MS,
-          });
-        });
+        window.requestAnimationFrame(() =>
+          fitFinalNodes({ clientIds, maxZoom: FIT_NODES_MAX_ZOOM }),
+        );
       };
 
       if (isLayoutRunning()) {
@@ -139,7 +117,7 @@ export const useFocusNode = ({
 
       fitRenderedNodes();
     },
-    [fitView, getInternalNode, isLayoutRunning, runAfterNextLayout],
+    [fitFinalNodes, isLayoutRunning, runAfterNextLayout],
   );
 
   return { focusNode, fitNodes };

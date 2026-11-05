@@ -10,7 +10,7 @@ import {
   CustomEditorNode,
   CustomEditorEdge,
 } from "@/src/features/tree-editor/model/types";
-import { CAMERA_MOVE_DURATION_MS } from "@/src/features/tree-editor/constants/camera";
+import { useCameraMove } from "@/src/features/tree-editor/model/camera/useCameraMove";
 import {
   getLayoutedElements,
   getLayoutStructureSignature,
@@ -23,9 +23,12 @@ import {
 /*
 도구 버튼이 캔버스 위쪽에 떠 있어, 위 여백을 버튼 높이보다 크게 두어 맨 위 노드를 가리지 않게 한다.
 */
-const FIT_TREE_VIEW_OPTIONS: FitViewOptions = {
-  maxZoom: 1,
-  padding: { top: "72px", right: "24px", bottom: "24px", left: "24px" },
+const FIT_TREE_MAX_ZOOM = 1;
+const FIT_TREE_PADDING: FitViewOptions["padding"] = {
+  top: "72px",
+  right: "24px",
+  bottom: "24px",
+  left: "24px",
 };
 
 /*
@@ -43,6 +46,7 @@ export function useEditorLayout(
   setNodes: Dispatch<SetStateAction<CustomEditorNode[]>>,
 ) {
   const { fitView } = useReactFlow();
+  const { fitFinalNodes } = useCameraMove();
 
   /*
   계산을 시작한 구조를 기록해 같은 구조를 중복 계산하지 않는다. 계산에 실패하면 기록을 지워
@@ -86,17 +90,14 @@ export function useEditorLayout(
   사용자가 누른 동작이 화면을 옮길 때는 어디서 어디로 갔는지 보이도록 부드럽게 옮긴다.
   */
   const fitTreeView = useCallback(() => {
-    void fitView({
-      ...FIT_TREE_VIEW_OPTIONS,
-      duration: CAMERA_MOVE_DURATION_MS,
-    });
-  }, [fitView]);
+    fitFinalNodes({ maxZoom: FIT_TREE_MAX_ZOOM, padding: FIT_TREE_PADDING });
+  }, [fitFinalNodes]);
 
   /*
   처음 열 때는 움직임을 보여 주지 않고 맞춘 화면에서 시작한다.
   */
   const fitInitialTreeView = useCallback(() => {
-    void fitView(FIT_TREE_VIEW_OPTIONS);
+    void fitView({ maxZoom: FIT_TREE_MAX_ZOOM, padding: FIT_TREE_PADDING });
   }, [fitView]);
 
   /*

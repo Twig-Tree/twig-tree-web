@@ -8,7 +8,7 @@ import { Position } from "@xyflow/react";
 노드 크기는 내용과 상관없이 고정이다. 레이아웃이 이 크기로 위치를 계산하고 React Flow도 같은 크기로 노드를 그린다.
 */
 export const NODE_WIDTH = 168;
-const NODE_HEIGHT = 60;
+export const NODE_HEIGHT = 60;
 
 /*
 형제가 쌓이는 세로 간격과 연결선이 지나가는 층 사이 간격. 처음 열 때의 배율은 대개 트리 높이가 정하므로
