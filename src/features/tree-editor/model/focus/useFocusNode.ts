@@ -1,11 +1,11 @@
 import { useCallback } from "react";
 import { useReactFlow } from "@xyflow/react";
+import { CAMERA_MOVE_DURATION_MS } from "../../constants/camera";
 import { getAncestorClientIds } from "../../lib/getAncestorClientIds";
 import { useCollapseStore } from "../collapse/collapseStore";
 import { useTreeStore } from "../treeStore";
 import { CustomEditorNode } from "../types";
 
-const CENTER_NODE_DURATION_MS = 300; // 노드로 화면을 옮기는 애니메이션 시간
 const FIT_NODES_MAX_ZOOM = 1; // 여러 노드를 모을 때의 최대 배율. 노드가 하나뿐이면 maxZoom까지 확대되므로 트리 맞춤과 같은 값으로 막는다
 
 type UseFocusNodeParams = {
@@ -69,7 +69,7 @@ export const useFocusNode = ({
 
         void setCenter(x + width / 2, y + height / 2, {
           zoom: getZoom(),
-          duration: CENTER_NODE_DURATION_MS,
+          duration: CAMERA_MOVE_DURATION_MS,
         });
       });
     },
@@ -127,7 +127,7 @@ export const useFocusNode = ({
           void fitView({
             nodes: renderedNodes,
             maxZoom: FIT_NODES_MAX_ZOOM,
-            duration: CENTER_NODE_DURATION_MS,
+            duration: CAMERA_MOVE_DURATION_MS,
           });
         });
       };

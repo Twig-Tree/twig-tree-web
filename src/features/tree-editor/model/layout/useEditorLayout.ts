@@ -10,6 +10,7 @@ import {
   CustomEditorNode,
   CustomEditorEdge,
 } from "@/src/features/tree-editor/model/types";
+import { CAMERA_MOVE_DURATION_MS } from "@/src/features/tree-editor/constants/camera";
 import {
   getLayoutedElements,
   getLayoutStructureSignature,
@@ -81,7 +82,20 @@ export function useEditorLayout(
 
   const isLayoutRunning = useCallback(() => isLayoutRunningRef.current, []);
 
+  /*
+  사용자가 누른 동작이 화면을 옮길 때는 어디서 어디로 갔는지 보이도록 부드럽게 옮긴다.
+  */
   const fitTreeView = useCallback(() => {
+    void fitView({
+      ...FIT_TREE_VIEW_OPTIONS,
+      duration: CAMERA_MOVE_DURATION_MS,
+    });
+  }, [fitView]);
+
+  /*
+  처음 열 때는 움직임을 보여 주지 않고 맞춘 화면에서 시작한다.
+  */
+  const fitInitialTreeView = useCallback(() => {
     void fitView(FIT_TREE_VIEW_OPTIONS);
   }, [fitView]);
 
@@ -125,7 +139,7 @@ export function useEditorLayout(
           */
         if (!hasFittedTreeViewRef.current && layoutedNodes.length > 0) {
           hasFittedTreeViewRef.current = true;
-          window.requestAnimationFrame(fitTreeView);
+          window.requestAnimationFrame(fitInitialTreeView);
         }
       })
       .catch((error) => {
@@ -138,7 +152,7 @@ export function useEditorLayout(
         requestedStructureRef.current = null;
         afterNextLayoutRef.current = null; // 좌표가 확정되지 않았으므로 맡긴 함수도 버린다. 남기면 나중의 관계없는 레이아웃 뒤에 실행된다.
       });
-  }, [nodes, edges, setNodes, fitTreeView]);
+  }, [nodes, edges, setNodes, fitInitialTreeView]);
 
   /*
   레이아웃 정렬 시점 결정.
