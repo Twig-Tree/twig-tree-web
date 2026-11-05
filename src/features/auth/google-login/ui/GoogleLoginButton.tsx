@@ -33,7 +33,7 @@ export const GoogleLoginButton = () => {
     <div className="flex flex-col items-center gap-4">
       {sessionCheckStatus === "failed" && (
         <p
-          className="w-full rounded-lg bg-amber-50 px-4 py-3 text-sm text-amber-800"
+          className="w-full rounded-control bg-warning-subtle px-4 py-3 text-sm text-warning-strong"
           role="status"
         >
           로그인 상태를 확인하지 못했습니다. 다시 로그인해 주세요.
@@ -70,20 +70,20 @@ export const GoogleLoginButton = () => {
       />
 
       {googleLoginMutation.isPending && (
-        <p className="text-sm text-slate-600" role="status">
+        <p className="text-sm text-content-secondary" role="status">
           로그인하고 있습니다.
         </p>
       )}
 
       {googleLoginError && (
-        <p className="text-sm text-red-600" role="alert">
+        <p className="text-sm text-danger" role="alert">
           Google 인증에 실패했습니다. 다시 시도해 주세요.
         </p>
       )}
 
       {/* Google 인증은 성공했지만 백엔드 로그인 요청이 실패한 경우 */}
       {googleLoginMutation.isError && !googleLoginError && (
-        <p className="text-sm text-red-600" role="alert">
+        <p className="text-sm text-danger" role="alert">
           {getGoogleLoginErrorMessage(googleLoginMutation.error)}
         </p>
       )}
