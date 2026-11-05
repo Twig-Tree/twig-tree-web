@@ -39,8 +39,8 @@ export function CardGridSkeleton({
             key={index}
             className="flex min-h-36 flex-col justify-between rounded-card border border-line-subtle bg-surface p-5 shadow-card"
           >
-            <span className="block h-5 w-2/3 animate-pulse rounded bg-surface-strong" />
-            <span className="block h-3 w-1/3 animate-pulse rounded bg-surface-strong" />
+            <span className="block h-5 w-2/3 animate-pulse rounded-control bg-surface-strong" />
+            <span className="block h-3 w-1/3 animate-pulse rounded-control bg-surface-strong" />
           </div>
         ))}
       </div>
