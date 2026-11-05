@@ -55,7 +55,7 @@ export function CollapseToggleButton({
       aria-label={isCollapsed ? "하위 노드 펼치기" : "하위 노드 접기"}
       aria-expanded={!isCollapsed}
       onClick={handleClick}
-      className="nodrag nopan absolute -right-2 -bottom-2 flex size-4 items-center justify-center rounded-full border border-slate-300 bg-white text-[8px] leading-none text-slate-500 hover:border-indigo-400 hover:text-indigo-500"
+      className="nodrag nopan absolute -right-2 -bottom-2 flex size-4 items-center justify-center rounded-full border border-line-strong bg-surface text-[8px] leading-none text-content-muted hover:border-accent hover:text-accent"
     >
       {isCollapsed ? "▶" : "◀"}
     </button>

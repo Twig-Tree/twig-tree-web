@@ -1,14 +1,21 @@
+/*
+React Flow 기본 변수와 편집기 스타일을 테마 값에 잇는다.
+React Flow가 읽는 CSS 변수에 값을 넣어야 하므로 Tailwind 유틸리티 대신 --theme-* 를 직접 참조한다.
+*/
 .react-flow {
-  --xy-background-color: #f7f9fb;
+  --xy-background-color: var(--theme-canvas);
   /* Custom Variables */
-  --xy-theme-selected: #f57dbd;
-  --xy-theme-highlighted: #f59e0b;
-  --xy-theme-hover: #c5c5c5;
-  --xy-theme-edge-hover: black;
-  --xy-theme-color-focus: #e8e8e8;
+  --xy-theme-selected: var(--theme-accent);
+  --xy-theme-highlighted: var(--theme-highlight);
+  --xy-theme-hover: var(--theme-line-strong);
+  --xy-theme-edge-hover: var(--theme-accent);
+  --xy-theme-color-focus: var(--theme-selected-ring);
 
   /* Built-in Variables see https://reactflow.dev/learn/customization/theming */
-  --xy-node-border-default: 1px solid #ededed;
+  --xy-edge-stroke-default: var(--theme-edge);
+  --xy-node-background-color-default: var(--theme-node);
+  --xy-node-color-default: var(--theme-node-content);
+  --xy-node-border-default: 1px solid var(--theme-node-line);
 
   --xy-node-boxshadow-default:
     0px 3.54px 4.55px 0px #00000005, 0px 3.54px 4.55px 0px #0000000d,
@@ -16,18 +23,13 @@
 
   --xy-node-border-radius-default: 8px;
 
-  --xy-handle-background-color-default: #ffffff;
-  --xy-handle-border-color-default: #aaaaaa;
+  --xy-handle-background-color-default: var(--theme-surface);
+  --xy-handle-border-color-default: var(--theme-line-strong);
 
-  --xy-edge-label-color-default: #505050;
-}
+  --xy-edge-label-color-default: var(--theme-content-secondary);
 
-.react-flow.dark {
-  --xy-node-boxshadow-default:
-    0px 3.54px 4.55px 0px rgba(255, 255, 255, 0.05),
-    /* light shadow */ 0px 3.54px 4.55px 0px rgba(255, 255, 255, 0.13),
-    /* medium shadow */ 0px 0.51px 1.01px 0px rgba(255, 255, 255, 0.2); /* smallest shadow */
-  --xy-theme-color-focus: #535353;
+  background-image: var(--theme-canvas-image);
+  background-size: var(--theme-canvas-image-size);
 }
 
 /* Customizing Default Theming */
@@ -47,9 +49,18 @@
   color: var(--xy-node-color, var(--xy-node-color-default));
 }
 
+/*
+선택·hover 테두리가 루트 테두리를 이기도록 같은 우선순위의 그 규칙들보다 앞에 둔다.
+*/
+.react-flow__node:has(> .custom-node[data-root="true"]) {
+  border-color: var(--theme-root-line);
+  background-color: var(--theme-root);
+  color: var(--theme-root-content);
+}
+
 .react-flow__node.selectable:focus {
   box-shadow: 0px 0px 0px 4px var(--xy-theme-color-focus);
-  border-color: #d9d9d9;
+  border-color: var(--theme-line-strong);
 }
 
 .react-flow__node.selectable:focus:active {
@@ -74,11 +85,6 @@
   outline-offset: 2px;
 }
 
-.react-flow__node-group {
-  background-color: rgba(207, 182, 255, 0.4);
-  border-color: #9e86ed;
-}
-
 .react-flow__edge.selectable:hover .react-flow__edge-path,
 .react-flow__edge.selectable.selected .react-flow__edge-path {
   stroke: var(--xy-theme-edge-hover);
@@ -91,7 +97,7 @@
 .react-flow__handle.connectionindicator:hover {
   pointer-events: all;
   border-color: var(--xy-theme-edge-hover);
-  background-color: white;
+  background-color: var(--theme-surface);
 }
 
 .react-flow__handle.connectionindicator:focus,
@@ -100,55 +106,9 @@
   border-color: var(--xy-theme-edge-hover);
 }
 
-.react-flow__node-resizer {
-  border-radius: 0;
-  border: none;
-}
-
-.react-flow__resize-control.handle {
-  background-color: #ffffff;
-  border-color: #9e86ed;
-  border-radius: 0;
-  width: 5px;
-  height: 5px;
-}
-
-/* 
-  Custom Example CSS  - This CSS is to improve the example experience.
-  You can remove it if you want to use the default styles.
-
-  New Theme Classes:
-    .xy-theme__button   - Styles for buttons.
-    .xy-theme__input    - Styles for text inputs.
-    .xy-theme__checkbox - Styles for checkboxes.
-    .xy-theme__select   - Styles for dropdown selects.
-    .xy-theme__label    - Styles for labels.
-  
-  Use these classes to apply consistent theming across your components.
+/*
+캔버스 도구 버튼. 어떤 동작도 강조하지 않으므로 강조색 대신 중립 색을 쓴다.
 */
-
-:root {
-  --color-primary: #ff0073;
-  --color-background: #fefefe;
-  --color-hover-bg: #f6f6f6;
-  --color-disabled: #76797e;
-}
-
-.xy-theme__button-group {
-  display: flex;
-  align-items: center;
-
-  .xy-theme__button:first-child {
-    border-radius: 100px 0 0 100px;
-  }
-
-  .xy-theme__button:last-child {
-    border-radius: 0 100px 100px 0;
-    margin: 0;
-  }
-}
-
-/* Custom Button Styling */
 .xy-theme__button {
   display: inline-flex;
   align-items: center;
@@ -156,122 +116,29 @@
   height: 2.5rem;
   padding: 0 1rem;
   border-radius: 100px;
-  border: 1px solid var(--color-primary);
-  background-color: var(--color-background);
-  color: var(--color-primary);
+  border: 1px solid var(--theme-line);
+  background-color: var(--theme-surface);
+  color: var(--theme-content-secondary);
   transition:
     background-color 0.2s ease,
     border-color 0.2s ease;
-  box-shadow: var(--xy-node-boxshadow-default);
+  box-shadow: var(--theme-shadow-control);
   cursor: pointer;
-}
-
-.xy-theme__button.active {
-  background-color: var(--color-primary);
-  color: white;
-  border-color: var(--color-primary);
-}
-
-.xy-theme__button.active:hover,
-.xy-theme__button.active:active {
-  background-color: var(--color-primary);
-  opacity: 0.9;
 }
 
 .xy-theme__button:hover {
-  background-color: var(--xy-controls-button-background-color-hover-default);
-}
-
-.xy-theme__button:active {
-  background-color: var(--color-hover-bg);
+  border-color: var(--theme-accent-line);
+  background-color: var(--theme-surface-hover);
+  color: var(--theme-accent);
 }
 
 .xy-theme__button:disabled {
-  color: var(--color-disabled);
-  opacity: 0.8;
+  border-color: var(--theme-line-subtle);
+  background-color: var(--theme-surface);
+  color: var(--theme-content-disabled);
   cursor: not-allowed;
-  border: 1px solid var(--color-disabled);
 }
 
-.xy-theme__button > span {
-  margin-right: 0.2rem;
-}
-
-/* Add gap between adjacent buttons */
 .xy-theme__button + .xy-theme__button {
   margin-left: 0.3rem;
-}
-
-/* Example Input Styling */
-.xy-theme__input {
-  padding: 0.5rem 0.75rem;
-  border: 1px solid var(--color-primary);
-  border-radius: 7px;
-  background-color: var(--color-background);
-  transition:
-    background-color 0.2s ease,
-    border-color 0.2s ease;
-  font-size: 1rem;
-  color: inherit;
-}
-
-.xy-theme__input:focus {
-  outline: none;
-  border-color: var(--color-primary);
-  box-shadow: 0 0 0 2px rgba(255, 0, 115, 0.3);
-}
-
-/* Specific Checkbox Styling */
-.xy-theme__checkbox {
-  appearance: none;
-  -webkit-appearance: none;
-  width: 1.25rem;
-  height: 1.25rem;
-  border-radius: 7px;
-  border: 2px solid var(--color-primary);
-  background-color: var(--color-background);
-  transition:
-    background-color 0.2s ease,
-    border-color 0.2s ease;
-  cursor: pointer;
-  display: inline-block;
-  vertical-align: middle;
-  margin-right: 0.5rem;
-}
-
-.xy-theme__checkbox:checked {
-  background-color: var(--color-primary);
-  border-color: var(--color-primary);
-}
-
-.xy-theme__checkbox:focus {
-  outline: none;
-  box-shadow: 0 0 0 2px rgba(255, 0, 115, 0.3);
-}
-
-/* Dropdown Styling */
-.xy-theme__select {
-  padding: 0.5rem 0.75rem;
-  border: 1px solid var(--color-primary);
-  border-radius: 50px;
-  background-color: var(--color-background);
-  transition:
-    background-color 0.2s ease,
-    border-color 0.2s ease;
-  font-size: 1rem;
-  color: inherit;
-  margin-right: 0.5rem;
-  box-shadow: var(--xy-node-boxshadow-default);
-}
-
-.xy-theme__select:focus {
-  outline: none;
-  border-color: var(--color-primary);
-  box-shadow: 0 0 0 2px rgba(255, 0, 115, 0.3);
-}
-
-.xy-theme__label {
-  margin-top: 10px;
-  margin-bottom: 3px;
-  display: inline-block;
 }

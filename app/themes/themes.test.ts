@@ -106,9 +106,11 @@ describe("테마", () => {
     it("토큰이 참조하는 값을 모두 정의한다", () => {
       const requiredNames = [
         ...new Set(
-          [...readCss("tokens.css").matchAll(/var\((--theme-[a-z-]+)\)/g)].map(
-            (match) => match[1],
-          ),
+          [
+            ...`${readCss("tokens.css")}${readCss("../xy-theme.css")}`.matchAll(
+              /var\((--theme-[a-z-]+)\)/g,
+            ),
+          ].map((match) => match[1]),
         ),
       ];
 

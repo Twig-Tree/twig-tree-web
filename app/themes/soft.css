@@ -50,6 +50,19 @@ hover, 비활성, 경고, 성공, 정보 색은 Lab에 없어 제품 사용처�
 
   /* 트리 편집기 */
   --theme-canvas: #f7f5ff;
+  --theme-canvas-image:
+    radial-gradient(
+      circle at 18% 22%,
+      color-mix(in srgb, var(--theme-surface) 52%, transparent) 0,
+      transparent 32%
+    ),
+    linear-gradient(
+      118deg,
+      transparent 0 48%,
+      color-mix(in srgb, var(--theme-edge) 5%, transparent) 50%,
+      transparent 52% 100%
+    );
+  --theme-canvas-image-size: auto, 36px 36px;
   --theme-edge: #b9a9c6;
   --theme-highlight: #ec4899;
   --theme-node: #fffafd;
