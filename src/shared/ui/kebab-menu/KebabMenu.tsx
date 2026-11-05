@@ -1,9 +1,12 @@
 "use client";
 
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { Check } from "lucide-react";
+import { Fragment, useEffect, useRef, useState, type ReactNode } from "react";
 
 export interface KebabMenuItem {
+  checked?: boolean; // 여럿 중 하나를 고르는 항목의 선택 여부. 생략하면 일반 항목이다
   disabled?: boolean; // 선택할 수 없는 항목인지 여부
+  hasDividerBefore?: boolean; // 앞 항목과 구분하는 선을 그을지 여부
   id: string; // React key와 항목 식별에 사용할 값
   label: string; // 메뉴에 표시할 이름
   onSelect?: () => void; // 항목 선택 시 실행할 callback
@@ -98,26 +101,34 @@ export function KebabMenu({
           className="absolute right-0 top-9 z-30 min-w-36 rounded-control border border-line bg-surface p-1 shadow-overlay"
         >
           {items.map((item) => (
-            <button
-              key={item.id}
-              type="button"
-              role="menuitem"
-              disabled={item.disabled}
-              onClick={(event) => {
-                event.stopPropagation();
-                if (item.disabled) return;
+            <Fragment key={item.id}>
+              {item.hasDividerBefore ? (
+                <div role="separator" className="my-1 border-t border-line" />
+              ) : null}
+              <button
+                type="button"
+                role={item.checked === undefined ? "menuitem" : "menuitemradio"}
+                aria-checked={item.checked}
+                disabled={item.disabled}
+                onClick={(event) => {
+                  event.stopPropagation();
+                  if (item.disabled) return;
 
-                setIsOpen(false);
-                item.onSelect?.();
-              }}
-              className={`flex w-full items-center rounded-control px-3 py-2 text-left text-sm transition-colors disabled:cursor-not-allowed disabled:text-content-disabled ${
-                item.tone === "danger"
-                  ? "text-danger hover:bg-danger-subtle"
-                  : "text-content-secondary hover:bg-surface-hover"
-              }`}
-            >
-              {item.label}
-            </button>
+                  setIsOpen(false);
+                  item.onSelect?.();
+                }}
+                className={`flex w-full items-center justify-between gap-3 whitespace-nowrap rounded-control px-3 py-2 text-left text-sm transition-colors disabled:cursor-not-allowed disabled:text-content-disabled ${
+                  item.tone === "danger"
+                    ? "text-danger hover:bg-danger-subtle"
+                    : "text-content-secondary hover:bg-surface-hover"
+                }`}
+              >
+                {item.label}
+                {item.checked ? (
+                  <Check aria-hidden className="size-4 text-accent" />
+                ) : null}
+              </button>
+            </Fragment>
           ))}
         </div>
       ) : null}

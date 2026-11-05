@@ -2,6 +2,7 @@
 
 import { useSyncExternalStore } from "react";
 import { useLogout } from "@/src/features/auth/logout";
+import { useThemeMenuItems } from "@/src/features/theme/select-theme";
 import { authSession } from "@/src/shared/lib/auth/authSession";
 import { KebabMenu } from "@/src/shared/ui/kebab-menu";
 
@@ -10,7 +11,7 @@ const getServerSnapshot = () => false;
 
 /*
 함수 이름 : ProfileMenu
-기능 : 상단바의 프로필 이미지를 눌러 메뉴를 열고 로그아웃을 실행한다.
+기능 : 상단바의 프로필 이미지를 눌러 메뉴를 열고 테마를 고르거나 로그아웃을 실행한다.
 인자 : 없음
 반환값 : 로그인한 경우 프로필 메뉴, 로그인하지 않은 경우 아무것도 렌더링하지 않는다
 */
@@ -27,6 +28,7 @@ export function ProfileMenu() {
   );
 
   const { logout, isLoggingOut } = useLogout();
+  const themeMenuItems = useThemeMenuItems();
 
   if (!hasAccessToken) {
     return null;
@@ -43,8 +45,10 @@ export function ProfileMenu() {
         />
       }
       items={[
+        ...themeMenuItems,
         {
           id: "logout",
+          hasDividerBefore: true,
           label: isLoggingOut ? "로그아웃 중..." : "로그아웃",
           tone: "danger",
           disabled: isLoggingOut,
