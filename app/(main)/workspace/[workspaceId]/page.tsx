@@ -8,6 +8,7 @@ import {
 } from "@xyflow/react";
 import {
   DropIndicatorOverlay,
+  EditorToolbar,
   MemoSidePanel,
   edgeTypes,
   MIN_ZOOM,
@@ -143,7 +144,7 @@ function LayoutFlow({ workspaceId, treeId }: LayoutFlowProps) {
         onFitNodes={fitNodes}
       />
 
-      <div className="min-h-0 min-w-0 flex-1">
+      <div className="@container min-h-0 min-w-0 flex-1">
         <ReactFlow
           nodes={draggableNodes}
           edges={visibleEdges}
@@ -176,49 +177,19 @@ function LayoutFlow({ workspaceId, treeId }: LayoutFlowProps) {
           <DropIndicatorOverlay indicator={dropIndicator} />
 
           <Panel position="top-right">
-            <button
-              className="xy-theme__button"
-              onClick={handleUndo}
-              disabled={!canUndo || isMutating}
-            >
-              Undo
-            </button>
-
-            <button
-              className="xy-theme__button"
-              onClick={handleRedo}
-              disabled={!canRedo || isMutating}
-            >
-              Redo
-            </button>
-
-            <button className="xy-theme__button" onClick={fitTreeView}>
-              Fit View
-            </button>
-
-            <button
-              className="xy-theme__button"
-              onClick={handleAddNode}
-              disabled={!isAddNodeEnabled || isMutating}
-            >
-              Add Node
-            </button>
-
-            <button
-              className="xy-theme__button"
-              onClick={handleDeleteNode}
-              disabled={!selectedNode || isMutating}
-            >
-              Delete Node
-            </button>
-
-            <button
-              className="xy-theme__button"
-              onClick={() => setIsMemoPanelOpen(true)}
-              disabled={!selectedNode || isMutating}
-            >
-              Add Memo
-            </button>
+            <EditorToolbar
+              onUndo={handleUndo}
+              onRedo={handleRedo}
+              onFitView={fitTreeView}
+              onAddNode={handleAddNode}
+              onDeleteNode={handleDeleteNode}
+              onOpenMemo={() => setIsMemoPanelOpen(true)}
+              isUndoDisabled={!canUndo || isMutating}
+              isRedoDisabled={!canRedo || isMutating}
+              isAddNodeDisabled={!isAddNodeEnabled || isMutating}
+              isDeleteNodeDisabled={!selectedNode || isMutating}
+              isOpenMemoDisabled={!selectedNode || isMutating}
+            />
           </Panel>
         </ReactFlow>
       </div>

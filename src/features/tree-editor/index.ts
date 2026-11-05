@@ -1,4 +1,5 @@
 export { nodeTypes, edgeTypes, MIN_ZOOM } from "./constants/flowConfig";
+export { EditorToolbar } from "./ui/EditorToolbar";
 export { MemoSidePanel } from "./ui/MemoSidePanel";
 export { DropIndicatorOverlay } from "./ui/DropIndicatorOverlay";
 export { useTreeEditorActions } from "./model/actions/useTreeEditorActions";
