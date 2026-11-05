@@ -170,6 +170,46 @@ describe("expandAll", () => {
   });
 });
 
+describe("expandToDepth", () => {
+  const treeId = "1";
+
+  it("그 깊이의 노드만 접어 저장하고 노드별 접힘은 남기지 않는다", () => {
+    useCollapseStore.getState().toggleCollapse(treeId, "s1");
+
+    useCollapseStore
+      .getState()
+      .expandToDepth({ treeId, nodes, edges, expandedDepth: 1 });
+
+    expect(getCollapsedServerIds()).toEqual(["s2"]);
+    expect(readCollapsedServerIds(treeId)).toEqual(["s2"]);
+  });
+
+  it("트리보다 깊은 값이면 모두 펼친다", () => {
+    useCollapseStore.getState().toggleCollapse(treeId, "s1");
+
+    useCollapseStore
+      .getState()
+      .expandToDepth({ treeId, nodes, edges, expandedDepth: 9 });
+
+    expect(getCollapsedServerIds()).toEqual([]);
+  });
+
+  it("접힘 집합이 그대로면 저장하지 않는다", () => {
+    useCollapseStore
+      .getState()
+      .expandToDepth({ treeId, nodes, edges, expandedDepth: 1 });
+    const setItem = vi.spyOn(Storage.prototype, "setItem");
+
+    useCollapseStore
+      .getState()
+      .expandToDepth({ treeId, nodes, edges, expandedDepth: 1 });
+
+    expect(setItem).not.toHaveBeenCalled();
+
+    vi.restoreAllMocks();
+  });
+});
+
 describe("applyExternalCollapse", () => {
   it("이 탭의 트리에 없는 serverId도 걸러 내지 않고, 다시 저장하지 않는다", () => {
     saveToStorage("5", ["s2"]);

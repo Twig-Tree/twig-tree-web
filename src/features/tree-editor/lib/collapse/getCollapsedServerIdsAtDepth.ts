@@ -2,14 +2,14 @@ import { CustomEditorEdge, CustomEditorNode } from "../../model/types";
 import { getChildClientIdsByParent } from "./getChildClientIdsByParent";
 
 /*
-함수 이름 : getDefaultCollapsedServerIds
-기능 : 저장된 접힘 상태가 없는 트리에 적용할 기본 접힘 목록을 만든다. 루트를 깊이 0으로 셀 때 깊이가 expandedDepth인 노드 중 자식이 있는 노드를 접어, 깊이 expandedDepth까지만 보이게 한다.
+함수 이름 : getCollapsedServerIdsAtDepth
+기능 : 트리를 정해진 깊이까지만 보여 주는 접힘 목록을 만든다. 저장된 접힘 상태가 없는 트리의 기본값과 계층 단위 펼치기에 쓴다. 루트를 깊이 0으로 셀 때 깊이가 expandedDepth인 노드 중 자식이 있는 노드를 접어, 깊이 expandedDepth까지만 보이게 한다.
 인자 : CustomEditorNode[] nodes -> 현재 editor store의 노드 목록
 CustomEditorEdge[] edges -> 현재 editor store의 엣지 목록
 number expandedDepth -> 펼쳐 둘 마지막 깊이
 반환값 : 접을 노드의 serverId 배열
 */
-export const getDefaultCollapsedServerIds = (
+export const getCollapsedServerIdsAtDepth = (
   nodes: CustomEditorNode[],
   edges: CustomEditorEdge[],
   expandedDepth: number,

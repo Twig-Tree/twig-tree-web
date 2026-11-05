@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { getDefaultCollapsedServerIds } from "./getDefaultCollapsedServerIds";
+import { getCollapsedServerIdsAtDepth } from "./getCollapsedServerIdsAtDepth";
 import { createEditorNode } from "../add-node/createEditorNode";
 import { createEditorEdge } from "../add-node/createEditorEdge";
 
@@ -22,7 +22,7 @@ const createEdge = (parentIndex: number, childIndex: number) =>
     targetClientId: `c${childIndex}`,
   });
 
-describe("getDefaultCollapsedServerIds", () => {
+describe("getCollapsedServerIdsAtDepth", () => {
   it("깊이 2인 노드 중 자식이 있는 노드만 접는다", () => {
     /*
     c1              깊이 0
@@ -47,18 +47,18 @@ describe("getDefaultCollapsedServerIds", () => {
       createEdge(8, 9),
     ];
 
-    expect(getDefaultCollapsedServerIds(nodes, edges, 2)).toEqual(["s4", "s8"]);
+    expect(getCollapsedServerIdsAtDepth(nodes, edges, 2)).toEqual(["s4", "s8"]);
   });
 
   it("깊이 2까지만 있는 트리는 접을 노드가 없다", () => {
     const nodes = [1, 2, 3].map((index) => createNode(index));
     const edges = [createEdge(1, 2), createEdge(2, 3)];
 
-    expect(getDefaultCollapsedServerIds(nodes, edges, 2)).toEqual([]);
+    expect(getCollapsedServerIdsAtDepth(nodes, edges, 2)).toEqual([]);
   });
 
   it("노드가 없는 트리는 접을 노드가 없다", () => {
-    expect(getDefaultCollapsedServerIds([], [], 2)).toEqual([]);
+    expect(getCollapsedServerIdsAtDepth([], [], 2)).toEqual([]);
   });
 
   it("serverId가 없는 노드는 접지 않는다", () => {
@@ -70,6 +70,6 @@ describe("getDefaultCollapsedServerIds", () => {
     ];
     const edges = [createEdge(1, 2), createEdge(2, 3), createEdge(3, 4)];
 
-    expect(getDefaultCollapsedServerIds(nodes, edges, 2)).toEqual([]);
+    expect(getCollapsedServerIdsAtDepth(nodes, edges, 2)).toEqual([]);
   });
 });
