@@ -8,8 +8,8 @@ export function WorkspaceHeader({
   isNameLoading = false,
 }: WorkspaceHeaderProps) {
   return (
-    <header className="flex h-14 shrink-0 items-center border-b border-slate-200 bg-white px-5">
-      <h1 className="min-w-0 truncate text-base font-semibold text-slate-900">
+    <header className="flex h-14 shrink-0 items-center border-b border-line bg-surface px-5">
+      <h1 className="min-w-0 truncate text-base font-semibold text-content">
         {isNameLoading ? (
           <>
             <span className="sr-only">
@@ -19,7 +19,7 @@ export function WorkspaceHeader({
             자리표시자의 높이를 text-base의 line-height에 맞춰, 이름이 도착해도 헤더 안에서 흔들리지 않게 한다.
             */}
             <span
-              className="block h-6 w-40 animate-pulse rounded-md bg-slate-200"
+              className="block h-6 w-40 animate-pulse rounded-control bg-surface-strong"
               aria-hidden="true"
             />
           </>

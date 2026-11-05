@@ -70,4 +70,9 @@ inline이어야 유틸리티가 var(--theme-*)를 그대로 참조해 data-theme
   --shadow-overlay: var(--theme-shadow-overlay);
   --shadow-node: var(--theme-shadow-node);
   --shadow-node-selected: var(--theme-shadow-node-selected);
+  --shadow-panel: var(--theme-shadow-panel);
+
+  /* 패널 밀도 */
+  --spacing-panel: var(--theme-panel-padding);
+  --spacing-panel-item: var(--theme-panel-item-padding);
 }
