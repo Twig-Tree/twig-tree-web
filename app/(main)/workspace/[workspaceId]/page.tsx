@@ -144,11 +144,12 @@ function LayoutFlow({ workspaceId, treeId }: LayoutFlowProps) {
     useResponsivePanelVisibility({ isOpenOnWideScreen: true });
 
   /*
-  좁은 화면에서 양옆 패널은 캔버스 위에 겹쳐 뜨므로, 캔버스 빈 곳을 누르면 닫아 다시 캔버스를 보여 준다.
+  캔버스 빈 곳을 누르면 노드 선택이 풀려 메모 패널이 보여 줄 노드가 없어지므로 화면 폭과 관계없이 닫는다.
+  검색 패널은 선택과 관계없이 쓰므로, 좁은 화면에서 캔버스 위에 겹쳐 떴을 때만 닫아 다시 캔버스를 보여 준다.
   */
   const handlePaneClick = () => {
+    closeMemoPanel();
     if (isPanelOverlay) closePanel();
-    if (isMemoPanelOverlay) closeMemoPanel();
   };
 
   const canvasRef = useRef<HTMLDivElement>(null);
