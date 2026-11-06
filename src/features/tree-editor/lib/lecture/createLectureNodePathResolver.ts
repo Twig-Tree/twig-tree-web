@@ -40,21 +40,27 @@ export const createLectureNodePathResolver = (
     );
   }
 
-  return (path) => {
-    let candidates = rootClientIds;
-    let foundClientId: string | null = null;
+  /*
+  형제 이름은 중복될 수 있어, 앞선 후보에서 경로가 끊기면 다음 후보로 돌아가 찾는다.
+  */
+  const findPath = (
+    candidates: string[],
+    [label, ...restPath]: LectureNodePath,
+  ): string | null => {
+    for (const clientId of candidates) {
+      if (labelByClientId.get(clientId) !== label) continue;
+      if (restPath.length === 0) return clientId;
 
-    for (const label of path) {
-      foundClientId =
-        candidates.find(
-          (clientId) => labelByClientId.get(clientId) === label,
-        ) ?? null;
+      const foundClientId = findPath(
+        childrenByParent.get(clientId) ?? [],
+        restPath,
+      );
 
-      if (foundClientId === null) return null;
-
-      candidates = childrenByParent.get(foundClientId) ?? [];
+      if (foundClientId !== null) return foundClientId;
     }
 
-    return foundClientId;
+    return null;
   };
+
+  return (path) => (path.length === 0 ? null : findPath(rootClientIds, path));
 };

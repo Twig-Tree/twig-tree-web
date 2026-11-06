@@ -7,7 +7,7 @@ import {
   measureCameraFrameInsets,
 } from "../../lib/getCameraFrame";
 import { NODE_HEIGHT, NODE_WIDTH } from "../../lib/layout";
-import { getMotionDuration } from "../../lib/motion";
+import { getMotionDuration, prefersReducedMotion } from "../../lib/motion";
 import { useTreeStore } from "../treeStore";
 import { CustomEditorNode } from "../types";
 
@@ -104,7 +104,11 @@ export const useCameraMove = () => {
           measureCanvasFrame(),
           { minZoom, maxZoom },
         ),
-        { duration: duration ?? getMotionDuration() },
+        {
+          duration: prefersReducedMotion()
+            ? 0
+            : (duration ?? getMotionDuration()),
+        },
       );
     },
     [getInternalNode, measureCanvasFrame, reactFlowStore, setViewport],

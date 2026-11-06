@@ -92,7 +92,7 @@ export const useAnimationLabPlayback = ({
 
       while (!signal.aborted && getIsLooping()) {
         await new Promise((resolve) => setTimeout(resolve, LOOP_GAP_MS));
-        if (!signal.aborted) await runOnce();
+        if (!signal.aborted && getIsLooping()) await runOnce(); // 기다리는 사이에 반복을 끌 수 있다.
       }
 
       if (signal.aborted) return;

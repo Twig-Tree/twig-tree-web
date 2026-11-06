@@ -41,6 +41,22 @@ describe("CustomEdge", () => {
     expect(container.querySelector(".lecture-edge-traced")).not.toBeNull();
   });
 
+  it("다른 연결선을 추적할 때는 애니메이션 클래스를 적용하지 않는다", () => {
+    useLectureAnimationStore.getState().setLayer({
+      id: "trace",
+      type: "trace",
+      edgeKeys: new Set([getLectureEdgeKey("parent", "other-child")]),
+    });
+
+    const { container } = render(
+      <svg>
+        <CustomEdge {...edgeProps} />
+      </svg>,
+    );
+
+    expect(container.querySelector(".lecture-edge-traced")).toBeNull();
+  });
+
   it("추적 대상이 아닌 연결선에는 애니메이션 클래스를 적용하지 않는다", () => {
     const { container } = render(
       <svg>

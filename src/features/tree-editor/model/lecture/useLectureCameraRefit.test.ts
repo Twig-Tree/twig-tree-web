@@ -90,6 +90,18 @@ describe("useLectureCameraRefit", () => {
     expect(cameraMove).toHaveBeenCalledTimes(2);
   });
 
+  it("다시 실행용 동작을 따로 주면 다시 실행할 때 그 동작을 쓴다", () => {
+    const { result } = renderRefit();
+    const cameraMove = vi.fn();
+    const repeatMove = vi.fn();
+
+    result.current.runCameraMove(cameraMove, repeatMove);
+    result.current.repeatLastCameraMove();
+
+    expect(cameraMove).toHaveBeenCalledOnce();
+    expect(repeatMove).toHaveBeenCalledOnce();
+  });
+
   it("지운 동작은 다시 실행하지 않는다", () => {
     const { result } = renderRefit();
     const cameraMove = vi.fn();

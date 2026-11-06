@@ -62,6 +62,12 @@ describe("useAnimationLabPlayback", () => {
     expect(result.current.isPlaying).toBe(true);
     expect(result.current.stage).toBe("Pulse");
     expect(getLayerCount()).toBe(1);
+    expect([...useLectureAnimationStore.getState().layers.values()]).toEqual([
+      expect.objectContaining({
+        type: "highlight",
+        clientIds: new Set(["client-1"]),
+      }),
+    ]);
 
     await advance(1000);
     expect(result.current.isPlaying).toBe(false);

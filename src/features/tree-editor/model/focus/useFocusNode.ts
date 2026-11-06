@@ -16,6 +16,7 @@ type UseFocusNodeParams = {
 type RevealNodesOptions = {
   maxZoom: number; // 대상이 적어도 이 배율을 넘겨 확대하지 않는다
   duration: number; // 화면 이동 애니메이션 시간
+  keepCollapse?: boolean; // true면 접힘을 바꾸지 않고 보이는 대상만 모은다. 대본이 대상의 조상을 다시 접은 뒤 카메라만 맞출 때 쓴다
 };
 
 /*
@@ -133,24 +134,37 @@ export const useFocusNode = ({
   강의가 가리키는 노드가 화면에 없으면 자막과 강조가 가리킬 대상이 사라지기 때문이다. 선택은 바꾸지 않는다.
 
   펼친 노드는 다음 레이아웃이 끝나야 좌표가 생기므로, 대상이 모두 보이고 계산 중이 아닐 때만 바로 모은다.
-  그 사이 삭제된 노드는 fitFinalNodes가 빼고, 남은 노드가 없으면 화면을 옮기지 않는다.
+  삭제된 대상은 나타나지 않으므로 기다리지 않게 먼저 뺀다. 남은 노드가 없으면 화면을 옮기지 않는다.
   */
   const revealNodes = useCallback(
-    (clientIds: string[], { maxZoom, duration }: RevealNodesOptions) => {
-      expandAncestors(clientIds);
+    (
+      clientIds: string[],
+      { maxZoom, duration, keepCollapse = false }: RevealNodesOptions,
+    ) => {
+      const existingClientIds = new Set(
+        useTreeStore.getState().nodes.map((node) => node.id),
+      );
+      const targetClientIds = clientIds.filter((clientId) =>
+        existingClientIds.has(clientId),
+      );
+
+      if (!keepCollapse) expandAncestors(targetClientIds);
 
       const fitRenderedNodes = () => {
         window.requestAnimationFrame(() =>
-          fitFinalNodes({ clientIds, maxZoom, duration }),
+          fitFinalNodes({ clientIds: targetClientIds, maxZoom, duration }),
         );
       };
 
       const visibleClientIds = new Set(visibleNodes.map((node) => node.id));
-      const isAllVisible = clientIds.every((clientId) =>
+      const isAllVisible = targetClientIds.every((clientId) =>
         visibleClientIds.has(clientId),
       );
 
-      if (isAllVisible && !isLayoutRunning()) {
+      /*
+      접힘을 그대로 두면 숨겨진 대상은 레이아웃을 기다려도 나타나지 않는다.
+      */
+      if ((keepCollapse || isAllVisible) && !isLayoutRunning()) {
         fitRenderedNodes();
         return;
       }

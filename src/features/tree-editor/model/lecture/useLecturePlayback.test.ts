@@ -4,6 +4,7 @@ import {
   type EditorLectureAnimation,
   type EditorLectureScript,
 } from "../types";
+import { useLectureAnimationStore } from "./lectureAnimationStore";
 import { useLectureStore } from "./lectureStore";
 import { useLecturePlayback } from "./useLecturePlayback";
 
@@ -123,6 +124,7 @@ beforeEach(() => {
   revealNodes.mockReset();
   resetCamera.mockReset();
   lecture().resetLecture();
+  useLectureAnimationStore.getState().resetVisual();
 });
 
 afterEach(() => {
@@ -319,6 +321,7 @@ describe("useLecturePlayback", () => {
     expect(revealNodes).toHaveBeenCalledWith(["c2"], {
       maxZoom: 1,
       duration: 500,
+      keepCollapse: true,
     });
   });
 
@@ -370,7 +373,98 @@ describe("useLecturePlayback", () => {
     expect(result.current.audioMode).toBe("silent");
   });
 
-  it("카메라를 되돌리면 마지막 focus를 다시 실행한다", async () => {
+  it("일시정지 중 옮긴 비트의 연출을 보여 주고, 재생하면 걷어 내고 다시 실행한다", async () => {
+    renderPlayback();
+    act(() =>
+      lecture().startLecture({
+        ...script,
+        scenes: [
+          {
+            id: "scene-1",
+            clientId: "c1",
+            beats: [
+              createBeat("first"),
+              createBeat("highlight", {
+                type: "highlight",
+                targetClientIds: ["c2"],
+                style: "steady",
+                durationMs: 500,
+              }),
+            ],
+          },
+        ],
+      }),
+    );
+    act(() => lecture().pauseLecture());
+    act(() => lecture().goToNextBeat());
+    await advance(20);
+
+    const previewLayerIds = [
+      ...useLectureAnimationStore.getState().layers.keys(),
+    ];
+
+    expect(previewLayerIds).toHaveLength(1);
+
+    act(() => lecture().resumeLecture());
+    const { layers } = useLectureAnimationStore.getState();
+
+    expect(layers.size).toBe(1);
+    expect(layers.has(previewLayerIds[0])).toBe(false);
+  });
+
+  it("일시정지 중에 강의가 끝나면 유지되던 강조를 지운다", async () => {
+    renderPlayback();
+    act(() =>
+      lecture().startLecture({
+        ...script,
+        scenes: [
+          {
+            id: "scene-1",
+            clientId: "c1",
+            beats: [
+              createBeat("persist", {
+                type: "highlight",
+                targetClientIds: ["c2"],
+                style: "steady",
+                durationMs: 500,
+                persist: true,
+              }),
+            ],
+          },
+        ],
+      }),
+    );
+    expect(useLectureAnimationStore.getState().layers.size).toBe(1);
+
+    act(() => lecture().pauseLecture());
+    act(() => lecture().goToNextScene());
+
+    expect(getPosition().status).toBe("ended");
+    expect(useLectureAnimationStore.getState().layers.size).toBe(0);
+  });
+
+  it("새 강의에서는 음성 합성을 다시 시도한다", async () => {
+    const { speak } = stubSpeech();
+    const { result, unmount } = renderPlayback();
+
+    act(() => lecture().startLecture(script));
+
+    const utterance: SpeechSynthesisUtterance = speak.mock.calls[0][0];
+
+    act(() =>
+      utterance.onerror?.({
+        error: "synthesis-failed",
+      } as SpeechSynthesisErrorEvent),
+    );
+    expect(result.current.audioMode).toBe("silent");
+
+    act(() => lecture().resetLecture());
+    expect(result.current.audioMode).toBe("speech");
+
+    unmount();
+  });
+
+  it("카메라를 되돌리면 마지막 focus를 접힘을 바꾸지 않고 다시 실행한다", async () => {
     const { result } = renderPlayback();
 
     act(() => lecture().startLecture(focusScript));
@@ -383,6 +477,7 @@ describe("useLecturePlayback", () => {
     expect(revealNodes).toHaveBeenLastCalledWith(["c2"], {
       maxZoom: 1,
       duration: 500,
+      keepCollapse: true,
     });
   });
 

@@ -53,6 +53,14 @@ describe("getCameraFrameInsets", () => {
     ).toBe(80);
   });
 
+  it("노드가 들어갈 만큼 남으면 패널이 거의 덮어도 가림을 유지한다", () => {
+    expect(
+      getCameraFrameInsets({ top: 0, right: 500, bottom: 800, left: 0 }, [
+        { side: "right", rect: { top: 0, right: 500, bottom: 800, left: 140 } },
+      ]),
+    ).toEqual({ ...NO_INSETS, right: 360 });
+  });
+
   it("보이는 영역이 너무 좁게 남으면 그 방향의 가림을 무시한다", () => {
     const narrowCanvas = { top: 0, right: 500, bottom: 800, left: 0 };
 

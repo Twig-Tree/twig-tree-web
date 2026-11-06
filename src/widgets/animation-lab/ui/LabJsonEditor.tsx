@@ -43,7 +43,15 @@ export function LabJsonEditor({ animation, onApply }: LabJsonEditorProps) {
   };
 
   const handleCopy = async () => {
-    await navigator.clipboard.writeText(value);
+    try {
+      await navigator.clipboard.writeText(value);
+    } catch {
+      setErrorMessage(
+        "복사하지 못했습니다. 아래 JSON을 직접 선택해 복사하세요.",
+      );
+      return;
+    }
+
     setIsCopied(true);
     window.setTimeout(() => setIsCopied(false), 1200);
   };

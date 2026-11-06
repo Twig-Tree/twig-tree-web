@@ -17,7 +17,7 @@ type CameraObstacle = {
 };
 
 const FRAME_MARGIN_PX = 24; // 노드와 시각 프레임 가장자리 사이의 여백
-const MIN_FRAME_SIZE_PX = 160; // 이보다 좁게 남으면 맞출 수 없으므로 그 방향의 가림을 무시한다
+const MIN_FRAME_SIZE_PX = 100; // 이보다 좁게 남으면 최소 배율의 노드 하나(약 50px)와 여백도 들어가지 않으므로 그 방향의 가림을 무시한다
 
 const isCameraInsetSide = (side: string | undefined): side is CameraInsetSide =>
   CAMERA_INSET_SIDES.some((insetSide) => insetSide === side);

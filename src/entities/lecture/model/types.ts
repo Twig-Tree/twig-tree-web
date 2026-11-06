@@ -86,7 +86,7 @@ export interface LectureAnimationGroup {
 export type LectureAnimation = LectureAnimationAction | LectureAnimationGroup;
 
 /*
-비트 하나가 음성·자막·연출의 동기화 경계다. animation을 먼저 시작하고 narration이 끝나면 다음 비트로 넘어간다.
+비트 하나가 음성·자막·연출의 동기화 경계다. animation을 먼저 시작하고, narration과 animation이 모두 끝나면 다음 비트로 넘어간다.
 */
 export interface LectureBeat {
   id: string;

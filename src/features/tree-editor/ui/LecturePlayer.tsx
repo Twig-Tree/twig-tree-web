@@ -24,7 +24,7 @@ type LecturePlayerProps = {
   script: LectureScript | null; // 지금 트리에서 재생할 수 있는 대본. 없으면 시작 화면을 그리지 않는다
   onRevealNodes: (
     clientIds: string[],
-    options: { maxZoom: number; duration: number },
+    options: { maxZoom: number; duration: number; keepCollapse?: boolean },
   ) => void; // focus 동작에 사용할 강의 카메라 함수
   onResetCamera: () => void; // 종료와 reset 동작에 사용할 전체 트리 맞춤 함수
   onBeforeCollapseRestore: () => void; // 강의가 끝나 접힘을 되돌릴 때 바뀐 배치에 맞춰 화면을 옮기도록 맡기는 함수
@@ -106,7 +106,7 @@ export function LecturePlayer({
       <section
         aria-label="강의 플레이어"
         data-camera-inset="bottom"
-        className="flex items-center gap-3 rounded-card border border-line bg-surface px-4 py-3 shadow-control"
+        className="pointer-events-auto flex items-center gap-3 rounded-card border border-line bg-surface px-4 py-3 shadow-control"
       >
         <GraduationCap className="size-5 text-accent" aria-hidden="true" />
         <div className="flex min-w-0 flex-col">
@@ -145,7 +145,7 @@ export function LecturePlayer({
       <section
         aria-label="강의 플레이어"
         data-camera-inset="bottom"
-        className="flex items-center gap-3 rounded-card border border-line bg-surface px-4 py-3 shadow-control"
+        className="pointer-events-auto flex items-center gap-3 rounded-card border border-line bg-surface px-4 py-3 shadow-control"
       >
         <GraduationCap className="size-5 text-accent" aria-hidden="true" />
         <p role="status" className="text-sm font-semibold text-content">
@@ -180,7 +180,7 @@ export function LecturePlayer({
     <section
       aria-label="강의 플레이어"
       data-camera-inset="bottom"
-      className="flex w-[min(42rem,calc(100vw-2rem))] flex-col gap-3 rounded-card border border-line bg-surface px-4 py-3 shadow-control"
+      className="pointer-events-auto flex w-full flex-col gap-3 rounded-card border border-line bg-surface px-4 py-3 shadow-control"
     >
       <div className="flex items-center gap-2">
         <IconButton

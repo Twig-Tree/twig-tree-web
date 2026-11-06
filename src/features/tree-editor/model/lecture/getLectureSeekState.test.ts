@@ -142,6 +142,50 @@ describe("getLectureSeekState", () => {
     });
   });
 
+  it("병렬 그룹 안의 순차 동작은 재생과 같은 순서로 적용한다", () => {
+    const script = createScript([
+      {
+        type: "group",
+        mode: "parallel",
+        children: [
+          {
+            type: "group",
+            mode: "sequence",
+            children: [focus("c5"), collapse("c2")],
+          },
+          expand("c2"),
+        ],
+      },
+      focus("c1"),
+    ]);
+
+    expect([...getState(script, 0, 1).collapsedServerIds]).toEqual(["s2"]);
+  });
+
+  it("일시정지 중에는 옮길 비트의 유지되지 않는 연출도 보여 준다", () => {
+    const script = createScript([
+      highlight("c1", true),
+      highlight("c2", false),
+      {
+        type: "trace",
+        clientIds: ["c1", "c2"],
+        durationMs: 500,
+      },
+    ]);
+    const paused = getLectureSeekState({
+      script,
+      sceneIndex: 0,
+      beatIndex: 1,
+      isTargetBeatIncluded: true,
+      nodes,
+      edges,
+      baseCollapsedServerIds: new Set(),
+    });
+
+    expect(paused.layers).toHaveLength(2);
+    expect(paused.previewLayerIds).toEqual([paused.layers[1].id]);
+  });
+
   it("reset은 범위에 맞게 강조와 카메라를 지운다", () => {
     const script = createScript([
       highlight("c1", true),

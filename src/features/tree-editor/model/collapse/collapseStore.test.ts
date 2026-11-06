@@ -273,6 +273,18 @@ describe("임시 접힘", () => {
     expect(getCollapsedServerIds()).toEqual(["s1"]);
   });
 
+  it("초기화를 거치지 않은 첫 트리에서도 강의의 접힘을 저장하지 않는다", () => {
+    useCollapseStore.getState().resetCollapse();
+    useCollapseStore.getState().beginTemporaryCollapse();
+    useCollapseStore.getState().collapseAll("new-tree", ["s1"]);
+
+    expect(readCollapsedServerIds("new-tree")).toBeNull();
+
+    useCollapseStore.getState().endTemporaryCollapse();
+
+    expect(useCollapseStore.getState().collapsedServerIds.size).toBe(0);
+  });
+
   it("트리를 떠나면 임시 접힘도 끝난다", () => {
     restore();
     useCollapseStore.getState().beginTemporaryCollapse();

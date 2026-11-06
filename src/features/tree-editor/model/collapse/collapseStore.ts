@@ -203,11 +203,12 @@ export const useCollapseStore = create<CollapseState>()((set, get) => {
     /*
     강의처럼 끝나면 사라져야 하는 접힘 변경을 시작한다. 그동안의 변경은 메모리에만 반영하고 localStorage에 쓰지 않으므로,
     강의 중에 탭을 닫아도 사용자의 접힘 상태가 바뀌지 않는다. 사용자가 그동안 직접 접은 것도 함께 되돌아간다.
+    첫 트리를 만든 직후에는 초기화를 거치지 않아 treeId가 null일 수 있다. 그래도 임시 상태를 시작해야 강의의 접힘이 저장되지 않는다.
     */
     beginTemporaryCollapse: () => {
-      const { treeId, collapsedServerIds, savedCollapsedServerIds } = get();
+      const { collapsedServerIds, savedCollapsedServerIds } = get();
 
-      if (treeId === null || savedCollapsedServerIds !== null) return;
+      if (savedCollapsedServerIds !== null) return;
 
       set({ savedCollapsedServerIds: collapsedServerIds });
     },

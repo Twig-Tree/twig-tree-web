@@ -122,6 +122,7 @@ function AnimationLabCanvas() {
               timeline.toggleActiveStepNode(node.data.serverId);
             }
           }}
+          deleteKeyCode={null}
           nodesDraggable={false}
           nodesConnectable={false}
           edgesReconnectable={false}

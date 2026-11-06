@@ -14,10 +14,16 @@ export const useLectureCameraRefit = (panelLayoutKey: string) => {
   const lastCameraMoveRef = useRef<(() => void) | null>(null);
   const previousPanelLayoutKeyRef = useRef(panelLayoutKey);
 
-  const runCameraMove = useCallback((cameraMove: () => void) => {
-    lastCameraMoveRef.current = cameraMove;
-    cameraMove();
-  }, []);
+  /*
+  처음 실행과 다시 실행이 다를 수 있다. 처음에는 대상의 조상을 펼치지만, 다시 맞출 때 펼치면 대본이 그 뒤에 접은 것이 풀린다.
+  */
+  const runCameraMove = useCallback(
+    (cameraMove: () => void, repeatMove: () => void = cameraMove) => {
+      lastCameraMoveRef.current = repeatMove;
+      cameraMove();
+    },
+    [],
+  );
 
   const repeatLastCameraMove = useCallback(() => {
     lastCameraMoveRef.current?.();

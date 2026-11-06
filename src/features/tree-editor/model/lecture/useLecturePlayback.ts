@@ -13,8 +13,8 @@ import { useLectureStore } from "./lectureStore";
 type UseLecturePlaybackParams = {
   revealNodes: (
     clientIds: string[],
-    options: { maxZoom: number; duration: number },
-  ) => void; // 접힌 조상을 펼치고 애니메이션 대상 노드를 화면에 모은다
+    options: { maxZoom: number; duration: number; keepCollapse?: boolean },
+  ) => void; // 접힌 조상을 펼치고 애니메이션 대상 노드를 화면에 모은다. keepCollapse면 접힘을 바꾸지 않는다
   resetCamera: () => void; // 대본의 camera reset 동작이 전체 트리 화면으로 돌아가게 한다
   onBeforeCollapseRestore: () => void; // 강의가 끝나 접힘을 되돌리면 보이는 노드가 달라질 때 직전에 부른다
   panelLayoutKey: string; // 패널 배치를 나타내는 값. 강의 중에 바뀌면 마지막 카메라 동작을 다시 실행한다
@@ -48,6 +48,13 @@ export const useLecturePlayback = ({
 
   const [isMuted, setIsMuted] = useState(false);
 
+  /*
+  일시적인 합성 실패로 다음 강의까지 자막만 재생되지 않게, 강의가 끝나면 다시 시도할 수 있게 한다.
+  */
+  if ((status === "idle" || status === "ended") && hasSpeechFailed) {
+    setHasSpeechFailed(false);
+  }
+
   const isVoiceAvailable = koreanVoice !== null && !hasSpeechFailed;
   const audioMode: LectureAudioMode = !isVoiceAvailable
     ? "silent"
@@ -65,14 +72,17 @@ export const useLecturePlayback = ({
   읽던 비트가 처음부터 다시 시작되므로, effect event로 감싸 위치와 재생 상태가 바뀔 때만 비트를 시작한다.
   */
   const revealBeatNodes = useEffectEvent(
-    (clientIds: string[], options: { maxZoom: number; duration: number }) =>
-      revealNodes(clientIds, options),
+    (
+      clientIds: string[],
+      options: { maxZoom: number; duration: number; keepCollapse?: boolean },
+    ) => revealNodes(clientIds, options),
   );
   const resetBeatCamera = useEffectEvent(() => resetCamera());
   const getBeatVoice = useEffectEvent(() => voice);
 
   const appliedSeekIdRef = useRef(seekId);
   const shouldWaitForSeekRef = useRef(false);
+  const previewLayerIdsRef = useRef<string[]>([]);
   const changeNarrationVoiceRef = useRef<
     ((nextVoice: SpeechSynthesisVoice | null) => void) | null
   >(null);
@@ -116,6 +126,7 @@ export const useLecturePlayback = ({
 
     animationStore.resetVisual();
     seekState.layers.forEach(animationStore.setLayer);
+    previewLayerIdsRef.current = seekState.previewLayerIds;
 
     shouldWaitForSeekRef.current = lecture.status === "playing";
 
@@ -136,7 +147,10 @@ export const useLecturePlayback = ({
           return;
         }
 
-        revealBeatNodes(camera.clientIds, camera.options);
+        revealBeatNodes(camera.clientIds, {
+          ...camera.options,
+          keepCollapse: true, // 그 위치의 접힘은 이미 대본대로 계산해 적용했다.
+        });
       });
     });
 
@@ -152,11 +166,23 @@ export const useLecturePlayback = ({
       return;
     }
 
+    /*
+    일시정지 중에 보여 준 이 비트의 연출은 비트가 다시 실행하므로 걷어 낸다.
+    */
+    previewLayerIdsRef.current.forEach(
+      useLectureAnimationStore.getState().removeLayer,
+    );
+    previewLayerIdsRef.current = [];
+
     const controller = new AbortController();
     const runBeatAnimation = () =>
       runLectureAnimation(beat.animation, {
         revealNodes: (clientIds, options) =>
-          runCameraMove(() => revealBeatNodes(clientIds, options)),
+          runCameraMove(
+            () => revealBeatNodes(clientIds, options),
+            () =>
+              revealBeatNodes(clientIds, { ...options, keepCollapse: true }),
+          ),
         resetCamera: () => runCameraMove(() => resetBeatCamera()),
         signal: controller.signal,
       });
@@ -263,6 +289,13 @@ export const useLecturePlayback = ({
   useEffect(() => {
     changeNarrationVoiceRef.current?.(voice);
   }, [voice]);
+
+  /*
+  일시정지 중에 끝나면 비트를 정리하는 cleanup이 돌지 않으므로 유지되던 강조가 완료 화면에 남는다.
+  */
+  useEffect(() => {
+    if (status === "ended") useLectureAnimationStore.getState().resetVisual();
+  }, [status]);
 
   return { audioMode, toggleMute, refocusCamera: repeatLastCameraMove };
 };

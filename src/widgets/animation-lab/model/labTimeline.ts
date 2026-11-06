@@ -158,6 +158,7 @@ const isLectureAnimationAction = (
       return (
         isStringArray(value.targetNodeIds) &&
         typeof value.maxZoom === "number" &&
+        Number.isFinite(value.maxZoom) &&
         value.maxZoom > 0 &&
         isDuration(value.durationMs)
       );

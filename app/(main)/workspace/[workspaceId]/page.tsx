@@ -260,6 +260,11 @@ function LayoutFlow({ workspaceId, treeId }: LayoutFlowProps) {
           onNodeDrag={onNodeDrag}
           onNodeDragStop={onNodeDragStop}
           disableKeyboardA11y={isMutating || isLectureActive}
+          /*
+          disableKeyboardA11y는 선택 키를 끄지 않는다. Shift + 방향키로 장면을 옮기는 동안 영역 선택 모드가 켜지지 않게 한다.
+          */
+          selectionKeyCode={isLectureActive ? null : undefined}
+          multiSelectionKeyCode={isLectureActive ? null : undefined}
           nodesDraggable={!isMutating && !isTransitioning}
           /*
           부모와 순서는 노드를 끌어 바꾼다. 엣지를 잇거나 끝을 옮기는 편집은 서버에 저장할 수 없어 막는다.
@@ -308,7 +313,10 @@ function LayoutFlow({ workspaceId, treeId }: LayoutFlowProps) {
           {/*
           강의는 지금 트리에 맞는 데모 대본으로 재생한다. 서버가 강의를 내려주게 되면 조회 결과로 바꾼다.
           */}
-          <Panel position="bottom-center">
+          <Panel
+            position="bottom-center"
+            className="!pointer-events-none flex w-[calc(100%-2rem)] max-w-2xl justify-center"
+          >
             <LecturePlayer
               script={lectureScript}
               onRevealNodes={revealNodes}
