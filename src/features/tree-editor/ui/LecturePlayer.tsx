@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import {
   GraduationCap,
   Pause,
@@ -10,62 +10,84 @@ import {
   VolumeX,
   X,
 } from "lucide-react";
-import { type Lecture } from "@/src/entities/lecture";
+import { type LectureScript } from "@/src/entities/lecture";
 import { Button } from "@/src/shared/ui/button";
 import { IconButton } from "@/src/shared/ui/icon-button";
-import { getEditorLectureSegments } from "../lib/lecture/getEditorLectureSegments";
+import { getEditorLectureScript } from "../lib/lecture/getEditorLectureScript";
+import { useLectureAnimationStore } from "../model/lecture/lectureAnimationStore";
 import { useLectureStore } from "../model/lecture/lectureStore";
-import { useLectureCamera } from "../model/lecture/useLectureCamera";
 import { useLecturePlayback } from "../model/lecture/useLecturePlayback";
 import { useTreeStore } from "../model/treeStore";
 
-export interface LecturePlayerProps {
-  lecture: Lecture; // 재생할 강의. 지금은 목데이터이고 서버 연동 후에는 조회 결과가 들어온다
-  /*
-  대상 노드의 접힌 조상을 펼치고 한 화면에 모으는 함수. useFocusNode의 revealNodes를 넘긴다.
-  */
+type LecturePlayerProps = {
+  script: LectureScript | null; // 지금 트리에서 재생할 수 있는 대본. 없으면 시작 화면을 그리지 않는다
   onRevealNodes: (
     clientIds: string[],
     options: { maxZoom: number; duration: number },
-  ) => void;
-}
+  ) => void; // focus 동작에 사용할 강의 카메라 함수
+  onResetCamera: () => void; // 종료와 reset 동작에 사용할 전체 트리 맞춤 함수
+};
 
 /*
 함수 이름 : LecturePlayer
-기능 : 강의 시작·일시정지·재개·다음 구간·종료 버튼과 지금 문장의 자막, 진행 위치, 음성 재생 여부를 보여 준다.
-재생 엔진과 카메라 연결을 함께 두어, 플레이어가 화면에 있는 동안에만 강의가 진행된다.
+기능 : 대본을 현재 트리에 연결하고 장면·비트 단위 음성, 자막, 애니메이션을 함께 재생한다.
 인자 : LecturePlayerProps
-반환값 : 강의 플레이어
-
-화면에 한 번만 둔다. 재생 엔진이 둘이면 같은 문장을 두 번 읽는다.
+반환값 : 강의 재생 컨트롤과 현재 내레이션
 */
-export function LecturePlayer({ lecture, onRevealNodes }: LecturePlayerProps) {
+export function LecturePlayer({
+  script,
+  onRevealNodes,
+  onResetCamera,
+}: LecturePlayerProps) {
   const status = useLectureStore((state) => state.status);
-  const segments = useLectureStore((state) => state.segments);
-  const segmentIndex = useLectureStore((state) => state.segmentIndex);
-  const subtitleIndex = useLectureStore((state) => state.subtitleIndex);
+  const activeScript = useLectureStore((state) => state.script);
+  const sceneIndex = useLectureStore((state) => state.sceneIndex);
+  const beatIndex = useLectureStore((state) => state.beatIndex);
   const startLecture = useLectureStore((state) => state.startLecture);
   const pauseLecture = useLectureStore((state) => state.pauseLecture);
   const resumeLecture = useLectureStore((state) => state.resumeLecture);
-  const goToNextSegment = useLectureStore((state) => state.goToNextSegment);
+  const goToNextScene = useLectureStore((state) => state.goToNextScene);
   const resetLecture = useLectureStore((state) => state.resetLecture);
-
+  const resetVisual = useLectureAnimationStore((state) => state.resetVisual);
   const nodes = useTreeStore((state) => state.nodes);
-  const edges = useTreeStore((state) => state.edges);
 
-  const audioMode = useLecturePlayback();
-  useLectureCamera({ revealNodes: onRevealNodes });
+  const editorScript = useMemo(
+    () => (script === null ? null : getEditorLectureScript(script, nodes)),
+    [script, nodes],
+  );
+  const audioMode = useLecturePlayback({
+    revealNodes: onRevealNodes,
+    resetCamera: onResetCamera,
+  });
 
-  /*
-  시작 버튼을 잠글지 정하려고 지금 트리에 강의를 연결할 수 있는지 미리 본다.
-  시작할 때는 이 결과를 그대로 넘긴다. 노드가 바뀌면 다시 계산되므로 누르는 순간의 트리와 같다.
-  */
-  const editorSegments = useMemo(
-    () => getEditorLectureSegments(lecture.segments, nodes, edges),
-    [lecture.segments, nodes, edges],
+  useEffect(
+    () => () => {
+      useLectureStore.getState().resetLecture();
+      useLectureAnimationStore.getState().resetVisual();
+    },
+    [],
   );
 
+  const handleStart = () => {
+    if (editorScript === null) return;
+    resetVisual();
+    startLecture(editorScript);
+  };
+
+  const handleStop = () => {
+    resetLecture();
+    resetVisual();
+    onResetCamera();
+  };
+
   if (status === "idle") {
+    if (script === null) return null;
+
+    const beatCount = editorScript?.scenes.reduce(
+      (count, scene) => count + scene.beats.length,
+      0,
+    );
+
     return (
       <section
         aria-label="강의 플레이어"
@@ -73,33 +95,28 @@ export function LecturePlayer({ lecture, onRevealNodes }: LecturePlayerProps) {
       >
         <GraduationCap className="size-5 text-indigo-600" aria-hidden="true" />
         <div className="flex min-w-0 flex-col">
-          <p className="text-sm font-semibold text-slate-800">
-            {lecture.title}
-          </p>
-          {editorSegments === null ? (
+          <p className="text-sm font-semibold text-slate-800">{script.title}</p>
+          {editorScript === null ? (
             <p
-              id="lecture-unavailable-reason"
+              id="script-unavailable-reason"
               className="text-xs text-slate-500"
             >
-              이 트리에는 데모 강의가 없습니다. 데모 강의와 같은 구조의 트리에서
-              볼 수 있습니다.
+              현재 트리에 대본이 가리키는 노드가 없습니다.
             </p>
           ) : (
             <p className="text-xs text-slate-500">
-              {editorSegments.length}개 구간
+              장면 {editorScript.scenes.length}개 · 비트 {beatCount}개
             </p>
           )}
         </div>
         <Button
           variant="primary"
           className="ml-2 shrink-0"
-          disabled={editorSegments === null}
+          disabled={editorScript === null}
           aria-describedby={
-            editorSegments === null ? "lecture-unavailable-reason" : undefined
+            editorScript === null ? "script-unavailable-reason" : undefined
           }
-          onClick={() => {
-            if (editorSegments) startLecture(editorSegments);
-          }}
+          onClick={handleStart}
         >
           <Play className="size-4" aria-hidden="true" />
           강의 시작
@@ -121,10 +138,8 @@ export function LecturePlayer({ lecture, onRevealNodes }: LecturePlayerProps) {
         <Button
           variant="primary"
           className="ml-2"
-          disabled={editorSegments === null}
-          onClick={() => {
-            if (editorSegments) startLecture(editorSegments);
-          }}
+          disabled={editorScript === null}
+          onClick={handleStart}
         >
           <RotateCcw className="size-4" aria-hidden="true" />
           처음부터 다시
@@ -132,7 +147,7 @@ export function LecturePlayer({ lecture, onRevealNodes }: LecturePlayerProps) {
         <IconButton
           aria-label="강의 플레이어 닫기"
           size="sm"
-          onClick={resetLecture}
+          onClick={handleStop}
         >
           <X />
         </IconButton>
@@ -141,13 +156,14 @@ export function LecturePlayer({ lecture, onRevealNodes }: LecturePlayerProps) {
   }
 
   const isPlaying = status === "playing";
-  const segment = segments[segmentIndex];
-  const subtitle = segment?.subtitles[subtitleIndex];
+  const scene = activeScript?.scenes[sceneIndex];
+  const beat = scene?.beats[beatIndex];
+  const sceneCount = activeScript?.scenes.length ?? 0;
 
   return (
     <section
       aria-label="강의 플레이어"
-      className="flex w-[min(40rem,calc(100vw-2rem))] flex-col gap-3 rounded-xl border border-slate-200 bg-white px-4 py-3 shadow-sm"
+      className="flex w-[min(42rem,calc(100vw-2rem))] flex-col gap-3 rounded-xl border border-slate-200 bg-white px-4 py-3 shadow-sm"
     >
       <div className="flex items-center gap-2">
         <IconButton
@@ -157,26 +173,24 @@ export function LecturePlayer({ lecture, onRevealNodes }: LecturePlayerProps) {
         >
           {isPlaying ? <Pause /> : <Play />}
         </IconButton>
-        <IconButton aria-label="다음 구간" onClick={goToNextSegment}>
+        <IconButton aria-label="다음 장면" onClick={goToNextScene}>
           <SkipForward />
         </IconButton>
-        <IconButton aria-label="강의 종료" onClick={resetLecture}>
+        <IconButton aria-label="강의 종료" onClick={handleStop}>
           <Square />
         </IconButton>
 
         <div className="ml-2 flex min-w-0 flex-1 flex-col">
           <p className="truncate text-sm font-semibold text-slate-800">
-            {lecture.title}
+            {activeScript?.title}
           </p>
           <p className="text-xs text-slate-500">
-            구간 {segmentIndex + 1} / {segments.length}
+            장면 {sceneIndex + 1} / {sceneCount} · 비트 {beatIndex + 1} /{" "}
+            {scene?.beats.length ?? 0}
             {isPlaying ? "" : " · 일시정지됨"}
           </p>
         </div>
 
-        {/*
-        음성이 나오지 않는 환경에서 음성이 나오는 것처럼 보이지 않도록 재생 방식을 항상 드러낸다.
-        */}
         <p className="flex shrink-0 items-center gap-1 rounded-full bg-slate-100 px-2.5 py-1 text-xs text-slate-600">
           {audioMode === "speech" ? (
             <>
@@ -197,13 +211,13 @@ export function LecturePlayer({ lecture, onRevealNodes }: LecturePlayerProps) {
         role="progressbar"
         aria-label="강의 진행"
         aria-valuemin={1}
-        aria-valuemax={segments.length}
-        aria-valuenow={segmentIndex + 1}
+        aria-valuemax={sceneCount}
+        aria-valuenow={sceneIndex + 1}
       >
-        {segments.map((item, index) => (
+        {activeScript?.scenes.map((item, index) => (
           <span
             key={item.id}
-            className={`h-1 flex-1 rounded-full ${index <= segmentIndex ? "bg-indigo-500" : "bg-slate-200"}`}
+            className={`h-1 flex-1 rounded-full ${index <= sceneIndex ? "bg-indigo-500" : "bg-slate-200"}`}
           />
         ))}
       </div>
@@ -212,7 +226,7 @@ export function LecturePlayer({ lecture, onRevealNodes }: LecturePlayerProps) {
         aria-live="polite"
         className="min-h-12 text-center text-base leading-relaxed text-slate-800"
       >
-        {subtitle?.text}
+        {beat?.narration.text}
       </p>
     </section>
   );

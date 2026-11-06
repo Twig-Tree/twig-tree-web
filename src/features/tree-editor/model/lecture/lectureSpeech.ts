@@ -4,7 +4,7 @@ speech: 브라우저 음성 합성으로 문장을 읽는다. silent: 음성 없
 export type LectureAudioMode = "speech" | "silent";
 
 /*
-cancel()로 끊은 발화도 error 이벤트를 낸다. 일시정지와 구간 이동이 낸 것이므로 실패로 보지 않는다.
+cancel()로 끊은 발화도 error 이벤트를 낸다. 일시정지와 장면 이동이 낸 것이므로 실패로 보지 않는다.
 */
 const CANCELLED_SPEECH_ERRORS = new Set<string>(["interrupted", "canceled"]);
 

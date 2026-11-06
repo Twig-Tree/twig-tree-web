@@ -97,8 +97,8 @@ const getEditorLectureAnimation = (
 
 /*
 함수 이름 : getEditorLectureScript
-기능 : 동적 강의 대본의 중심 노드와 모든 단위 동작의 서버 노드 ID를 현재 편집기의 clientId에 연결한다.
-인자 : LectureScript script -> LLM 또는 목데이터가 만든 동적 강의 대본
+기능 : 강의 대본의 중심 노드와 모든 단위 동작의 서버 노드 ID를 현재 편집기의 clientId에 연결한다.
+인자 : LectureScript script -> LLM 또는 목데이터가 만든 강의 대본
 CustomEditorNode[] nodes -> 현재 editor store의 노드 목록
 반환값 : 편집기에서 실행할 강의 대본. 서버 노드 ID 하나라도 찾지 못하면 null
 */

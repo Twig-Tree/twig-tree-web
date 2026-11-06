@@ -1,208 +1,117 @@
-import { beforeEach, describe, it, expect } from "vitest";
-import { useLectureStore } from "./lectureStore";
-import { EditorLectureSegment } from "../types";
+import { beforeEach, describe, expect, it } from "vitest";
+import { type EditorLectureScript } from "../types";
+import { getCurrentLectureScene, useLectureStore } from "./lectureStore";
 
-const createSegment = (
-  clientId: string,
-  subtitleCount: number,
-): EditorLectureSegment => ({
-  id: clientId,
-  clientId,
-  subtitles: Array.from({ length: subtitleCount }, (_, index) => ({
-    startMs: index * 1000,
-    endMs: (index + 1) * 1000,
-    text: `${clientId} 문장 ${index}`,
-  })),
-  camera: { targetClientIds: [clientId], maxZoom: 1, durationMs: 500 },
+const createBeat = (id: string) => ({
+  id,
+  narration: { text: id, fallbackDurationMs: 1000 },
+  animation: { type: "reset", scope: "visual" } as const,
 });
 
-/*
-c1: 문장 2개, c2: 문장 1개
-*/
-const segments = [createSegment("c1", 2), createSegment("c2", 1)];
+const script: EditorLectureScript = {
+  id: "test-script",
+  title: "테스트 강의",
+  scenes: [
+    {
+      id: "scene-1",
+      clientId: "node-1",
+      beats: [createBeat("beat-1"), createBeat("beat-2")],
+    },
+    {
+      id: "scene-2",
+      clientId: "node-2",
+      beats: [createBeat("beat-3")],
+    },
+  ],
+};
 
 const getPosition = () => {
-  const { status, segmentIndex, subtitleIndex } = useLectureStore.getState();
+  const { status, sceneIndex, beatIndex } = useLectureStore.getState();
 
-  return { status, segmentIndex, subtitleIndex };
+  return { status, sceneIndex, beatIndex };
 };
 
 beforeEach(() => {
   useLectureStore.getState().resetLecture();
 });
 
-describe("startLecture", () => {
-  it("첫 구간의 첫 문장부터 재생한다", () => {
-    useLectureStore.getState().startLecture(segments);
+describe("lectureStore", () => {
+  it("첫 장면의 첫 비트부터 시작한다", () => {
+    useLectureStore.getState().startLecture(script);
 
     expect(getPosition()).toEqual({
       status: "playing",
-      segmentIndex: 0,
-      subtitleIndex: 0,
+      sceneIndex: 0,
+      beatIndex: 0,
     });
   });
 
-  it("끝난 강의를 처음부터 다시 재생한다", () => {
-    useLectureStore.getState().startLecture(segments);
-    useLectureStore.setState({ status: "ended", segmentIndex: 1 });
+  it("비트를 마치면 같은 장면의 다음 비트와 다음 장면으로 이동한다", () => {
+    useLectureStore.getState().startLecture(script);
 
-    useLectureStore.getState().startLecture(segments);
+    useLectureStore.getState().completeBeat(0, 0);
+    expect(getPosition()).toMatchObject({ sceneIndex: 0, beatIndex: 1 });
 
-    expect(getPosition()).toEqual({
-      status: "playing",
-      segmentIndex: 0,
-      subtitleIndex: 0,
-    });
+    useLectureStore.getState().completeBeat(0, 1);
+    expect(getPosition()).toMatchObject({ sceneIndex: 1, beatIndex: 0 });
   });
 
-  it("구간이 없으면 시작하지 않는다", () => {
-    useLectureStore.getState().startLecture([]);
-
-    expect(getPosition().status).toBe("idle");
-  });
-});
-
-describe("pauseLecture와 resumeLecture", () => {
-  it("일시정지했다가 같은 위치에서 다시 재생한다", () => {
-    useLectureStore.getState().startLecture(segments);
-    useLectureStore.getState().completeSubtitle(0, 0);
-
+  it("일시정지 중에는 늦게 도착한 완료를 무시하고 재개하면 같은 비트를 재생한다", () => {
+    useLectureStore.getState().startLecture(script);
     useLectureStore.getState().pauseLecture();
+    useLectureStore.getState().completeBeat(0, 0);
+
     expect(getPosition()).toEqual({
       status: "paused",
-      segmentIndex: 0,
-      subtitleIndex: 1,
+      sceneIndex: 0,
+      beatIndex: 0,
     });
 
     useLectureStore.getState().resumeLecture();
-    expect(getPosition()).toEqual({
-      status: "playing",
-      segmentIndex: 0,
-      subtitleIndex: 1,
-    });
+    expect(getPosition().status).toBe("playing");
   });
 
-  it("재생 중이 아니면 일시정지하지 않고, 일시정지 중이 아니면 재개하지 않는다", () => {
-    useLectureStore.getState().pauseLecture();
-    expect(getPosition().status).toBe("idle");
+  it("다음 장면 버튼은 남은 비트를 건너뛴다", () => {
+    useLectureStore.getState().startLecture(script);
+    useLectureStore.getState().goToNextScene();
 
-    useLectureStore.getState().resumeLecture();
-    expect(getPosition().status).toBe("idle");
+    expect(getPosition()).toMatchObject({ sceneIndex: 1, beatIndex: 0 });
+  });
 
-    useLectureStore.getState().startLecture(segments);
-    useLectureStore.setState({ status: "ended" });
-    useLectureStore.getState().resumeLecture();
+  it("마지막 비트를 마치면 강의를 끝낸다", () => {
+    useLectureStore.setState({
+      script,
+      status: "playing",
+      sceneIndex: 1,
+      beatIndex: 0,
+    });
+
+    useLectureStore.getState().completeBeat(1, 0);
     expect(getPosition().status).toBe("ended");
   });
-});
 
-describe("completeSubtitle", () => {
-  it("구간 안의 다음 문장으로, 구간 끝이면 다음 구간으로, 마지막이면 강의를 끝낸다", () => {
-    useLectureStore.getState().startLecture(segments);
+  it("재생 중과 일시정지 중에는 지금 장면을 현재 장면으로 고른다", () => {
+    const getCurrentClientId = () =>
+      getCurrentLectureScene(useLectureStore.getState())?.clientId;
 
-    useLectureStore.getState().completeSubtitle(0, 0);
-    expect(getPosition()).toMatchObject({ segmentIndex: 0, subtitleIndex: 1 });
+    useLectureStore.getState().startLecture(script);
+    expect(getCurrentClientId()).toBe("node-1");
 
-    useLectureStore.getState().completeSubtitle(0, 1);
-    expect(getPosition()).toMatchObject({ segmentIndex: 1, subtitleIndex: 0 });
-
-    useLectureStore.getState().completeSubtitle(1, 0);
-    expect(getPosition()).toEqual({
-      status: "ended",
-      segmentIndex: 1,
-      subtitleIndex: 0,
-    });
-  });
-
-  /*
-  다음 구간으로 넘긴 직후 앞 문장의 종료 이벤트가 늦게 도착한 경우다.
-  */
-  it("지금 위치가 아닌 문장의 종료는 무시한다", () => {
-    useLectureStore.getState().startLecture(segments);
-    useLectureStore.getState().goToNextSegment();
-
-    useLectureStore.getState().completeSubtitle(0, 0);
-
-    expect(getPosition()).toMatchObject({ segmentIndex: 1, subtitleIndex: 0 });
-  });
-
-  it("일시정지 중에 도착한 종료는 무시한다", () => {
-    useLectureStore.getState().startLecture(segments);
+    useLectureStore.getState().goToNextScene();
     useLectureStore.getState().pauseLecture();
-
-    useLectureStore.getState().completeSubtitle(0, 0);
-
-    expect(getPosition()).toEqual({
-      status: "paused",
-      segmentIndex: 0,
-      subtitleIndex: 0,
-    });
-  });
-});
-
-describe("goToNextSegment", () => {
-  it("남은 문장을 건너뛰고 다음 구간의 첫 문장으로 간다", () => {
-    useLectureStore.getState().startLecture(segments);
-    useLectureStore.getState().completeSubtitle(0, 0);
-
-    useLectureStore.getState().goToNextSegment();
-
-    expect(getPosition()).toEqual({
-      status: "playing",
-      segmentIndex: 1,
-      subtitleIndex: 0,
-    });
+    expect(getCurrentClientId()).toBe("node-2");
   });
 
-  it("일시정지 중이면 일시정지를 유지한 채 옮긴다", () => {
-    useLectureStore.getState().startLecture(segments);
-    useLectureStore.getState().pauseLecture();
+  it("시작 전과 끝난 뒤에는 현재 장면이 없다", () => {
+    const getCurrentScene = () =>
+      getCurrentLectureScene(useLectureStore.getState());
 
-    useLectureStore.getState().goToNextSegment();
+    expect(getCurrentScene()).toBeNull();
 
-    expect(getPosition()).toEqual({
-      status: "paused",
-      segmentIndex: 1,
-      subtitleIndex: 0,
-    });
-  });
-
-  it("마지막 구간에서는 강의를 끝낸다", () => {
-    useLectureStore.getState().startLecture(segments);
-    useLectureStore.getState().goToNextSegment();
-
-    useLectureStore.getState().goToNextSegment();
-
-    expect(getPosition()).toEqual({
-      status: "ended",
-      segmentIndex: 1,
-      subtitleIndex: 0,
-    });
-  });
-
-  it("시작 전이나 끝난 뒤에는 옮기지 않는다", () => {
-    useLectureStore.getState().goToNextSegment();
-    expect(getPosition()).toMatchObject({ status: "idle", segmentIndex: 0 });
-
-    useLectureStore.getState().startLecture(segments);
-    useLectureStore.setState({ status: "ended" });
-    useLectureStore.getState().goToNextSegment();
-    expect(getPosition()).toMatchObject({ status: "ended", segmentIndex: 0 });
-  });
-});
-
-describe("resetLecture", () => {
-  it("구간과 위치를 비운다", () => {
-    useLectureStore.getState().startLecture(segments);
-    useLectureStore.getState().goToNextSegment();
-
-    useLectureStore.getState().resetLecture();
-
-    expect(useLectureStore.getState()).toMatchObject({
-      segments: [],
-      status: "idle",
-      segmentIndex: 0,
-      subtitleIndex: 0,
-    });
+    useLectureStore.getState().startLecture(script);
+    useLectureStore.getState().goToNextScene();
+    useLectureStore.getState().goToNextScene();
+    expect(useLectureStore.getState().status).toBe("ended");
+    expect(getCurrentScene()).toBeNull();
   });
 });

@@ -1,157 +1,299 @@
-import { afterEach, beforeEach, describe, it, expect, vi } from "vitest";
-import { act, render, screen } from "@testing-library/react";
+import { act, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { DEMO_LECTURE } from "@/src/entities/lecture";
-import { LecturePlayer } from "./LecturePlayer";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { WORLD_GEOGRAPHY_NODE_IDS } from "@/src/tests/mocks/data";
 import { createEditorEdge } from "../lib/add-node/createEditorEdge";
 import { createEditorNode } from "../lib/add-node/createEditorNode";
+import { findDemoLectureScript } from "../lib/lecture/findDemoLectureScript";
+import { useLectureAnimationStore } from "../model/lecture/lectureAnimationStore";
 import { useLectureStore } from "../model/lecture/lectureStore";
 import { useTreeStore } from "../model/treeStore";
+import { LecturePlayer } from "./LecturePlayer";
 
-const createNode = (clientId: string, label: string) =>
+const treeRows = [
+  ["world", null, "세계", WORLD_GEOGRAPHY_NODE_IDS.world],
+  ["europe", "world", "유럽", WORLD_GEOGRAPHY_NODE_IDS.europe],
+  ["asia", "world", "아시아", WORLD_GEOGRAPHY_NODE_IDS.asia],
+  ["france", "europe", "프랑스", WORLD_GEOGRAPHY_NODE_IDS.france],
+  ["germany", "europe", "독일", WORLD_GEOGRAPHY_NODE_IDS.germany],
+  ["euro", "europe", "유로", WORLD_GEOGRAPHY_NODE_IDS.euro],
+  ["paris", "france", "파리", WORLD_GEOGRAPHY_NODE_IDS.paris],
+  ["berlin", "germany", "베를린", WORLD_GEOGRAPHY_NODE_IDS.berlin],
+  ["korea", "asia", "대한민국", WORLD_GEOGRAPHY_NODE_IDS.korea],
+  ["japan", "asia", "일본", WORLD_GEOGRAPHY_NODE_IDS.japan],
+  ["seoul", "korea", "서울", WORLD_GEOGRAPHY_NODE_IDS.seoul],
+  ["won", "korea", "원", WORLD_GEOGRAPHY_NODE_IDS.won],
+  ["tokyo", "japan", "도쿄", WORLD_GEOGRAPHY_NODE_IDS.tokyo],
+  ["yen", "japan", "엔", WORLD_GEOGRAPHY_NODE_IDS.yen],
+] as const;
+
+const treeNodes = treeRows.map(([clientId, , label, serverId], orderIndex) =>
   createEditorNode({
     clientId,
-    serverId: clientId.replace("c", "s"),
+    serverId,
     label,
-    orderIndex: 0,
+    orderIndex,
     x: 0,
     y: 0,
-  });
+  }),
+);
+const treeEdges = treeRows.flatMap(([clientId, parentClientId]) =>
+  parentClientId === null
+    ? []
+    : [
+        createEditorEdge({
+          sourceClientId: parentClientId,
+          targetClientId: clientId,
+        }),
+      ],
+);
 
-const createEdge = (sourceClientId: string, targetClientId: string) =>
-  createEditorEdge({ sourceClientId, targetClientId });
+const script = findDemoLectureScript(treeNodes, treeEdges);
 
-/*
-데모 강의(DEMO_LECTURE)가 가리키는 트리와 같은 모양이다.
-*/
-const setDemoTree = () =>
-  useTreeStore.setState({
-    nodes: [
-      createNode("c1", "컴퓨터 사이언스"),
-      createNode("c2", "자료구조"),
-      createNode("c3", "알고리즘"),
-      createNode("c4", "배열"),
-      createNode("c5", "스택"),
-      createNode("c6", "정렬"),
-    ],
-    edges: [
-      createEdge("c1", "c2"),
-      createEdge("c1", "c3"),
-      createEdge("c2", "c4"),
-      createEdge("c2", "c5"),
-      createEdge("c3", "c6"),
-    ],
-  });
+if (script === null)
+  throw new Error("세계 지리 데모 대본을 만들지 못했습니다.");
+
+const setWorldGeographyTree = () => {
+  useTreeStore.setState({ nodes: treeNodes, edges: treeEdges });
+};
 
 const onRevealNodes = vi.fn();
+const onResetCamera = vi.fn();
 
 const renderPlayer = () =>
   render(
-    <LecturePlayer lecture={DEMO_LECTURE} onRevealNodes={onRevealNodes} />,
+    <LecturePlayer
+      script={script}
+      onRevealNodes={onRevealNodes}
+      onResetCamera={onResetCamera}
+    />,
   );
 
-/*
-jsdom에는 음성 합성 API가 없어 무음 재생으로 동작한다. 타이머가 넘기지 않도록 시간은 흘리지 않는다.
-*/
 beforeEach(() => {
-  onRevealNodes.mockClear();
+  onRevealNodes.mockReset();
+  onResetCamera.mockReset();
   useTreeStore.getState().resetTree();
   useLectureStore.getState().resetLecture();
+  useLectureAnimationStore.getState().resetVisual();
 });
 
 afterEach(() => {
-  act(() => useLectureStore.getState().resetLecture());
+  act(() => {
+    useLectureStore.getState().resetLecture();
+    useLectureAnimationStore.getState().resetVisual();
+  });
 });
 
 describe("LecturePlayer", () => {
-  it("강의를 연결할 수 없는 트리면 시작 버튼을 잠그고 이유를 알린다", () => {
-    useTreeStore.setState({ nodes: [createNode("c1", "운영체제")], edges: [] });
+  it("대본의 서버 노드 ID가 현재 트리에 없으면 시작을 막고 이유를 알린다", () => {
+    useTreeStore.setState({
+      nodes: [
+        createEditorNode({
+          clientId: "other",
+          serverId: "1",
+          label: "운영체제",
+          orderIndex: 0,
+          x: 0,
+          y: 0,
+        }),
+      ],
+      edges: [],
+    });
     renderPlayer();
 
     const startButton = screen.getByRole("button", { name: "강의 시작" });
 
     expect(startButton).toBeDisabled();
     expect(startButton).toHaveAccessibleDescription(
-      /이 트리에는 데모 강의가 없습니다/,
+      /현재 트리에 대본이 가리키는 노드가 없습니다/,
     );
   });
 
-  it("시작하면 첫 문장 자막과 무음 재생 안내를 보여 주고 첫 구간의 노드로 화면을 옮긴다", async () => {
-    setDemoTree();
+  it("재생할 대본이 없으면 아무것도 그리지 않는다", () => {
+    const { container } = render(
+      <LecturePlayer
+        script={null}
+        onRevealNodes={onRevealNodes}
+        onResetCamera={onResetCamera}
+      />,
+    );
+
+    expect(container).toBeEmptyDOMElement();
+  });
+
+  it("강의 중 노드 이름이 바뀌어 대본이 없어져도 진행 중인 강의를 유지한다", async () => {
+    setWorldGeographyTree();
+    const { rerender } = renderPlayer();
+    await userEvent.click(screen.getByRole("button", { name: "강의 시작" }));
+
+    rerender(
+      <LecturePlayer
+        script={null}
+        onRevealNodes={onRevealNodes}
+        onResetCamera={onResetCamera}
+      />,
+    );
+
+    expect(screen.getByText(script.title)).toBeVisible();
+    expect(screen.getByText("장면 1 / 4 · 비트 1 / 2")).toBeInTheDocument();
+    expect(onRevealNodes).toHaveBeenCalledTimes(1);
+  });
+
+  it("시작하면 첫 비트의 자막과 애니메이션을 함께 재생한다", async () => {
+    setWorldGeographyTree();
     renderPlayer();
 
     await userEvent.click(screen.getByRole("button", { name: "강의 시작" }));
 
     expect(
-      screen.getByText(DEMO_LECTURE.segments[0].subtitles[0].text),
+      screen.getByText(script.scenes[0].beats[0].narration.text),
     ).toBeInTheDocument();
+    expect(screen.getByText("장면 1 / 4 · 비트 1 / 2")).toBeInTheDocument();
     expect(screen.getByText("음성 없음 · 자막만 재생")).toBeInTheDocument();
-    expect(screen.getByText("구간 1 / 5")).toBeInTheDocument();
-    expect(onRevealNodes).toHaveBeenCalledWith(["c1", "c2", "c3"], {
+    expect(onRevealNodes).toHaveBeenCalledWith(["world", "europe", "asia"], {
       maxZoom: 1,
-      duration: 800,
+      duration: 700,
     });
   });
 
-  it("일시정지하면 재생 버튼으로 바뀌고 일시정지 상태를 알린다", async () => {
-    setDemoTree();
+  it("다음 장면을 누르면 남은 비트를 건너뛰고 새 장면의 첫 동작을 실행한다", async () => {
+    setWorldGeographyTree();
     renderPlayer();
     await userEvent.click(screen.getByRole("button", { name: "강의 시작" }));
+
+    await userEvent.click(screen.getByRole("button", { name: "다음 장면" }));
+
+    expect(
+      screen.getByText(script.scenes[1].beats[0].narration.text),
+    ).toBeInTheDocument();
+    expect(screen.getByText("장면 2 / 4 · 비트 1 / 4")).toBeInTheDocument();
+    expect(onRevealNodes).toHaveBeenLastCalledWith(
+      ["europe", "france", "germany", "euro"],
+      { maxZoom: 1.1, duration: 700 },
+    );
+  });
+
+  it("장면을 건너뛰면 이전 장면의 persist 레이어를 정리한다", async () => {
+    setWorldGeographyTree();
+    renderPlayer();
+    await userEvent.click(screen.getByRole("button", { name: "강의 시작" }));
+    act(() => {
+      useLectureAnimationStore.getState().setLayer({
+        id: "persisted",
+        type: "highlight",
+        clientIds: new Set(["world"]),
+        style: "steady",
+      });
+    });
+
+    await userEvent.click(screen.getByRole("button", { name: "다음 장면" }));
+
+    await waitFor(() =>
+      expect(useLectureAnimationStore.getState().layers.size).toBe(0),
+    );
+  });
+
+  it("일시정지 중에는 persist 레이어를 유지한다", async () => {
+    setWorldGeographyTree();
+    renderPlayer();
+    await userEvent.click(screen.getByRole("button", { name: "강의 시작" }));
+    act(() => {
+      useLectureAnimationStore.getState().setLayer({
+        id: "persisted",
+        type: "highlight",
+        clientIds: new Set(["world"]),
+        style: "steady",
+      });
+    });
 
     await userEvent.click(screen.getByRole("button", { name: "일시정지" }));
 
-    expect(screen.getByRole("button", { name: "재생" })).toBeInTheDocument();
-    expect(screen.getByText("구간 1 / 5 · 일시정지됨")).toBeInTheDocument();
-
-    await userEvent.click(screen.getByRole("button", { name: "재생" }));
-
-    expect(
-      screen.getByRole("button", { name: "일시정지" }),
-    ).toBeInTheDocument();
+    expect(useLectureAnimationStore.getState().layers.has("persisted")).toBe(
+      true,
+    );
   });
 
-  it("다음 구간을 누르면 그 구간의 첫 자막과 진행 위치를 보여 준다", async () => {
-    setDemoTree();
+  it("강의가 끝나면 persist 레이어를 정리한다", async () => {
+    setWorldGeographyTree();
     renderPlayer();
     await userEvent.click(screen.getByRole("button", { name: "강의 시작" }));
+    act(() => {
+      useLectureAnimationStore.getState().setLayer({
+        id: "persisted",
+        type: "highlight",
+        clientIds: new Set(["world"]),
+        style: "steady",
+      });
+      useLectureStore.setState({ sceneIndex: 3, beatIndex: 2 });
+      useLectureStore.getState().completeBeat(3, 2);
+    });
 
-    await userEvent.click(screen.getByRole("button", { name: "다음 구간" }));
-
-    expect(
-      screen.getByText(DEMO_LECTURE.segments[1].subtitles[0].text),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByRole("progressbar", { name: "강의 진행" }),
-    ).toHaveAttribute("aria-valuenow", "2");
+    expect(await screen.findByText("강의를 마쳤습니다.")).toBeVisible();
+    await waitFor(() =>
+      expect(useLectureAnimationStore.getState().layers.size).toBe(0),
+    );
   });
 
-  it("마지막 구간에서 넘기면 완료를 알리고, 처음부터 다시 재생할 수 있다", async () => {
-    setDemoTree();
-    renderPlayer();
+  /*
+  useFocusNode의 revealNodes는 보이는 노드가 바뀔 때마다 새 함수가 된다.
+  접힌 노드를 펼치거나 트리를 편집해도 읽던 비트가 처음부터 다시 시작되면 안 된다.
+  */
+  it("카메라 함수가 새 함수로 바뀌어도 진행 중인 비트를 다시 시작하지 않는다", async () => {
+    setWorldGeographyTree();
+    const { rerender } = renderPlayer();
     await userEvent.click(screen.getByRole("button", { name: "강의 시작" }));
+    const nextRevealNodes = vi.fn();
+    const nextResetCamera = vi.fn();
 
-    for (let count = 0; count < DEMO_LECTURE.segments.length; count += 1) {
-      await userEvent.click(screen.getByRole("button", { name: "다음 구간" }));
-    }
-
-    expect(screen.getByRole("status")).toHaveTextContent("강의를 마쳤습니다.");
-
-    await userEvent.click(
-      screen.getByRole("button", { name: "처음부터 다시" }),
+    rerender(
+      <LecturePlayer
+        script={script}
+        onRevealNodes={nextRevealNodes}
+        onResetCamera={nextResetCamera}
+      />,
     );
 
-    expect(screen.getByText("구간 1 / 5")).toBeInTheDocument();
+    expect(onRevealNodes).toHaveBeenCalledTimes(1);
+    expect(nextRevealNodes).not.toHaveBeenCalled();
   });
 
-  it("강의를 종료하면 시작 전 화면으로 돌아간다", async () => {
-    setDemoTree();
-    renderPlayer();
+  it("다음 비트의 동작은 가장 최근의 카메라 함수로 실행한다", async () => {
+    setWorldGeographyTree();
+    const { rerender } = renderPlayer();
     await userEvent.click(screen.getByRole("button", { name: "강의 시작" }));
+    const nextRevealNodes = vi.fn();
 
-    await userEvent.click(screen.getByRole("button", { name: "강의 종료" }));
+    rerender(
+      <LecturePlayer
+        script={script}
+        onRevealNodes={nextRevealNodes}
+        onResetCamera={onResetCamera}
+      />,
+    );
+    await userEvent.click(screen.getByRole("button", { name: "다음 장면" }));
 
-    expect(
-      screen.getByRole("button", { name: "강의 시작" }),
-    ).toBeInTheDocument();
+    expect(onRevealNodes).toHaveBeenCalledTimes(1);
+    expect(nextRevealNodes).toHaveBeenCalledExactlyOnceWith(
+      ["europe", "france", "germany", "euro"],
+      { maxZoom: 1.1, duration: 700 },
+    );
+  });
+
+  it("플레이어가 사라지면 persist 레이어를 정리한다", async () => {
+    setWorldGeographyTree();
+    const { unmount } = renderPlayer();
+    await userEvent.click(screen.getByRole("button", { name: "강의 시작" }));
+    act(() => {
+      useLectureAnimationStore.getState().setLayer({
+        id: "persisted",
+        type: "highlight",
+        clientIds: new Set(["world"]),
+        style: "steady",
+      });
+    });
+
+    unmount();
+
+    expect(useLectureAnimationStore.getState().layers.size).toBe(0);
   });
 });

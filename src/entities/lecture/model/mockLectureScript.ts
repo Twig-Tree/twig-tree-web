@@ -30,7 +30,7 @@ const NODE_PATHS = {
 } satisfies Record<string, LectureNodePath>;
 
 /*
-세계 지리 학습 트리를 위한 동적 강의 데모다.
+세계 지리 학습 트리를 위한 강의 데모다.
 대륙에서 국가, 국가에서 수도·통화로 내려가는 계층을 따라가며 관계 자체를 기억하게 한다.
 각 비트의 애니메이션은 내레이션과 동시에 시작하고 fallbackDurationMs 안에 끝나도록 구성했다.
 */

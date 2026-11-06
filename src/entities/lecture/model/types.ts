@@ -1,50 +1,13 @@
 /*
-기존 구간 강의가 사용하는 루트 노드부터 대상 노드까지의 이름 경로.
-동적 LectureScript는 아래 LectureNodeId를 사용한다.
+데모 강의가 지금 트리에서 노드를 찾을 때 쓰는 루트부터의 이름 경로. 대본 자체는 LectureNodeId로만 노드를 가리킨다.
 */
 export type LectureNodePath = string[];
 
 /*
-동적 강의가 가리키는 서버 노드 ID. 지금은 프론트 목데이터가 이 값을 제공하고,
+강의가 가리키는 서버 노드 ID. 지금은 프론트 데모가 이 값을 만들고,
 강의 API가 생기면 같은 계약으로 서버 응답을 받는다.
 */
 export type LectureNodeId = string;
-
-/*
-문장 하나의 자막. 시각은 구간 시작으로부터의 밀리초다.
-음성 합성은 문장이 끝나는 시점을 이벤트로 알려 주므로 시각은 음성이 없을 때 자막만 넘길 때 쓴다.
-*/
-export interface LectureSubtitle {
-  startMs: number;
-  endMs: number;
-  text: string;
-}
-
-/*
-구간이 시작될 때 화면에 함께 담을 노드와 이동 방식.
-*/
-export interface LectureCamera {
-  targetNodePaths: LectureNodePath[]; // 한 화면에 모을 노드. 설명 노드와 그 하위 개념을 함께 담는다
-  maxZoom: number; // 대상이 적어도 이 배율을 넘겨 확대하지 않는다
-  durationMs: number; // 화면 이동 애니메이션 시간
-}
-
-/*
-강의 구간 하나. 노드 하나를 설명한다.
-대본은 문장 단위 자막을 순서대로 이은 것이라 따로 두지 않는다. 같은 문장을 두 곳에 두면 서로 어긋날 수 있다.
-*/
-export interface LectureSegment {
-  id: string;
-  nodePath: LectureNodePath; // 이 구간이 설명하는 노드
-  subtitles: LectureSubtitle[];
-  camera: LectureCamera;
-}
-
-export interface Lecture {
-  id: string;
-  title: string;
-  segments: LectureSegment[];
-}
 
 /*
 LLM이 생성하고 플레이어가 읽는 문장 하나. 실제 음성이 없을 때만 fallbackDurationMs를 재생 시간으로 쓴다.
@@ -124,7 +87,7 @@ export interface LectureScene {
 }
 
 /*
-기존 Lecture 플레이어를 새 실행기로 옮기는 동안 병행해서 쓰는 동적 강의 계약이다.
+강의 대본. 장면과 비트로 구성하며 플레이어는 이 형식만 재생한다.
 */
 export interface LectureScript {
   id: string;

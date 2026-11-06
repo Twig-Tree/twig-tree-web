@@ -1,6 +1,6 @@
 export { nodeTypes, edgeTypes } from "./constants/flowConfig";
 export { MemoSidePanel } from "./ui/MemoSidePanel";
-export { LectureScriptPlayer } from "./ui/LectureScriptPlayer";
+export { LecturePlayer } from "./ui/LecturePlayer";
 export { LectureAnimationDevPanel } from "./ui/LectureAnimationDevPanel";
 export { useDemoLectureScript } from "./model/lecture/useDemoLectureScript";
 export { useTreeEditorActions } from "./model/actions/useTreeEditorActions";

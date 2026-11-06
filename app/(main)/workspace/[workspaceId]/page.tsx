@@ -1,7 +1,7 @@
 "use client";
 import { ReactFlow, ReactFlowProvider, Panel } from "@xyflow/react";
 import {
-  LectureScriptPlayer,
+  LecturePlayer,
   LectureAnimationDevPanel,
   MemoSidePanel,
   edgeTypes,
@@ -217,7 +217,7 @@ function LayoutFlow({ workspaceId, treeId }: LayoutFlowProps) {
           강의는 지금 트리에 맞는 데모 대본으로 재생한다. 서버가 강의를 내려주게 되면 조회 결과로 바꾼다.
           */}
           <Panel position="bottom-center">
-            <LectureScriptPlayer
+            <LecturePlayer
               script={lectureScript}
               onRevealNodes={revealNodes}
               onResetCamera={fitTreeView}

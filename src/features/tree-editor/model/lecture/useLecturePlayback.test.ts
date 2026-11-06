@@ -1,150 +1,245 @@
-import { afterEach, beforeEach, describe, it, expect, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { act, renderHook } from "@testing-library/react";
+import {
+  type EditorLectureAnimation,
+  type EditorLectureScript,
+} from "../types";
 import { useLectureStore } from "./lectureStore";
 import { useLecturePlayback } from "./useLecturePlayback";
-import { EditorLectureSegment } from "../types";
 
-/*
-jsdom에는 음성 합성 API가 없어 무음 재생으로 동작한다. 문장마다 1초씩 기다린다.
-c1: 문장 2개, c2: 문장 1개
-*/
-const createSegment = (
-  clientId: string,
-  subtitleCount: number,
-): EditorLectureSegment => ({
-  id: clientId,
-  clientId,
-  subtitles: Array.from({ length: subtitleCount }, (_, index) => ({
-    startMs: index * 1000,
-    endMs: (index + 1) * 1000,
-    text: `${clientId} 문장 ${index}`,
-  })),
-  camera: { targetClientIds: [clientId], maxZoom: 1, durationMs: 500 },
-});
-
-const segments = [createSegment("c1", 2), createSegment("c2", 1)];
-
-const getPosition = () => {
-  const { status, segmentIndex, subtitleIndex } = useLectureStore.getState();
-
-  return { status, segmentIndex, subtitleIndex };
+const NO_ANIMATION: EditorLectureAnimation = {
+  type: "group",
+  mode: "sequence",
+  children: [],
 };
 
-const advance = (ms: number) => act(() => vi.advanceTimersByTime(ms));
+const createBeat = (
+  id: string,
+  animation: EditorLectureAnimation = NO_ANIMATION,
+) => ({
+  id,
+  narration: { text: id, fallbackDurationMs: 1000 },
+  animation,
+});
+
+/*
+jsdom에는 음성 합성 API가 없어 무음 재생으로 동작한다. 비트마다 1초씩 기다린다.
+*/
+const script: EditorLectureScript = {
+  id: "test-script",
+  title: "테스트 강의",
+  scenes: [
+    {
+      id: "scene-1",
+      clientId: "c1",
+      beats: [createBeat("beat-1"), createBeat("beat-2")],
+    },
+    { id: "scene-2", clientId: "c2", beats: [createBeat("beat-3")] },
+  ],
+};
+
+const revealNodes = vi.fn();
+const resetCamera = vi.fn();
+
+const renderPlayback = () =>
+  renderHook(() => useLecturePlayback({ revealNodes, resetCamera }));
+
+const lecture = () => useLectureStore.getState();
+
+const getPosition = () => {
+  const { status, sceneIndex, beatIndex } = lecture();
+
+  return { status, sceneIndex, beatIndex };
+};
+
+/*
+비트 완료는 Promise로 전달되므로 타이머와 함께 microtask까지 흘린다.
+*/
+const advance = (ms: number) =>
+  act(async () => {
+    await vi.advanceTimersByTimeAsync(ms);
+  });
 
 beforeEach(() => {
   vi.useFakeTimers();
-  useLectureStore.getState().resetLecture();
+  revealNodes.mockReset();
+  resetCamera.mockReset();
+  lecture().resetLecture();
 });
 
 afterEach(() => {
   vi.useRealTimers();
+  vi.unstubAllGlobals();
 });
 
 describe("useLecturePlayback", () => {
   it("음성 합성이 없으면 무음 재생으로 알린다", () => {
-    const { result } = renderHook(() => useLecturePlayback());
+    const { result } = renderPlayback();
 
     expect(result.current).toBe("silent");
   });
 
-  it("문장 시간이 지날 때마다 다음 문장으로 넘어가 마지막에 강의를 끝낸다", () => {
-    renderHook(() => useLecturePlayback());
-    act(() => useLectureStore.getState().startLecture(segments));
+  it("비트 시간이 지날 때마다 다음 비트로 넘어가 마지막에 강의를 끝낸다", async () => {
+    renderPlayback();
+    act(() => lecture().startLecture(script));
 
-    advance(1000);
-    expect(getPosition()).toMatchObject({ segmentIndex: 0, subtitleIndex: 1 });
+    await advance(1000);
+    expect(getPosition()).toMatchObject({ sceneIndex: 0, beatIndex: 1 });
 
-    advance(1000);
-    expect(getPosition()).toMatchObject({ segmentIndex: 1, subtitleIndex: 0 });
+    await advance(1000);
+    expect(getPosition()).toMatchObject({ sceneIndex: 1, beatIndex: 0 });
 
-    advance(1000);
+    await advance(1000);
     expect(getPosition().status).toBe("ended");
   });
 
-  it("일시정지하면 넘어가지 않고, 다시 재생하면 지금 문장을 처음부터 기다린다", () => {
-    renderHook(() => useLecturePlayback());
-    act(() => useLectureStore.getState().startLecture(segments));
+  it("애니메이션이 내레이션보다 길면 애니메이션이 끝난 뒤 넘어간다", async () => {
+    renderPlayback();
+    act(() =>
+      lecture().startLecture({
+        ...script,
+        scenes: [
+          {
+            id: "scene-1",
+            clientId: "c1",
+            beats: [
+              createBeat("long", {
+                type: "focus",
+                targetClientIds: ["c1"],
+                maxZoom: 1,
+                durationMs: 3000,
+              }),
+              createBeat("next"),
+            ],
+          },
+        ],
+      }),
+    );
 
-    advance(600);
-    act(() => useLectureStore.getState().pauseLecture());
-    advance(5000);
+    await advance(2999);
+    expect(getPosition().beatIndex).toBe(0);
+
+    await advance(1);
+    expect(getPosition().beatIndex).toBe(1);
+  });
+
+  it("일시정지하면 넘어가지 않고, 다시 재생하면 지금 비트를 처음부터 기다린다", async () => {
+    renderPlayback();
+    act(() => lecture().startLecture(script));
+
+    await advance(600);
+    act(() => lecture().pauseLecture());
+    await advance(5000);
     expect(getPosition()).toMatchObject({
       status: "paused",
-      segmentIndex: 0,
-      subtitleIndex: 0,
+      sceneIndex: 0,
+      beatIndex: 0,
     });
 
-    act(() => useLectureStore.getState().resumeLecture());
-    advance(999);
-    expect(getPosition().subtitleIndex).toBe(0);
+    act(() => lecture().resumeLecture());
+    await advance(999);
+    expect(getPosition().beatIndex).toBe(0);
 
-    advance(1);
-    expect(getPosition().subtitleIndex).toBe(1);
+    await advance(1);
+    expect(getPosition().beatIndex).toBe(1);
   });
 
   /*
-  앞 문장의 타이머가 남아 있으면 구간을 옮긴 뒤 그 타이머가 한 칸 더 넘긴다.
+  앞 비트의 타이머가 남아 있으면 장면을 옮긴 뒤 그 타이머가 한 칸 더 넘긴다.
   */
-  it("다음 구간으로 옮기면 앞 문장의 남은 시간이 새 구간을 넘기지 않는다", () => {
-    renderHook(() => useLecturePlayback());
-    act(() => useLectureStore.getState().startLecture(segments));
+  it("다음 장면으로 옮기면 앞 비트의 남은 시간이 새 장면을 넘기지 않는다", async () => {
+    renderPlayback();
+    act(() => lecture().startLecture(script));
 
-    advance(900);
-    act(() => useLectureStore.getState().goToNextSegment());
-    advance(100);
-
-    expect(getPosition()).toMatchObject({
-      status: "playing",
-      segmentIndex: 1,
-      subtitleIndex: 0,
-    });
-  });
-
-  it("재생과 일시정지를 빠르게 반복해도 한 번에 한 문장만 진행한다", () => {
-    renderHook(() => useLecturePlayback());
-    act(() => useLectureStore.getState().startLecture(segments));
-
-    act(() => {
-      for (let count = 0; count < 5; count += 1) {
-        useLectureStore.getState().pauseLecture();
-        useLectureStore.getState().resumeLecture();
-      }
-    });
-    advance(1000);
-
-    expect(getPosition()).toMatchObject({ segmentIndex: 0, subtitleIndex: 1 });
-  });
-
-  it("언마운트하면 남은 타이머가 위치를 바꾸지 않는다", () => {
-    const { unmount } = renderHook(() => useLecturePlayback());
-    act(() => useLectureStore.getState().startLecture(segments));
-
-    unmount();
-    advance(5000);
-
-    expect(getPosition()).toMatchObject({ segmentIndex: 0, subtitleIndex: 0 });
-  });
-
-  it("끝난 강의를 다시 시작하면 처음부터 진행한다", () => {
-    renderHook(() => useLecturePlayback());
-    act(() => useLectureStore.getState().startLecture(segments));
-
-    /*
-    문장이 끝나면 다음 렌더의 effect가 다음 타이머를 건다. 한 번에 3초를 흘리면 그 사이 렌더가 없어 한 문장만 진행된다.
-    */
-    advance(1000);
-    advance(1000);
-    advance(1000);
-    expect(getPosition().status).toBe("ended");
-
-    act(() => useLectureStore.getState().startLecture(segments));
-    advance(1000);
+    await advance(900);
+    act(() => lecture().goToNextScene());
+    await advance(100);
 
     expect(getPosition()).toEqual({
       status: "playing",
-      segmentIndex: 0,
-      subtitleIndex: 1,
+      sceneIndex: 1,
+      beatIndex: 0,
     });
+  });
+
+  it("재생과 일시정지를 빠르게 반복해도 한 번에 한 비트만 진행한다", async () => {
+    renderPlayback();
+    act(() => lecture().startLecture(script));
+
+    act(() => {
+      for (let count = 0; count < 5; count += 1) {
+        lecture().pauseLecture();
+        lecture().resumeLecture();
+      }
+    });
+    await advance(1000);
+
+    expect(getPosition()).toMatchObject({ sceneIndex: 0, beatIndex: 1 });
+  });
+
+  it("언마운트하면 남은 타이머가 위치를 바꾸지 않는다", async () => {
+    const { unmount } = renderPlayback();
+    act(() => lecture().startLecture(script));
+
+    unmount();
+    await advance(5000);
+
+    expect(getPosition()).toMatchObject({ sceneIndex: 0, beatIndex: 0 });
+  });
+
+  it("끝난 강의를 다시 시작하면 처음부터 진행한다", async () => {
+    renderPlayback();
+    act(() => lecture().startLecture(script));
+
+    await advance(1000);
+    await advance(1000);
+    await advance(1000);
+    expect(getPosition().status).toBe("ended");
+
+    act(() => lecture().startLecture(script));
+    await advance(1000);
+
+    expect(getPosition()).toEqual({
+      status: "playing",
+      sceneIndex: 0,
+      beatIndex: 1,
+    });
+  });
+
+  it("음성 합성이 실패하면 무음 재생으로 바꿔 강의를 이어간다", async () => {
+    let utterance: SpeechSynthesisUtterance | undefined;
+
+    vi.stubGlobal(
+      "SpeechSynthesisUtterance",
+      class {
+        onend: (() => void) | null = null;
+        onerror: ((event: { error: string }) => void) | null = null;
+      },
+    );
+    vi.stubGlobal("speechSynthesis", {
+      getVoices: () => [{ name: "유나", lang: "ko-KR", voiceURI: "yuna" }],
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+      cancel: vi.fn(),
+      speak: (nextUtterance: SpeechSynthesisUtterance) => {
+        utterance = nextUtterance;
+      },
+    });
+
+    const { result, unmount } = renderPlayback();
+    expect(result.current).toBe("speech");
+
+    act(() => lecture().startLecture(script));
+    act(() =>
+      utterance?.onerror?.({
+        error: "synthesis-failed",
+      } as SpeechSynthesisErrorEvent),
+    );
+    expect(result.current).toBe("silent");
+
+    await advance(1000);
+    expect(getPosition().beatIndex).toBe(1);
+
+    unmount(); // afterEach가 음성 합성 stub을 걷기 전에 구독을 푼다
   });
 });

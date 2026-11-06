@@ -1,56 +1,106 @@
-import { useEffect, useState } from "react";
-import { LectureAudioMode, playSentence } from "./lectureSpeech";
-import { useLectureStore } from "./lectureStore";
+import { useEffect, useEffectEvent, useState } from "react";
+import { playSentence, type LectureAudioMode } from "./lectureSpeech";
+import { useLectureAnimationStore } from "./lectureAnimationStore";
+import { runLectureAnimation } from "./runLectureAnimation";
 import { useKoreanVoice } from "./useKoreanVoice";
+import { useLectureStore } from "./lectureStore";
+
+type UseLecturePlaybackParams = {
+  revealNodes: (
+    clientIds: string[],
+    options: { maxZoom: number; duration: number },
+  ) => void; // 접힌 조상을 펼치고 애니메이션 대상 노드를 화면에 모은다
+  resetCamera: () => void; // 대본의 camera reset 동작이 전체 트리 화면으로 돌아가게 한다
+};
 
 /*
 함수 이름 : useLecturePlayback
-기능 : 강의 store의 재생 상태와 위치를 따라 지금 문장을 읽고, 다 읽으면 store를 다음 문장으로 넘긴다.
-한국어 음성이 없거나 음성 합성이 실패하면 자막 시각만큼 기다리는 무음 재생으로 바꾼다.
-인자 : 없음
-반환값 : 지금 쓰는 재생 방식. 음성이 나오지 않는 것을 화면에 알리는 데 쓴다
-
-화면에 한 번만 둔다. 둘 이상 두면 같은 문장을 두 번 읽고, 한 문장이 끝날 때 각자 넘기려 한다.
+기능 : 현재 비트의 내레이션과 애니메이션을 함께 시작하고 위치나 재생 상태가 바뀌면 둘 다 중단한다.
+인자 : UseLecturePlaybackParams
+반환값 : 현재 음성 재생 방식
 */
-export const useLecturePlayback = (): LectureAudioMode => {
+export const useLecturePlayback = ({
+  revealNodes,
+  resetCamera,
+}: UseLecturePlaybackParams): LectureAudioMode => {
   const status = useLectureStore((state) => state.status);
-  const segments = useLectureStore((state) => state.segments);
-  const segmentIndex = useLectureStore((state) => state.segmentIndex);
-  const subtitleIndex = useLectureStore((state) => state.subtitleIndex);
-  const completeSubtitle = useLectureStore((state) => state.completeSubtitle);
-
+  const script = useLectureStore((state) => state.script);
+  const sceneIndex = useLectureStore((state) => state.sceneIndex);
+  const beatIndex = useLectureStore((state) => state.beatIndex);
+  const completeBeat = useLectureStore((state) => state.completeBeat);
   const koreanVoice = useKoreanVoice();
-  const [hasSpeechFailed, setHasSpeechFailed] = useState(false); // 한 번 실패하면 같은 화면에서는 다시 시도하지 않는다
+  const [hasSpeechFailed, setHasSpeechFailed] = useState(false);
 
   const audioMode: LectureAudioMode =
     koreanVoice !== null && !hasSpeechFailed ? "speech" : "silent";
   const voice = audioMode === "speech" ? koreanVoice : null;
 
   /*
-  재생 중일 때 지금 위치의 문장 하나를 읽는다. 위치·재생 상태·재생 방식이 바뀌면 cleanup이 읽던 문장을 끊고 새로 시작한다.
-  그래서 일시정지, 구간 이동, 언마운트가 모두 같은 경로로 이전 음성과 타이머를 정리한다.
-
-  다 읽은 위치를 completeSubtitle에 함께 넘긴다. 끊긴 뒤 늦게 도착한 이벤트는 playSentence가 막고,
-  그 사이 위치가 이미 바뀌었다면 store가 한 번 더 막는다.
+  revealNodes는 보이는 노드가 바뀔 때마다 새 함수가 된다. effect가 이 함수에 반응하면 접힌 노드를 펼치거나 트리를 편집할 때
+  읽던 비트가 처음부터 다시 시작되므로, effect event로 감싸 위치와 재생 상태가 바뀔 때만 비트를 시작한다.
   */
+  const revealBeatNodes = useEffectEvent(
+    (clientIds: string[], options: { maxZoom: number; duration: number }) =>
+      revealNodes(clientIds, options),
+  );
+  const resetBeatCamera = useEffectEvent(() => resetCamera());
+
   useEffect(() => {
-    if (status !== "playing") return;
+    if (status !== "playing" || script === null) return;
 
-    const subtitle = segments[segmentIndex]?.subtitles[subtitleIndex];
-
-    if (!subtitle) {
-      completeSubtitle(segmentIndex, subtitleIndex); // 문장이 없는 구간은 바로 넘긴다.
+    const beat = script.scenes[sceneIndex]?.beats[beatIndex];
+    if (!beat) {
+      completeBeat(sceneIndex, beatIndex);
       return;
     }
 
-    return playSentence({
-      text: subtitle.text,
-      durationMs: subtitle.endMs - subtitle.startMs,
+    const controller = new AbortController();
+    const animationCompletion = runLectureAnimation(beat.animation, {
+      revealNodes: (clientIds, options) => revealBeatNodes(clientIds, options),
+      resetCamera: () => resetBeatCamera(),
+      signal: controller.signal,
+    });
+    let finishNarration = () => {};
+    const narrationCompletion = new Promise<void>((resolve) => {
+      finishNarration = resolve;
+    });
+
+    const stopNarration = playSentence({
+      text: beat.narration.text,
+      durationMs: beat.narration.fallbackDurationMs,
       voice,
-      onEnd: () => completeSubtitle(segmentIndex, subtitleIndex),
+      onEnd: finishNarration,
       onSpeechError: () => setHasSpeechFailed(true),
     });
-  }, [status, segments, segmentIndex, subtitleIndex, voice, completeSubtitle]);
+
+    /*
+    브라우저 음성 엔진이 발화를 실제로 재생하지 못하고 onend를 즉시 보내는 경우에도
+    비트의 시각 동작은 끝까지 보여 준 뒤 다음 비트로 이동한다.
+    */
+    void Promise.all([animationCompletion, narrationCompletion]).then(() => {
+      if (!controller.signal.aborted) completeBeat(sceneIndex, beatIndex);
+    });
+
+    return () => {
+      controller.abort();
+      stopNarration();
+      finishNarration();
+
+      /*
+      persist 레이어는 같은 장면의 다음 비트와 일시정지 화면에서는 유지한다.
+      장면을 떠나거나 강의가 끝나면 대본의 reset 누락과 수동 건너뛰기에도 남지 않게 정리한다.
+      */
+      const nextState = useLectureStore.getState();
+      const hasLeftScene =
+        nextState.script !== script || nextState.sceneIndex !== sceneIndex;
+      const hasStopped =
+        nextState.status === "idle" || nextState.status === "ended";
+
+      if (hasLeftScene || hasStopped) {
+        useLectureAnimationStore.getState().resetVisual();
+      }
+    };
+  }, [status, script, sceneIndex, beatIndex, voice, completeBeat]);
 
   return audioMode;
 };

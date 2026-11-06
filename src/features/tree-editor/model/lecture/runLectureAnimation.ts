@@ -135,7 +135,7 @@ const runLectureAnimationAction = async (
 
 /*
 함수 이름 : runLectureAnimation
-기능 : 동적 강의의 단위 동작과 순차·병렬 그룹을 재귀적으로 실행한다.
+기능 : 강의의 단위 동작과 순차·병렬 그룹을 재귀적으로 실행한다.
 인자 : EditorLectureAnimation animation -> 실행할 동작 트리
 RunLectureAnimationContext context -> 카메라 동작과 중단 신호
 반환값 : 동작 트리 전체가 끝날 때 완료되는 Promise

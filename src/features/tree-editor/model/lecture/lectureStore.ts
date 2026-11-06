@@ -1,134 +1,124 @@
 import { create } from "zustand";
-import { EditorLectureSegment } from "../types";
+import { type EditorLectureScene, type EditorLectureScript } from "../types";
 
 /*
-idle: 강의를 시작하지 않았다. ended: 마지막 문장까지 끝났다. 두 상태 모두 재생 중인 문장이 없다.
+idle: 강의를 시작하지 않았다. ended: 마지막 비트까지 끝났다. 두 상태 모두 재생 중인 비트가 없다.
 */
 export type LecturePlaybackStatus = "idle" | "playing" | "paused" | "ended";
 
 interface LectureState {
-  segments: EditorLectureSegment[]; // 편집기 노드에 연결한 강의 구간. 시작 전에는 빈 배열
+  script: EditorLectureScript | null; // 편집기 노드에 연결한 대본
   status: LecturePlaybackStatus;
-  segmentIndex: number; // 지금 구간. 끝난 뒤에는 마지막 구간에 머문다
-  subtitleIndex: number; // 지금 구간 안에서 읽고 있는 문장
-
-  startLecture: (segments: EditorLectureSegment[]) => void;
+  sceneIndex: number; // 현재 장면
+  beatIndex: number; // 현재 장면 안에서 재생 중인 비트
+  startLecture: (script: EditorLectureScript) => void;
   pauseLecture: () => void;
   resumeLecture: () => void;
-  goToNextSegment: () => void;
-  completeSubtitle: (segmentIndex: number, subtitleIndex: number) => void;
+  goToNextScene: () => void;
+  completeBeat: (sceneIndex: number, beatIndex: number) => void;
   resetLecture: () => void;
 }
 
 /*
-함수 이름 : getCurrentLectureSegment
-기능 : 지금 설명 중인 강의 구간을 고른다. 시작 전과 끝난 뒤에는 설명 중인 구간이 없다.
+함수 이름 : getCurrentLectureScene
+기능 : 지금 설명 중인 장면을 고른다. 시작 전과 끝난 뒤에는 설명 중인 장면이 없다.
 인자 : LectureState state -> 강의 store 상태
-반환값 : 지금 구간. 재생 중이나 일시정지 중이 아니면 null
+반환값 : 지금 장면. 재생 중이나 일시정지 중이 아니면 null
 */
-export const getCurrentLectureSegment = (
-  state: Pick<LectureState, "status" | "segments" | "segmentIndex">,
-): EditorLectureSegment | null => {
+export const getCurrentLectureScene = (
+  state: Pick<LectureState, "status" | "script" | "sceneIndex">,
+): EditorLectureScene | null => {
   if (state.status !== "playing" && state.status !== "paused") return null;
 
-  return state.segments[state.segmentIndex] ?? null;
+  return state.script?.scenes[state.sceneIndex] ?? null;
 };
 
 const initialState = {
-  segments: [],
+  script: null,
   status: "idle",
-  segmentIndex: 0,
-  subtitleIndex: 0,
-} satisfies Partial<LectureState>;
+  sceneIndex: 0,
+  beatIndex: 0,
+} satisfies Pick<
+  LectureState,
+  "script" | "status" | "sceneIndex" | "beatIndex"
+>;
 
 /*
 강의 재생 위치는 treeStore와 따로 둔다. 강의는 서버와 무관한 화면 상태라 undo 대상이 아니고,
 강의가 진행될 때마다 treeStore의 handleSet 비교를 거칠 이유도 없다. 강조·접힘 store와 같은 이유다.
-
-음성·자막·노드 강조·카메라는 모두 이 store의 구간과 문장 위치에서 파생한다. 각자 상태를 들고 있으면 서로 어긋날 수 있다.
 */
 export const useLectureStore = create<LectureState>()((set, get) => ({
   ...initialState,
 
-  /*
-  함수 이름 : startLecture
-  기능 : 첫 구간의 첫 문장부터 재생을 시작한다. 끝난 강의를 처음부터 다시 볼 때도 쓴다.
-  인자 : EditorLectureSegment[] segments -> 편집기 노드에 연결한 강의 구간
-  반환값 : 없음
-  */
-  startLecture: (segments) => {
-    if (segments.length === 0) return;
+  startLecture: (script) => {
+    if (script.scenes.length === 0) return;
 
-    set({ segments, status: "playing", segmentIndex: 0, subtitleIndex: 0 });
+    set({ script, status: "playing", sceneIndex: 0, beatIndex: 0 });
   },
 
   pauseLecture: () => {
     if (get().status !== "playing") return;
-
     set({ status: "paused" });
   },
 
   resumeLecture: () => {
     if (get().status !== "paused") return;
-
     set({ status: "playing" });
   },
 
   /*
-  함수 이름 : goToNextSegment
-  기능 : 지금 구간의 남은 문장을 건너뛰고 다음 구간의 첫 문장으로 간다. 마지막 구간이면 강의를 끝낸다.
-  일시정지 중이면 일시정지를 유지한 채 위치만 옮긴다. 다음 구간의 자막과 노드를 먼저 보고 재생할 수 있다.
+  함수 이름 : goToNextScene
+  기능 : 현재 장면의 남은 비트를 건너뛰고 다음 장면의 첫 비트로 이동한다.
   인자 : 없음
   반환값 : 없음
   */
-  goToNextSegment: () => {
-    const { status, segments, segmentIndex } = get();
+  goToNextScene: () => {
+    const { status, script, sceneIndex } = get();
 
-    if (status !== "playing" && status !== "paused") return;
+    if ((status !== "playing" && status !== "paused") || script === null) {
+      return;
+    }
 
-    if (segmentIndex + 1 >= segments.length) {
+    if (sceneIndex + 1 >= script.scenes.length) {
       set({ status: "ended" });
       return;
     }
 
-    set({ segmentIndex: segmentIndex + 1, subtitleIndex: 0 });
+    set({ sceneIndex: sceneIndex + 1, beatIndex: 0 });
   },
 
   /*
-  함수 이름 : completeSubtitle
-  기능 : 문장 하나를 다 읽었을 때 다음 문장으로 넘어간다. 구간의 마지막 문장이면 다음 구간으로, 마지막 구간이면 강의를 끝낸다.
-  인자 : number segmentIndex -> 다 읽은 문장의 구간
-  number subtitleIndex -> 다 읽은 문장
+  함수 이름 : completeBeat
+  기능 : 지금 재생 중인 비트가 끝났을 때 다음 비트나 장면으로 이동하고 마지막이면 강의를 끝낸다.
+  인자 : number sceneIndex -> 완료된 비트의 장면 위치
+  number beatIndex -> 완료된 비트 위치
   반환값 : 없음
-
-  다 읽은 문장의 위치를 함께 받아, 재생 중이고 지금 위치와 같을 때만 넘어간다.
-  일시정지·구간 이동과 문장 종료 이벤트가 엇갈려 늦게 도착해도 엉뚱한 위치에서 한 칸 더 넘어가지 않는다.
   */
-  completeSubtitle: (completedSegmentIndex, completedSubtitleIndex) => {
-    const { status, segments, segmentIndex, subtitleIndex } = get();
+  completeBeat: (completedSceneIndex, completedBeatIndex) => {
+    const { status, script, sceneIndex, beatIndex } = get();
 
     if (
       status !== "playing" ||
-      completedSegmentIndex !== segmentIndex ||
-      completedSubtitleIndex !== subtitleIndex
+      script === null ||
+      completedSceneIndex !== sceneIndex ||
+      completedBeatIndex !== beatIndex
     ) {
       return;
     }
 
-    if (subtitleIndex + 1 < segments[segmentIndex].subtitles.length) {
-      set({ subtitleIndex: subtitleIndex + 1 });
+    const scene = script.scenes[sceneIndex];
+    if (beatIndex + 1 < scene.beats.length) {
+      set({ beatIndex: beatIndex + 1 });
       return;
     }
 
-    if (segmentIndex + 1 < segments.length) {
-      set({ segmentIndex: segmentIndex + 1, subtitleIndex: 0 });
+    if (sceneIndex + 1 < script.scenes.length) {
+      set({ sceneIndex: sceneIndex + 1, beatIndex: 0 });
       return;
     }
 
     set({ status: "ended" });
   },
 
-  resetLecture: () => {
-    set(initialState);
-  },
+  resetLecture: () => set(initialState),
 }));
