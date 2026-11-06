@@ -33,7 +33,7 @@ export const getCollapsedServerIdsAtDepth = (
 
   /*
   자식이 없는 노드는 접어도 숨길 것이 없으므로 목록에 넣지 않는다.
-  serverId가 null인 노드는 저장할 키가 없고, 자식을 가질 수도 없어 접을 대상이 아니다.
+  serverId가 null인 노드는 저장할 키가 없어 접을 대상이 아니다. 삭제를 되돌리는 동안에는 자식이 있어도 serverId가 null일 수 있다.
   */
   return currentDepthClientIds.flatMap((clientId) => {
     const serverId = nodeByClientId.get(clientId)?.data.serverId ?? null;

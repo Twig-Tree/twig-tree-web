@@ -114,6 +114,37 @@ describe("useTreeLevelControl", () => {
     );
   });
 
+  it("접을 부모에 서버 ID가 없어 보이는 노드가 그대로면 화면 이동을 맡기지 않는다", () => {
+    const onBeforeLevelChange = vi.fn();
+    const unsavedNodes = [
+      createEditorNode({
+        clientId: "c1",
+        serverId: null,
+        label: "node 1",
+        orderIndex: 1,
+        x: 0,
+        y: 0,
+      }),
+      createNode(2),
+    ];
+    const unsavedEdges = [createEdge(1, 2)];
+
+    const { result } = renderHook(() =>
+      useTreeLevelControl({
+        treeId,
+        nodes: unsavedNodes,
+        edges: unsavedEdges,
+        visibleNodes: unsavedNodes,
+        visibleEdges: unsavedEdges,
+        onBeforeLevelChange,
+      }),
+    );
+
+    act(() => result.current.handleCollapseLevel());
+
+    expect(onBeforeLevelChange).not.toHaveBeenCalled();
+  });
+
   it("루트만 보이면 더 접을 수 없다", () => {
     const { result } = renderControl();
 

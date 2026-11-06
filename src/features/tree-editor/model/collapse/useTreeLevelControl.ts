@@ -1,4 +1,5 @@
 import { getTreeDepth } from "../../lib/collapse/getTreeDepth";
+import { hasVisibleNodeChange } from "../../lib/collapse/hasVisibleNodeChange";
 import { CustomEditorEdge, CustomEditorNode } from "../types";
 import { useCollapseStore } from "./collapseStore";
 
@@ -8,7 +9,7 @@ type UseTreeLevelControlParams = {
   edges: CustomEditorEdge[]; // editor store의 전체 엣지 목록
   visibleNodes: CustomEditorNode[]; // 접힌 노드의 하위를 걸러 낸 노드 목록
   visibleEdges: CustomEditorEdge[]; // 접힌 노드의 하위를 걸러 낸 엣지 목록
-  onBeforeLevelChange: () => void; // 계층을 바꾸기 직전에 부른다. 바뀐 배치가 끝난 뒤의 화면 이동을 맡긴다
+  onBeforeLevelChange: () => void; // 보이는 노드가 달라질 때 계층을 바꾸기 직전에 부른다. 바뀐 배치가 끝난 뒤의 화면 이동을 맡긴다
 };
 
 /*
@@ -39,7 +40,13 @@ export const useTreeLevelControl = ({
   const changeDepth = (expandedDepth: number) => {
     if (treeId === null) return;
 
-    onBeforeLevelChange();
+    /*
+    보이는 노드가 그대로면 레이아웃이 돌지 않는다. 그래도 맡기면 나중의 관계없는 편집 뒤에 화면이 움직인다.
+    */
+    if (hasVisibleNodeChange({ nodes, edges, visibleNodes, expandedDepth })) {
+      onBeforeLevelChange();
+    }
+
     expandToDepth({ treeId, nodes, edges, expandedDepth });
   };
 
