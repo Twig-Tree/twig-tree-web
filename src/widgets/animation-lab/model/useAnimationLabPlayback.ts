@@ -10,8 +10,31 @@ import {
   type EditorLectureAnimationAction,
 } from "@/src/features/tree-editor";
 
-const SEQUENCE_GAP_MS = 160; // 순차 단계 사이의 전환 간격
-const LOOP_GAP_MS = 700; // 반복 재생에서 다음 회차까지 쉬는 시간
+const SEQUENCE_GAP_MS = 250; // 순차 단계 사이의 전환 간격
+const LOOP_GAP_MS = 1000; // 반복 재생에서 다음 회차까지 쉬는 시간
+const CAMERA_CLEANUP_MS = 900; // 전체 트리 화면으로 돌아가는 공통 카메라 전환을 기다리는 시간
+
+const waitForPlayback = (
+  durationMs: number,
+  signal: AbortSignal,
+): Promise<boolean> =>
+  new Promise((resolve) => {
+    if (signal.aborted) {
+      resolve(false);
+      return;
+    }
+
+    const handleAbort = () => {
+      window.clearTimeout(timeoutId);
+      resolve(false);
+    };
+    const timeoutId = window.setTimeout(() => {
+      signal.removeEventListener("abort", handleAbort);
+      resolve(true);
+    }, durationMs);
+
+    signal.addEventListener("abort", handleAbort, { once: true });
+  });
 
 type UseAnimationLabPlaybackParams = {
   revealNodes: (
@@ -78,10 +101,19 @@ export const useAnimationLabPlayback = ({
     const controller = new AbortController();
     const { signal } = controller;
 
-    const runOnce = () => {
+    const resetPlaybackCamera = async (): Promise<boolean> => {
+      if (signal.aborted) return false;
+      setStage("Camera reset");
+      resetStepCamera();
+      return waitForPlayback(CAMERA_CLEANUP_MS, signal);
+    };
+
+    const runOnce = async () => {
       useLectureAnimationStore.getState().resetVisual();
 
-      return runLectureAnimation(running.animation, {
+      if (!(await resetPlaybackCamera())) return;
+
+      await runLectureAnimation(running.animation, {
         revealNodes: (clientIds, options) =>
           revealStepNodes(clientIds, options),
         resetCamera: () => resetStepCamera(),
@@ -89,14 +121,16 @@ export const useAnimationLabPlayback = ({
         sequenceGapMs: SEQUENCE_GAP_MS,
         onActionStart: (action) => setStage(getStageLabel(action)),
       });
+
+      if (!signal.aborted) await resetPlaybackCamera();
     };
 
     const run = async () => {
       await runOnce();
 
       while (!signal.aborted && getIsLooping()) {
-        await new Promise((resolve) => setTimeout(resolve, LOOP_GAP_MS));
-        if (!signal.aborted) await runOnce();
+        const completedGap = await waitForPlayback(LOOP_GAP_MS, signal);
+        if (completedGap) await runOnce();
       }
 
       if (signal.aborted) return;
@@ -126,6 +160,7 @@ export const useAnimationLabPlayback = ({
     setRunning(null);
     setStage(null);
     useLectureAnimationStore.getState().resetVisual();
+    resetCamera();
   };
 
   return { play, stop, isPlaying: running !== null, stage };

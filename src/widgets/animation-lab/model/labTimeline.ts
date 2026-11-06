@@ -43,30 +43,30 @@ export const createDefaultLabAction = (
 ): LectureAnimationAction => {
   switch (type) {
     case "focus":
-      return { type, targetNodeIds: [], maxZoom: 1.3, durationMs: 600 };
+      return { type, targetNodeIds: [], maxZoom: 1.3, durationMs: 800 };
     case "highlight":
       return {
         type,
         targetNodeIds: [],
         style: "pulse",
         tone: "accent",
-        durationMs: 900,
+        durationMs: 1200,
       };
     case "dim":
-      return { type, exceptNodeIds: [], durationMs: 900 };
+      return { type, exceptNodeIds: [], durationMs: 1200 };
     case "trace":
       return {
         type,
         nodeIds: [],
         mode: "progressive",
         direction: "forward",
-        durationMs: 1200,
+        durationMs: 1600,
       };
     case "wait":
-      return { type, durationMs: 600 };
+      return { type, durationMs: 800 };
     case "collapse":
     case "expand":
-      return { type, targetNodeIds: [], durationMs: 800 };
+      return { type, targetNodeIds: [], durationMs: 1100 };
     case "reset":
       return { type, scope: "visual" };
   }

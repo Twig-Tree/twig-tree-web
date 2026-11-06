@@ -62,7 +62,21 @@ const trace = (
 });
 
 /* 노드 ID는 model/fixtureTree.ts의 고정 트리를 가리킨다. */
-export const LAB_PRESETS: LabPreset[] = [
+const PRESET_DURATION_SCALE = 1.3;
+
+const scalePresetAction = (
+  action: LectureAnimationAction,
+): LectureAnimationAction => {
+  if (action.type === "reset") return action;
+
+  return {
+    ...action,
+    durationMs:
+      Math.round((action.durationMs * PRESET_DURATION_SCALE) / 50) * 50,
+  };
+};
+
+const BASE_LAB_PRESETS: LabPreset[] = [
   {
     id: "overview-tour",
     category: "탐색",
@@ -316,3 +330,11 @@ export const LAB_PRESETS: LabPreset[] = [
     ],
   },
 ];
+
+export const LAB_PRESETS: LabPreset[] = BASE_LAB_PRESETS.map((preset) => ({
+  ...preset,
+  createSteps: () =>
+    preset
+      .createSteps()
+      .map((step) => ({ ...step, action: scalePresetAction(step.action) })),
+}));
