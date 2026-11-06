@@ -10,7 +10,6 @@ import {
   DropIndicatorOverlay,
   EditorToolbar,
   LecturePlayer,
-  LectureAnimationDevPanel,
   MemoSidePanel,
   NodeContextMenu,
   edgeTypes,
@@ -47,9 +46,6 @@ interface LayoutFlowProps {
   workspaceId: string;
   treeId: string | null; // 트리가 없는 워크스페이스는 null
 }
-
-const isLectureAnimationDevPanelEnabled =
-  process.env.NODE_ENV === "development";
 
 function LayoutFlow({ workspaceId, treeId }: LayoutFlowProps) {
   /*
@@ -265,16 +261,6 @@ function LayoutFlow({ workspaceId, treeId }: LayoutFlowProps) {
               isAddRootNodeDisabled={!isAddNodeEnabled || isMutating}
             />
           </Panel>
-
-          {isLectureAnimationDevPanelEnabled ? (
-            <Panel position="bottom-left">
-              <LectureAnimationDevPanel
-                selectedNode={selectedNode}
-                onRevealNodes={revealNodes}
-                onResetCamera={fitTreeView}
-              />
-            </Panel>
-          ) : null}
 
           {/*
           강의는 지금 트리에 맞는 데모 대본으로 재생한다. 서버가 강의를 내려주게 되면 조회 결과로 바꾼다.

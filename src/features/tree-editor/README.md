@@ -209,7 +209,7 @@ editor store 초기화는 트리당 한 번만 수행한다. `useInitializeTree`
 
 개발 패널의 단위 동작은 900ms 동안 표시한다. `Dim Others`도 같은 시간이 지나면 자동으로 해제된다. `Sequence`는 Focus → 부모 Highlight → Trace Child → 자식 Pulse 사이에 짧은 전환 간격을 두고 현재 단계를 패널에 표시한다. Pulse는 React Flow가 좌표 배치에 쓰는 `transform`을 건드리지 않고 box-shadow만 움직이며, Trace Child는 연결선의 굵기·광원·흐르는 점선으로 방향을 드러낸다. 모든 트리 엣지는 기존 smooth step 모양을 유지하는 `CustomEdge`로 렌더링되어 추적 상태를 직접 구독한다.
 
-워크스페이스 왼쪽 위의 `LectureAnimationDevPanel`은 실행기를 눈으로 검증하는 프로토타입 도구다. 트리에서 노드를 선택하면 그 노드와 첫 자식을 대상으로 단위 동작과 순차·병렬 조합을 실행한다. `Dim Others`처럼 지속되는 효과는 `초기화`로 지우고, 진행 중인 일회성 동작은 `중단`으로 취소한다. 패널은 `NODE_ENV=development`에서만 렌더링하며 운영 빌드에는 노출하지 않는다.
+`LectureAnimationDevPanel`은 실행기를 눈으로 검증하는 프로토타입 도구로, 개발 전용 화면 `/dev/animation-lab`([Animation Lab](../../widgets/animation-lab/README.md))에서만 쓴다. 트리에서 노드를 선택하면 그 노드와 첫 자식을 대상으로 단위 동작과 순차·병렬 조합을 실행한다. `Dim Others`처럼 지속되는 효과는 `초기화`로 지우고, 진행 중인 일회성 동작은 `중단`으로 취소한다. 이 route는 production에서 `notFound()`로 막으므로 운영 빌드에는 노출되지 않는다.
 
 ### 상태는 위치 하나에서 파생한다
 
