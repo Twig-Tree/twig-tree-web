@@ -61,6 +61,20 @@ describe("getCameraFrameInsets", () => {
     ).toEqual({ ...NO_INSETS, right: 360 });
   });
 
+  it("높이는 노드와 여백이 들어가는 70px까지 가림을 유지한다", () => {
+    const canvas = { top: 0, right: 800, bottom: 400, left: 0 };
+    const getInsets = (playerTop: number) =>
+      getCameraFrameInsets(canvas, [
+        {
+          side: "bottom",
+          rect: { top: playerTop, right: 800, bottom: 400, left: 0 },
+        },
+      ]);
+
+    expect(getInsets(70)).toEqual({ ...NO_INSETS, bottom: 330 });
+    expect(getInsets(69)).toEqual(NO_INSETS);
+  });
+
   it("보이는 영역이 너무 좁게 남으면 그 방향의 가림을 무시한다", () => {
     const narrowCanvas = { top: 0, right: 500, bottom: 800, left: 0 };
 

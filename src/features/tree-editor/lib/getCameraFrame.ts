@@ -17,7 +17,11 @@ type CameraObstacle = {
 };
 
 const FRAME_MARGIN_PX = 24; // 노드와 시각 프레임 가장자리 사이의 여백
-const MIN_FRAME_SIZE_PX = 100; // 이보다 좁게 남으면 최소 배율의 노드 하나(약 50px)와 여백도 들어가지 않으므로 그 방향의 가림을 무시한다
+/*
+이보다 좁게 남으면 최소 배율의 노드 하나와 양쪽 여백(48px)도 들어가지 않으므로 그 방향의 가림을 무시한다. 노드는 최소 배율에서 약 50×18px이다.
+*/
+const MIN_FRAME_WIDTH_PX = 100;
+const MIN_FRAME_HEIGHT_PX = 70;
 
 const isCameraInsetSide = (side: string | undefined): side is CameraInsetSide =>
   CAMERA_INSET_SIDES.some((insetSide) => insetSide === side);
@@ -63,10 +67,10 @@ export const getCameraFrameInsets = (
   const canvasHeight = canvas.bottom - canvas.top;
 
   return {
-    ...(canvasWidth - insets.left - insets.right < MIN_FRAME_SIZE_PX
+    ...(canvasWidth - insets.left - insets.right < MIN_FRAME_WIDTH_PX
       ? { left: 0, right: 0 }
       : { left: insets.left, right: insets.right }),
-    ...(canvasHeight - insets.top - insets.bottom < MIN_FRAME_SIZE_PX
+    ...(canvasHeight - insets.top - insets.bottom < MIN_FRAME_HEIGHT_PX
       ? { top: 0, bottom: 0 }
       : { top: insets.top, bottom: insets.bottom }),
   };

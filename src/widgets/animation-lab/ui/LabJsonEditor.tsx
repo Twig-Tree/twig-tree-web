@@ -43,6 +43,16 @@ export function LabJsonEditor({ animation, onApply }: LabJsonEditorProps) {
   };
 
   const handleCopy = async () => {
+    /*
+    다시 가져올 수 없는 JSON이 복사되지 않게 한다. 오류를 일으킨 단계가 선택되어 있지 않아도 여기서 알린다.
+    */
+    const result = getLabStepsFromJson(value);
+
+    if ("error" in result) {
+      setErrorMessage(result.error);
+      return;
+    }
+
     try {
       await navigator.clipboard.writeText(value);
     } catch {
