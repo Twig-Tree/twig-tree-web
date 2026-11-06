@@ -81,6 +81,36 @@ describe("getLabStepsFromJson", () => {
     ]);
   });
 
+  it("확장된 강조·추적과 wait를 JSON에서 읽는다", () => {
+    const animation = {
+      type: "group",
+      mode: "sequence",
+      children: [
+        {
+          type: "highlight",
+          targetNodeIds: ["1"],
+          style: "bounce",
+          tone: "success",
+          durationMs: 500,
+        },
+        { type: "wait", durationMs: 250 },
+        {
+          type: "trace",
+          nodeIds: ["1", "2"],
+          durationMs: 800,
+          mode: "progressive",
+          direction: "reverse",
+          persist: true,
+        },
+      ],
+    };
+
+    const result = getLabStepsFromJson(JSON.stringify(animation));
+    if ("error" in result) throw new Error(result.error);
+
+    expect(getLabAnimation(result.steps)).toEqual(animation);
+  });
+
   it.each([
     ["문법 오류", "{"],
     ["없는 동작", JSON.stringify({ type: "shake", durationMs: 100 })],

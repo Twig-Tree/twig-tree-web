@@ -27,11 +27,15 @@ const getStageLabel = (action: EditorLectureAnimationAction): string => {
     case "focus":
       return "Focus";
     case "highlight":
-      return action.style === "pulse" ? "Pulse" : "Highlight";
+      return action.style === "steady"
+        ? "Highlight"
+        : `${action.style[0].toUpperCase()}${action.style.slice(1)}`;
     case "dim":
       return "Dim";
     case "trace":
-      return "Trace";
+      return action.mode === "progressive" ? "Progressive trace" : "Trace";
+    case "wait":
+      return "Wait";
     case "collapse":
       return "Collapse";
     case "expand":

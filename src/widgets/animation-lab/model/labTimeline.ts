@@ -45,11 +45,25 @@ export const createDefaultLabAction = (
     case "focus":
       return { type, targetNodeIds: [], maxZoom: 1.3, durationMs: 600 };
     case "highlight":
-      return { type, targetNodeIds: [], style: "pulse", durationMs: 900 };
+      return {
+        type,
+        targetNodeIds: [],
+        style: "pulse",
+        tone: "accent",
+        durationMs: 900,
+      };
     case "dim":
       return { type, exceptNodeIds: [], durationMs: 900 };
     case "trace":
-      return { type, nodeIds: [], durationMs: 1200 };
+      return {
+        type,
+        nodeIds: [],
+        mode: "progressive",
+        direction: "forward",
+        durationMs: 1200,
+      };
+    case "wait":
+      return { type, durationMs: 600 };
     case "collapse":
     case "expand":
       return { type, targetNodeIds: [], durationMs: 800 };
@@ -78,6 +92,7 @@ export const getLabActionNodeIds = (
     case "trace":
       return action.nodeIds;
     case "reset":
+    case "wait":
       return null;
   }
 };
@@ -104,6 +119,7 @@ export const getLabActionWithNodeIds = (
     case "trace":
       return { ...action, nodeIds };
     case "reset":
+    case "wait":
       return action;
   }
 };
@@ -164,7 +180,16 @@ const isLectureAnimationAction = (
     case "highlight":
       return (
         isStringArray(value.targetNodeIds) &&
-        (value.style === "steady" || value.style === "pulse") &&
+        (value.style === "steady" ||
+          value.style === "pulse" ||
+          value.style === "pop" ||
+          value.style === "bounce" ||
+          value.style === "shake") &&
+        (value.tone === undefined ||
+          value.tone === "accent" ||
+          value.tone === "success" ||
+          value.tone === "warning" ||
+          value.tone === "danger") &&
         isDuration(value.durationMs) &&
         hasValidPersist
       );
@@ -175,7 +200,19 @@ const isLectureAnimationAction = (
         hasValidPersist
       );
     case "trace":
-      return isStringArray(value.nodeIds) && isDuration(value.durationMs);
+      return (
+        isStringArray(value.nodeIds) &&
+        isDuration(value.durationMs) &&
+        (value.mode === undefined ||
+          value.mode === "simultaneous" ||
+          value.mode === "progressive") &&
+        (value.direction === undefined ||
+          value.direction === "forward" ||
+          value.direction === "reverse") &&
+        hasValidPersist
+      );
+    case "wait":
+      return isDuration(value.durationMs);
     case "collapse":
     case "expand":
       return isStringArray(value.targetNodeIds) && isDuration(value.durationMs);

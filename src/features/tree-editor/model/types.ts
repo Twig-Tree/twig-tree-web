@@ -73,7 +73,7 @@ type EditorLectureNodeAction =
 
 export type EditorLectureAnimationAction =
   | EditorLectureNodeAction
-  | Extract<LectureAnimationAction, { type: "reset" }>;
+  | Extract<LectureAnimationAction, { type: "reset" | "wait" }>;
 
 export interface EditorLectureAnimationGroup extends Omit<
   LectureAnimationGroup,

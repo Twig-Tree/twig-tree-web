@@ -16,9 +16,10 @@ import {
   useLectureStore,
 } from "@/src/features/tree-editor/model/lecture/lectureStore";
 import {
+  getLectureNodeHighlightStyle,
+  getLectureNodeHighlightTone,
   isLectureNodeDimmed,
   isLectureNodeHighlighted,
-  isLectureNodePulsing,
   useLectureAnimationStore,
 } from "@/src/features/tree-editor/model/lecture/lectureAnimationStore";
 import { CollapseToggleButton } from "./CollapseToggleButton";
@@ -55,8 +56,11 @@ export function CustomNode({
   const isLectureHighlighted = useLectureAnimationStore((state) =>
     isLectureNodeHighlighted(state, id),
   );
-  const isLecturePulsing = useLectureAnimationStore((state) =>
-    isLectureNodePulsing(state, id),
+  const lectureHighlightStyle = useLectureAnimationStore((state) =>
+    getLectureNodeHighlightStyle(state, id),
+  );
+  const lectureHighlightTone = useLectureAnimationStore((state) =>
+    getLectureNodeHighlightTone(state, id),
   );
   const isLectureDimmed = useLectureAnimationStore((state) =>
     isLectureNodeDimmed(state, id),
@@ -198,7 +202,8 @@ export function CustomNode({
       data-highlighted={isHighlighted}
       data-lecture-current={isLectureCurrent}
       data-lecture-highlighted={isLectureHighlighted}
-      data-lecture-pulsing={isLecturePulsing}
+      data-lecture-highlight-style={lectureHighlightStyle ?? undefined}
+      data-lecture-highlight-tone={lectureHighlightTone ?? undefined}
       data-lecture-dimmed={isLectureDimmed}
     >
       <Handle

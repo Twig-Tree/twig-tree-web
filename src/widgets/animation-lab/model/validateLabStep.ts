@@ -58,6 +58,7 @@ export const validateLabAction = (
         ? null
         : "자식이 없는 노드는 접거나 펼쳐도 보이는 변화가 없습니다.";
     case "reset":
+    case "wait":
       return null;
   }
 };
