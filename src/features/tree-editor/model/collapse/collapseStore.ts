@@ -34,6 +34,7 @@ interface CollapseState {
   applyExternalCollapse: (serverIds: string[]) => void;
   beginTemporaryCollapse: () => void;
   endTemporaryCollapse: () => void;
+  replaceTemporaryCollapse: (serverIds: ReadonlySet<string>) => void;
   resetCollapse: () => void;
 }
 
@@ -220,6 +221,15 @@ export const useCollapseStore = create<CollapseState>()((set, get) => {
         collapsedServerIds: savedCollapsedServerIds,
         savedCollapsedServerIds: null,
       });
+    },
+
+    /*
+    강의를 앞뒤로 옮길 때 그 위치의 접힘으로 바꾼다. 임시 접힘 중이 아니면 사용자의 접힘을 덮어쓰게 되므로 무시한다.
+    */
+    replaceTemporaryCollapse: (serverIds) => {
+      if (get().savedCollapsedServerIds === null) return;
+
+      set({ collapsedServerIds: new Set(serverIds) });
     },
 
     resetCollapse: () => {

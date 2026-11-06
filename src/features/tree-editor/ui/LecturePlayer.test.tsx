@@ -183,9 +183,11 @@ describe("LecturePlayer", () => {
       screen.getByText(script.scenes[1].beats[0].narration.text),
     ).toBeInTheDocument();
     expect(screen.getByText("장면 2 / 4 · 비트 1 / 4")).toBeInTheDocument();
-    expect(onRevealNodes).toHaveBeenLastCalledWith(
-      ["europe", "france", "germany", "euro"],
-      { maxZoom: 1.1, duration: 700 },
+    await waitFor(() =>
+      expect(onRevealNodes).toHaveBeenLastCalledWith(
+        ["europe", "france", "germany", "euro"],
+        { maxZoom: 1.1, duration: 700 },
+      ),
     );
   });
 
@@ -293,9 +295,11 @@ describe("LecturePlayer", () => {
     await userEvent.click(screen.getByRole("button", { name: "다음 장면" }));
 
     expect(onRevealNodes).toHaveBeenCalledTimes(1);
-    expect(nextRevealNodes).toHaveBeenCalledExactlyOnceWith(
-      ["europe", "france", "germany", "euro"],
-      { maxZoom: 1.1, duration: 700 },
+    await waitFor(() =>
+      expect(nextRevealNodes).toHaveBeenCalledExactlyOnceWith(
+        ["europe", "france", "germany", "euro"],
+        { maxZoom: 1.1, duration: 700 },
+      ),
     );
   });
 

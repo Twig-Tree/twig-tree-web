@@ -4,12 +4,26 @@ import { type EditorLectureScript } from "../types";
 import { useLectureStore } from "./lectureStore";
 import { useLectureKeyboard } from "./useLectureKeyboard";
 
+const createBeat = (id: string) => ({
+  id,
+  narration: { text: id, fallbackDurationMs: 1000 },
+  animation: {
+    type: "group" as const,
+    mode: "sequence" as const,
+    children: [],
+  },
+});
+
 const script: EditorLectureScript = {
   id: "script",
   title: "강의",
   scenes: [
-    { id: "scene-1", clientId: "c1", beats: [] },
-    { id: "scene-2", clientId: "c2", beats: [] },
+    {
+      id: "scene-1",
+      clientId: "c1",
+      beats: [createBeat("a"), createBeat("b")],
+    },
+    { id: "scene-2", clientId: "c2", beats: [createBeat("c")] },
   ],
 };
 
@@ -61,12 +75,27 @@ describe("useLectureKeyboard", () => {
     expect(lecture().sceneIndex).toBe(1);
   });
 
-  it("Shift 없는 →는 다음 장면으로 가지 않는다", () => {
+  it("→와 ←로 비트를 옮기고 Shift + ←로 이전 장면으로 간다", () => {
     startLecture();
 
     press({ key: "ArrowRight" });
+    expect(lecture()).toMatchObject({ sceneIndex: 0, beatIndex: 1 });
 
-    expect(lecture().sceneIndex).toBe(0);
+    press({ key: "ArrowLeft" });
+    expect(lecture()).toMatchObject({ sceneIndex: 0, beatIndex: 0 });
+
+    press({ key: "ArrowRight", shiftKey: true });
+    press({ key: "ArrowLeft", shiftKey: true });
+    expect(lecture()).toMatchObject({ sceneIndex: 0, beatIndex: 0 });
+  });
+
+  it("R은 한글 입력 상태에서도 지금 비트를 다시 재생한다", () => {
+    startLecture();
+    const { seekId } = lecture();
+
+    press({ key: "ㄱ", code: "KeyR" });
+
+    expect(lecture().seekId).toBe(seekId + 1);
   });
 
   it("Esc로 강의를 끝낸다", () => {

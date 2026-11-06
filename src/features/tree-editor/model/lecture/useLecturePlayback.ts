@@ -1,4 +1,7 @@
-import { useEffect, useEffectEvent, useState } from "react";
+import { useEffect, useEffectEvent, useRef, useState } from "react";
+import { useCollapseStore } from "../collapse/collapseStore";
+import { useTreeStore } from "../treeStore";
+import { getLectureSeekState } from "./getLectureSeekState";
 import { playSentence, type LectureAudioMode } from "./lectureSpeech";
 import { useLectureAnimationStore } from "./lectureAnimationStore";
 import { runLectureAnimation } from "./runLectureAnimation";
@@ -37,6 +40,7 @@ export const useLecturePlayback = ({
   const script = useLectureStore((state) => state.script);
   const sceneIndex = useLectureStore((state) => state.sceneIndex);
   const beatIndex = useLectureStore((state) => state.beatIndex);
+  const seekId = useLectureStore((state) => state.seekId);
   const completeBeat = useLectureStore((state) => state.completeBeat);
   const koreanVoice = useKoreanVoice();
   const [hasSpeechFailed, setHasSpeechFailed] = useState(false);
@@ -55,6 +59,69 @@ export const useLecturePlayback = ({
   );
   const resetBeatCamera = useEffectEvent(() => resetCamera());
 
+  const appliedSeekIdRef = useRef(seekId);
+  const shouldWaitForSeekRef = useRef(false);
+
+  /*
+  사용자가 위치를 옮기면 그 위치의 접힘과 유지되는 강조를 대본에서 다시 계산해 적용한다. 뒤로 가도 앞 비트가 바꾼 상태가 돌아오지 않기 때문이다.
+  바뀐 접힘이 그려져 레이아웃이 시작된 뒤에야 카메라가 최종 좌표를 알 수 있으므로 카메라와 비트의 애니메이션은 다음 프레임으로 미룬다.
+  일시정지 중에는 비트가 시작되지 않으므로 그 비트의 연출까지 적용해 옮긴 위치를 보여 준다.
+  비트를 시작하는 effect가 미룰지 알아야 하므로 먼저 선언한다.
+  */
+  useEffect(() => {
+    if (appliedSeekIdRef.current === seekId) return;
+
+    appliedSeekIdRef.current = seekId;
+
+    const lecture = useLectureStore.getState();
+
+    if (
+      lecture.script === null ||
+      (lecture.status !== "playing" && lecture.status !== "paused")
+    ) {
+      return;
+    }
+
+    const collapse = useCollapseStore.getState();
+    const { nodes, edges } = useTreeStore.getState();
+    const seekState = getLectureSeekState({
+      script: lecture.script,
+      sceneIndex: lecture.sceneIndex,
+      beatIndex: lecture.beatIndex,
+      isTargetBeatIncluded: lecture.status === "paused",
+      nodes,
+      edges,
+      baseCollapsedServerIds:
+        collapse.savedCollapsedServerIds ?? collapse.collapsedServerIds,
+    });
+
+    collapse.replaceTemporaryCollapse(seekState.collapsedServerIds);
+
+    const animationStore = useLectureAnimationStore.getState();
+
+    animationStore.resetVisual();
+    seekState.layers.forEach(animationStore.setLayer);
+
+    shouldWaitForSeekRef.current = lecture.status === "playing";
+
+    const { camera } = seekState;
+
+    if (camera === null) return;
+
+    const frameId = window.requestAnimationFrame(() => {
+      runCameraMove(() => {
+        if (camera.type === "reset") {
+          resetBeatCamera();
+          return;
+        }
+
+        revealBeatNodes(camera.clientIds, camera.options);
+      });
+    });
+
+    return () => window.cancelAnimationFrame(frameId);
+  }, [seekId, runCameraMove]);
+
   useEffect(() => {
     if (status !== "playing" || script === null) return;
 
@@ -65,12 +132,29 @@ export const useLecturePlayback = ({
     }
 
     const controller = new AbortController();
-    const animationCompletion = runLectureAnimation(beat.animation, {
-      revealNodes: (clientIds, options) =>
-        runCameraMove(() => revealBeatNodes(clientIds, options)),
-      resetCamera: () => runCameraMove(() => resetBeatCamera()),
-      signal: controller.signal,
-    });
+    const runBeatAnimation = () =>
+      runLectureAnimation(beat.animation, {
+        revealNodes: (clientIds, options) =>
+          runCameraMove(() => revealBeatNodes(clientIds, options)),
+        resetCamera: () => runCameraMove(() => resetBeatCamera()),
+        signal: controller.signal,
+      });
+    let cancelSeekFrame = () => {};
+    const animationCompletion = shouldWaitForSeekRef.current
+      ? new Promise<void>((resolve) => {
+          const frameId = window.requestAnimationFrame(() => {
+            void runBeatAnimation().then(resolve);
+          });
+
+          cancelSeekFrame = () => {
+            window.cancelAnimationFrame(frameId);
+            resolve();
+          };
+        })
+      : runBeatAnimation();
+
+    shouldWaitForSeekRef.current = false;
+
     let finishNarration = () => {};
     const narrationCompletion = new Promise<void>((resolve) => {
       finishNarration = resolve;
@@ -94,6 +178,7 @@ export const useLecturePlayback = ({
 
     return () => {
       controller.abort();
+      cancelSeekFrame();
       stopNarration();
       finishNarration();
 
@@ -116,6 +201,7 @@ export const useLecturePlayback = ({
     script,
     sceneIndex,
     beatIndex,
+    seekId,
     voice,
     completeBeat,
     runCameraMove,

@@ -22,7 +22,7 @@ const isClosestMatch = (target: EventTarget | null, selector: string) =>
 
 /*
 함수 이름 : useLectureKeyboard
-기능 : 강의가 진행되는 동안 키보드로 재생을 조작한다. Space는 일시정지와 재생, Shift + →는 다음 장면, Esc는 강의 종료다.
+기능 : 강의가 진행되는 동안 키보드로 재생을 조작한다. Space는 일시정지와 재생, ←와 →는 이전·다음 비트, Shift를 함께 누르면 이전·다음 장면, R은 지금 비트 다시 듣기, Esc는 강의 종료다.
 인자 : UseLectureKeyboardParams
 반환값 : 없음
 
@@ -52,9 +52,30 @@ export const useLectureKeyboard = ({ onStop }: UseLectureKeyboardParams) => {
       return;
     }
 
-    if (event.key === "ArrowRight" && event.shiftKey) {
+    if (event.key === "ArrowRight") {
       event.preventDefault();
-      lecture.goToNextScene();
+
+      if (event.shiftKey) lecture.goToNextScene();
+      else lecture.goToNextBeat();
+
+      return;
+    }
+
+    if (event.key === "ArrowLeft") {
+      event.preventDefault();
+
+      if (event.shiftKey) lecture.goToPreviousScene();
+      else lecture.goToPreviousBeat();
+
+      return;
+    }
+
+    /*
+    한글 입력 상태에서는 key가 ㄱ이 되므로 물리 키로 판단한다.
+    */
+    if (event.code === "KeyR" && !event.shiftKey) {
+      event.preventDefault();
+      lecture.replayBeat();
       return;
     }
 

@@ -195,6 +195,83 @@ describe("useLecturePlayback", () => {
     expect(getPosition()).toMatchObject({ sceneIndex: 0, beatIndex: 0 });
   });
 
+  it("→와 ←로 옮기면 그 비트를 처음부터 기다린다", async () => {
+    renderPlayback();
+    act(() => lecture().startLecture(script));
+
+    await advance(900);
+    act(() => lecture().goToNextBeat());
+    await advance(999);
+    expect(getPosition().beatIndex).toBe(1);
+
+    act(() => lecture().goToPreviousBeat());
+    await advance(999);
+    expect(getPosition().beatIndex).toBe(0);
+
+    await advance(1);
+    expect(getPosition().beatIndex).toBe(1);
+  });
+
+  it("다시 듣기는 같은 위치의 비트를 새로 시작하고, 일시정지 중이면 재생한다", async () => {
+    renderPlayback();
+    act(() => lecture().startLecture(script));
+
+    await advance(900);
+    act(() => lecture().replayBeat());
+    await advance(999);
+    expect(getPosition()).toMatchObject({ beatIndex: 0 });
+
+    act(() => lecture().pauseLecture());
+    act(() => lecture().replayBeat());
+    expect(getPosition().status).toBe("playing");
+  });
+
+  it("첫 비트에서 ←는 처음부터 다시, 마지막 비트에서 →는 강의를 끝낸다", async () => {
+    renderPlayback();
+    act(() => lecture().startLecture(script));
+
+    await advance(900);
+    act(() => lecture().goToPreviousBeat());
+    await advance(999);
+    expect(getPosition()).toMatchObject({ sceneIndex: 0, beatIndex: 0 });
+
+    act(() => lecture().goToNextScene());
+    act(() => lecture().goToNextBeat());
+    expect(getPosition().status).toBe("ended");
+  });
+
+  it("일시정지 중에 옮기면 일시정지를 유지하고 그 비트의 카메라로 옮긴다", async () => {
+    const focusBeat = createBeat("focus", {
+      type: "focus",
+      targetClientIds: ["c2"],
+      maxZoom: 1,
+      durationMs: 500,
+    });
+
+    renderPlayback();
+    act(() =>
+      lecture().startLecture({
+        ...script,
+        scenes: [
+          {
+            id: "scene-1",
+            clientId: "c1",
+            beats: [createBeat("first"), focusBeat],
+          },
+        ],
+      }),
+    );
+    act(() => lecture().pauseLecture());
+    act(() => lecture().goToNextBeat());
+    await advance(20);
+
+    expect(getPosition()).toMatchObject({ status: "paused", beatIndex: 1 });
+    expect(revealNodes).toHaveBeenCalledWith(["c2"], {
+      maxZoom: 1,
+      duration: 500,
+    });
+  });
+
   it("끝난 강의를 다시 시작하면 처음부터 진행한다", async () => {
     renderPlayback();
     act(() => lecture().startLecture(script));

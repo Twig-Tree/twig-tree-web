@@ -65,7 +65,13 @@ type EditorLectureNodeAction =
       clientIds: string[];
     })
   | (Omit<
-      Extract<LectureAnimationAction, { type: "collapse" | "expand" }>,
+      Extract<LectureAnimationAction, { type: "collapse" }>,
+      "targetNodeIds"
+    > & {
+      targetClientIds: string[];
+    })
+  | (Omit<
+      Extract<LectureAnimationAction, { type: "expand" }>,
       "targetNodeIds"
     > & {
       targetClientIds: string[];
