@@ -30,7 +30,10 @@ export type EditorNodeData = Omit<TreeNode, "id" | "parentId"> & {
   serverId: string | null;
 };
 
-export type CustomEditorNode = Node<EditorNodeData, "custom">;
+/*
+"ghost"는 접혀서 사라지는 노드의 모습만 그리는 더미다. 화면에 넘기는 노드 목록에만 있고 store에는 들어가지 않는다.
+*/
+export type CustomEditorNode = Node<EditorNodeData, "custom" | "ghost">;
 export type CustomEditorEdge = Edge;
 
 /*

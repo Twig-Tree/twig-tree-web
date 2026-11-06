@@ -1,12 +1,11 @@
 import { useCallback } from "react";
-import { useReactFlow } from "@xyflow/react";
 import { getAncestorClientIds } from "../../lib/getAncestorClientIds";
 import { getFitViewPadding } from "../../lib/getFitViewPadding";
+import { useCameraMove } from "../camera/useCameraMove";
 import { useCollapseStore } from "../collapse/collapseStore";
 import { useTreeStore } from "../treeStore";
 import { CustomEditorNode } from "../types";
 
-const CENTER_NODE_DURATION_MS = 300; // 노드로 화면을 옮기는 애니메이션 시간
 const FIT_NODES_MAX_ZOOM = 1; // 여러 노드를 모을 때의 최대 배율. 노드가 하나뿐이면 maxZoom까지 확대되므로 트리 맞춤과 같은 값으로 막는다
 
 type UseFocusNodeParams = {
@@ -33,8 +32,7 @@ export const useFocusNode = ({
   runAfterNextLayout,
   isLayoutRunning,
 }: UseFocusNodeParams) => {
-  const { fitView, getInternalNode, getNodesBounds, getZoom, setCenter } =
-    useReactFlow();
+  const { fitFinalNodes, centerFinalNode } = useCameraMove();
   const selectOnlyNodeInStore = useTreeStore(
     (state) => state.selectOnlyNodeInStore,
   );
@@ -67,23 +65,13 @@ export const useFocusNode = ({
   );
 
   /*
-  React Flow가 새 좌표로 노드를 그린 뒤에 읽도록 다음 프레임으로 미루고, 렌더된 노드의 실제 상자 가운데로 옮긴다.
-  setCenter는 zoom을 넘기지 않으면 maxZoom으로 확대하므로 현재 배율을 그대로 넘긴다.
+  펼친 노드가 React Flow에 그려진 뒤에 옮기도록 다음 프레임으로 미룬다.
   */
   const moveToNodeCenter = useCallback(
     (clientId: string) => {
-      window.requestAnimationFrame(() => {
-        if (!getInternalNode(clientId)) return; // 그 사이 삭제되었거나 여전히 숨겨져 있으면 옮기지 않는다.
-
-        const { x, y, width, height } = getNodesBounds([clientId]);
-
-        void setCenter(x + width / 2, y + height / 2, {
-          zoom: getZoom(),
-          duration: CENTER_NODE_DURATION_MS,
-        });
-      });
+      window.requestAnimationFrame(() => centerFinalNode(clientId));
     },
-    [getInternalNode, getNodesBounds, getZoom, setCenter],
+    [centerFinalNode],
   );
 
   /*
@@ -127,19 +115,9 @@ export const useFocusNode = ({
   const fitNodes = useCallback(
     (clientIds: string[]) => {
       const fitRenderedNodes = () => {
-        window.requestAnimationFrame(() => {
-          const renderedNodes = clientIds.flatMap((clientId) =>
-            getInternalNode(clientId) ? [{ id: clientId }] : [],
-          ); // 화면에 그려진 노드만 남긴다. 숨겨진 노드는 React Flow에 없다.
-
-          if (renderedNodes.length === 0) return;
-
-          void fitView({
-            nodes: renderedNodes,
-            maxZoom: FIT_NODES_MAX_ZOOM,
-            duration: CENTER_NODE_DURATION_MS,
-          });
-        });
+        window.requestAnimationFrame(() =>
+          fitFinalNodes({ clientIds, maxZoom: FIT_NODES_MAX_ZOOM }),
+        );
       };
 
       if (isLayoutRunning()) {
@@ -149,7 +127,7 @@ export const useFocusNode = ({
 
       fitRenderedNodes();
     },
-    [fitView, getInternalNode, isLayoutRunning, runAfterNextLayout],
+    [fitFinalNodes, isLayoutRunning, runAfterNextLayout],
   );
 
   /*
@@ -157,7 +135,7 @@ export const useFocusNode = ({
   강의가 가리키는 노드가 화면에 없으면 자막과 강조가 가리킬 대상이 사라지기 때문이다. 선택은 바꾸지 않는다.
 
   펼친 노드는 다음 레이아웃이 끝나야 좌표가 생기므로, 대상이 모두 보이고 계산 중이 아닐 때만 바로 모은다.
-  그 사이 삭제된 노드는 React Flow에 없으므로 빼고, 남은 노드가 없으면 화면을 옮기지 않는다.
+  그 사이 삭제된 노드는 fitFinalNodes가 빼고, 남은 노드가 없으면 화면을 옮기지 않는다.
   */
   const revealNodes = useCallback(
     (
@@ -167,22 +145,16 @@ export const useFocusNode = ({
       expandAncestors(clientIds);
 
       const fitRenderedNodes = () => {
-        window.requestAnimationFrame(() => {
-          const renderedNodes = clientIds.flatMap((clientId) =>
-            getInternalNode(clientId) ? [{ id: clientId }] : [],
-          );
-
-          if (renderedNodes.length === 0) return;
-
-          void fitView({
-            nodes: renderedNodes,
+        window.requestAnimationFrame(() =>
+          fitFinalNodes({
+            clientIds,
             maxZoom,
             duration,
             ...(bottomInset === undefined
               ? {}
               : { padding: getFitViewPadding(bottomInset) }),
-          });
-        });
+          }),
+        );
       };
 
       const visibleClientIds = new Set(visibleNodes.map((node) => node.id));
@@ -200,8 +172,7 @@ export const useFocusNode = ({
     [
       visibleNodes,
       expandAncestors,
-      fitView,
-      getInternalNode,
+      fitFinalNodes,
       isLayoutRunning,
       runAfterNextLayout,
     ],

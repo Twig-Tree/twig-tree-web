@@ -4,13 +4,20 @@ import {
   readCollapsedServerIds,
   writeCollapsedServerIds,
 } from "../../lib/collapse/collapsedNodesStorage";
-import { getDefaultCollapsedServerIds } from "../../lib/collapse/getDefaultCollapsedServerIds";
+import { getCollapsedServerIdsAtDepth } from "../../lib/collapse/getCollapsedServerIdsAtDepth";
 import { CustomEditorEdge, CustomEditorNode } from "../types";
 
 type RestoreCollapseParams = {
   treeId: string; // 복원할 트리 ID
   nodes: CustomEditorNode[]; // 초기화로 editor store에 채운 노드 목록
   edges: CustomEditorEdge[]; // 초기화로 editor store에 채운 엣지 목록
+};
+
+type ExpandToDepthParams = {
+  treeId: string; // 접힘 상태를 바꿀 트리 ID
+  nodes: CustomEditorNode[]; // editor store의 전체 노드 목록
+  edges: CustomEditorEdge[]; // editor store의 전체 엣지 목록
+  expandedDepth: number; // 펼쳐 둘 마지막 깊이. 루트가 깊이 0이다
 };
 
 interface CollapseState {
@@ -21,6 +28,7 @@ interface CollapseState {
   toggleCollapse: (treeId: string, serverId: string) => void;
   expand: (treeId: string, serverId: string) => void;
   expandAll: (treeId: string, serverIds: string[]) => void;
+  expandToDepth: (params: ExpandToDepthParams) => void;
   applyExternalCollapse: (serverIds: string[]) => void;
   resetCollapse: () => void;
 }
@@ -71,7 +79,7 @@ export const useCollapseStore = create<CollapseState>()((set, get) => {
         saveCollapse(
           treeId,
           new Set(
-            getDefaultCollapsedServerIds(nodes, edges, DEFAULT_EXPANDED_DEPTH),
+            getCollapsedServerIdsAtDepth(nodes, edges, DEFAULT_EXPANDED_DEPTH),
           ),
         );
         return;
@@ -125,6 +133,27 @@ export const useCollapseStore = create<CollapseState>()((set, get) => {
       serverIds.forEach((serverId) => collapsedServerIds.delete(serverId));
 
       if (collapsedServerIds.size === currentServerIds.size) return; // 모두 이미 펼쳐져 있으면 저장할 변화가 없다.
+
+      saveCollapse(treeId, collapsedServerIds);
+    },
+
+    /*
+    접힘 집합을 정해진 깊이 기준으로 통째로 바꾼다. 노드별로 접어 둔 상태는 남기지 않아, 고른 깊이가 곧 화면의 모양이 된다.
+    접힘은 undo 대상이 아니므로 바꾼 뒤에는 이전 상태로 돌아갈 수 없다.
+    */
+    expandToDepth: ({ treeId, nodes, edges, expandedDepth }) => {
+      const currentServerIds = getCollapsedServerIdsOf(treeId);
+      const collapsedServerIds = new Set(
+        getCollapsedServerIdsAtDepth(nodes, edges, expandedDepth),
+      );
+
+      const isUnchanged =
+        collapsedServerIds.size === currentServerIds.size &&
+        [...collapsedServerIds].every((serverId) =>
+          currentServerIds.has(serverId),
+        );
+
+      if (isUnchanged) return; // 저장하면 다른 탭에 storage 이벤트만 일으킨다.
 
       saveCollapse(treeId, collapsedServerIds);
     },

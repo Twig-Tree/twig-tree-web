@@ -40,6 +40,7 @@ export function CustomEdge({
   targetY,
   sourcePosition,
   targetPosition,
+  style,
 }: EdgeProps<CustomEditorEdge>) {
   const { theme } = useTheme();
   const isTraced = useLectureAnimationStore((state) =>
@@ -92,8 +93,12 @@ export function CustomEdge({
         */
         style={
           isTraced
-            ? undefined
-            : { strokeWidth: EDGE_STROKE_WIDTH, strokeLinecap: "round" }
+            ? style
+            : {
+                ...style,
+                strokeWidth: EDGE_STROKE_WIDTH,
+                strokeLinecap: "round",
+              }
         }
         className={isTraced ? "lecture-edge-traced" : undefined}
       />
