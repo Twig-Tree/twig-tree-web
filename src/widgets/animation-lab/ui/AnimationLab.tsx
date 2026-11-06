@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import {
   Background,
   BackgroundVariant,
@@ -7,7 +8,6 @@ import {
   ReactFlowProvider,
 } from "@xyflow/react";
 import {
-  LectureAnimationDevPanel,
   MIN_ZOOM,
   edgeTypes,
   nodeTypes,
@@ -22,14 +22,19 @@ import {
   ANIMATION_LAB_TREE,
   ANIMATION_LAB_TREE_ID,
 } from "../model/fixtureTree";
+import { getLabAnimation } from "../model/labTimeline";
+import { LAB_PRESETS } from "../model/presets";
+import { useAnimationLabPlayback } from "../model/useAnimationLabPlayback";
+import { useLabTimeline } from "../model/useLabTimeline";
+import { AnimationComposer } from "./AnimationComposer";
 
 const handleSelectedNodeHidden = () => {}; // 닫을 메모 패널이 없다. 렌더마다 새 함수가 되면 useVisibleElements의 effect가 매번 다시 돈다.
 
 /*
 함수 이름 : AnimationLabCanvas
-기능 : 서버 없이 고정 트리를 실제 편집기의 노드·연결선·카메라로 그리고, 선택한 노드에 애니메이션을 실행한다.
+기능 : 서버 없이 고정 트리를 실제 편집기의 노드·연결선·카메라로 그리고, 타임라인으로 조합한 애니메이션을 실행한다.
 인자 : 없음
-반환값 : 애니메이션 제어 패널과 트리 캔버스
+반환값 : 애니메이션 조합 도구와 트리 캔버스
 
 제품과 같은 렌더러를 써야 여기서 본 효과가 강의에서도 같게 보이므로, 실험용 노드를 따로 만들지 않는다.
 */
@@ -61,16 +66,35 @@ function AnimationLabCanvas() {
     isLayoutRunning,
   });
 
+  const timeline = useLabTimeline(LAB_PRESETS[0].createSteps);
+  const [isLooping, setIsLooping] = useState(false);
+  const { play, stop, isPlaying, stage } = useAnimationLabPlayback({
+    revealNodes,
+    resetCamera: fitTreeView,
+    isLooping,
+  });
+
+  const handleReset = () => {
+    stop();
+    fitTreeView();
+  };
+
   return (
     <div className="flex h-full min-h-0 w-full">
       <aside
         aria-label="애니메이션 실험 도구"
-        className="w-80 shrink-0 overflow-y-auto border-r border-line bg-surface-muted p-4"
+        className="w-96 shrink-0 overflow-y-auto border-r border-line bg-surface-muted p-4"
       >
-        <LectureAnimationDevPanel
-          selectedNode={nodes.find((node) => node.selected)}
-          onRevealNodes={revealNodes}
-          onResetCamera={fitTreeView}
+        <h2 className="mb-3 text-sm font-bold text-content">Animation Lab</h2>
+        <AnimationComposer
+          timeline={timeline}
+          isPlaying={isPlaying}
+          stage={stage}
+          isLooping={isLooping}
+          onChangeLooping={setIsLooping}
+          onPlay={() => play(getLabAnimation(timeline.steps))}
+          onStop={stop}
+          onReset={handleReset}
         />
       </aside>
 
@@ -83,6 +107,11 @@ function AnimationLabCanvas() {
           minZoom={MIN_ZOOM}
           onNodesChange={onNodesChange}
           onEdgesChange={onEdgesChange}
+          onNodeClick={(_, node) => {
+            if (node.data.serverId !== null) {
+              timeline.toggleActiveStepNode(node.data.serverId);
+            }
+          }}
           nodesDraggable={false}
           nodesConnectable={false}
           edgesReconnectable={false}

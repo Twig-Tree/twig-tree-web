@@ -18,7 +18,7 @@ type FindClientId = ReturnType<typeof createLectureNodeIdResolver>;
 FindClientId findClientId -> 서버 노드 ID를 clientId로 바꾸는 함수
 반환값 : 편집기에서 실행할 애니메이션. 서버 노드 ID 하나라도 찾지 못하면 null
 */
-const getEditorLectureAnimation = (
+export const getEditorLectureAnimation = (
   animation: LectureAnimation,
   findClientId: FindClientId,
 ): EditorLectureAnimation | null => {
