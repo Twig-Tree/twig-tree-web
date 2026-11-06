@@ -162,7 +162,7 @@ export const useNodeTransition = ({
     renderedRef.current = {
       frames: getNodeFrames(movedNodes),
       nodes: movedNodes,
-      edges,
+      edges: movedEdges, // 드러나는 중에 다시 접히면 그리던 투명도에서 흐려지도록 투명도까지 담는다.
       ghostNodes,
     };
 
@@ -248,6 +248,7 @@ export const useNodeTransition = ({
     nodes,
     edges,
     movedNodes,
+    movedEdges,
     ghostNodes,
     collapsedServerIds,
     collapseTreeId,

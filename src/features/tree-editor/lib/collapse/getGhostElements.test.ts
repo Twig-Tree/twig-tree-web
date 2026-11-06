@@ -157,6 +157,31 @@ describe("getGhostEdges", () => {
     expect(ghostEdges[0].selectable).toBe(false);
   });
 
+  it("그리던 투명도가 있으면 거기에 주어진 비율을 곱한다", () => {
+    const fadingEdges = exiting.edges.map((edge) => ({
+      ...edge,
+      style: { opacity: 0.5 },
+    }));
+    const ghostEdges = getGhostEdges(
+      { ...exiting, edges: fadingEdges },
+      ghostNodes,
+      0.5,
+    );
+
+    expect(ghostEdges[0].style?.opacity).toBe(0.25);
+  });
+
+  it("그리던 투명도가 0이면 만들지 않는다", () => {
+    const hiddenEdges = exiting.edges.map((edge) => ({
+      ...edge,
+      style: { opacity: 0 },
+    }));
+
+    expect(
+      getGhostEdges({ ...exiting, edges: hiddenEdges }, ghostNodes, 1),
+    ).toEqual([]);
+  });
+
   it("다 흐려졌거나 대상 더미를 그리지 않으면 만들지 않는다", () => {
     expect(getGhostEdges(exiting, ghostNodes, 0)).toEqual([]);
     expect(getGhostEdges(exiting, [], 0.5)).toEqual([]);

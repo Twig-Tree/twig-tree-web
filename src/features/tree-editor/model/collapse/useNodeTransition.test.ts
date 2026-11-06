@@ -203,6 +203,57 @@ describe("useNodeTransition", () => {
     expect(result.current.transitionEdges[0]).toBe(EDGES[0]);
   });
 
+  /*
+  펼치기를 시작해 주어진 시간까지 진행한 뒤 다시 접는다. b는 store에 있어야 삭제가 아니라 접힘으로 본다.
+  */
+  const interruptExpandAt = (elapsed: number) => {
+    const parent = createNode("a", 0, 0);
+    const child = createNode("b", 200, 100);
+
+    useTreeStore.setState({ nodes: [parent, child], edges: EDGES });
+
+    const { result, rerender } = renderTransition([parent]);
+
+    toggleCollapse();
+    rerender({ edges: EDGES, nodes: [parent, child] });
+    isLayoutRunning = false;
+    rerender({ edges: EDGES, nodes: [{ ...parent }, { ...child }] });
+    runFrameAt(elapsed);
+
+    toggleCollapse();
+    rerender({ edges: [], nodes: [parent] });
+    isLayoutRunning = false;
+    rerender({ edges: [], nodes: [{ ...parent }] });
+
+    return result;
+  };
+
+  it("연결선이 드러나는 중에 다시 접으면 그리던 투명도에서 흐려진다", () => {
+    const result = interruptExpandAt(
+      MOTION_DURATION_MS + EDGE_FADE_DURATION_MS / 2,
+    );
+
+    expect(result.current.transitionEdges[0].id).toBe("ghost:e-a-b");
+    expect(result.current.transitionEdges[0].style?.opacity).toBeCloseTo(0.5);
+
+    runFrameAt(EDGE_FADE_DURATION_MS / 2);
+    expect(result.current.transitionEdges[0].style?.opacity).toBeCloseTo(0.25);
+
+    runFrameAt(EDGE_FADE_DURATION_MS);
+    expect(result.current.transitionEdges).toEqual([]);
+
+    useTreeStore.setState({ nodes: [], edges: [] });
+  });
+
+  it("연결선이 드러나기 전에 다시 접으면 연결선을 그리지 않는다", () => {
+    const result = interruptExpandAt(MOTION_DURATION_MS / 2);
+
+    expect(result.current.transitionNodes[0].id).toBe("ghost:b");
+    expect(result.current.transitionEdges).toEqual([]);
+
+    useTreeStore.setState({ nodes: [], edges: [] });
+  });
+
   it("접혀서 빠진 노드는 더미로 부모 자리까지 들어간 뒤 사라진다", () => {
     const parent = createNode("a", 0, 0);
     const child = createNode("b", 200, 100);

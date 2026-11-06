@@ -96,12 +96,12 @@ export const getExitingElements = ({
 
 /*
 함수 이름 : getOpacityOf
-기능 : 노드가 그려지던 투명도를 읽는다.
-인자 : CustomEditorNode node -> 노드
+기능 : 노드나 엣지가 그려지던 투명도를 읽는다.
+인자 : Pick<CustomEditorNode, "style"> element -> 노드나 엣지
 반환값 : 투명도. 없으면 1
 */
-const getOpacityOf = (node: CustomEditorNode) =>
-  typeof node.style?.opacity === "number" ? node.style.opacity : 1;
+const getOpacityOf = ({ style }: Pick<CustomEditorNode, "style">) =>
+  typeof style?.opacity === "number" ? style.opacity : 1;
 
 /*
 함수 이름 : getGhostNodes
@@ -160,10 +160,11 @@ export const getGhostNodes = (
 
 /*
 함수 이름 : getGhostEdges
-기능 : 더미 노드로 들어가는 엣지를 주어진 투명도로 만든다. 출발 노드도 사라지는 중이면 그 더미에서 출발한다. 다 흐려지면 만들지 않는다.
+기능 : 더미 노드로 들어가는 엣지를 만든다. 드러나는 도중에 다시 접혔으면 그리던 투명도에서 흐려지도록 주어진 비율을 곱한다.
+출발 노드도 사라지는 중이면 그 더미에서 출발한다. 다 흐려지면 만들지 않는다.
 인자 : ExitingElements exiting -> 사라지는 노드와 엣지
 CustomEditorNode[] ghostNodes -> 지금 그릴 더미 노드 목록
-number opacity -> 엣지 투명도
+number opacity -> 그리던 투명도에 곱할 비율
 반환값 : 더미 엣지 목록
 */
 export const getGhostEdges = (
@@ -171,8 +172,6 @@ export const getGhostEdges = (
   ghostNodes: CustomEditorNode[],
   opacity: number,
 ): CustomEditorEdge[] => {
-  if (opacity === 0) return [];
-
   const ghostIds = new Set(ghostNodes.map((node) => node.id));
   const exitingClientIds = new Set(exiting.nodes.map(({ node }) => node.id));
 
@@ -181,8 +180,10 @@ export const getGhostEdges = (
     const source = exitingClientIds.has(edge.source)
       ? getGhostClientId(edge.source)
       : edge.source;
+    const edgeOpacity = getOpacityOf(edge) * opacity;
 
     if (
+      edgeOpacity === 0 ||
       !ghostIds.has(target) ||
       (exitingClientIds.has(edge.source) && !ghostIds.has(source))
     ) {
@@ -195,7 +196,7 @@ export const getGhostEdges = (
         id: getGhostClientId(edge.id),
         source,
         target,
-        style: { ...edge.style, opacity },
+        style: { ...edge.style, opacity: edgeOpacity },
         selected: false,
         selectable: false,
         focusable: false,
