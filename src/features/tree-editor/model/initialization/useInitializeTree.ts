@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { TreeNode } from "@/src/entities/tree";
 import { transformToFlowElements } from "../../lib/mappers";
 import { useCollapseStore } from "../collapse/collapseStore";
+import { useEditHistoryStore } from "../history/editHistoryStore";
 import { useHighlightStore } from "../highlight/highlightStore";
 import { useLectureStore } from "../lecture/lectureStore";
 import { useLectureAnimationStore } from "../lecture/lectureAnimationStore";
@@ -10,19 +11,17 @@ import { useTreeStore } from "../treeStore";
 type UseInitializeTreeParams = {
   treeId: string | null; // 편집할 트리 ID. 트리가 없는 워크스페이스는 null
   treeData: TreeNode[] | undefined; // 트리 조회 캐시의 노드 목록
-  clear: () => void; // 초기화 직후 undo/redo history를 비우는 함수
 };
 
 /*
 함수 이름 : useInitializeTree
-기능 : 트리 조회 캐시의 노드 목록을 editor store의 초기 상태로 반영하면서 저장된 접힘 상태를 복원하고, 편집기를 벗어날 때 editor store·접힘 store·강조 store·강의 store를 비운다.
+기능 : 트리 조회 캐시의 노드 목록을 editor store의 초기 상태로 반영하면서 저장된 접힘 상태를 복원하고 undo 기록을 비운다. 편집기를 벗어날 때 editor store·접힘 store·강조 store·undo 기록·강의 store를 비운다.
 인자 : UseInitializeTreeParams
 반환값 : 없음
 */
 export const useInitializeTree = ({
   treeId,
   treeData,
-  clear,
 }: UseInitializeTreeParams) => {
   const initializeTree = useTreeStore((state) => state.initializeTree);
   const resetTree = useTreeStore((state) => state.resetTree);
@@ -34,6 +33,7 @@ export const useInitializeTree = ({
   const resetLectureVisual = useLectureAnimationStore(
     (state) => state.resetVisual,
   );
+  const clearEditHistory = useEditHistoryStore((state) => state.clear);
 
   /*
   초기화는 트리당 한 번만 수행한다. 재초기화는 모든 노드의 position을 원점으로 되돌리고
@@ -61,14 +61,21 @@ export const useInitializeTree = ({
     */
     restoreCollapse({ treeId, nodes, edges });
 
-    clear();
-  }, [treeId, treeData, currentTreeId, initializeTree, restoreCollapse, clear]);
+    clearEditHistory();
+  }, [
+    treeId,
+    treeData,
+    currentTreeId,
+    initializeTree,
+    restoreCollapse,
+    clearEditHistory,
+  ]);
 
   /*
   편집기를 벗어나면 store를 비운다. 위 가드가 store가 남아 있는 한 재초기화를 막으므로,
   비우지 않으면 재진입했을 때 이전 store 상태가 그대로 그려지고 그 사이의 서버 변경이 반영되지 않는다.
   접힘 store는 treeStore와 함께 채워지므로 비울 때도 함께 비워 두 store의 생명주기를 맞춘다.
-  강조 store와 강의 store는 clientId를 담는데, 다시 들어오면 노드 신원이 새로 만들어지므로 남겨 둘 값이 없다.
+  강조 store, undo 기록, 강의 store는 clientId를 담는데, 다시 들어오면 노드 신원이 새로 만들어지므로 남겨 둘 값이 없다.
   강의 음성은 재생 엔진의 cleanup이 끊으므로 여기서는 위치만 비운다.
   */
   useEffect(
@@ -76,6 +83,7 @@ export const useInitializeTree = ({
       resetTree();
       resetCollapse();
       clearHighlight();
+      clearEditHistory();
       resetLecture();
       resetLectureVisual();
     },
@@ -83,6 +91,7 @@ export const useInitializeTree = ({
       resetTree,
       resetCollapse,
       clearHighlight,
+      clearEditHistory,
       resetLecture,
       resetLectureVisual,
     ],

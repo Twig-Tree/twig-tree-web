@@ -80,6 +80,32 @@ export interface EditNodeNameRequest {
 export type EditNodeNameResponse = ApiResponse<NodeDTO>;
 
 /*
+노드 이동 요청 body type
+같은 부모 안에서 순서만 바꿀 때도 parentId를 싣는다. 루트로는 옮길 수 없어 null이 없다.
+*/
+export interface MoveNodeRequest {
+  parentId: number; // 목적지 부모 노드 ID
+  position: number; // 목적지 부모 밑에서의 순번. 1부터 센다
+}
+
+/*
+노드 이동 결과 DTO type
+이동으로 형제들의 orderId가 함께 다시 매겨지므로, 서버가 영향받은 형제 목록을 orderId 오름차순으로 돌려준다.
+같은 부모 안 이동이면 previousParentId는 null, previousSiblings는 빈 배열이다.
+*/
+export interface MoveNodeResultDTO {
+  parentId: number;
+  siblings: NodeDTO[]; // 목적지 부모의 자식 전체. 옮긴 노드도 새 parentId로 들어 있다
+  previousParentId: number | null;
+  previousSiblings: NodeDTO[]; // 다른 부모로 옮겼을 때 원래 부모에 남은 자식 전체
+}
+
+/*
+노드 이동 응답 type
+*/
+export type MoveNodeResponse = ApiResponse<MoveNodeResultDTO>;
+
+/*
 메모 응답 DTO type
 */
 export interface MemoDTO {

@@ -6,11 +6,11 @@ import type { FileKind } from "../model/types";
 아이콘 라이브러리 의존을 이 파일 하나로 제한해, 라이브러리를 교체해도 다른 컴포넌트가 영향을 받지 않게 한다.
 */
 const KIND_STYLES: Record<FileKind, { Icon: LucideIcon; className: string }> = {
-  hwp: { Icon: FileType, className: "bg-emerald-50 text-emerald-600" },
-  pdf: { Icon: FileText, className: "bg-red-50 text-red-500" },
-  text: { Icon: FileText, className: "bg-slate-100 text-slate-500" },
-  unknown: { Icon: File, className: "bg-slate-100 text-slate-400" },
-  word: { Icon: FileText, className: "bg-blue-50 text-blue-500" },
+  hwp: { Icon: FileType, className: "bg-success-subtle text-success" },
+  pdf: { Icon: FileText, className: "bg-danger-subtle text-danger" },
+  text: { Icon: FileText, className: "bg-surface-hover text-content-muted" },
+  unknown: { Icon: File, className: "bg-surface-hover text-content-muted" },
+  word: { Icon: FileText, className: "bg-info-subtle text-info" },
 };
 
 interface FileTypeIconProps {
@@ -31,7 +31,7 @@ export function FileTypeIcon({ kind }: FileTypeIconProps) {
   return (
     <span
       aria-hidden="true"
-      className={`flex size-9 shrink-0 items-center justify-center rounded-lg ${className}`}
+      className={`flex size-9 shrink-0 items-center justify-center rounded-control ${className}`}
     >
       <Icon className="size-5" />
     </span>

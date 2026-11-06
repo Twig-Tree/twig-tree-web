@@ -5,12 +5,15 @@ import {
   GetTreeResponse,
   CreateTreeFromPromptResponse,
   CreateNodeResponse,
+  MoveNodeRequest,
+  MoveNodeResponse,
   TreeMockScenario,
 } from "./types";
 import { ApiResponse } from "@/src/shared/api/types";
-import { CreatedTree, TreeNode } from "../model/types";
+import { CreatedTree, MovedNodes, TreeNode } from "../model/types";
 import {
   mapCreatedTreeDtoToDomain,
+  mapMoveNodeResultDtoToDomain,
   mapNodeDtoToDomain,
   mapNodesDtoToDomain,
 } from "../lib/mappers";
@@ -116,5 +119,27 @@ export const treeApi = {
     await axiosInstance.delete<ApiResponse<void>>(
       `/trees/${treeId}/nodes/${nodeId}`,
     );
+  },
+
+  /*
+  함수 이름 : moveNode
+  기능 : 노드를 하위 트리째 목적지 부모 밑의 position 번째로 옮긴다. 같은 부모면 순서만 바뀐다.
+  인자 : number treeId -> 노드가 속한 트리 ID
+  number nodeId -> 옮길 노드 ID
+  MoveNodeRequest body -> 목적지 부모와 순번
+  반환값 : 순서가 다시 매겨진 목적지 형제와 원래 형제 목록
+
+  부모와 순서는 트리 구조이므로 노드 속성을 다루는 nodeApi가 아니라 여기에 둔다.
+  */
+  moveNode: async (
+    treeId: number,
+    nodeId: number,
+    body: MoveNodeRequest,
+  ): Promise<MovedNodes> => {
+    const res = await axiosInstance.patch<MoveNodeResponse>(
+      `/trees/${treeId}/nodes/${nodeId}/move`,
+      body,
+    );
+    return mapMoveNodeResultDtoToDomain(res.data.data);
   },
 };

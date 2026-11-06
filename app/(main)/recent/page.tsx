@@ -32,7 +32,7 @@ export default function RecentPage() {
   };
 
   return (
-    <div className="h-full overflow-y-auto bg-slate-50/70 px-6 py-8 lg:px-8">
+    <div className="h-full overflow-y-auto bg-surface-muted/70 px-6 py-8 lg:px-8">
       <div className="mx-auto flex w-full max-w-7xl flex-col gap-8">
         <RecentHeader
           onSelectFolderPath={(folderParentId) =>

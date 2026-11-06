@@ -69,7 +69,7 @@ export const mapToVisualEdges = (
         id: `e-${sourceId}-${targetId}`, // 엣지 ID는 고유해야 합니다.
         source: sourceId, // 부모가 source가 됩니다.
         target: targetId, // 현재 노드가 target이 됩니다.
-        type: "custom", // 강의 추적 상태를 구독하면서 기존 smooth step 모양을 그리는 엣지
+        type: "custom",
       },
     ];
   });

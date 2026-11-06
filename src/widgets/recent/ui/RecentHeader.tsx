@@ -27,7 +27,7 @@ export function RecentHeader({
   return (
     <>
       <header className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
-        <h1 className="text-3xl font-bold tracking-tight text-slate-900">
+        <h1 className="text-3xl font-bold tracking-tight text-content">
           Recent
         </h1>
 

@@ -358,6 +358,82 @@ export const handlers = [
   }),
 
   /*
+  노드 이동 PATCH 요청 핸들러.
+  RAW_TREE_DATA를 바꾸지 않고, 백엔드처럼 목적지 형제 사이에 끼워 1..n으로 다시 매긴 결과를 매 요청 계산해 돌려준다.
+  다른 부모로 옮기면 원래 부모에 남은 형제도 다시 매긴다. 루트 이동, 하위 노드 밑으로 이동, 범위 밖 순번은 백엔드의 코드로 거절한다.
+  */
+  http.patch(
+    "*/api/trees/:treeId/nodes/:nodeId/move",
+    async ({ params, request }) => {
+      const body = (await request.json()) as {
+        parentId: number;
+        position: number;
+      };
+      const nodeId = Number(params.nodeId);
+      const node = RAW_TREE_DATA.find((n) => n.nodeId === nodeId);
+
+      const respondWithError = (status: number, code: string) =>
+        HttpResponse.json(
+          { isSuccess: false, code, message: "", data: null },
+          { status },
+        );
+
+      if (!node) return respondWithError(404, "NODE404-1");
+      if (node.parentId === null) return respondWithError(400, "NODE400-1");
+      if (!RAW_TREE_DATA.some((n) => n.nodeId === body.parentId))
+        return respondWithError(404, "NODE404-2");
+
+      /*
+      목적지 부모에서 루트까지 거슬러 올라가며 옮길 노드를 만나면 자기 자신이나 하위 노드 밑으로 옮기는 것이다.
+      */
+      let ancestorId: number | null = body.parentId;
+      while (ancestorId !== null) {
+        if (ancestorId === nodeId) return respondWithError(400, "NODE400-2");
+
+        const currentId: number = ancestorId;
+        ancestorId =
+          RAW_TREE_DATA.find((n) => n.nodeId === currentId)?.parentId ?? null;
+      }
+
+      const getChildrenWithoutNode = (parentId: number) =>
+        RAW_TREE_DATA.filter(
+          (n) => n.parentId === parentId && n.nodeId !== nodeId,
+        ).sort((a, b) => a.orderId - b.orderId);
+
+      const renumber = (nodes: typeof RAW_TREE_DATA) =>
+        nodes.map((n, index) => ({ ...n, orderId: index + 1 }));
+
+      const isSameParent = node.parentId === body.parentId;
+      const siblings = getChildrenWithoutNode(body.parentId);
+
+      /*
+      옮길 노드를 뺀 형제 수 + 1이 허용 범위의 끝이다. 같은 부모면 1..n, 다른 부모면 1..n+1과 같다.
+      */
+      if (body.position < 1 || body.position > siblings.length + 1)
+        return respondWithError(400, "NODE400-3");
+
+      siblings.splice(body.position - 1, 0, {
+        ...node,
+        parentId: body.parentId,
+      });
+
+      return HttpResponse.json({
+        isSuccess: true,
+        code: "NODE200-5",
+        message: "성공적으로 노드를 이동했습니다.",
+        data: {
+          parentId: body.parentId,
+          siblings: renumber(siblings),
+          previousParentId: isSameParent ? null : node.parentId,
+          previousSiblings: isSameParent
+            ? []
+            : renumber(getChildrenWithoutNode(node.parentId)),
+        },
+      });
+    },
+  ),
+
+  /*
   노드 생성 POST 요청 핸들러.
   요청 body를 그대로 반영해 응답하므로 parentId가 실제로 어떻게 실려 가는지 확인할 수 있다.
   백엔드처럼 트리당 루트는 하나라, 루트가 있는 트리(RAW_TREE_DATA를 쓰는 10번)에 루트를 만들면 409로 거절한다.

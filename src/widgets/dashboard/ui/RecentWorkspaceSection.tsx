@@ -46,7 +46,7 @@ export function RecentWorkspaceSection({
     */
     if (isError) {
       return (
-        <p role="alert" className="mt-4 text-sm font-medium text-red-600">
+        <p role="alert" className="mt-4 text-sm font-medium text-danger">
           최근 워크스페이스를 불러오지 못했습니다.
         </p>
       );
@@ -73,7 +73,7 @@ export function RecentWorkspaceSection({
     */
     if (isLoaded && workspaces.length === 0) {
       return (
-        <p className="mt-4 text-sm text-slate-400">
+        <p className="mt-4 text-sm text-content-muted">
           아직 작업한 워크스페이스가 없습니다.
         </p>
       );
@@ -95,14 +95,14 @@ export function RecentWorkspaceSection({
       <div className="flex items-center justify-between">
         <h2
           id="recent-workspaces-heading"
-          className="text-xs font-semibold tracking-wider text-slate-500 uppercase"
+          className="text-xs font-semibold tracking-wider text-content-muted uppercase"
         >
           Recent Workspaces
         </h2>
 
         <Link
           href={viewAllHref}
-          className="text-xs font-medium text-indigo-600 transition-colors hover:text-indigo-700"
+          className="text-xs font-medium text-accent transition-colors hover:text-accent-hover"
         >
           View All
         </Link>

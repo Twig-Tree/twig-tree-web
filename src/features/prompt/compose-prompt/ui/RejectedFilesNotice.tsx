@@ -38,7 +38,7 @@ export function RejectedFilesNotice({
   return (
     <div
       role="alert"
-      className="flex items-start gap-2 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800"
+      className="flex items-start gap-2 rounded-control border border-warning-line bg-warning-subtle px-3 py-2 text-xs text-warning-strong"
     >
       <div className="min-w-0 flex-1 space-y-1.5">
         {namesByExtension.length > 0 ? (
@@ -46,7 +46,7 @@ export function RejectedFilesNotice({
             <p className="font-medium">
               첨부할 수 없는 형식입니다: {namesByExtension.join(", ")}
             </p>
-            <p className="mt-0.5 text-amber-700">
+            <p className="mt-0.5 text-warning">
               지원 형식: {ACCEPTED_FILE_EXTENSIONS.join(", ")}
             </p>
           </div>
@@ -57,7 +57,7 @@ export function RejectedFilesNotice({
             <p className="font-medium">
               용량이 너무 큽니다: {namesBySize.join(", ")}
             </p>
-            <p className="mt-0.5 text-amber-700">
+            <p className="mt-0.5 text-warning">
               {formatFileSize(MAX_ATTACHMENT_SIZE_BYTES)}까지 첨부할 수
               있습니다.
             </p>

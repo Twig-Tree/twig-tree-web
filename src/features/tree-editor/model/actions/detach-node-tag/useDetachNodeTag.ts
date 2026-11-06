@@ -39,7 +39,7 @@ export const useDetachNodeTag = ({
     removeTagFromNodeInStore(clientId, tagId);
 
     /*
-    태그 store action은 history에 기록되지 않으므로 undo()가 아니라 그 태그만 다시 붙여 되돌린다.
+    요청이 실패하면 이 action이 바꾼 값만 되돌린다. 그 태그만 다시 붙인다.
     다시 붙인 태그는 원래 자리가 아니라 끝에 놓인다. 새로고침하면 서버 순서로 돌아온다.
     */
     try {

@@ -21,7 +21,7 @@ export function NodeResultList({
 }: NodeResultListProps) {
   if (results.length === 0) {
     return (
-      <p className="px-3 py-6 text-center text-sm text-slate-500">
+      <p className="px-3 py-6 text-center text-sm text-content-muted">
         {emptyMessage}
       </p>
     );
@@ -29,7 +29,7 @@ export function NodeResultList({
 
   return (
     <div className="flex flex-col gap-1">
-      <p className="px-3 text-xs font-medium text-slate-400">
+      <p className="px-3 text-xs font-medium text-content-muted">
         결과 {results.length}개
       </p>
 
@@ -41,7 +41,7 @@ export function NodeResultList({
               title={result.label}
               disabled={isSelectDisabled}
               onClick={() => onSelect(result)}
-              className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-sm text-slate-700 hover:bg-slate-100 focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none disabled:cursor-not-allowed disabled:text-slate-400 disabled:hover:bg-transparent"
+              className="flex w-full items-center gap-2 rounded-control px-3 py-panel-item text-left text-sm text-content-secondary hover:bg-surface-hover focus-visible:ring-2 focus-visible:ring-focus focus-visible:outline-none disabled:cursor-not-allowed disabled:text-content-disabled disabled:hover:bg-transparent"
             >
               <span className="min-w-0 flex-1 truncate">{result.label}</span>
               {/*
@@ -51,7 +51,7 @@ export function NodeResultList({
                 <>
                   <span
                     aria-hidden="true"
-                    className="shrink-0 rounded bg-amber-50 px-1.5 py-0.5 text-[10px] font-medium text-amber-700 ring-1 ring-amber-200"
+                    className="shrink-0 rounded-control bg-warning-subtle px-1.5 py-0.5 text-[10px] font-medium text-warning ring-1 ring-warning-line"
                   >
                     메모
                   </span>

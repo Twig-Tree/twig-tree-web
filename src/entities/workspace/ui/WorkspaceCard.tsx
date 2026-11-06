@@ -59,11 +59,11 @@ export function WorkspaceCard({
   const hasMenu = menuItems.length > 0;
 
   return (
-    <article className="group relative flex min-h-36 flex-col justify-between rounded-xl border border-slate-100 bg-white p-5 shadow-sm transition-shadow hover:shadow-md">
+    <article className="group relative flex min-h-36 flex-col justify-between rounded-card border border-line-subtle bg-surface p-5 shadow-card transition-shadow hover:shadow-card-hover">
       <Link
         href={routes.workspace(workspace.id)}
         aria-label={`${workspace.name} 워크스페이스 열기`}
-        className="absolute inset-0 rounded-xl outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2"
+        className="absolute inset-0 rounded-card outline-none focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-offset-2"
       />
 
       {hasMenu ? (
@@ -76,12 +76,12 @@ export function WorkspaceCard({
       ) : null}
 
       <Heading
-        className={`pointer-events-none relative text-base font-semibold leading-snug text-slate-800 transition-colors group-hover:text-indigo-700 ${hasMenu ? "pr-8" : ""}`}
+        className={`pointer-events-none relative text-base font-semibold leading-snug text-content transition-colors group-hover:text-accent-hover ${hasMenu ? "pr-8" : ""}`}
       >
         {workspace.name}
       </Heading>
       {formattedUpdatedAt ? (
-        <p className="pointer-events-none relative text-xs text-slate-500">
+        <p className="pointer-events-none relative text-xs text-content-muted">
           Modified {formattedUpdatedAt}
         </p>
       ) : null}

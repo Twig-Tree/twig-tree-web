@@ -157,13 +157,13 @@ export const TagInput = ({
             type="button"
             disabled={isLimitReached}
             onClick={() => setIsEditing(true)}
-            className="h-7 rounded-full border border-dashed border-slate-300 px-2.5 text-xs text-slate-500 hover:border-slate-400 hover:text-slate-700 focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none disabled:cursor-not-allowed disabled:border-slate-200 disabled:text-slate-300 disabled:hover:border-slate-200"
+            className="h-7 rounded-full border border-dashed border-line-strong px-2.5 text-xs text-content-muted hover:border-line-strong hover:text-content-secondary focus-visible:ring-2 focus-visible:ring-focus focus-visible:outline-none disabled:cursor-not-allowed disabled:border-line disabled:text-content-disabled disabled:hover:border-line"
           >
             + 태그 추가
           </button>
 
           {isLimitReached ? (
-            <p className="text-xs text-slate-400">{tagLimitMessage}</p>
+            <p className="text-xs text-content-muted">{tagLimitMessage}</p>
           ) : null}
         </div>
       </div>
@@ -195,19 +195,19 @@ export const TagInput = ({
           onKeyDown={handleKeyDown}
           onBlur={closeInput}
           placeholder="태그 이름"
-          className="h-7 w-full rounded-md border border-slate-200 px-2.5 text-xs text-slate-700 outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 aria-[invalid=true]:border-red-400"
+          className="h-7 w-full rounded-control border border-line bg-surface px-2.5 text-xs text-content-secondary outline-none focus:border-accent focus:ring-2 focus:ring-accent-subtle aria-[invalid=true]:border-danger-line"
         />
 
         {hasDropdown ? (
           <div className="absolute top-full left-0 z-10 mt-1 w-full">
             {errorMessage ? (
-              <p role="alert" className="mb-1 text-xs font-medium text-red-600">
+              <p role="alert" className="mb-1 text-xs font-medium text-danger">
                 {errorMessage}
               </p>
             ) : null}
 
             {suggestions.length > 0 || willCreateTag ? (
-              <div className="overflow-hidden rounded-md border border-slate-200 bg-white shadow-sm">
+              <div className="overflow-hidden rounded-control border border-line bg-surface shadow-overlay">
                 {suggestions.length > 0 ? (
                   <ul
                     id={listboxId}
@@ -226,7 +226,7 @@ export const TagInput = ({
                         */
                         onMouseDown={(event) => event.preventDefault()}
                         onClick={() => attachSuggestion(tag.id)}
-                        className="cursor-pointer truncate px-3 py-1 text-sm text-slate-700 hover:bg-slate-100 aria-selected:bg-slate-100"
+                        className="cursor-pointer truncate px-3 py-1 text-sm text-content-secondary hover:bg-surface-hover aria-selected:bg-surface-hover"
                       >
                         {tag.name}
                       </li>
@@ -235,7 +235,7 @@ export const TagInput = ({
                 ) : null}
 
                 {willCreateTag ? (
-                  <p className="truncate border-t border-slate-100 px-3 py-1 text-xs text-slate-500 first:border-t-0">
+                  <p className="truncate border-t border-line-subtle px-3 py-1 text-xs text-content-muted first:border-t-0">
                     Enter로 &quot;{trimmedValue}&quot; 태그를 새로 만듭니다.
                   </p>
                 ) : null}

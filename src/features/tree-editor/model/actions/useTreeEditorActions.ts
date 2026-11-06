@@ -3,6 +3,8 @@ import { useTreeStore } from "../treeStore";
 import { useAddNode } from "./add-node/useAddNode";
 import { useAddRootNode } from "./add-root-node/useAddRootNode";
 import { useDeleteNode } from "./delete-node/useDeleteNode";
+import { useMoveNode } from "./move-node/useMoveNode";
+import { useUndoRedo } from "./undo-redo/useUndoRedo";
 
 type UseTreeEditorActionsParams = {
   workspaceId: string; // 편집 중인 워크스페이스 ID. 트리가 없을 때 루트 추가가 트리를 만든다
@@ -35,6 +37,9 @@ export const useTreeEditorActions = ({
       selectedNode,
     },
   );
+  const { moveNode, isMovingNode } = useMoveNode({ treeId });
+  const { handleUndo, handleRedo, canUndo, canRedo, isUndoingOrRedoing } =
+    useUndoRedo({ treeId });
 
   /*
   노드 추가 버튼 하나가 노드 개수에 따라 루트 추가와 자식 추가를 나눠 맡는다.
@@ -58,5 +63,12 @@ export const useTreeEditorActions = ({
     isDeletingNode,
     isDeleteNodeError,
     handleDeleteNode,
+    moveNode,
+    isMovingNode,
+    handleUndo,
+    handleRedo,
+    canUndo,
+    canRedo,
+    isUndoingOrRedoing,
   };
 };

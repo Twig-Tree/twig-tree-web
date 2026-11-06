@@ -264,11 +264,11 @@ export function LectureAnimationDevPanel({
   return (
     <section
       aria-label="애니메이션 개발 패널"
-      className="w-72 rounded-xl border border-cyan-200 bg-white/95 p-3 shadow-lg backdrop-blur"
+      className="w-72 rounded-card border border-line bg-surface/95 p-3 shadow-overlay backdrop-blur"
     >
       <div className="flex items-center gap-2">
-        <FlaskConical className="size-4 text-cyan-600" aria-hidden="true" />
-        <h2 className="text-sm font-bold text-slate-800">Animation DEV</h2>
+        <FlaskConical className="size-4 text-accent" aria-hidden="true" />
+        <h2 className="text-sm font-bold text-content">Animation DEV</h2>
         <IconButton
           aria-label="애니메이션 개발 패널 접기"
           size="sm"
@@ -279,7 +279,7 @@ export function LectureAnimationDevPanel({
         </IconButton>
       </div>
 
-      <p className="mt-1 truncate text-xs text-slate-500">
+      <p className="mt-1 truncate text-xs text-content-secondary">
         {selectedLabel
           ? `대상: ${selectedLabel}${childClientId ? " + 첫 자식" : ""}`
           : "트리에서 노드를 먼저 선택하세요."}
@@ -288,7 +288,7 @@ export function LectureAnimationDevPanel({
       <p
         role="status"
         aria-live="polite"
-        className="mt-2 rounded-md bg-cyan-50 px-2 py-1.5 text-xs font-medium text-cyan-800"
+        className="mt-2 rounded-md bg-accent-subtle px-2 py-1.5 text-xs font-medium text-accent"
       >
         {activeStage ? `실행 중: ${activeStage}` : "대기 중"}
       </p>
@@ -345,7 +345,7 @@ export function LectureAnimationDevPanel({
         </Button>
       </div>
 
-      <div className="mt-3 flex gap-2 border-t border-slate-100 pt-3">
+      <div className="mt-3 flex gap-2 border-t border-line pt-3">
         <Button
           className="flex-1"
           disabled={!isRunning}

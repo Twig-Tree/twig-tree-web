@@ -2,9 +2,9 @@ import type { ButtonHTMLAttributes } from "react";
 
 const variantStyles = {
   primary:
-    "bg-indigo-600 text-white shadow-sm hover:bg-indigo-700 disabled:bg-indigo-300",
+    "bg-accent text-on-accent shadow-control hover:bg-accent-hover disabled:bg-accent-disabled",
   secondary:
-    "bg-slate-100 text-slate-700 hover:bg-slate-200 disabled:text-slate-400",
+    "bg-surface-hover text-content-secondary hover:bg-surface-strong disabled:text-content-disabled",
 } as const;
 
 export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
@@ -35,7 +35,7 @@ export function Button({
     <button
       {...props}
       type={type}
-      className={`inline-flex h-10 items-center justify-center gap-2 rounded-lg px-4 text-sm font-semibold transition-colors disabled:cursor-not-allowed ${variantStyles[variant]} ${className ?? ""}`}
+      className={`inline-flex h-10 items-center justify-center gap-2 rounded-control px-4 text-sm font-semibold transition-colors disabled:cursor-not-allowed ${variantStyles[variant]} ${className ?? ""}`}
     />
   );
 }

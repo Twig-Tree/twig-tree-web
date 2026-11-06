@@ -1,8 +1,11 @@
-export { nodeTypes, edgeTypes } from "./constants/flowConfig";
+export { nodeTypes, edgeTypes, MIN_ZOOM } from "./constants/flowConfig";
+export { EditorToolbar } from "./ui/EditorToolbar";
 export { MemoSidePanel } from "./ui/MemoSidePanel";
 export { LecturePlayer } from "./ui/LecturePlayer";
 export { LectureAnimationDevPanel } from "./ui/LectureAnimationDevPanel";
 export { useDemoLectureScript } from "./model/lecture/useDemoLectureScript";
+export { NodeContextMenu } from "./ui/NodeContextMenu";
+export { DropIndicatorOverlay } from "./ui/DropIndicatorOverlay";
 export { useTreeEditorActions } from "./model/actions/useTreeEditorActions";
 export { useDeleteTreeTag } from "./model/actions/delete-tree-tag/useDeleteTreeTag";
 export { useInitializeTree } from "./model/initialization/useInitializeTree";
@@ -10,13 +13,15 @@ export { useSyncCollapseAcrossTabs } from "./model/collapse/useSyncCollapseAcros
 export { useVisibleElements } from "./model/collapse/useVisibleElements";
 export { useEditorLayout } from "./model/layout/useEditorLayout";
 export { useFocusNode } from "./model/focus/useFocusNode";
+export { useNodeContextMenu } from "./model/context-menu/useNodeContextMenu";
+export { useMoveNodeByDrag } from "./model/drag/useMoveNodeByDrag";
 export { useNodeSearch } from "./model/search/useNodeSearch";
 export { useHighlightResults } from "./model/highlight/useHighlightResults";
 export { useTagResults } from "./model/tag/useTagResults";
 export { useTreeTags } from "./model/tag/useTreeTags";
 export { getTaggedNodeResults } from "./lib/tag/getTaggedNodeResults";
 export { useReactFlowStoreSetters } from "./model/react-flow/useReactFlowStoreSetters";
-export { useTreeHistory, useTreeStore } from "./model/treeStore";
+export { useTreeStore } from "./model/treeStore";
 export type {
   CustomEditorEdge,
   CustomEditorNode,

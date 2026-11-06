@@ -26,13 +26,18 @@ import { CollapseToggleButton } from "./CollapseToggleButton";
 export function CustomNode({
   id,
   data,
-  parentId,
   targetPosition,
   sourcePosition,
+  isConnectable,
 }: NodeProps<CustomEditorNode>) {
-  const isRoot = parentId === null;
-
   const treeId = useTreeStore((state) => state.treeId);
+
+  /*
+  트리 구조는 React Flow의 parentId가 아니라 엣지로 표현하므로, 들어오는 엣지가 없는 노드가 루트다.
+  */
+  const isRoot = useTreeStore(
+    (state) => !state.edges.some((edge) => edge.target === id),
+  );
 
   /*
   셀렉터가 boolean을 돌려주므로, 강조 집합이 바뀌어도 이 노드의 강조 여부가 같으면 다시 그려지지 않는다.
@@ -183,9 +188,13 @@ export function CustomNode({
   /*
   테두리는 React Flow가 감싸는 .react-flow__node가 그리므로, 강조 여부를 속성으로만 알리고 스타일은 xy-theme.css가 바깥 요소에 입힌다.
   */
+  /*
+  Handle은 isConnectable을 받지 않으면 true로 두므로, ReactFlow의 nodesConnectable이 핸들까지 닿도록 그대로 넘긴다.
+  */
   return (
     <div
       className="custom-node"
+      data-root={isRoot}
       data-highlighted={isHighlighted}
       data-lecture-current={isLectureCurrent}
       data-lecture-highlighted={isLectureHighlighted}
@@ -196,6 +205,7 @@ export function CustomNode({
         type="target"
         position={targetPosition ?? Position.Top}
         id="input"
+        isConnectable={isConnectable}
         style={{ visibility: isRoot ? "hidden" : "visible" }}
       />
 
@@ -214,13 +224,13 @@ export function CustomNode({
             onBlur={handleBlur}
             onChange={handleChange}
             onKeyDown={handleKeyDown}
-            className="nodrag nopan w-full rounded border border-indigo-400 bg-white px-1 py-0.5 text-center text-xs text-slate-800 outline-none disabled:cursor-wait disabled:bg-slate-50"
+            className="nodrag nopan w-full rounded-control border border-accent/50 bg-node-content/7 px-1 py-0.5 text-center text-xs text-node-content outline-none disabled:cursor-wait disabled:bg-node-content/4"
           />
           {errorMessage ? (
             <p
               id={`node-name-error-${id}`}
               role="alert"
-              className="max-w-40 text-[10px] leading-tight font-medium text-red-600"
+              className="max-w-40 text-[10px] leading-tight font-medium text-danger"
             >
               {errorMessage}
             </p>
@@ -242,6 +252,7 @@ export function CustomNode({
         type="source"
         position={sourcePosition ?? Position.Bottom}
         id="output"
+        isConnectable={isConnectable}
       />
 
       <CollapseToggleButton clientId={id} serverId={data.serverId} />

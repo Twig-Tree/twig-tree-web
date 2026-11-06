@@ -8,6 +8,12 @@ import ELK from "elkjs/lib/elk.bundled.js";
 const elk = new ELK();
 
 /*
+노드 크기는 내용과 상관없이 고정이다. 레이아웃이 이 크기로 위치를 계산하고 React Flow도 같은 크기로 노드를 그린다.
+*/
+export const NODE_WIDTH = 168;
+const NODE_HEIGHT = 60;
+
+/*
 mrtree는 트리 전용 알고리즘이라 모든 부모를 자식들의 가운데에 둔다. 서브트리를 접어도 나머지 노드는
 접힌 높이만큼 함께 움직일 뿐 서로의 위치 관계가 유지된다. layered는 부모 위치를 보장하지 않아
 접기 하나로 루트가 맨 위에서 맨 아래로 튈 수 있었다.
@@ -22,7 +28,7 @@ export const elkOptions = {
 함수 이름 : sortEdgesByTargetOrder
 기능 : 엣지를 자식(target) 노드의 배열 순서대로 정렬한다. mrtree는 형제 순서를 엣지 입력 순서로 정하는데,
 편집기에서 형제 순서를 정하는 것은 노드 배열이므로 ELK에 넘기기 직전에 엣지를 노드 순서에 맞춘다.
-엣지 배열은 reconnect가 옮긴 엣지를 끝에 붙이는 식으로 노드 배열과 어긋날 수 있다.
+노드 이동은 노드 배열만 다시 놓고 엣지 배열은 그대로 두므로 두 배열의 순서가 어긋날 수 있다.
 인자 : CustomEditorNode[] nodes -> 형제 순서를 정하는 노드 목록
 CustomEditorEdge[] edges -> 정렬할 엣지 목록
 반환값 : 자식 노드의 배열 순서로 정렬한 새 엣지 목록
@@ -53,8 +59,8 @@ export const getLayoutedElements = async (
       ...node,
       targetPosition: isHorizontal ? Position.Left : Position.Top,
       sourcePosition: isHorizontal ? Position.Right : Position.Bottom,
-      width: 150,
-      height: 50,
+      width: NODE_WIDTH,
+      height: NODE_HEIGHT,
     })),
     edges: sortEdgesByTargetOrder(nodes, edges).map((edge) => ({
       ...edge,
@@ -151,7 +157,7 @@ export const getLayoutStructureSignature = (
   const nodeIds = nodes.map((node) => node.id);
 
   /*
-  엣지는 ID 대신 연결 관계로 비교한다. reconnect는 엣지 ID를 유지한 채 source·target만
+  엣지는 ID 대신 연결 관계로 비교한다. 부모를 바꾸는 노드 이동은 엣지 ID를 유지한 채 source만
   바꾸므로 ID로는 배치가 달라지는 변화를 감지할 수 없다.
   */
   const edgeConnections = edges.map((edge) => [edge.source, edge.target]);

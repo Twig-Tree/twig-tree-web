@@ -1,5 +1,8 @@
 import { useDeleteNodeMutation } from "@/src/entities/tree/model/mutations/useDeleteNodeMutation";
 import { useTreeStore } from "@/src/features/tree-editor/model/treeStore";
+import { getSubtreeClientIds } from "../../../lib/getSubtreeClientIds";
+import { getNodePlacement } from "../../../lib/move-node/getNodePlacement";
+import { useEditHistoryStore } from "../../history/editHistoryStore";
 import { CustomEditorNode } from "@/src/features/tree-editor/model/types";
 
 interface UseDeleteNodeParams {
@@ -9,7 +12,7 @@ interface UseDeleteNodeParams {
 
 /*
 함수 이름 : useDeleteNode
-기능 : 선택된 노드를 루트로 하는 서브트리를 optimistic update로 editor store에서 삭제하고, 서버 요청 실패 시 삭제 전 상태로 rollback한다.
+기능 : 선택된 노드를 루트로 하는 서브트리를 optimistic update로 editor store에서 삭제하고, 서버 요청 실패 시 삭제 전 구조로 rollback한다.
 인자 : UseDeleteNodeParams
 반환값 : 노드 삭제 핸들러와 노드 삭제 mutation 상태
 */
@@ -20,6 +23,10 @@ export const useDeleteNode = ({
   const deleteNodeFromStore = useTreeStore(
     (state) => state.deleteNodeFromStore,
   );
+  const restoreStructureInStore = useTreeStore(
+    (state) => state.restoreStructureInStore,
+  );
+  const recordEdit = useEditHistoryStore((state) => state.record);
   const {
     mutate: deleteNodeOnServer,
     isPending: isDeletingNode,
@@ -42,40 +49,23 @@ export const useDeleteNode = ({
       return;
     }
 
-    const edges = useTreeStore.getState().edges;
+    const { nodes, edges } = useTreeStore.getState(); // 실패하면 이 삭제 전 구조로 되돌린다.
 
-    const hasParent = edges.some((edge) => edge.target === selectedNode.id); // 부모 엣지가 없으면 루트 노드로 판단한다.
+    const placement = getNodePlacement(nodes, edges, selectedNode.id);
 
-    if (!hasParent) {
+    if (!placement) {
       alert("루트 노드는 삭제할 수 없습니다.");
       return;
     }
 
-    /*
-    삭제 대상 노드를 시작점으로 삼아 서브트리에 포함된 모든 노드를 수집한다.
-    엣지가 잇는 것은 편집기 노드 신원이므로 여기서 모이는 것도 서버 ID가 아니라 편집기 노드 ID다.
-    */
-    const clientIdsToDelete = new Set<string>([selectedNode.id]);
-    const queue = [selectedNode.id];
-
-    /*
-    현재 노드를 source로 가지는 엣지를 따라가며 자식 노드를 삭제 대상에 추가한다.
-    */
-    while (queue.length > 0) {
-      const currentClientId = queue.shift()!;
-
-      edges.forEach((edge) => {
-        if (edge.source === currentClientId) {
-          clientIdsToDelete.add(edge.target);
-          queue.push(edge.target);
-        }
-      });
-    }
+    const subtreeClientIds = new Set(
+      getSubtreeClientIds(edges, selectedNode.id),
+    );
 
     /*
     서버 응답을 기다리기 전에 editor store에서 삭제 대상 서브트리를 제거한다.
     */
-    deleteNodeFromStore(Array.from(clientIdsToDelete));
+    deleteNodeFromStore(Array.from(subtreeClientIds));
 
     /*
     서버에 노드 삭제 요청을 보내고, 실패하면 editor store를 삭제 전 상태로 되돌린다.
@@ -87,10 +77,23 @@ export const useDeleteNode = ({
       },
       {
         /*
-        서버 요청이 실패하면 삭제 전의 editor store 상태로 복구한다.
+        지운 노드는 메모·태그까지 data째 기록한다. undo는 이 값으로 하위 트리를 다시 만든다.
+        하위 트리 루트로 들어오던 엣지도 함께 남겨, 다시 넣을 때 부모와 이어지게 한다.
+        */
+        onSuccess: () => {
+          recordEdit({
+            type: "delete",
+            clientId: selectedNode.id,
+            placement,
+            nodes: nodes.filter((node) => subtreeClientIds.has(node.id)),
+            edges: edges.filter((edge) => subtreeClientIds.has(edge.target)),
+          });
+        },
+        /*
+        서버 요청이 실패하면 삭제 전 구조로 되돌린다. 지운 노드는 삭제 전 값으로 되살아난다.
         */
         onError: () => {
-          useTreeStore.temporal.getState().undo();
+          restoreStructureInStore({ nodes, edges });
           alert("노드 삭제에 실패했습니다.");
         },
       },

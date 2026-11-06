@@ -91,20 +91,20 @@ export function LecturePlayer({
     return (
       <section
         aria-label="강의 플레이어"
-        className="flex items-center gap-3 rounded-xl border border-slate-200 bg-white px-4 py-3 shadow-sm"
+        className="flex items-center gap-3 rounded-card border border-line bg-surface px-4 py-3 shadow-control"
       >
-        <GraduationCap className="size-5 text-indigo-600" aria-hidden="true" />
+        <GraduationCap className="size-5 text-accent" aria-hidden="true" />
         <div className="flex min-w-0 flex-col">
-          <p className="text-sm font-semibold text-slate-800">{script.title}</p>
+          <p className="text-sm font-semibold text-content">{script.title}</p>
           {editorScript === null ? (
             <p
               id="script-unavailable-reason"
-              className="text-xs text-slate-500"
+              className="text-xs text-content-secondary"
             >
               현재 트리에 대본이 가리키는 노드가 없습니다.
             </p>
           ) : (
-            <p className="text-xs text-slate-500">
+            <p className="text-xs text-content-secondary">
               장면 {editorScript.scenes.length}개 · 비트 {beatCount}개
             </p>
           )}
@@ -129,10 +129,10 @@ export function LecturePlayer({
     return (
       <section
         aria-label="강의 플레이어"
-        className="flex items-center gap-3 rounded-xl border border-slate-200 bg-white px-4 py-3 shadow-sm"
+        className="flex items-center gap-3 rounded-card border border-line bg-surface px-4 py-3 shadow-control"
       >
-        <GraduationCap className="size-5 text-indigo-600" aria-hidden="true" />
-        <p role="status" className="text-sm font-semibold text-slate-800">
+        <GraduationCap className="size-5 text-accent" aria-hidden="true" />
+        <p role="status" className="text-sm font-semibold text-content">
           강의를 마쳤습니다.
         </p>
         <Button
@@ -163,7 +163,7 @@ export function LecturePlayer({
   return (
     <section
       aria-label="강의 플레이어"
-      className="flex w-[min(42rem,calc(100vw-2rem))] flex-col gap-3 rounded-xl border border-slate-200 bg-white px-4 py-3 shadow-sm"
+      className="flex w-[min(42rem,calc(100vw-2rem))] flex-col gap-3 rounded-card border border-line bg-surface px-4 py-3 shadow-control"
     >
       <div className="flex items-center gap-2">
         <IconButton
@@ -181,17 +181,17 @@ export function LecturePlayer({
         </IconButton>
 
         <div className="ml-2 flex min-w-0 flex-1 flex-col">
-          <p className="truncate text-sm font-semibold text-slate-800">
+          <p className="truncate text-sm font-semibold text-content">
             {activeScript?.title}
           </p>
-          <p className="text-xs text-slate-500">
+          <p className="text-xs text-content-secondary">
             장면 {sceneIndex + 1} / {sceneCount} · 비트 {beatIndex + 1} /{" "}
             {scene?.beats.length ?? 0}
             {isPlaying ? "" : " · 일시정지됨"}
           </p>
         </div>
 
-        <p className="flex shrink-0 items-center gap-1 rounded-full bg-slate-100 px-2.5 py-1 text-xs text-slate-600">
+        <p className="flex shrink-0 items-center gap-1 rounded-full bg-surface-muted px-2.5 py-1 text-xs text-content-secondary">
           {audioMode === "speech" ? (
             <>
               <Volume2 className="size-3.5" aria-hidden="true" />
@@ -217,14 +217,14 @@ export function LecturePlayer({
         {activeScript?.scenes.map((item, index) => (
           <span
             key={item.id}
-            className={`h-1 flex-1 rounded-full ${index <= sceneIndex ? "bg-indigo-500" : "bg-slate-200"}`}
+            className={`h-1 flex-1 rounded-full ${index <= sceneIndex ? "bg-accent" : "bg-line"}`}
           />
         ))}
       </div>
 
       <p
         aria-live="polite"
-        className="min-h-12 text-center text-base leading-relaxed text-slate-800"
+        className="min-h-12 text-center text-base leading-relaxed text-content"
       >
         {beat?.narration.text}
       </p>

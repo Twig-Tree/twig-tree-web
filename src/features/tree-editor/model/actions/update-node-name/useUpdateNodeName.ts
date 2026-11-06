@@ -81,7 +81,6 @@ export const useUpdateNodeName = ({
         return true;
       } catch {
         /*
-        label 변경은 zundo history에 기록되지 않아 undo()로 되돌릴 수 없다.
         보관해 둔 이전 label을 직접 복원한다.
         */
         updateNodeLabelInStore(clientId, previousLabel);
