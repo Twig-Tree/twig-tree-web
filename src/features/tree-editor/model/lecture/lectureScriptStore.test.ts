@@ -1,6 +1,9 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import { type EditorLectureScript } from "../types";
-import { useLectureScriptStore } from "./lectureScriptStore";
+import {
+  getCurrentLectureScene,
+  useLectureScriptStore,
+} from "./lectureScriptStore";
 
 const createBeat = (id: string) => ({
   id,
@@ -88,5 +91,30 @@ describe("lectureScriptStore", () => {
 
     useLectureScriptStore.getState().completeBeat(1, 0);
     expect(getPosition().status).toBe("ended");
+  });
+
+  it("재생 중과 일시정지 중에는 지금 장면을 현재 장면으로 고른다", () => {
+    const getCurrentClientId = () =>
+      getCurrentLectureScene(useLectureScriptStore.getState())?.clientId;
+
+    useLectureScriptStore.getState().startScript(script);
+    expect(getCurrentClientId()).toBe("node-1");
+
+    useLectureScriptStore.getState().goToNextScene();
+    useLectureScriptStore.getState().pauseScript();
+    expect(getCurrentClientId()).toBe("node-2");
+  });
+
+  it("시작 전과 끝난 뒤에는 현재 장면이 없다", () => {
+    const getCurrentScene = () =>
+      getCurrentLectureScene(useLectureScriptStore.getState());
+
+    expect(getCurrentScene()).toBeNull();
+
+    useLectureScriptStore.getState().startScript(script);
+    useLectureScriptStore.getState().goToNextScene();
+    useLectureScriptStore.getState().goToNextScene();
+    expect(useLectureScriptStore.getState().status).toBe("ended");
+    expect(getCurrentScene()).toBeNull();
   });
 });

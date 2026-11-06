@@ -3,7 +3,7 @@ import { TreeNode } from "@/src/entities/tree";
 import { transformToFlowElements } from "../../lib/mappers";
 import { useCollapseStore } from "../collapse/collapseStore";
 import { useHighlightStore } from "../highlight/highlightStore";
-import { useLectureStore } from "../lecture/lectureStore";
+import { useLectureScriptStore } from "../lecture/lectureScriptStore";
 import { useLectureAnimationStore } from "../lecture/lectureAnimationStore";
 import { useTreeStore } from "../treeStore";
 
@@ -30,7 +30,7 @@ export const useInitializeTree = ({
   const restoreCollapse = useCollapseStore((state) => state.restoreCollapse);
   const resetCollapse = useCollapseStore((state) => state.resetCollapse);
   const clearHighlight = useHighlightStore((state) => state.clearHighlight);
-  const resetLecture = useLectureStore((state) => state.resetLecture);
+  const resetLecture = useLectureScriptStore((state) => state.resetScript);
   const resetLectureVisual = useLectureAnimationStore(
     (state) => state.resetVisual,
   );

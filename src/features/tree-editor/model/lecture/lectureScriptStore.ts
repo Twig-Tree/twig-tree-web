@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { type EditorLectureScript } from "../types";
+import { type EditorLectureScene, type EditorLectureScript } from "../types";
 import { type LecturePlaybackStatus } from "./lectureStore";
 
 interface LectureScriptState {
@@ -14,6 +14,20 @@ interface LectureScriptState {
   completeBeat: (sceneIndex: number, beatIndex: number) => void;
   resetScript: () => void;
 }
+
+/*
+함수 이름 : getCurrentLectureScene
+기능 : 지금 설명 중인 장면을 고른다. 시작 전과 끝난 뒤에는 설명 중인 장면이 없다.
+인자 : LectureScriptState state -> 강의 store 상태
+반환값 : 지금 장면. 재생 중이나 일시정지 중이 아니면 null
+*/
+export const getCurrentLectureScene = (
+  state: Pick<LectureScriptState, "status" | "script" | "sceneIndex">,
+): EditorLectureScene | null => {
+  if (state.status !== "playing" && state.status !== "paused") return null;
+
+  return state.script?.scenes[state.sceneIndex] ?? null;
+};
 
 const initialState = {
   script: null,

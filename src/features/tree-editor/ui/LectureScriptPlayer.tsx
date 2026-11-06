@@ -30,9 +30,9 @@ type LectureScriptPlayerProps = {
 
 /*
 함수 이름 : LectureScriptPlayer
-기능 : 동적 대본을 현재 트리에 연결하고 장면·비트 단위 음성, 자막, 애니메이션을 함께 재생한다.
+기능 : 대본을 현재 트리에 연결하고 장면·비트 단위 음성, 자막, 애니메이션을 함께 재생한다.
 인자 : LectureScriptPlayerProps
-반환값 : 동적 강의 재생 컨트롤과 현재 내레이션
+반환값 : 강의 재생 컨트롤과 현재 내레이션
 */
 export function LectureScriptPlayer({
   script,
@@ -90,10 +90,10 @@ export function LectureScriptPlayer({
 
     return (
       <section
-        aria-label="동적 강의 플레이어"
-        className="flex items-center gap-3 rounded-xl border border-cyan-200 bg-white px-4 py-3 shadow-sm"
+        aria-label="강의 플레이어"
+        className="flex items-center gap-3 rounded-xl border border-slate-200 bg-white px-4 py-3 shadow-sm"
       >
-        <GraduationCap className="size-5 text-cyan-600" aria-hidden="true" />
+        <GraduationCap className="size-5 text-indigo-600" aria-hidden="true" />
         <div className="flex min-w-0 flex-col">
           <p className="text-sm font-semibold text-slate-800">{script.title}</p>
           {editorScript === null ? (
@@ -128,12 +128,12 @@ export function LectureScriptPlayer({
   if (status === "ended") {
     return (
       <section
-        aria-label="동적 강의 플레이어"
-        className="flex items-center gap-3 rounded-xl border border-cyan-200 bg-white px-4 py-3 shadow-sm"
+        aria-label="강의 플레이어"
+        className="flex items-center gap-3 rounded-xl border border-slate-200 bg-white px-4 py-3 shadow-sm"
       >
-        <GraduationCap className="size-5 text-cyan-600" aria-hidden="true" />
+        <GraduationCap className="size-5 text-indigo-600" aria-hidden="true" />
         <p role="status" className="text-sm font-semibold text-slate-800">
-          동적 강의를 마쳤습니다.
+          강의를 마쳤습니다.
         </p>
         <Button
           variant="primary"
@@ -145,7 +145,7 @@ export function LectureScriptPlayer({
           처음부터 다시
         </Button>
         <IconButton
-          aria-label="동적 강의 플레이어 닫기"
+          aria-label="강의 플레이어 닫기"
           size="sm"
           onClick={handleStop}
         >
@@ -162,8 +162,8 @@ export function LectureScriptPlayer({
 
   return (
     <section
-      aria-label="동적 강의 플레이어"
-      className="flex w-[min(42rem,calc(100vw-2rem))] flex-col gap-3 rounded-xl border border-cyan-200 bg-white px-4 py-3 shadow-sm"
+      aria-label="강의 플레이어"
+      className="flex w-[min(42rem,calc(100vw-2rem))] flex-col gap-3 rounded-xl border border-slate-200 bg-white px-4 py-3 shadow-sm"
     >
       <div className="flex items-center gap-2">
         <IconButton
@@ -209,7 +209,7 @@ export function LectureScriptPlayer({
       <div
         className="flex gap-1"
         role="progressbar"
-        aria-label="동적 강의 진행"
+        aria-label="강의 진행"
         aria-valuemin={1}
         aria-valuemax={sceneCount}
         aria-valuenow={sceneIndex + 1}
@@ -217,7 +217,7 @@ export function LectureScriptPlayer({
         {activeScript?.scenes.map((item, index) => (
           <span
             key={item.id}
-            className={`h-1 flex-1 rounded-full ${index <= sceneIndex ? "bg-cyan-500" : "bg-slate-200"}`}
+            className={`h-1 flex-1 rounded-full ${index <= sceneIndex ? "bg-indigo-500" : "bg-slate-200"}`}
           />
         ))}
       </div>

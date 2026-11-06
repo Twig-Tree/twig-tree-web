@@ -228,7 +228,7 @@ describe("LectureScriptPlayer", () => {
       useLectureScriptStore.getState().completeBeat(3, 2);
     });
 
-    expect(await screen.findByText("동적 강의를 마쳤습니다.")).toBeVisible();
+    expect(await screen.findByText("강의를 마쳤습니다.")).toBeVisible();
     await waitFor(() =>
       expect(useLectureAnimationStore.getState().layers.size).toBe(0),
     );

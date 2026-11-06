@@ -12,9 +12,9 @@ import { useUpdateNodeName } from "@/src/features/tree-editor/model/actions/upda
 import { useTreeStore } from "@/src/features/tree-editor/model/treeStore";
 import { useHighlightStore } from "@/src/features/tree-editor/model/highlight/highlightStore";
 import {
-  getCurrentLectureSegment,
-  useLectureStore,
-} from "@/src/features/tree-editor/model/lecture/lectureStore";
+  getCurrentLectureScene,
+  useLectureScriptStore,
+} from "@/src/features/tree-editor/model/lecture/lectureScriptStore";
 import {
   isLectureNodeDimmed,
   isLectureNodeHighlighted,
@@ -44,8 +44,8 @@ export function CustomNode({
   /*
   강의가 지금 설명하는 노드인지. 검색·태그 강조와 따로 표시해 강의 중에 검색해도 서로 지우지 않는다.
   */
-  const isLectureCurrent = useLectureStore(
-    (state) => getCurrentLectureSegment(state)?.clientId === id,
+  const isLectureCurrent = useLectureScriptStore(
+    (state) => getCurrentLectureScene(state)?.clientId === id,
   );
   const isLectureHighlighted = useLectureAnimationStore((state) =>
     isLectureNodeHighlighted(state, id),
