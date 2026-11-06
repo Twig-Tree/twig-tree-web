@@ -1,7 +1,8 @@
 /*
-speech: 브라우저 음성 합성으로 문장을 읽는다. silent: 음성 없이 자막 시각만큼 기다렸다 넘어간다.
+speech: 브라우저 음성 합성으로 문장을 읽는다. muted: 읽을 수 있지만 사용자가 음성을 껐다. silent: 읽을 음성이 없다.
+muted와 silent는 자막 시각만큼 기다렸다 넘어간다.
 */
-export type LectureAudioMode = "speech" | "silent";
+export type LectureAudioMode = "speech" | "muted" | "silent";
 
 /*
 cancel()로 끊은 발화도 error 이벤트를 낸다. 일시정지와 장면 이동이 낸 것이므로 실패로 보지 않는다.

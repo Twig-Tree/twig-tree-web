@@ -3,6 +3,8 @@ import { useLectureStore } from "./lectureStore";
 
 type UseLectureKeyboardParams = {
   onStop: () => void; // 강의를 끝내는 함수. 카메라 복귀까지 플레이어가 맡으므로 넘겨받는다
+  onToggleMute: () => void; // 음성을 켜고 끄는 함수
+  onRefocusCamera: () => void; // 설명 중인 노드로 카메라를 되돌리는 함수
 };
 
 const TEXT_INPUT_SELECTOR = "input, textarea, select, [contenteditable]";
@@ -22,14 +24,18 @@ const isClosestMatch = (target: EventTarget | null, selector: string) =>
 
 /*
 함수 이름 : useLectureKeyboard
-기능 : 강의가 진행되는 동안 키보드로 재생을 조작한다. Space는 일시정지와 재생, ←와 →는 이전·다음 비트, Shift를 함께 누르면 이전·다음 장면, R은 지금 비트 다시 듣기, Esc는 강의 종료다.
+기능 : 강의가 진행되는 동안 키보드로 재생을 조작한다. Space는 일시정지와 재생, ←와 →는 이전·다음 비트, Shift를 함께 누르면 이전·다음 장면, R은 지금 비트 다시 듣기, M은 음성 켜기·끄기, F는 설명 중인 노드로 카메라 복귀, Esc는 강의 종료다.
 인자 : UseLectureKeyboardParams
 반환값 : 없음
 
 입력 중이거나 메뉴가 열려 있으면 그 UI의 키이므로 동작하지 않는다. 버튼에 포커스가 있으면 Space는 버튼을 누르는 키이므로,
 같이 처리하면 일시정지 버튼에서 일시정지와 재생이 함께 일어난다.
 */
-export const useLectureKeyboard = ({ onStop }: UseLectureKeyboardParams) => {
+export const useLectureKeyboard = ({
+  onStop,
+  onToggleMute,
+  onRefocusCamera,
+}: UseLectureKeyboardParams) => {
   const status = useLectureStore((state) => state.status);
   const isLectureActive = status === "playing" || status === "paused";
 
@@ -76,6 +82,18 @@ export const useLectureKeyboard = ({ onStop }: UseLectureKeyboardParams) => {
     if (event.code === "KeyR" && !event.shiftKey) {
       event.preventDefault();
       lecture.replayBeat();
+      return;
+    }
+
+    if (event.code === "KeyM" && !event.shiftKey) {
+      event.preventDefault();
+      onToggleMute();
+      return;
+    }
+
+    if (event.code === "KeyF" && !event.shiftKey) {
+      event.preventDefault();
+      onRefocusCamera();
       return;
     }
 

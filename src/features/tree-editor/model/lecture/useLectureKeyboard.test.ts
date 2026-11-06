@@ -28,11 +28,14 @@ const script: EditorLectureScript = {
 };
 
 const onStop = vi.fn();
+const onToggleMute = vi.fn();
+const onRefocusCamera = vi.fn();
+const keyboardParams = { onStop, onToggleMute, onRefocusCamera };
 
 const lecture = () => useLectureStore.getState();
 
 const startLecture = () => {
-  renderHook(() => useLectureKeyboard({ onStop }));
+  renderHook(() => useLectureKeyboard(keyboardParams));
   act(() => lecture().startLecture(script));
 };
 
@@ -49,6 +52,8 @@ const appendToBody = (html: string) => {
 
 beforeEach(() => {
   onStop.mockReset();
+  onToggleMute.mockReset();
+  onRefocusCamera.mockReset();
   lecture().resetLecture();
 });
 
@@ -98,6 +103,22 @@ describe("useLectureKeyboard", () => {
     expect(lecture().seekId).toBe(seekId + 1);
   });
 
+  it("M은 한글 입력 상태에서도 음성을 켜고 끈다", () => {
+    startLecture();
+
+    press({ key: "ㅡ", code: "KeyM" });
+
+    expect(onToggleMute).toHaveBeenCalledOnce();
+  });
+
+  it("F는 한글 입력 상태에서도 카메라를 되돌린다", () => {
+    startLecture();
+
+    press({ key: "ㄹ", code: "KeyF" });
+
+    expect(onRefocusCamera).toHaveBeenCalledOnce();
+  });
+
   it("Esc로 강의를 끝낸다", () => {
     startLecture();
 
@@ -107,7 +128,7 @@ describe("useLectureKeyboard", () => {
   });
 
   it("강의 중이 아니면 동작하지 않는다", () => {
-    renderHook(() => useLectureKeyboard({ onStop }));
+    renderHook(() => useLectureKeyboard(keyboardParams));
 
     press({ key: "Escape" });
 
@@ -174,7 +195,7 @@ describe("useLectureKeyboard", () => {
   });
 
   it("언마운트하면 동작하지 않는다", () => {
-    const { unmount } = renderHook(() => useLectureKeyboard({ onStop }));
+    const { unmount } = renderHook(() => useLectureKeyboard(keyboardParams));
 
     act(() => lecture().startLecture(script));
     unmount();

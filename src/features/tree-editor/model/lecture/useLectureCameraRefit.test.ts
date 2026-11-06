@@ -24,7 +24,7 @@ describe("useLectureCameraRefit", () => {
     const { result } = renderRefit();
     const cameraMove = vi.fn();
 
-    result.current(cameraMove);
+    result.current.runCameraMove(cameraMove);
 
     expect(cameraMove).toHaveBeenCalledOnce();
   });
@@ -35,8 +35,8 @@ describe("useLectureCameraRefit", () => {
     const lastMove = vi.fn();
 
     act(() => useLectureStore.getState().startLecture(script));
-    result.current(firstMove);
-    result.current(lastMove);
+    result.current.runCameraMove(firstMove);
+    result.current.runCameraMove(lastMove);
 
     rerender({ panelLayoutKey: "b" });
 
@@ -49,7 +49,7 @@ describe("useLectureCameraRefit", () => {
     const cameraMove = vi.fn();
 
     act(() => useLectureStore.getState().startLecture(script));
-    result.current(cameraMove);
+    result.current.runCameraMove(cameraMove);
     act(() => useLectureStore.getState().pauseLecture());
 
     rerender({ panelLayoutKey: "b" });
@@ -62,7 +62,7 @@ describe("useLectureCameraRefit", () => {
     const cameraMove = vi.fn();
 
     act(() => useLectureStore.getState().startLecture(script));
-    result.current(cameraMove);
+    result.current.runCameraMove(cameraMove);
 
     rerender({ panelLayoutKey: "a" });
 
@@ -73,9 +73,30 @@ describe("useLectureCameraRefit", () => {
     const { result, rerender } = renderRefit();
     const cameraMove = vi.fn();
 
-    result.current(cameraMove);
+    result.current.runCameraMove(cameraMove);
 
     rerender({ panelLayoutKey: "b" });
+
+    expect(cameraMove).toHaveBeenCalledOnce();
+  });
+
+  it("마지막 동작을 요청하면 다시 실행한다", () => {
+    const { result } = renderRefit();
+    const cameraMove = vi.fn();
+
+    result.current.runCameraMove(cameraMove);
+    result.current.repeatLastCameraMove();
+
+    expect(cameraMove).toHaveBeenCalledTimes(2);
+  });
+
+  it("지운 동작은 다시 실행하지 않는다", () => {
+    const { result } = renderRefit();
+    const cameraMove = vi.fn();
+
+    result.current.runCameraMove(cameraMove);
+    result.current.forgetLastCameraMove();
+    result.current.repeatLastCameraMove();
 
     expect(cameraMove).toHaveBeenCalledOnce();
   });
@@ -85,7 +106,7 @@ describe("useLectureCameraRefit", () => {
     const cameraMove = vi.fn();
 
     act(() => useLectureStore.getState().startLecture(script));
-    result.current(cameraMove);
+    result.current.runCameraMove(cameraMove);
     act(() => useLectureStore.getState().resetLecture());
     act(() => useLectureStore.getState().startLecture(script));
 

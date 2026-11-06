@@ -61,7 +61,7 @@ export function LecturePlayer({
     [script, nodes],
   );
 
-  const audioMode = useLecturePlayback({
+  const { audioMode, toggleMute, refocusCamera } = useLecturePlayback({
     revealNodes: onRevealNodes,
     resetCamera: onResetCamera,
     onBeforeCollapseRestore,
@@ -88,7 +88,11 @@ export function LecturePlayer({
     window.requestAnimationFrame(onResetCamera); // 작은 시작 화면으로 돌아간 플레이어의 크기로 맞추도록 그려진 뒤에 옮긴다.
   };
 
-  useLectureKeyboard({ onStop: handleStop });
+  useLectureKeyboard({
+    onStop: handleStop,
+    onToggleMute: toggleMute,
+    onRefocusCamera: refocusCamera,
+  });
 
   if (status === "idle") {
     if (script === null) return null;
@@ -204,19 +208,19 @@ export function LecturePlayer({
           </p>
         </div>
 
-        <p className="flex shrink-0 items-center gap-1 rounded-full bg-surface-muted px-2.5 py-1 text-xs text-content-secondary">
-          {audioMode === "speech" ? (
-            <>
-              <Volume2 className="size-3.5" aria-hidden="true" />
-              음성 재생
-            </>
-          ) : (
-            <>
-              <VolumeX className="size-3.5" aria-hidden="true" />
-              음성 없음 · 자막만 재생
-            </>
-          )}
-        </p>
+        {audioMode === "silent" ? (
+          <p className="flex shrink-0 items-center gap-1 rounded-full bg-surface-muted px-2.5 py-1 text-xs text-content-secondary">
+            <VolumeX className="size-3.5" aria-hidden="true" />
+            음성 없음 · 자막만 재생
+          </p>
+        ) : (
+          <IconButton
+            aria-label={audioMode === "speech" ? "음성 끄기" : "음성 켜기"}
+            onClick={toggleMute}
+          >
+            {audioMode === "speech" ? <Volume2 /> : <VolumeX />}
+          </IconButton>
+        )}
       </div>
 
       <div
