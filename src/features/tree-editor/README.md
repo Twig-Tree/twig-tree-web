@@ -226,7 +226,7 @@ editor store 초기화는 트리당 한 번만 수행한다. `useInitializeTree`
 
 ### 연출은 제한된 동작을 조합한다
 
-`LectureScript`는 장면(`scene`) 아래에 음성·자막·연출의 동기화 경계인 `beat`를 두고, 각 비트가 `focus`·`highlight`·`dim`·`trace`·`reset` 동작을 갖는다. `group`은 이 동작들을 `sequence` 또는 `parallel`로 재귀 조합한다. LLM은 이 데이터 계약만 생성하고 브라우저에서 실행할 코드를 만들지 않는다. 외부 JSON의 런타임 검증은 실제 강의 API를 연결할 때 추가하며 요구사항은 `docs/specs/lecture-script-contract.md`에 둔다.
+`LectureScript`는 장면(`scene`) 아래에 음성·자막·연출의 동기화 경계인 `beat`를 두고, 각 비트가 `focus`·`highlight`·`dim`·`trace`·`collapse`·`expand`·`reset` 동작을 갖는다. `group`은 이 동작들을 `sequence` 또는 `parallel`로 재귀 조합한다. LLM은 이 데이터 계약만 생성하고 브라우저에서 실행할 코드를 만들지 않는다. 외부 JSON의 런타임 검증은 실제 강의 API를 연결할 때 추가하며 요구사항은 `docs/specs/lecture-script-contract.md`에 둔다.
 
 `getEditorLectureScript`는 실행 전에 대본 안의 모든 서버 노드 ID를 편집기 노드의 `data.serverId`와 비교해 React Flow clientId로 바꾼다. ID 하나라도 현재 트리에 없으면 대본 전체를 거부한다. 변환 뒤에는 `runLectureAnimation`이 조합을 해석하고, `lectureAnimationStore`가 강조·흐림·연결선 추적을 동작별 레이어로 관리한다. 병렬 동작이 각각 자기 레이어만 제거하므로 같은 종류의 효과를 서로 덮어쓰지 않는다.
 
@@ -257,6 +257,8 @@ Pulse는 React Flow가 좌표 배치에 쓰는 `transform`을 건드리지 않�
 `revealNodes`는 보이는 노드가 바뀔 때마다 새 함수가 된다. `useLecturePlayback`이 이 함수에 반응하면 접힌 노드를 펼치거나 트리를 편집할 때 읽던 비트가 처음부터 다시 시작되므로 effect event로 감싼다.
 
 태그의 `fitNodes`와 달리 `revealNodes`는 접혀서 숨겨진 대상의 조상을 펼친다. 강의가 가리키는 노드가 화면에 없으면 자막과 강조가 가리킬 대상이 사라지기 때문이다. 펼친 노드는 레이아웃이 끝나야 좌표가 생기므로 `focusNode`와 같이 `runAfterNextLayout`으로 미룬다.
+
+강의 중의 접힘은 임시다. `focus`가 펼치고 `collapse`·`expand`가 바꾼 접힘은 메모리에만 반영하고 localStorage에 쓰지 않으며, 강의가 끝나거나 멈추면 시작할 때의 상태로 돌아가 카메라를 다시 맞춘다. 강의를 봤다고 사용자가 정리해 둔 트리 모양이 바뀌면 안 되기 때문이다. 그동안 사용자가 직접 접은 것도 함께 되돌아가고, 다른 탭의 변경은 돌아갈 상태에 반영한다. Animation Lab은 재생기를 직접 호출하므로 임시 접힘을 쓰지 않는다.
 
 강의는 편집을 막지 않는다. 강의 중에 대상 노드를 삭제하면 그 노드에 대한 강조와 카메라 이동 없이 자막은 그대로 진행된다.
 

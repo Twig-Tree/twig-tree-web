@@ -1,4 +1,8 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { createEditorEdge } from "../../lib/add-node/createEditorEdge";
+import { createEditorNode } from "../../lib/add-node/createEditorNode";
+import { useCollapseStore } from "../collapse/collapseStore";
+import { useTreeStore } from "../treeStore";
 import { type EditorLectureAnimation } from "../types";
 import {
   isLectureEdgeTraced,
@@ -203,5 +207,89 @@ describe("runLectureAnimation", () => {
     );
 
     expect(resetCamera).toHaveBeenCalledOnce();
+  });
+});
+
+describe("runLectureAnimation 접기와 펼치기", () => {
+  /*
+  root ─ parent ─ leaf
+  */
+  beforeEach(() => {
+    const createNode = (clientId: string, orderIndex: number) =>
+      createEditorNode({
+        clientId,
+        serverId: `s-${clientId}`,
+        label: clientId,
+        orderIndex,
+        x: 0,
+        y: 0,
+      });
+
+    useCollapseStore.getState().resetCollapse();
+    useTreeStore.setState({
+      treeId: "t1",
+      nodes: [
+        createNode("root", 0),
+        createNode("parent", 1),
+        createNode("leaf", 2),
+      ],
+      edges: [
+        createEditorEdge({ sourceClientId: "root", targetClientId: "parent" }),
+        createEditorEdge({ sourceClientId: "parent", targetClientId: "leaf" }),
+      ],
+    });
+  });
+
+  const getCollapsed = () => [
+    ...useCollapseStore.getState().collapsedServerIds,
+  ];
+
+  it("collapse는 대상을 접고, 자식이 없는 노드는 건너뛰고, durationMs를 기다린다", async () => {
+    let isCompleted = false;
+
+    void runLectureAnimation(
+      {
+        type: "collapse",
+        targetClientIds: ["parent", "leaf"],
+        durationMs: 800,
+      },
+      { revealNodes },
+    ).then(() => {
+      isCompleted = true;
+    });
+
+    expect(getCollapsed()).toEqual(["s-parent"]);
+
+    await vi.advanceTimersByTimeAsync(799);
+    expect(isCompleted).toBe(false);
+
+    await vi.advanceTimersByTimeAsync(1);
+    expect(isCompleted).toBe(true);
+  });
+
+  it("expand는 대상과 접힌 조상을 함께 펼친다", async () => {
+    useCollapseStore.getState().collapseAll("t1", ["s-root", "s-parent"]);
+
+    const completed = runLectureAnimation(
+      { type: "expand", targetClientIds: ["parent"], durationMs: 0 },
+      { revealNodes },
+    );
+
+    expect(getCollapsed()).toEqual([]);
+
+    await vi.advanceTimersByTimeAsync(0);
+    await completed;
+  });
+
+  it("이미 중단된 실행은 접힘을 바꾸지 않는다", async () => {
+    const controller = new AbortController();
+    controller.abort();
+
+    await runLectureAnimation(
+      { type: "collapse", targetClientIds: ["parent"], durationMs: 800 },
+      { revealNodes, signal: controller.signal },
+    );
+
+    expect(getCollapsed()).toEqual([]);
   });
 });

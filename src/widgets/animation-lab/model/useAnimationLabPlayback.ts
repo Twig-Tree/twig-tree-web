@@ -32,6 +32,10 @@ const getStageLabel = (action: EditorLectureAnimationAction): string => {
       return "Dim";
     case "trace":
       return "Trace";
+    case "collapse":
+      return "Collapse";
+    case "expand":
+      return "Expand";
     case "reset":
       return "Reset";
   }

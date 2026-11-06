@@ -40,9 +40,12 @@ const script: EditorLectureScript = {
 
 const revealNodes = vi.fn();
 const resetCamera = vi.fn();
+const onBeforeCollapseRestore = vi.fn();
 
 const renderPlayback = () =>
-  renderHook(() => useLecturePlayback({ revealNodes, resetCamera }));
+  renderHook(() =>
+    useLecturePlayback({ revealNodes, resetCamera, onBeforeCollapseRestore }),
+  );
 
 const lecture = () => useLectureStore.getState();
 

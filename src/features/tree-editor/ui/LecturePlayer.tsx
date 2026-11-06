@@ -26,6 +26,7 @@ type LecturePlayerProps = {
     options: { maxZoom: number; duration: number; bottomInset: number },
   ) => void; // focus 동작에 사용할 강의 카메라 함수
   onResetCamera: (bottomInset: number) => void; // 종료와 reset 동작에 사용할 전체 트리 맞춤 함수. 아래쪽에서 비워 둘 높이를 받는다
+  onBeforeCollapseRestore: () => void; // 강의가 끝나 접힘을 되돌릴 때 바뀐 배치에 맞춰 화면을 옮기도록 맡기는 함수
 };
 
 /*
@@ -55,6 +56,7 @@ export function LecturePlayer({
   script,
   onRevealNodes,
   onResetCamera,
+  onBeforeCollapseRestore,
 }: LecturePlayerProps) {
   const status = useLectureStore((state) => state.status);
   const activeScript = useLectureStore((state) => state.script);
@@ -84,6 +86,7 @@ export function LecturePlayer({
         bottomInset: getPlayerBottomInset(playerRef.current),
       }),
     resetCamera: () => onResetCamera(getPlayerBottomInset(playerRef.current)),
+    onBeforeCollapseRestore,
   });
 
   useEffect(

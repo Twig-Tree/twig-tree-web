@@ -57,6 +57,25 @@ export const LAB_PRESETS: LabPreset[] = [
     ],
   },
   {
+    id: "collapse-branch",
+    label: "접었다 펼치기",
+    createSteps: () => [
+      createLabStep({
+        type: "focus",
+        targetNodeIds: ["2", "5", "6", "7"],
+        maxZoom: 1,
+        durationMs: 600,
+      }),
+      createLabStep({
+        type: "collapse",
+        targetNodeIds: ["2"],
+        durationMs: 800,
+      }),
+      createLabStep(pulse(["2"], 700)),
+      createLabStep({ type: "expand", targetNodeIds: ["2"], durationMs: 800 }),
+    ],
+  },
+  {
     id: "deep-path",
     label: "깊은 경로 펼치기",
     createSteps: () => [

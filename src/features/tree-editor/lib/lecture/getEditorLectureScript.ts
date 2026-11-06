@@ -90,6 +90,17 @@ export const getEditorLectureAnimation = (
         durationMs: animation.durationMs,
       };
     }
+    case "collapse":
+    case "expand": {
+      const targetClientIds = getClientIds(animation.targetNodeIds);
+
+      if (targetClientIds === null) return null;
+      return {
+        type: animation.type,
+        targetClientIds,
+        durationMs: animation.durationMs,
+      };
+    }
     case "reset":
       return animation;
   }

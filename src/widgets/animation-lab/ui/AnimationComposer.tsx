@@ -31,6 +31,8 @@ const ACTION_BUTTONS: { type: LabActionType; label: string }[] = [
   { type: "highlight", label: "Highlight" },
   { type: "dim", label: "Dim" },
   { type: "trace", label: "Trace" },
+  { type: "collapse", label: "Collapse" },
+  { type: "expand", label: "Expand" },
   { type: "reset", label: "Reset" },
 ];
 

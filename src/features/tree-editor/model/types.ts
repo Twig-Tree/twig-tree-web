@@ -63,6 +63,12 @@ type EditorLectureNodeAction =
     })
   | (Omit<Extract<LectureAnimationAction, { type: "trace" }>, "nodeIds"> & {
       clientIds: string[];
+    })
+  | (Omit<
+      Extract<LectureAnimationAction, { type: "collapse" | "expand" }>,
+      "targetNodeIds"
+    > & {
+      targetClientIds: string[];
     });
 
 export type EditorLectureAnimationAction =

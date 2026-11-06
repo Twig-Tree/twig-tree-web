@@ -221,3 +221,63 @@ describe("applyExternalCollapse", () => {
     expect(readCollapsedServerIds("5")).toEqual(["s2"]);
   });
 });
+
+describe("임시 접힘", () => {
+  const restore = () => {
+    saveToStorage("t1", ["s2"]);
+    useCollapseStore.getState().restoreCollapse({ treeId: "t1", nodes, edges });
+  };
+
+  it("임시 접힘 중의 변경은 저장하지 않고, 끝나면 시작할 때의 집합으로 돌아간다", () => {
+    restore();
+
+    const store = useCollapseStore.getState();
+
+    store.beginTemporaryCollapse();
+    store.expandAll("t1", ["s2"]);
+    store.collapseAll("t1", ["s3"]);
+
+    expect(getCollapsedServerIds()).toEqual(["s3"]);
+    expect(readCollapsedServerIds("t1")).toEqual(["s2"]);
+
+    store.endTemporaryCollapse();
+
+    expect(getCollapsedServerIds()).toEqual(["s2"]);
+    expect(readCollapsedServerIds("t1")).toEqual(["s2"]);
+  });
+
+  it("끝난 뒤의 변경은 다시 저장한다", () => {
+    restore();
+
+    const store = useCollapseStore.getState();
+
+    store.beginTemporaryCollapse();
+    store.endTemporaryCollapse();
+    store.collapseAll("t1", ["s3"]);
+
+    expect(readCollapsedServerIds("t1")).toEqual(["s2", "s3"]);
+  });
+
+  it("임시 접힘 중에 받은 다른 탭의 변경은 끝날 때 반영한다", () => {
+    restore();
+
+    const store = useCollapseStore.getState();
+
+    store.beginTemporaryCollapse();
+    store.applyExternalCollapse(["s1"]);
+
+    expect(getCollapsedServerIds()).toEqual(["s2"]);
+
+    store.endTemporaryCollapse();
+
+    expect(getCollapsedServerIds()).toEqual(["s1"]);
+  });
+
+  it("트리를 떠나면 임시 접힘도 끝난다", () => {
+    restore();
+    useCollapseStore.getState().beginTemporaryCollapse();
+    useCollapseStore.getState().resetCollapse();
+
+    expect(useCollapseStore.getState().savedCollapsedServerIds).toBeNull();
+  });
+});

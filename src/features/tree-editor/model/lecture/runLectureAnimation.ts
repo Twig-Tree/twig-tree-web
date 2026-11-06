@@ -1,3 +1,6 @@
+import { getAncestorClientIds } from "../../lib/getAncestorClientIds";
+import { useCollapseStore } from "../collapse/collapseStore";
+import { useTreeStore } from "../treeStore";
 import {
   type EditorLectureAnimation,
   type EditorLectureAnimationAction,
@@ -66,6 +69,44 @@ const getTraceEdgeKeys = (clientIds: string[]): Set<string> =>
   );
 
 /*
+함수 이름 : applyLectureCollapse
+기능 : 대상 노드를 접거나 펼친다. 접을 때는 자식이 없는 노드를 빼고, 펼칠 때는 접힌 조상까지 펼쳐 대상이 화면에 드러나게 한다.
+인자 : "collapse" | "expand" type -> 접을지 펼칠지
+string[] targetClientIds -> 대상 노드의 clientId 목록
+반환값 : 없음
+
+접힘 상태는 serverId로 저장되므로 바꿔 넘기고, serverId가 없는 노드는 건너뛴다.
+*/
+const applyLectureCollapse = (
+  type: "collapse" | "expand",
+  targetClientIds: string[],
+): void => {
+  const { treeId, nodes, edges } = useTreeStore.getState();
+
+  if (treeId === null) return;
+
+  const clientIds = new Set(
+    type === "collapse"
+      ? targetClientIds.filter((clientId) =>
+          edges.some((edge) => edge.source === clientId),
+        )
+      : targetClientIds.flatMap((clientId) => [
+          clientId,
+          ...getAncestorClientIds(edges, clientId),
+        ]),
+  );
+  const serverIds = nodes.flatMap((node) =>
+    clientIds.has(node.id) && node.data.serverId !== null
+      ? [node.data.serverId]
+      : [],
+  );
+  const { collapseAll, expandAll } = useCollapseStore.getState();
+
+  if (type === "collapse") collapseAll(treeId, serverIds);
+  else expandAll(treeId, serverIds);
+};
+
+/*
 함수 이름 : runLectureAnimationAction
 기능 : 단위 동작 하나를 실행하고 지속하지 않는 시각 효과는 표시 시간이 끝난 뒤 제거한다.
 인자 : EditorLectureAnimation animation -> 실행할 단위 동작
@@ -83,6 +124,12 @@ const runLectureAnimationAction = async (
       maxZoom: animation.maxZoom,
       duration: animation.durationMs,
     });
+    await waitForLectureAnimation(animation.durationMs, context.signal);
+    return;
+  }
+
+  if (animation.type === "collapse" || animation.type === "expand") {
+    applyLectureCollapse(animation.type, animation.targetClientIds);
     await waitForLectureAnimation(animation.durationMs, context.signal);
     return;
   }

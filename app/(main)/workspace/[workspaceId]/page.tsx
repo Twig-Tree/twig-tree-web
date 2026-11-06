@@ -308,6 +308,7 @@ function LayoutFlow({ workspaceId, treeId }: LayoutFlowProps) {
               script={lectureScript}
               onRevealNodes={revealNodes}
               onResetCamera={fitTreeViewAbove}
+              onBeforeCollapseRestore={fitTreeViewAfterNextLayout}
             />
           </Panel>
         </ReactFlow>

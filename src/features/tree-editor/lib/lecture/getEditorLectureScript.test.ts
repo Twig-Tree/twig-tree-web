@@ -1,7 +1,11 @@
 import { describe, expect, it } from "vitest";
 import { type LectureScript } from "@/src/entities/lecture";
 import { createEditorNode } from "../add-node/createEditorNode";
-import { getEditorLectureScript } from "./getEditorLectureScript";
+import { createLectureNodeIdResolver } from "./createLectureNodeIdResolver";
+import {
+  getEditorLectureAnimation,
+  getEditorLectureScript,
+} from "./getEditorLectureScript";
 
 const createNode = (clientId: string, label: string) =>
   createEditorNode({
@@ -164,5 +168,22 @@ describe("getEditorLectureScript", () => {
     };
 
     expect(getEditorLectureScript(invalidScript, nodes)).toBeNull();
+  });
+
+  it("collapse와 expand의 대상 서버 ID를 clientId로 바꾼다", () => {
+    const findClientId = createLectureNodeIdResolver(nodes);
+
+    expect(
+      getEditorLectureAnimation(
+        { type: "collapse", targetNodeIds: ["s2"], durationMs: 800 },
+        findClientId,
+      ),
+    ).toEqual({ type: "collapse", targetClientIds: ["c2"], durationMs: 800 });
+    expect(
+      getEditorLectureAnimation(
+        { type: "expand", targetNodeIds: ["없는 노드"], durationMs: 800 },
+        findClientId,
+      ),
+    ).toBeNull();
   });
 });

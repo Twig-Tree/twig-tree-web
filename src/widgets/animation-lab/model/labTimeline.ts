@@ -50,6 +50,9 @@ export const createDefaultLabAction = (
       return { type, exceptNodeIds: [], durationMs: 900 };
     case "trace":
       return { type, nodeIds: [], durationMs: 1200 };
+    case "collapse":
+    case "expand":
+      return { type, targetNodeIds: [], durationMs: 800 };
     case "reset":
       return { type, scope: "visual" };
   }
@@ -67,6 +70,8 @@ export const getLabActionNodeIds = (
   switch (action.type) {
     case "focus":
     case "highlight":
+    case "collapse":
+    case "expand":
       return action.targetNodeIds;
     case "dim":
       return action.exceptNodeIds;
@@ -91,6 +96,8 @@ export const getLabActionWithNodeIds = (
   switch (action.type) {
     case "focus":
     case "highlight":
+    case "collapse":
+    case "expand":
       return { ...action, targetNodeIds: nodeIds };
     case "dim":
       return { ...action, exceptNodeIds: nodeIds };
@@ -169,6 +176,9 @@ const isLectureAnimationAction = (
       );
     case "trace":
       return isStringArray(value.nodeIds) && isDuration(value.durationMs);
+    case "collapse":
+    case "expand":
+      return isStringArray(value.targetNodeIds) && isDuration(value.durationMs);
     case "reset":
       return (
         value.scope === "visual" ||

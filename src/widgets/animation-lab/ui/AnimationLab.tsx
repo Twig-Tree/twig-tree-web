@@ -14,6 +14,7 @@ import {
   useEditorLayout,
   useFocusNode,
   useInitializeTree,
+  useNodeTransition,
   useReactFlowStoreSetters,
   useTreeStore,
   useVisibleElements,
@@ -66,6 +67,15 @@ function AnimationLabCanvas() {
     isLayoutRunning,
   });
 
+  /*
+  접고 펼치는 움직임은 이 전환이 그리므로 제품 캔버스와 똑같이 거친다.
+  */
+  const { transitionNodes, transitionEdges } = useNodeTransition({
+    nodes: visibleNodes,
+    edges: visibleEdges,
+    isLayoutRunning,
+  });
+
   const timeline = useLabTimeline(LAB_PRESETS[0].createSteps);
   const [isLooping, setIsLooping] = useState(false);
   const { play, stop, isPlaying, stage } = useAnimationLabPlayback({
@@ -100,8 +110,8 @@ function AnimationLabCanvas() {
 
       <div className="relative min-h-0 min-w-0 flex-1">
         <ReactFlow
-          nodes={visibleNodes}
-          edges={visibleEdges}
+          nodes={transitionNodes}
+          edges={transitionEdges}
           nodeTypes={nodeTypes}
           edgeTypes={edgeTypes}
           minZoom={MIN_ZOOM}

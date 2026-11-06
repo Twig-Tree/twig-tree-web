@@ -45,6 +45,21 @@ export interface LectureTraceAction {
   durationMs: number;
 }
 
+/*
+접고 펼치는 움직임은 편집기의 노드 전환이 그리므로 시간은 정해져 있다. durationMs는 다음 동작까지 기다리는 시간이다.
+*/
+export interface LectureCollapseAction {
+  type: "collapse";
+  targetNodeIds: LectureNodeId[]; // 자식을 접을 노드. 자식이 없는 노드는 건너뛴다
+  durationMs: number;
+}
+
+export interface LectureExpandAction {
+  type: "expand";
+  targetNodeIds: LectureNodeId[]; // 자식을 펼칠 노드. 접힌 조상도 함께 펼쳐 항상 화면에 드러난다
+  durationMs: number;
+}
+
 export interface LectureResetAction {
   type: "reset";
   scope: "visual" | "camera" | "all";
@@ -55,6 +70,8 @@ export type LectureAnimationAction =
   | LectureHighlightAction
   | LectureDimAction
   | LectureTraceAction
+  | LectureCollapseAction
+  | LectureExpandAction
   | LectureResetAction;
 
 /*

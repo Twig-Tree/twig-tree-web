@@ -58,6 +58,7 @@ const setWorldGeographyTree = () => {
 };
 
 const onRevealNodes = vi.fn();
+const onBeforeCollapseRestore = vi.fn();
 const onResetCamera = vi.fn();
 
 const renderPlayer = () =>
@@ -66,6 +67,7 @@ const renderPlayer = () =>
       script={script}
       onRevealNodes={onRevealNodes}
       onResetCamera={onResetCamera}
+      onBeforeCollapseRestore={onBeforeCollapseRestore}
     />,
   );
 
@@ -100,6 +102,7 @@ describe("LecturePlayer", () => {
           script={script}
           onRevealNodes={onRevealNodes}
           onResetCamera={onResetCamera}
+          onBeforeCollapseRestore={onBeforeCollapseRestore}
         />
       </div>,
     );
@@ -143,6 +146,7 @@ describe("LecturePlayer", () => {
         script={null}
         onRevealNodes={onRevealNodes}
         onResetCamera={onResetCamera}
+        onBeforeCollapseRestore={onBeforeCollapseRestore}
       />,
     );
 
@@ -159,6 +163,7 @@ describe("LecturePlayer", () => {
         script={null}
         onRevealNodes={onRevealNodes}
         onResetCamera={onResetCamera}
+        onBeforeCollapseRestore={onBeforeCollapseRestore}
       />,
     );
 
@@ -279,6 +284,7 @@ describe("LecturePlayer", () => {
         script={script}
         onRevealNodes={nextRevealNodes}
         onResetCamera={nextResetCamera}
+        onBeforeCollapseRestore={onBeforeCollapseRestore}
       />,
     );
 
@@ -297,6 +303,7 @@ describe("LecturePlayer", () => {
         script={script}
         onRevealNodes={nextRevealNodes}
         onResetCamera={onResetCamera}
+        onBeforeCollapseRestore={onBeforeCollapseRestore}
       />,
     );
     await userEvent.click(screen.getByRole("button", { name: "다음 장면" }));
