@@ -9,6 +9,18 @@ cancel()로 끊은 발화도 error 이벤트를 낸다. 일시정지와 장면 �
 const CANCELLED_SPEECH_ERRORS = new Set<string>(["interrupted", "canceled"]);
 
 /*
+Chrome의 온라인 음성은 읽던 발화를 cancel()한 직후 speak()하면 소리도 끝 이벤트도 없이 멈춘다. 100ms만 띄워도 정상으로 읽으므로 여유를 두고 기다린다.
+*/
+const SPEECH_RESTART_DELAY_MS = 150;
+
+/*
+끝 이벤트가 오지 않아도 강의가 멈추지 않게 하는 상한. 실제 낭독은 자막 시간보다 길 수 있어 넉넉히 곱한다.
+*/
+const SPEECH_STALL_DURATION_RATIO = 3;
+
+let speechRestartableAt = 0; // 끊긴 발화 뒤에 다음 발화를 시작해도 되는 시각
+
+/*
 함수 이름 : isSpeechSynthesisSupported
 기능 : 브라우저가 음성 합성 API를 제공하는지 판단한다.
 인자 : 없음
@@ -93,6 +105,8 @@ type PlaySentenceParams = {
 Chrome에서 긴 발화가 15초 무렵 끊기는 문제도 피한다.
 일시정지는 pause() 대신 멈추는 함수로 끊는다. pause()·resume()은 브라우저마다 동작이 달라
 재개해도 소리가 나지 않는 경우가 있으므로, 다시 재생하면 지금 문장을 처음부터 읽는다.
+
+읽던 발화를 끊은 직후에만 시작을 늦춘다. 끊은 적이 없는 첫 문장은 클릭과 같은 흐름에서 바로 읽어야 하는 브라우저가 있기 때문이다.
 */
 export const playSentence = ({
   text,
@@ -118,24 +132,57 @@ export const playSentence = ({
   utterance.voice = voice;
   utterance.lang = voice.lang;
 
+  let isSpeechFinished = false;
+  let timeoutId: number | undefined;
+
   utterance.onend = () => {
+    isSpeechFinished = true;
+    window.clearTimeout(timeoutId);
+
     if (!isStopped) onEnd();
   };
 
   utterance.onerror = (event) => {
     if (isStopped || CANCELLED_SPEECH_ERRORS.has(event.error)) return;
 
+    isSpeechFinished = true;
+    window.clearTimeout(timeoutId);
     onSpeechError();
   };
 
   /*
   앞 문장의 발화가 큐에 남아 있으면 이 문장이 그 뒤로 밀린다. 한 번에 한 문장만 읽도록 비우고 시작한다.
   */
-  window.speechSynthesis.cancel();
-  window.speechSynthesis.speak(utterance);
-
-  return () => {
-    isStopped = true;
+  const startSpeaking = () => {
     window.speechSynthesis.cancel();
+    window.speechSynthesis.speak(utterance);
+
+    timeoutId = window.setTimeout(() => {
+      stopSpeaking();
+      onEnd();
+    }, durationMs * SPEECH_STALL_DURATION_RATIO);
   };
+
+  /*
+  다 읽은 발화는 끊을 것이 없으므로 다음 문장을 늦추지 않는다.
+  */
+  const stopSpeaking = () => {
+    isStopped = true;
+    window.clearTimeout(timeoutId);
+    window.speechSynthesis.cancel();
+
+    if (!isSpeechFinished) {
+      speechRestartableAt = Date.now() + SPEECH_RESTART_DELAY_MS;
+    }
+  };
+
+  const restartDelayMs = speechRestartableAt - Date.now();
+
+  if (restartDelayMs > 0) {
+    timeoutId = window.setTimeout(startSpeaking, restartDelayMs);
+  } else {
+    startSpeaking();
+  }
+
+  return stopSpeaking;
 };

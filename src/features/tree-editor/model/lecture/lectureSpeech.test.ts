@@ -24,6 +24,11 @@ const cancel = vi.fn();
 
 const getLastUtterance = () => speak.mock.lastCall![0];
 
+/*
+재시작 대기 시각은 모듈에 남으므로, 앞 테스트가 끊은 발화의 영향을 받지 않게 테스트마다 시계를 크게 옮긴다.
+*/
+let testNow = Date.now();
+
 describe("findKoreanVoice", () => {
   it("자연스러운 음성이 없으면 언어 코드가 ko로 시작하는 첫 음성을 찾는다", () => {
     const voices = [
@@ -143,6 +148,8 @@ describe("playSentence: 음성으로", () => {
   const voice = createVoice("ko-KR");
 
   beforeEach(() => {
+    testNow += 60_000;
+    vi.useFakeTimers({ now: testNow });
     speak.mockClear();
     cancel.mockClear();
     vi.stubGlobal("SpeechSynthesisUtterance", FakeUtterance);
@@ -150,6 +157,7 @@ describe("playSentence: 음성으로", () => {
   });
 
   afterEach(() => {
+    vi.useRealTimers();
     vi.unstubAllGlobals();
   });
 
@@ -238,5 +246,112 @@ describe("playSentence: 음성으로", () => {
     getLastUtterance().onerror?.({ error: "synthesis-failed" });
 
     expect(onSpeechError).toHaveBeenCalledOnce();
+  });
+
+  /*
+  Chrome의 온라인 음성은 cancel() 직후의 speak()를 읽지 못하고 끝 이벤트도 보내지 않는다.
+  */
+  it("읽던 발화를 끊은 직후의 문장은 잠시 뒤에 읽는다", () => {
+    const stop = playSentence({
+      text: "앞 문장",
+      durationMs: 1000,
+      voice,
+      onEnd: vi.fn(),
+      onSpeechError: vi.fn(),
+    });
+
+    stop();
+    playSentence({
+      text: "다음 문장",
+      durationMs: 1000,
+      voice,
+      onEnd: vi.fn(),
+      onSpeechError: vi.fn(),
+    });
+    expect(getLastUtterance().text).toBe("앞 문장");
+
+    vi.advanceTimersByTime(150);
+    expect(getLastUtterance().text).toBe("다음 문장");
+  });
+
+  it("다 읽은 뒤의 문장은 바로 읽는다", () => {
+    const stop = playSentence({
+      text: "앞 문장",
+      durationMs: 1000,
+      voice,
+      onEnd: vi.fn(),
+      onSpeechError: vi.fn(),
+    });
+
+    getLastUtterance().onend?.();
+    stop();
+    playSentence({
+      text: "다음 문장",
+      durationMs: 1000,
+      voice,
+      onEnd: vi.fn(),
+      onSpeechError: vi.fn(),
+    });
+
+    expect(getLastUtterance().text).toBe("다음 문장");
+  });
+
+  it("시작을 기다리는 동안 멈추면 읽지 않는다", () => {
+    const stopPrevious = playSentence({
+      text: "앞 문장",
+      durationMs: 1000,
+      voice,
+      onEnd: vi.fn(),
+      onSpeechError: vi.fn(),
+    });
+
+    stopPrevious();
+    const stop = playSentence({
+      text: "다음 문장",
+      durationMs: 1000,
+      voice,
+      onEnd: vi.fn(),
+      onSpeechError: vi.fn(),
+    });
+    stop();
+    vi.advanceTimersByTime(1000);
+
+    expect(getLastUtterance().text).toBe("앞 문장");
+  });
+
+  it("끝 이벤트가 오지 않으면 발화를 끊고 끝을 알린다", () => {
+    const onEnd = vi.fn();
+
+    playSentence({
+      text: "문장",
+      durationMs: 1000,
+      voice,
+      onEnd,
+      onSpeechError: vi.fn(),
+    });
+    cancel.mockClear();
+
+    vi.advanceTimersByTime(2999);
+    expect(onEnd).not.toHaveBeenCalled();
+
+    vi.advanceTimersByTime(1);
+    expect(cancel).toHaveBeenCalledOnce();
+    expect(onEnd).toHaveBeenCalledOnce();
+  });
+
+  it("끝 이벤트가 오면 나중에 다시 끝을 알리지 않는다", () => {
+    const onEnd = vi.fn();
+
+    playSentence({
+      text: "문장",
+      durationMs: 1000,
+      voice,
+      onEnd,
+      onSpeechError: vi.fn(),
+    });
+    getLastUtterance().onend?.();
+    vi.advanceTimersByTime(3000);
+
+    expect(onEnd).toHaveBeenCalledOnce();
   });
 });
