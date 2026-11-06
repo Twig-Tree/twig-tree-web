@@ -215,7 +215,7 @@ export function CustomNode({
       />
 
       {isEditing ? (
-        <div className="flex flex-col items-stretch gap-1">
+        <div className="custom-node__content flex flex-col items-stretch gap-1">
           <input
             ref={inputRef}
             type="text"
@@ -247,7 +247,7 @@ export function CustomNode({
           aria-label={`노드 제목 ${data.label} 편집`}
           onDoubleClick={startEditing}
           onKeyDown={handleTitleKeyDown}
-          className="nodrag cursor-text"
+          className="custom-node__content nodrag cursor-text"
         >
           {data.label}
         </button>

@@ -129,15 +129,19 @@ React Flow가 읽는 CSS 변수에 값을 넣어야 하므로 Tailwind 유틸리
   animation: lecture-node-pulse 700ms ease-in-out infinite alternate;
 }
 
-.react-flow__node > .custom-node[data-lecture-highlight-style="pop"] {
+/*
+.custom-node 전체에 transform을 적용하면 그 안의 절대 위치 Handle이 텍스트 폭을 좌표 기준으로 삼는다.
+이동 효과는 텍스트 콘텐츠에만 적용해 연결 포인트를 노드 외곽에 고정한다.
+*/
+.custom-node[data-lecture-highlight-style="pop"] > .custom-node__content {
   animation: lecture-node-pop 480ms ease-out both;
 }
 
-.react-flow__node > .custom-node[data-lecture-highlight-style="bounce"] {
+.custom-node[data-lecture-highlight-style="bounce"] > .custom-node__content {
   animation: lecture-node-bounce 620ms ease-in-out infinite;
 }
 
-.react-flow__node > .custom-node[data-lecture-highlight-style="shake"] {
+.custom-node[data-lecture-highlight-style="shake"] > .custom-node__content {
   animation: lecture-node-shake 420ms ease-in-out infinite;
 }
 
@@ -222,7 +226,7 @@ React Flow가 읽는 CSS 변수에 값을 넣어야 하므로 Tailwind 유틸리
 
 @media (prefers-reduced-motion: reduce) {
   .react-flow__node:has(> .custom-node[data-lecture-highlight-style]),
-  .react-flow__node > .custom-node[data-lecture-highlight-style],
+  .custom-node[data-lecture-highlight-style] > .custom-node__content,
   .react-flow__edge-path.lecture-edge-traced {
     animation: none;
   }
