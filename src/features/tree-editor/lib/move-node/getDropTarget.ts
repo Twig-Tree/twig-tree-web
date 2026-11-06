@@ -4,8 +4,8 @@ import { MoveNodeParams } from "./getMovedElements";
 import { getNodePlacement } from "./getNodePlacement";
 
 /*
-놓은 지점에서 이 거리(flow 좌표) 안에 노드가 없으면 놓을 대상이 없는 것으로 본다. 형제 사이 간격(elk.spacing.nodeNode 80)의
-절반이라, 두 형제 사이의 빈칸은 어느 한쪽 형제에 닿는다.
+놓은 지점에서 이 거리(flow 좌표) 안에 노드가 없으면 놓을 대상이 없는 것으로 본다. 형제 간격과 층 간격의 절반보다
+크므로, 노드 사이의 빈칸은 어느 한쪽 노드에 닿는다.
 */
 export const MAX_DROP_DISTANCE = 40;
 

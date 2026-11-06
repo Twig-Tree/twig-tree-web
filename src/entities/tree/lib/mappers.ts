@@ -19,7 +19,7 @@ export const mapNodeDtoToDomain = (dto: NodeDTO): TreeNode => ({
 });
 
 /*
-orderIndex 정렬은 여기서 하지 않는다. 배열 순서는 ELK가 형제 노드를 배치하는 기준이므로
+orderIndex 정렬은 여기서 하지 않는다. 배열 순서는 레이아웃이 형제 노드를 배치하는 기준이므로
 화면에 넘기기 직전인 transformToFlowElements에서 한 번만 보장한다.
 캐시는 순서를 약속하지 않으므로 mutation이 어느 위치에 노드를 추가해도 무방하다.
 */

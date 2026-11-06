@@ -87,13 +87,13 @@ React Flow는 자기 CSS 변수를 읽으므로 `app/xy-theme.css`가 그 변수
 
 노드 크기를 테마별로 나누면 테마를 바꿀 때 트리를 다시 배치해야 하고, 노드 위치가 움직인다.
 
-| 값                     | 위치                                               |
-| ---------------------- | -------------------------------------------------- |
-| 노드 크기 (168×60)     | `src/features/tree-editor/lib/layout.ts`           |
-| 노드 간격 (80)         | `src/features/tree-editor/lib/layout.ts`           |
-| 연결선 굵기            | `src/features/tree-editor/ui/CustomEdge.tsx`       |
-| 화살촉 크기와 모양     | `src/features/tree-editor/ui/CustomEdge.tsx`       |
-| 캔버스 도트 간격, 크기 | `app/(main)/workspace/[workspaceId]/page.tsx`      |
-| 축소 하한 (0.3)        | `src/features/tree-editor/constants/flowConfig.ts` |
+| 값                         | 위치                                               |
+| -------------------------- | -------------------------------------------------- |
+| 노드 크기 (168×60)         | `src/features/tree-editor/lib/layout.ts`           |
+| 노드 간격 (형제 32, 층 64) | `src/features/tree-editor/lib/layout.ts`           |
+| 연결선 굵기                | `src/features/tree-editor/ui/CustomEdge.tsx`       |
+| 화살촉 크기와 모양         | `src/features/tree-editor/ui/CustomEdge.tsx`       |
+| 캔버스 도트 간격, 크기     | `app/(main)/workspace/[workspaceId]/page.tsx`      |
+| 축소 하한 (0.3)            | `src/features/tree-editor/constants/flowConfig.ts` |
 
 화살촉의 채움, 도트 색, 접기 버튼의 모양과 위치는 테마 파일에서 정한다.

@@ -37,7 +37,7 @@ export const mapToVisualNodes = (
       memo: node.memo,
       tagIds: node.tagIds,
     },
-    position: { x: 0, y: 0 }, // 초기 위치는 ELK 레이아웃 엔진 등이 계산하도록 위임
+    position: { x: 0, y: 0 }, // 초기 위치는 레이아웃 계산이 정한다
   }));
 };
 

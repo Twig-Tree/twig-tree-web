@@ -3,31 +3,23 @@ import {
   CustomEditorNode,
 } from "@/src/features/tree-editor/model/types";
 import { Position } from "@xyflow/react";
-import ELK from "elkjs/lib/elk.bundled.js";
-
-const elk = new ELK();
 
 /*
 노드 크기는 내용과 상관없이 고정이다. 레이아웃이 이 크기로 위치를 계산하고 React Flow도 같은 크기로 노드를 그린다.
 */
 export const NODE_WIDTH = 168;
-const NODE_HEIGHT = 60;
+export const NODE_HEIGHT = 60;
 
 /*
-mrtree는 트리 전용 알고리즘이라 모든 부모를 자식들의 가운데에 둔다. 서브트리를 접어도 나머지 노드는
-접힌 높이만큼 함께 움직일 뿐 서로의 위치 관계가 유지된다. layered는 부모 위치를 보장하지 않아
-접기 하나로 루트가 맨 위에서 맨 아래로 튈 수 있었다.
+형제가 쌓이는 세로 간격과 연결선이 지나가는 층 사이 간격. 처음 열 때의 배율은 대개 트리 높이가 정하므로
+형제 간격을 좁혀 글자를 키우고, 층 사이는 연결선과 접기 버튼이 지나갈 폭을 남긴다.
 */
-export const elkOptions = {
-  "elk.algorithm": "mrtree",
-  "elk.spacing.nodeNode": "80", // mrtree는 이 값 하나를 층 사이 간격과 형제 간격에 함께 쓴다.
-  "elk.mrtree.weighting": "MODEL_ORDER", // 형제를 입력 순서대로 놓는다. 형제 순서가 기본값에 기대지 않도록 명시한다.
-};
+export const SIBLING_GAP = 32;
+const LAYER_GAP = 64;
 
 /*
 함수 이름 : sortEdgesByTargetOrder
-기능 : 엣지를 자식(target) 노드의 배열 순서대로 정렬한다. mrtree는 형제 순서를 엣지 입력 순서로 정하는데,
-편집기에서 형제 순서를 정하는 것은 노드 배열이므로 ELK에 넘기기 직전에 엣지를 노드 순서에 맞춘다.
+기능 : 엣지를 자식(target) 노드의 배열 순서대로 정렬한다. 편집기에서 형제 순서를 정하는 것은 노드 배열인데,
 노드 이동은 노드 배열만 다시 놓고 엣지 배열은 그대로 두므로 두 배열의 순서가 어긋날 수 있다.
 인자 : CustomEditorNode[] nodes -> 형제 순서를 정하는 노드 목록
 CustomEditorEdge[] edges -> 정렬할 엣지 목록
@@ -45,49 +37,106 @@ const sortEdgesByTargetOrder = (
   return [...edges].sort((a, b) => getTargetIndex(a) - getTargetIndex(b));
 };
 
-// ELK 레이아웃을 적용하여 노드와 엣지의 위치를 계산하는 함수
-export const getLayoutedElements = async (
+/*
+함수 이름 : getNodePositions
+기능 : 부모를 첫 자식과 같은 높이에 두고 나머지 형제를 그 아래로 쌓도록 노드 좌표를 계산한다. 앞선 형제의 서브트리가
+끝나는 곳 아래에서 다음 형제가 시작하므로 서브트리끼리 겹치지 않고, 접거나 펼쳐도 그 아래 노드만 움직인다.
+인자 : CustomEditorNode[] nodes -> 배치할 노드 목록
+CustomEditorEdge[] edges -> 배치할 엣지 목록
+반환값 : 노드 ID를 키로 하는 좌표
+*/
+const getNodePositions = (
   nodes: CustomEditorNode[],
   edges: CustomEditorEdge[],
-  options: Record<string, string> = {},
-): Promise<{ nodes: CustomEditorNode[]; edges: CustomEditorEdge[] }> => {
-  const isHorizontal = options?.["elk.direction"] === "RIGHT";
-  const graph = {
-    id: "root",
-    layoutOptions: options,
-    children: nodes.map((node: CustomEditorNode) => ({
-      ...node,
-      targetPosition: isHorizontal ? Position.Left : Position.Top,
-      sourcePosition: isHorizontal ? Position.Right : Position.Bottom,
-      width: NODE_WIDTH,
-      height: NODE_HEIGHT,
-    })),
-    edges: sortEdgesByTargetOrder(nodes, edges).map((edge) => ({
-      ...edge,
-      sources: [edge.source],
-      targets: [edge.target],
-    })),
+): Map<string, { x: number; y: number }> => {
+  const nodeIds = new Set(nodes.map((node) => node.id));
+  const childIdsByParent = new Map<string, string[]>();
+  const childIds = new Set<string>();
+
+  sortEdgesByTargetOrder(nodes, edges).forEach(({ source, target }) => {
+    if (!nodeIds.has(source) || !nodeIds.has(target)) return; // 접혀서 보이지 않는 노드와의 연결은 배치와 무관하다.
+
+    const siblingIds = childIdsByParent.get(source);
+
+    if (siblingIds) {
+      siblingIds.push(target);
+    } else {
+      childIdsByParent.set(source, [target]);
+    }
+
+    childIds.add(target);
+  });
+
+  const positions = new Map<string, { x: number; y: number }>();
+
+  /*
+  이미 놓은 노드를 건너뛰어, 잘못된 구조에 순환이 있어도 계산이 끝나게 한다. 서브트리의 아래쪽 끝 좌표를 돌려준다.
+  */
+  const placeSubtree = (id: string, depth: number, top: number): number => {
+    if (positions.has(id)) return top - SIBLING_GAP;
+
+    positions.set(id, { x: depth * (NODE_WIDTH + LAYER_GAP), y: top });
+
+    let bottom = top + NODE_HEIGHT;
+    let nextTop = top;
+
+    (childIdsByParent.get(id) ?? []).forEach((childId) => {
+      bottom = Math.max(bottom, placeSubtree(childId, depth + 1, nextTop));
+      nextTop = bottom + SIBLING_GAP;
+    });
+
+    return bottom;
   };
 
   /*
-  실패를 여기서 삼키지 않는다. 계산에 실패한 구조를 다시 계산할지 판단하려면
-  호출부가 실패를 알아야 한다.
+  부모가 없는 노드를 먼저 놓고, 순환에 묶여 아직 놓이지 않은 노드는 뒤에 놓아 원점에 겹치지 않게 한다.
   */
-  return elk.layout(graph).then((layoutedGraph) => ({
-    nodes: (layoutedGraph.children ?? []).map((node) => ({
-      // ELK에서 반환한 node의 x, y 좌표 직접 참조
+  const rootIds = nodes
+    .filter((node) => !childIds.has(node.id))
+    .map((node) => node.id);
+
+  let nextTop = 0;
+
+  [...rootIds, ...nodes.map((node) => node.id)].forEach((id) => {
+    if (positions.has(id)) return;
+
+    nextTop = placeSubtree(id, 0, nextTop) + SIBLING_GAP;
+  });
+
+  return positions;
+};
+
+/*
+함수 이름 : getLayoutedElements
+기능 : 노드와 엣지의 배치를 계산한다. 호출부가 나중에 시작한 계산의 결과만 얹도록 비동기 결과로 돌려준다.
+인자 : CustomEditorNode[] nodes -> 배치할 노드 목록
+CustomEditorEdge[] edges -> 배치할 엣지 목록
+반환값 : 좌표와 배치 상자 크기, 핸들 위치를 얹은 노드 목록과 엣지 목록
+*/
+export const getLayoutedElements = async (
+  nodes: CustomEditorNode[],
+  edges: CustomEditorEdge[],
+): Promise<{ nodes: CustomEditorNode[]; edges: CustomEditorEdge[] }> => {
+  const positions = getNodePositions(nodes, edges);
+
+  return {
+    nodes: nodes.map((node) => ({
       ...node,
-      position: { x: node.x ?? 0, y: node.y ?? 0 },
+      position: positions.get(node.id) ?? { x: 0, y: 0 },
+      targetPosition: Position.Left,
+      sourcePosition: Position.Right,
+      width: NODE_WIDTH,
+      height: NODE_HEIGHT,
     })),
-    edges: layoutedGraph.edges,
-  }));
+    edges,
+  };
 };
 
 /*
 함수 이름 : mergeLayoutResult
-기능 : ELK 계산 결과에서 레이아웃이 소유하는 값만 현재 노드 목록에 병합한다. 계산 결과 배열로 노드를 통째로 교체하면 계산이 도는 동안 store에 일어난 라벨 수정·메모 저장·추가·삭제가 덮이므로, 배치에 해당하는 값만 얹는다.
+기능 : 배치 계산 결과에서 레이아웃이 소유하는 값만 현재 노드 목록에 병합한다. 계산 결과 배열로 노드를 통째로 교체하면 계산이 도는 동안 store에 일어난 라벨 수정·메모 저장·추가·삭제가 덮이므로, 배치에 해당하는 값만 얹는다.
 인자 : CustomEditorNode[] currentNodes -> 병합 시점의 editor store 노드 목록
-CustomEditorNode[] layoutedNodes -> ELK가 배치를 계산한 노드 목록
+CustomEditorNode[] layoutedNodes -> 배치를 계산한 노드 목록
 반환값 : 배치 값만 갱신된 노드 목록
 */
 export const mergeLayoutResult = (
@@ -106,7 +155,7 @@ export const mergeLayoutResult = (
     if (!layoutedNode) return node;
 
     /*
-    레이아웃이 소유하는 값은 좌표와, ELK에 넘긴 배치 상자 크기, 정렬 방향이 정하는 핸들 위치다.
+    레이아웃이 소유하는 값은 좌표와, 계산이 정한 배치 상자 크기, 정렬 방향이 정하는 핸들 위치다.
     id·data·selected·measured처럼 store와 React Flow가 소유하는 값은 현재 노드의 것을 유지한다.
     data에는 서버 응답으로 채워지는 serverId도 들어 있어, 계산이 도는 사이에 도착한 응답이 덮이지 않는다.
     */

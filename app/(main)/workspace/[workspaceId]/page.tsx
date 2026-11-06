@@ -22,7 +22,9 @@ import {
   useReactFlowStoreSetters,
   useSyncCollapseAcrossTabs,
   useTreeEditorActions,
+  useTreeLevelControl,
   useTreeStore,
+  useNodeTransition,
   useVisibleElements,
   type NodeResult,
 } from "@/src/features/tree-editor";
@@ -103,11 +105,30 @@ function LayoutFlow({ workspaceId, treeId }: LayoutFlowProps) {
     onSelectedNodeHidden: closeMemoPanel,
   });
 
-  const { fitTreeView, runAfterNextLayout, isLayoutRunning } = useEditorLayout(
+  const {
+    fitTreeView,
+    fitTreeViewAfterNextLayout,
+    runAfterNextLayout,
+    isLayoutRunning,
+  } = useEditorLayout(visibleNodes, visibleEdges, setNodes);
+
+  /*
+  계층을 바꾸면 트리 크기가 크게 달라지므로 화면을 다시 맞춘다. 노드별 접기와 달리 보던 지점보다 전체 모양을 보려는 동작이다.
+  */
+  const {
+    treeLevel,
+    handleCollapseLevel,
+    handleExpandLevel,
+    isCollapseLevelDisabled,
+    isExpandLevelDisabled,
+  } = useTreeLevelControl({
+    treeId,
+    nodes,
+    edges,
     visibleNodes,
     visibleEdges,
-    setNodes,
-  );
+    onBeforeLevelChange: fitTreeViewAfterNextLayout,
+  });
 
   const { focusNode, fitNodes } = useFocusNode({
     visibleNodes,
@@ -126,6 +147,17 @@ function LayoutFlow({ workspaceId, treeId }: LayoutFlowProps) {
     onNodeDrag,
     onNodeDragStop,
   } = useMoveNodeByDrag({ treeId, visibleNodes, visibleEdges, moveNode });
+
+  /*
+  store에는 최종 좌표만 두고, 접힘이 바뀔 때 움직이는 좌표는 화면에 넘기는 노드에만 입힌다.
+  전환 중에는 노드를 잡지 못하게 한다. 움직이는 노드를 잡으면 놓일 자리를 잴 기준이 계속 바뀐다.
+  */
+  const { transitionNodes, transitionEdges, isTransitioning } =
+    useNodeTransition({
+      nodes: draggableNodes,
+      edges: visibleEdges,
+      isLayoutRunning,
+    });
 
   /*
   결과로 고른 노드를 선택하고 화면 가운데로 옮긴다. 메모에서 일치한 노드는 일치한 내용을 바로 볼 수 있도록 메모 패널도 연다.
@@ -201,8 +233,8 @@ function LayoutFlow({ workspaceId, treeId }: LayoutFlowProps) {
         className="@container relative min-h-0 min-w-0 flex-1"
       >
         <ReactFlow
-          nodes={draggableNodes}
-          edges={visibleEdges}
+          nodes={transitionNodes}
+          edges={transitionEdges}
           nodeTypes={nodeTypes}
           edgeTypes={edgeTypes}
           minZoom={MIN_ZOOM}
@@ -218,7 +250,7 @@ function LayoutFlow({ workspaceId, treeId }: LayoutFlowProps) {
           onNodeDrag={onNodeDrag}
           onNodeDragStop={onNodeDragStop}
           disableKeyboardA11y={isMutating}
-          nodesDraggable={!isMutating}
+          nodesDraggable={!isMutating && !isTransitioning}
           /*
           부모와 순서는 노드를 끌어 바꾼다. 엣지를 잇거나 끝을 옮기는 편집은 서버에 저장할 수 없어 막는다.
           */
@@ -251,6 +283,11 @@ function LayoutFlow({ workspaceId, treeId }: LayoutFlowProps) {
               onUndo={handleUndo}
               onRedo={handleRedo}
               onFitView={fitTreeView}
+              treeLevel={treeLevel}
+              onCollapseLevel={handleCollapseLevel}
+              onExpandLevel={handleExpandLevel}
+              isCollapseLevelDisabled={isCollapseLevelDisabled}
+              isExpandLevelDisabled={isExpandLevelDisabled}
               onAddRootNode={nodes.length === 0 ? handleAddNode : undefined}
               isUndoDisabled={!canUndo || isMutating}
               isRedoDisabled={!canRedo || isMutating}
