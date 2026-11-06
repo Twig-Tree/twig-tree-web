@@ -5,7 +5,6 @@ import {
   Dispatch,
   SetStateAction,
 } from "react";
-import { useReactFlow } from "@xyflow/react";
 import {
   CustomEditorNode,
   CustomEditorEdge,
@@ -16,7 +15,6 @@ import {
   getLayoutStructureSignature,
   mergeLayoutResult,
 } from "@/src/features/tree-editor/lib/layout";
-import { getFitViewPadding } from "@/src/features/tree-editor/lib/getFitViewPadding";
 
 /*
 노드가 한두 개뿐인 트리에 맞추면 기본 최대 배율(2)까지 확대되므로 100%보다 크게 확대하지 않는다.
@@ -30,14 +28,13 @@ const FIT_TREE_MAX_ZOOM = 1;
 인자 : CustomEditorNode[] nodes -> 배치를 계산할 노드 목록(화면에 보이는 노드)
 CustomEditorEdge[] edges -> 배치를 계산할 엣지 목록(화면에 보이는 엣지)
 Dispatch<SetStateAction<CustomEditorNode[]>> setNodes -> 계산 결과를 얹을 store setter
-반환값 : 배치를 다시 계산하는 함수, 트리 전체를 화면에 맞추는 함수, 아래쪽 UI를 피해 트리 전체를 맞추는 함수, 다음 레이아웃 뒤에 트리 전체를 맞추는 함수, 다음 레이아웃 결과를 얹은 뒤 실행할 함수를 맡기는 함수, 계산 중인지 확인하는 함수
+반환값 : 배치를 다시 계산하는 함수, 트리 전체를 화면에 맞추는 함수, 다음 레이아웃 뒤에 트리 전체를 맞추는 함수, 다음 레이아웃 결과를 얹은 뒤 실행할 함수를 맡기는 함수, 계산 중인지 확인하는 함수
 */
 export function useEditorLayout(
   nodes: CustomEditorNode[],
   edges: CustomEditorEdge[],
   setNodes: Dispatch<SetStateAction<CustomEditorNode[]>>,
 ) {
-  const { fitView } = useReactFlow();
   const { fitFinalNodes } = useCameraMove();
 
   /*
@@ -82,28 +79,15 @@ export function useEditorLayout(
   사용자가 누른 동작이 화면을 옮길 때는 어디서 어디로 갔는지 보이도록 부드럽게 옮긴다.
   */
   const fitTreeView = useCallback(() => {
-    fitFinalNodes({ maxZoom: FIT_TREE_MAX_ZOOM, padding: getFitViewPadding() });
+    fitFinalNodes({ maxZoom: FIT_TREE_MAX_ZOOM });
   }, [fitFinalNodes]);
-
-  /*
-  도구 버튼의 클릭 이벤트가 인자로 넘어오지 않도록 fitTreeView와 나눈다.
-  */
-  const fitTreeViewAbove = useCallback(
-    (bottomInset: number) => {
-      fitFinalNodes({
-        maxZoom: FIT_TREE_MAX_ZOOM,
-        padding: getFitViewPadding(bottomInset),
-      });
-    },
-    [fitFinalNodes],
-  );
 
   /*
   처음 열 때는 움직임을 보여 주지 않고 맞춘 화면에서 시작한다.
   */
   const fitInitialTreeView = useCallback(() => {
-    void fitView({ maxZoom: FIT_TREE_MAX_ZOOM, padding: getFitViewPadding() });
-  }, [fitView]);
+    fitFinalNodes({ maxZoom: FIT_TREE_MAX_ZOOM, duration: 0 });
+  }, [fitFinalNodes]);
 
   /*
   접힘이 바뀌면 레이아웃이 끝나야 새 좌표가 생기고, 막 나타난 노드는 그 뒤에 그려지므로 다음 프레임에 맞춘다.
@@ -179,7 +163,6 @@ export function useEditorLayout(
   return {
     onLayout,
     fitTreeView,
-    fitTreeViewAbove,
     fitTreeViewAfterNextLayout,
     runAfterNextLayout,
     isLayoutRunning,

@@ -52,6 +52,7 @@ export const MemoSidePanel = ({
   return (
     <aside
       aria-label="메모 패널"
+      data-camera-inset="right"
       className={`z-10 flex h-full w-[360px] max-w-full shrink-0 flex-col bg-surface-muted shadow-panel ${
         isOverlay ? "absolute inset-y-0 right-0 z-30" : "relative"
       }`}

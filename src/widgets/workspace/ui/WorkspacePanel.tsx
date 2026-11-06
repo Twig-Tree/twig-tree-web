@@ -109,6 +109,7 @@ export function WorkspacePanel({
       ref={panelRef}
       id="workspace-panel"
       aria-label="워크스페이스 패널"
+      data-camera-inset="left"
       hidden={!isOpen}
       className={`z-10 flex h-full w-64 shrink-0 flex-col bg-surface-muted shadow-panel ${
         isOverlay ? "absolute inset-y-0 left-0 z-30" : "relative"

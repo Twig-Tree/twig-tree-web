@@ -87,33 +87,13 @@ afterEach(() => {
 });
 
 describe("LecturePlayer", () => {
-  it("카메라를 옮길 때 플레이어가 캔버스 아래쪽을 가리는 높이를 함께 넘긴다", async () => {
-    vi.spyOn(Element.prototype, "getBoundingClientRect").mockImplementation(
-      function (this: Element) {
-        return (this.classList.contains("react-flow")
-          ? { bottom: 700 }
-          : { top: 540 }) as unknown as DOMRect;
-      },
-    );
+  it("시각 프레임에서 빠지도록 캔버스 아래쪽을 가린다고 표시한다", () => {
     setWorldGeographyTree();
-    render(
-      <div className="react-flow">
-        <LecturePlayer
-          script={script}
-          onRevealNodes={onRevealNodes}
-          onResetCamera={onResetCamera}
-          onBeforeCollapseRestore={onBeforeCollapseRestore}
-        />
-      </div>,
-    );
+    renderPlayer();
 
-    await userEvent.click(screen.getByRole("button", { name: "강의 시작" }));
-
-    expect(onRevealNodes).toHaveBeenCalledWith(
-      ["world", "europe", "asia"],
-      expect.objectContaining({ bottomInset: 160 }),
-    );
-    vi.restoreAllMocks();
+    expect(
+      screen.getByRole("region", { name: "강의 플레이어" }),
+    ).toHaveAttribute("data-camera-inset", "bottom");
   });
 
   it("대본의 서버 노드 ID가 현재 트리에 없으면 시작을 막고 이유를 알린다", () => {
@@ -186,7 +166,6 @@ describe("LecturePlayer", () => {
     expect(onRevealNodes).toHaveBeenCalledWith(["world", "europe", "asia"], {
       maxZoom: 1,
       duration: 700,
-      bottomInset: 0,
     });
   });
 
@@ -203,7 +182,7 @@ describe("LecturePlayer", () => {
     expect(screen.getByText("장면 2 / 4 · 비트 1 / 4")).toBeInTheDocument();
     expect(onRevealNodes).toHaveBeenLastCalledWith(
       ["europe", "france", "germany", "euro"],
-      { maxZoom: 1.1, duration: 700, bottomInset: 0 },
+      { maxZoom: 1.1, duration: 700 },
     );
   });
 
@@ -311,7 +290,7 @@ describe("LecturePlayer", () => {
     expect(onRevealNodes).toHaveBeenCalledTimes(1);
     expect(nextRevealNodes).toHaveBeenCalledExactlyOnceWith(
       ["europe", "france", "germany", "euro"],
-      { maxZoom: 1.1, duration: 700, bottomInset: 0 },
+      { maxZoom: 1.1, duration: 700 },
     );
   });
 

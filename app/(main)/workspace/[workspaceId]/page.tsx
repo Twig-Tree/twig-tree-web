@@ -109,7 +109,6 @@ function LayoutFlow({ workspaceId, treeId }: LayoutFlowProps) {
 
   const {
     fitTreeView,
-    fitTreeViewAbove,
     fitTreeViewAfterNextLayout,
     runAfterNextLayout,
     isLayoutRunning,
@@ -307,7 +306,7 @@ function LayoutFlow({ workspaceId, treeId }: LayoutFlowProps) {
             <LecturePlayer
               script={lectureScript}
               onRevealNodes={revealNodes}
-              onResetCamera={fitTreeViewAbove}
+              onResetCamera={fitTreeView}
               onBeforeCollapseRestore={fitTreeViewAfterNextLayout}
             />
           </Panel>
