@@ -68,6 +68,7 @@ const renderPlayer = () =>
       onRevealNodes={onRevealNodes}
       onResetCamera={onResetCamera}
       onBeforeCollapseRestore={onBeforeCollapseRestore}
+      panelLayoutKey="panels"
     />,
   );
 
@@ -127,6 +128,7 @@ describe("LecturePlayer", () => {
         onRevealNodes={onRevealNodes}
         onResetCamera={onResetCamera}
         onBeforeCollapseRestore={onBeforeCollapseRestore}
+        panelLayoutKey="panels"
       />,
     );
 
@@ -144,6 +146,7 @@ describe("LecturePlayer", () => {
         onRevealNodes={onRevealNodes}
         onResetCamera={onResetCamera}
         onBeforeCollapseRestore={onBeforeCollapseRestore}
+        panelLayoutKey="panels"
       />,
     );
 
@@ -264,6 +267,7 @@ describe("LecturePlayer", () => {
         onRevealNodes={nextRevealNodes}
         onResetCamera={nextResetCamera}
         onBeforeCollapseRestore={onBeforeCollapseRestore}
+        panelLayoutKey="panels"
       />,
     );
 
@@ -283,6 +287,7 @@ describe("LecturePlayer", () => {
         onRevealNodes={nextRevealNodes}
         onResetCamera={onResetCamera}
         onBeforeCollapseRestore={onBeforeCollapseRestore}
+        panelLayoutKey="panels"
       />,
     );
     await userEvent.click(screen.getByRole("button", { name: "다음 장면" }));

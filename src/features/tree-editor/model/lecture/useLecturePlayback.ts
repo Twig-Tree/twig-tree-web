@@ -3,6 +3,7 @@ import { playSentence, type LectureAudioMode } from "./lectureSpeech";
 import { useLectureAnimationStore } from "./lectureAnimationStore";
 import { runLectureAnimation } from "./runLectureAnimation";
 import { useKoreanVoice } from "./useKoreanVoice";
+import { useLectureCameraRefit } from "./useLectureCameraRefit";
 import { useLectureCollapseRestore } from "./useLectureCollapseRestore";
 import { useLectureStore } from "./lectureStore";
 
@@ -13,6 +14,7 @@ type UseLecturePlaybackParams = {
   ) => void; // 접힌 조상을 펼치고 애니메이션 대상 노드를 화면에 모은다
   resetCamera: () => void; // 대본의 camera reset 동작이 전체 트리 화면으로 돌아가게 한다
   onBeforeCollapseRestore: () => void; // 강의가 끝나 접힘을 되돌리면 보이는 노드가 달라질 때 직전에 부른다
+  panelLayoutKey: string; // 패널 배치를 나타내는 값. 강의 중에 바뀌면 마지막 카메라 동작을 다시 실행한다
 };
 
 /*
@@ -25,8 +27,11 @@ export const useLecturePlayback = ({
   revealNodes,
   resetCamera,
   onBeforeCollapseRestore,
+  panelLayoutKey,
 }: UseLecturePlaybackParams): LectureAudioMode => {
   useLectureCollapseRestore(onBeforeCollapseRestore);
+
+  const runCameraMove = useLectureCameraRefit(panelLayoutKey);
 
   const status = useLectureStore((state) => state.status);
   const script = useLectureStore((state) => state.script);
@@ -61,8 +66,9 @@ export const useLecturePlayback = ({
 
     const controller = new AbortController();
     const animationCompletion = runLectureAnimation(beat.animation, {
-      revealNodes: (clientIds, options) => revealBeatNodes(clientIds, options),
-      resetCamera: () => resetBeatCamera(),
+      revealNodes: (clientIds, options) =>
+        runCameraMove(() => revealBeatNodes(clientIds, options)),
+      resetCamera: () => runCameraMove(() => resetBeatCamera()),
       signal: controller.signal,
     });
     let finishNarration = () => {};
@@ -105,7 +111,15 @@ export const useLecturePlayback = ({
         useLectureAnimationStore.getState().resetVisual();
       }
     };
-  }, [status, script, sceneIndex, beatIndex, voice, completeBeat]);
+  }, [
+    status,
+    script,
+    sceneIndex,
+    beatIndex,
+    voice,
+    completeBeat,
+    runCameraMove,
+  ]);
 
   return audioMode;
 };

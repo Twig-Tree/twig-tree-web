@@ -27,6 +27,7 @@ type LecturePlayerProps = {
   ) => void; // focus 동작에 사용할 강의 카메라 함수
   onResetCamera: () => void; // 종료와 reset 동작에 사용할 전체 트리 맞춤 함수
   onBeforeCollapseRestore: () => void; // 강의가 끝나 접힘을 되돌릴 때 바뀐 배치에 맞춰 화면을 옮기도록 맡기는 함수
+  panelLayoutKey: string; // 패널 배치를 나타내는 값. 강의 중에 바뀌면 카메라를 다시 맞춘다
 };
 
 /*
@@ -40,6 +41,7 @@ export function LecturePlayer({
   onRevealNodes,
   onResetCamera,
   onBeforeCollapseRestore,
+  panelLayoutKey,
 }: LecturePlayerProps) {
   const status = useLectureStore((state) => state.status);
   const activeScript = useLectureStore((state) => state.script);
@@ -62,6 +64,7 @@ export function LecturePlayer({
     revealNodes: onRevealNodes,
     resetCamera: onResetCamera,
     onBeforeCollapseRestore,
+    panelLayoutKey,
   });
 
   useEffect(

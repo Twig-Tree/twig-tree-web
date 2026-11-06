@@ -308,6 +308,7 @@ function LayoutFlow({ workspaceId, treeId }: LayoutFlowProps) {
               onRevealNodes={revealNodes}
               onResetCamera={fitTreeView}
               onBeforeCollapseRestore={fitTreeViewAfterNextLayout}
+              panelLayoutKey={`${isPanelOpen}:${isPanelOverlay}:${isMemoPanelOpen}`}
             />
           </Panel>
         </ReactFlow>

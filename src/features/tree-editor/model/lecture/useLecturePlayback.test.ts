@@ -44,7 +44,12 @@ const onBeforeCollapseRestore = vi.fn();
 
 const renderPlayback = () =>
   renderHook(() =>
-    useLecturePlayback({ revealNodes, resetCamera, onBeforeCollapseRestore }),
+    useLecturePlayback({
+      revealNodes,
+      resetCamera,
+      onBeforeCollapseRestore,
+      panelLayoutKey: "panels",
+    }),
   );
 
 const lecture = () => useLectureStore.getState();
