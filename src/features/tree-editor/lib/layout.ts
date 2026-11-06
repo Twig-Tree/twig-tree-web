@@ -56,10 +56,14 @@ const getNodePositions = (
   sortEdgesByTargetOrder(nodes, edges).forEach(({ source, target }) => {
     if (!nodeIds.has(source) || !nodeIds.has(target)) return; // 접혀서 보이지 않는 노드와의 연결은 배치와 무관하다.
 
-    childIdsByParent.set(source, [
-      ...(childIdsByParent.get(source) ?? []),
-      target,
-    ]);
+    const siblingIds = childIdsByParent.get(source);
+
+    if (siblingIds) {
+      siblingIds.push(target);
+    } else {
+      childIdsByParent.set(source, [target]);
+    }
+
     childIds.add(target);
   });
 
