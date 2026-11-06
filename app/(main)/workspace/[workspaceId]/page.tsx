@@ -105,11 +105,8 @@ function LayoutFlow({ workspaceId, treeId }: LayoutFlowProps) {
     onSelectedNodeHidden: closeMemoPanel,
   });
 
-  const { fitTreeView, runAfterNextLayout, isLayoutRunning } = useEditorLayout(
-    visibleNodes,
-    visibleEdges,
-    setNodes,
-  );
+  const { fitTreeView, fitTreeViewAbove, runAfterNextLayout, isLayoutRunning } =
+    useEditorLayout(visibleNodes, visibleEdges, setNodes);
 
   const { focusNode, fitNodes, revealNodes } = useFocusNode({
     visibleNodes,
@@ -269,7 +266,7 @@ function LayoutFlow({ workspaceId, treeId }: LayoutFlowProps) {
             <LecturePlayer
               script={lectureScript}
               onRevealNodes={revealNodes}
-              onResetCamera={fitTreeView}
+              onResetCamera={fitTreeViewAbove}
             />
           </Panel>
         </ReactFlow>

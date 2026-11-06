@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import {
   GraduationCap,
   Pause,
@@ -23,9 +23,26 @@ type LecturePlayerProps = {
   script: LectureScript | null; // 지금 트리에서 재생할 수 있는 대본. 없으면 시작 화면을 그리지 않는다
   onRevealNodes: (
     clientIds: string[],
-    options: { maxZoom: number; duration: number },
+    options: { maxZoom: number; duration: number; bottomInset: number },
   ) => void; // focus 동작에 사용할 강의 카메라 함수
-  onResetCamera: () => void; // 종료와 reset 동작에 사용할 전체 트리 맞춤 함수
+  onResetCamera: (bottomInset: number) => void; // 종료와 reset 동작에 사용할 전체 트리 맞춤 함수. 아래쪽에서 비워 둘 높이를 받는다
+};
+
+/*
+함수 이름 : getPlayerBottomInset
+기능 : 플레이어가 캔버스 아래쪽을 가리는 높이를 잰다. 자막 줄 수에 따라 높이가 달라지므로 카메라를 움직일 때마다 잰다.
+인자 : HTMLElement | null player -> 플레이어 요소
+반환값 : 캔버스 아래 끝에서 플레이어 위 끝까지의 거리. 플레이어가 없으면 0
+*/
+const getPlayerBottomInset = (player: HTMLElement | null): number => {
+  const canvas = player?.closest(".react-flow");
+
+  if (!player || !canvas) return 0;
+
+  return Math.max(
+    0,
+    canvas.getBoundingClientRect().bottom - player.getBoundingClientRect().top,
+  );
 };
 
 /*
@@ -55,9 +72,18 @@ export function LecturePlayer({
     () => (script === null ? null : getEditorLectureScript(script, nodes)),
     [script, nodes],
   );
+  const playerRef = useRef<HTMLElement>(null);
+
+  /*
+  플레이어는 캔버스 위에 떠 있어, 그냥 맞추면 설명 중인 노드가 플레이어 뒤로 들어간다. 재생 중의 카메라 이동은 플레이어 위 영역에 맞춘다.
+  */
   const audioMode = useLecturePlayback({
-    revealNodes: onRevealNodes,
-    resetCamera: onResetCamera,
+    revealNodes: (clientIds, options) =>
+      onRevealNodes(clientIds, {
+        ...options,
+        bottomInset: getPlayerBottomInset(playerRef.current),
+      }),
+    resetCamera: () => onResetCamera(getPlayerBottomInset(playerRef.current)),
   });
 
   useEffect(
@@ -77,7 +103,7 @@ export function LecturePlayer({
   const handleStop = () => {
     resetLecture();
     resetVisual();
-    onResetCamera();
+    onResetCamera(0); // 강의를 끝내면 플레이어가 작은 시작 화면으로 돌아가므로 비워 둘 높이가 없다.
   };
 
   if (status === "idle") {
@@ -162,6 +188,7 @@ export function LecturePlayer({
 
   return (
     <section
+      ref={playerRef}
       aria-label="강의 플레이어"
       className="flex w-[min(42rem,calc(100vw-2rem))] flex-col gap-3 rounded-card border border-line bg-surface px-4 py-3 shadow-control"
     >

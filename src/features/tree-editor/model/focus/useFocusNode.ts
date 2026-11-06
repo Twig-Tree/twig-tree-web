@@ -1,6 +1,7 @@
 import { useCallback } from "react";
 import { useReactFlow } from "@xyflow/react";
 import { getAncestorClientIds } from "../../lib/getAncestorClientIds";
+import { getFitViewPadding } from "../../lib/getFitViewPadding";
 import { useCollapseStore } from "../collapse/collapseStore";
 import { useTreeStore } from "../treeStore";
 import { CustomEditorNode } from "../types";
@@ -17,6 +18,7 @@ type UseFocusNodeParams = {
 type RevealNodesOptions = {
   maxZoom: number; // 대상이 적어도 이 배율을 넘겨 확대하지 않는다
   duration: number; // 화면 이동 애니메이션 시간
+  bottomInset?: number; // 캔버스 아래쪽에서 다른 UI가 가리는 높이. 대상 노드를 그 위로 모은다
 };
 
 /*
@@ -158,7 +160,10 @@ export const useFocusNode = ({
   그 사이 삭제된 노드는 React Flow에 없으므로 빼고, 남은 노드가 없으면 화면을 옮기지 않는다.
   */
   const revealNodes = useCallback(
-    (clientIds: string[], { maxZoom, duration }: RevealNodesOptions) => {
+    (
+      clientIds: string[],
+      { maxZoom, duration, bottomInset }: RevealNodesOptions,
+    ) => {
       expandAncestors(clientIds);
 
       const fitRenderedNodes = () => {
@@ -169,7 +174,14 @@ export const useFocusNode = ({
 
           if (renderedNodes.length === 0) return;
 
-          void fitView({ nodes: renderedNodes, maxZoom, duration });
+          void fitView({
+            nodes: renderedNodes,
+            maxZoom,
+            duration,
+            ...(bottomInset === undefined
+              ? {}
+              : { padding: getFitViewPadding(bottomInset) }),
+          });
         });
       };
 

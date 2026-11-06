@@ -85,6 +85,34 @@ afterEach(() => {
 });
 
 describe("LecturePlayer", () => {
+  it("카메라를 옮길 때 플레이어가 캔버스 아래쪽을 가리는 높이를 함께 넘긴다", async () => {
+    vi.spyOn(Element.prototype, "getBoundingClientRect").mockImplementation(
+      function (this: Element) {
+        return (this.classList.contains("react-flow")
+          ? { bottom: 700 }
+          : { top: 540 }) as unknown as DOMRect;
+      },
+    );
+    setWorldGeographyTree();
+    render(
+      <div className="react-flow">
+        <LecturePlayer
+          script={script}
+          onRevealNodes={onRevealNodes}
+          onResetCamera={onResetCamera}
+        />
+      </div>,
+    );
+
+    await userEvent.click(screen.getByRole("button", { name: "강의 시작" }));
+
+    expect(onRevealNodes).toHaveBeenCalledWith(
+      ["world", "europe", "asia"],
+      expect.objectContaining({ bottomInset: 160 }),
+    );
+    vi.restoreAllMocks();
+  });
+
   it("대본의 서버 노드 ID가 현재 트리에 없으면 시작을 막고 이유를 알린다", () => {
     useTreeStore.setState({
       nodes: [
@@ -153,6 +181,7 @@ describe("LecturePlayer", () => {
     expect(onRevealNodes).toHaveBeenCalledWith(["world", "europe", "asia"], {
       maxZoom: 1,
       duration: 700,
+      bottomInset: 0,
     });
   });
 
@@ -169,7 +198,7 @@ describe("LecturePlayer", () => {
     expect(screen.getByText("장면 2 / 4 · 비트 1 / 4")).toBeInTheDocument();
     expect(onRevealNodes).toHaveBeenLastCalledWith(
       ["europe", "france", "germany", "euro"],
-      { maxZoom: 1.1, duration: 700 },
+      { maxZoom: 1.1, duration: 700, bottomInset: 0 },
     );
   });
 
@@ -275,7 +304,7 @@ describe("LecturePlayer", () => {
     expect(onRevealNodes).toHaveBeenCalledTimes(1);
     expect(nextRevealNodes).toHaveBeenCalledExactlyOnceWith(
       ["europe", "france", "germany", "euro"],
-      { maxZoom: 1.1, duration: 700 },
+      { maxZoom: 1.1, duration: 700, bottomInset: 0 },
     );
   });
 
