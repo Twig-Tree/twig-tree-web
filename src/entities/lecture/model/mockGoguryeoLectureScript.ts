@@ -1,5 +1,9 @@
 import { createDemoLecture, type DemoTreeNode } from "./createDemoLecture";
-import { type LectureNodePath } from "./types";
+import {
+  type LectureAnimationGroup,
+  type LectureNodeId,
+  type LectureNodePath,
+} from "./types";
 
 const ROOT = "고구려";
 const FOUNDING = "건국과 성장";
@@ -58,8 +62,46 @@ const NODE_PATHS = {
   alliance: [ROOT, FALL, ALLIANCE],
 } satisfies Record<string, LectureNodePath>;
 
+const BRANCHES = ["founding", "prime", "resistance", "fall"] as const;
+
+type Branch = (typeof BRANCHES)[number];
+
+const COLLAPSE_DURATION_MS = 800;
+
+/*
+함수 이름 : createShowOnlyBranch
+기능 : 지금 다루는 갈래만 펼치고 나머지 갈래를 접는 동작을 만든다.
+인자 : Record<Branch, LectureNodeId> nodeIds -> 갈래 노드의 서버 ID
+Branch branch -> 펼칠 갈래
+반환값 : 접기와 펼치기를 함께 실행하는 병렬 그룹
+
+직전 갈래만 접으면 장면을 건너뛰거나 되돌아갔을 때 다른 갈래가 펼쳐진 채 남으므로 나머지를 모두 접는다.
+*/
+const createShowOnlyBranch = (
+  nodeIds: Record<Branch, LectureNodeId>,
+  branch: Branch,
+): LectureAnimationGroup => ({
+  type: "group",
+  mode: "parallel",
+  children: [
+    {
+      type: "collapse",
+      targetNodeIds: BRANCHES.filter((other) => other !== branch).map(
+        (other) => nodeIds[other],
+      ),
+      durationMs: COLLAPSE_DURATION_MS,
+    },
+    {
+      type: "expand",
+      targetNodeIds: [nodeIds[branch]],
+      durationMs: COLLAPSE_DURATION_MS,
+    },
+  ],
+});
+
 /*
 한국사 고구려 파트의 강의 데모다. 네 갈래를 시대순으로 내려가며 인물과 사건을 흐름으로 연결한다.
+처음에는 갈래를 모두 접어 큰 구조만 보여 주고, 장면마다 그 갈래만 펼치며, 복습에서 전체를 펼친다.
 건국 연도는 삼국사기의 기록을 따른다.
 각 비트의 애니메이션은 내레이션과 동시에 시작하고 fallbackDurationMs 안에 끝나도록 구성했다.
 */
@@ -83,6 +125,11 @@ export const GOGURYEO_DEMO_LECTURE = createDemoLecture(
               type: "group",
               mode: "sequence",
               children: [
+                {
+                  type: "collapse",
+                  targetNodeIds: BRANCHES.map((branch) => nodeIds[branch]),
+                  durationMs: COLLAPSE_DURATION_MS,
+                },
                 {
                   type: "focus",
                   targetNodeIds: [
@@ -114,17 +161,6 @@ export const GOGURYEO_DEMO_LECTURE = createDemoLecture(
               type: "group",
               mode: "parallel",
               children: [
-                {
-                  type: "dim",
-                  exceptNodeIds: [
-                    nodeIds.root,
-                    nodeIds.founding,
-                    nodeIds.prime,
-                    nodeIds.resistance,
-                    nodeIds.fall,
-                  ],
-                  durationMs: 2800,
-                },
                 {
                   type: "trace",
                   nodeIds: [nodeIds.root, nodeIds.founding],
@@ -164,6 +200,7 @@ export const GOGURYEO_DEMO_LECTURE = createDemoLecture(
               type: "group",
               mode: "sequence",
               children: [
+                createShowOnlyBranch(nodeIds, "founding"),
                 {
                   type: "focus",
                   targetNodeIds: [
@@ -290,6 +327,7 @@ export const GOGURYEO_DEMO_LECTURE = createDemoLecture(
               type: "group",
               mode: "sequence",
               children: [
+                createShowOnlyBranch(nodeIds, "prime"),
                 {
                   type: "focus",
                   targetNodeIds: [
@@ -414,6 +452,7 @@ export const GOGURYEO_DEMO_LECTURE = createDemoLecture(
               type: "group",
               mode: "sequence",
               children: [
+                createShowOnlyBranch(nodeIds, "resistance"),
                 {
                   type: "focus",
                   targetNodeIds: [
@@ -509,6 +548,7 @@ export const GOGURYEO_DEMO_LECTURE = createDemoLecture(
               type: "group",
               mode: "sequence",
               children: [
+                createShowOnlyBranch(nodeIds, "fall"),
                 {
                   type: "focus",
                   targetNodeIds: [nodeIds.fall, nodeIds.yeon, nodeIds.alliance],
@@ -603,6 +643,11 @@ export const GOGURYEO_DEMO_LECTURE = createDemoLecture(
                 {
                   type: "reset",
                   scope: "visual",
+                },
+                {
+                  type: "expand",
+                  targetNodeIds: BRANCHES.map((branch) => nodeIds[branch]),
+                  durationMs: COLLAPSE_DURATION_MS,
                 },
                 {
                   type: "focus",
