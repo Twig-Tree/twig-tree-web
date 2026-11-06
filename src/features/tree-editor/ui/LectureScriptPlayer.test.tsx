@@ -1,12 +1,10 @@
 import { act, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import {
-  WORLD_GEOGRAPHY_LECTURE_SCRIPT,
-  WORLD_GEOGRAPHY_NODE_IDS,
-} from "@/src/entities/lecture";
+import { WORLD_GEOGRAPHY_NODE_IDS } from "@/src/tests/mocks/data";
 import { createEditorEdge } from "../lib/add-node/createEditorEdge";
 import { createEditorNode } from "../lib/add-node/createEditorNode";
+import { findDemoLectureScript } from "../lib/lecture/findDemoLectureScript";
 import { useLectureAnimationStore } from "../model/lecture/lectureAnimationStore";
 import { useLectureScriptStore } from "../model/lecture/lectureScriptStore";
 import { useTreeStore } from "../model/treeStore";
@@ -29,29 +27,34 @@ const treeRows = [
   ["yen", "japan", "엔", WORLD_GEOGRAPHY_NODE_IDS.yen],
 ] as const;
 
-const setWorldGeographyTree = () => {
-  const nodes = treeRows.map(([clientId, , label, serverId], orderIndex) =>
-    createEditorNode({
-      clientId,
-      serverId,
-      label,
-      orderIndex,
-      x: 0,
-      y: 0,
-    }),
-  );
-  const edges = treeRows.flatMap(([clientId, parentClientId]) =>
-    parentClientId === null
-      ? []
-      : [
-          createEditorEdge({
-            sourceClientId: parentClientId,
-            targetClientId: clientId,
-          }),
-        ],
-  );
+const treeNodes = treeRows.map(([clientId, , label, serverId], orderIndex) =>
+  createEditorNode({
+    clientId,
+    serverId,
+    label,
+    orderIndex,
+    x: 0,
+    y: 0,
+  }),
+);
+const treeEdges = treeRows.flatMap(([clientId, parentClientId]) =>
+  parentClientId === null
+    ? []
+    : [
+        createEditorEdge({
+          sourceClientId: parentClientId,
+          targetClientId: clientId,
+        }),
+      ],
+);
 
-  useTreeStore.setState({ nodes, edges });
+const script = findDemoLectureScript(treeNodes, treeEdges);
+
+if (script === null)
+  throw new Error("세계 지리 데모 대본을 만들지 못했습니다.");
+
+const setWorldGeographyTree = () => {
+  useTreeStore.setState({ nodes: treeNodes, edges: treeEdges });
 };
 
 const onRevealNodes = vi.fn();
@@ -60,7 +63,7 @@ const onResetCamera = vi.fn();
 const renderPlayer = () =>
   render(
     <LectureScriptPlayer
-      script={WORLD_GEOGRAPHY_LECTURE_SCRIPT}
+      script={script}
       onRevealNodes={onRevealNodes}
       onResetCamera={onResetCamera}
     />,
@@ -106,6 +109,36 @@ describe("LectureScriptPlayer", () => {
     );
   });
 
+  it("재생할 대본이 없으면 아무것도 그리지 않는다", () => {
+    const { container } = render(
+      <LectureScriptPlayer
+        script={null}
+        onRevealNodes={onRevealNodes}
+        onResetCamera={onResetCamera}
+      />,
+    );
+
+    expect(container).toBeEmptyDOMElement();
+  });
+
+  it("강의 중 노드 이름이 바뀌어 대본이 없어져도 진행 중인 강의를 유지한다", async () => {
+    setWorldGeographyTree();
+    const { rerender } = renderPlayer();
+    await userEvent.click(screen.getByRole("button", { name: "강의 시작" }));
+
+    rerender(
+      <LectureScriptPlayer
+        script={null}
+        onRevealNodes={onRevealNodes}
+        onResetCamera={onResetCamera}
+      />,
+    );
+
+    expect(screen.getByText(script.title)).toBeVisible();
+    expect(screen.getByText("장면 1 / 4 · 비트 1 / 2")).toBeInTheDocument();
+    expect(onRevealNodes).toHaveBeenCalledTimes(1);
+  });
+
   it("시작하면 첫 비트의 자막과 애니메이션을 함께 재생한다", async () => {
     setWorldGeographyTree();
     renderPlayer();
@@ -113,9 +146,7 @@ describe("LectureScriptPlayer", () => {
     await userEvent.click(screen.getByRole("button", { name: "강의 시작" }));
 
     expect(
-      screen.getByText(
-        WORLD_GEOGRAPHY_LECTURE_SCRIPT.scenes[0].beats[0].narration.text,
-      ),
+      screen.getByText(script.scenes[0].beats[0].narration.text),
     ).toBeInTheDocument();
     expect(screen.getByText("장면 1 / 4 · 비트 1 / 2")).toBeInTheDocument();
     expect(screen.getByText("음성 없음 · 자막만 재생")).toBeInTheDocument();
@@ -133,9 +164,7 @@ describe("LectureScriptPlayer", () => {
     await userEvent.click(screen.getByRole("button", { name: "다음 장면" }));
 
     expect(
-      screen.getByText(
-        WORLD_GEOGRAPHY_LECTURE_SCRIPT.scenes[1].beats[0].narration.text,
-      ),
+      screen.getByText(script.scenes[1].beats[0].narration.text),
     ).toBeInTheDocument();
     expect(screen.getByText("장면 2 / 4 · 비트 1 / 4")).toBeInTheDocument();
     expect(onRevealNodes).toHaveBeenLastCalledWith(
@@ -218,7 +247,7 @@ describe("LectureScriptPlayer", () => {
 
     rerender(
       <LectureScriptPlayer
-        script={WORLD_GEOGRAPHY_LECTURE_SCRIPT}
+        script={script}
         onRevealNodes={nextRevealNodes}
         onResetCamera={nextResetCamera}
       />,
@@ -236,7 +265,7 @@ describe("LectureScriptPlayer", () => {
 
     rerender(
       <LectureScriptPlayer
-        script={WORLD_GEOGRAPHY_LECTURE_SCRIPT}
+        script={script}
         onRevealNodes={nextRevealNodes}
         onResetCamera={onResetCamera}
       />,

@@ -1,17 +1,12 @@
 "use client";
 import { ReactFlow, ReactFlowProvider, Panel } from "@xyflow/react";
 import {
-  DEMO_LECTURE,
-  WORLD_GEOGRAPHY_LECTURE_SCRIPT,
-  WORLD_GEOGRAPHY_WORKSPACE_ID,
-} from "@/src/entities/lecture";
-import {
-  LecturePlayer,
   LectureScriptPlayer,
   LectureAnimationDevPanel,
   MemoSidePanel,
   edgeTypes,
   nodeTypes,
+  useDemoLectureScript,
   useEditorLayout,
   useFocusNode,
   useInitializeTree,
@@ -125,6 +120,8 @@ function LayoutFlow({ workspaceId, treeId }: LayoutFlowProps) {
     resume();
   };
 
+  const lectureScript = useDemoLectureScript();
+
   const isMutating = isAddingNode || isDeletingNode;
 
   if (isLoading) {
@@ -217,21 +214,14 @@ function LayoutFlow({ workspaceId, treeId }: LayoutFlowProps) {
           ) : null}
 
           {/*
-          강의는 목데이터로 재생하는 데모다. 서버가 강의를 내려주게 되면 조회 결과로 바꾼다.
+          강의는 지금 트리에 맞는 데모 대본으로 재생한다. 서버가 강의를 내려주게 되면 조회 결과로 바꾼다.
           */}
           <Panel position="bottom-center">
-            {workspaceId === WORLD_GEOGRAPHY_WORKSPACE_ID ? (
-              <LectureScriptPlayer
-                script={WORLD_GEOGRAPHY_LECTURE_SCRIPT}
-                onRevealNodes={revealNodes}
-                onResetCamera={fitTreeView}
-              />
-            ) : (
-              <LecturePlayer
-                lecture={DEMO_LECTURE}
-                onRevealNodes={revealNodes}
-              />
-            )}
+            <LectureScriptPlayer
+              script={lectureScript}
+              onRevealNodes={revealNodes}
+              onResetCamera={fitTreeView}
+            />
           </Panel>
         </ReactFlow>
       </div>

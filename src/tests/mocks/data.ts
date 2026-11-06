@@ -1,5 +1,4 @@
 import { FolderDTO } from "@/src/entities/folder/api/types";
-import { WORLD_GEOGRAPHY_NODE_IDS } from "@/src/entities/lecture";
 import { NodeDTO, TagDTO } from "@/src/entities/tree/api/types";
 import { WorkspaceDTO } from "@/src/entities/workspace/api/types";
 
@@ -93,6 +92,23 @@ export const RAW_TREE_DATA: NodeDTO[] = [
     tagIds: [],
   },
 ];
+
+export const WORLD_GEOGRAPHY_NODE_IDS = {
+  world: "201",
+  europe: "202",
+  asia: "203",
+  france: "204",
+  germany: "205",
+  euro: "206",
+  paris: "207",
+  berlin: "208",
+  korea: "209",
+  japan: "210",
+  seoul: "211",
+  won: "212",
+  tokyo: "213",
+  yen: "214",
+};
 
 /*
 동적 강의 목대본이 가리키는 세계 지리 트리. 대본과 같은 서버 노드 ID를 사용해

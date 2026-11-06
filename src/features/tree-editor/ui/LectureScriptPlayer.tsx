@@ -20,7 +20,7 @@ import { useLectureScriptPlayback } from "../model/lecture/useLectureScriptPlayb
 import { useTreeStore } from "../model/treeStore";
 
 type LectureScriptPlayerProps = {
-  script: LectureScript; // LLM 또는 목데이터가 만든 동적 대본
+  script: LectureScript | null; // 지금 트리에서 재생할 수 있는 대본. 없으면 시작 화면을 그리지 않는다
   onRevealNodes: (
     clientIds: string[],
     options: { maxZoom: number; duration: number },
@@ -52,7 +52,7 @@ export function LectureScriptPlayer({
   const nodes = useTreeStore((state) => state.nodes);
 
   const editorScript = useMemo(
-    () => getEditorLectureScript(script, nodes),
+    () => (script === null ? null : getEditorLectureScript(script, nodes)),
     [script, nodes],
   );
   const audioMode = useLectureScriptPlayback({
@@ -81,6 +81,8 @@ export function LectureScriptPlayer({
   };
 
   if (status === "idle") {
+    if (script === null) return null;
+
     const beatCount = editorScript?.scenes.reduce(
       (count, scene) => count + scene.beats.length,
       0,
@@ -180,7 +182,7 @@ export function LectureScriptPlayer({
 
         <div className="ml-2 flex min-w-0 flex-1 flex-col">
           <p className="truncate text-sm font-semibold text-slate-800">
-            {script.title}
+            {activeScript?.title}
           </p>
           <p className="text-xs text-slate-500">
             장면 {sceneIndex + 1} / {sceneCount} · 비트 {beatIndex + 1} /{" "}

@@ -1,7 +1,7 @@
 import { renderHook, waitFor } from "@testing-library/react";
 import { describe, it, expect } from "vitest";
 import { createQueryWrapper } from "@/src/tests/helpers/createQueryWrapper";
-import { WORLD_GEOGRAPHY_NODE_IDS } from "@/src/entities/lecture";
+import { WORLD_GEOGRAPHY_NODE_IDS } from "@/src/tests/mocks/data";
 import { useGetTreeQuery, useGetTreeTagsQuery } from "./queries";
 
 describe("useGetTreeQuery", () => {

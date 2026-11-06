@@ -19,8 +19,4 @@ export type {
   LectureTraceAction,
 } from "./model/types";
 export { DEMO_LECTURE } from "./model/mockLecture";
-export {
-  WORLD_GEOGRAPHY_LECTURE_SCRIPT,
-  WORLD_GEOGRAPHY_NODE_IDS,
-  WORLD_GEOGRAPHY_WORKSPACE_ID,
-} from "./model/mockLectureScript";
+export { DEMO_LECTURES } from "./model/demoLectures";

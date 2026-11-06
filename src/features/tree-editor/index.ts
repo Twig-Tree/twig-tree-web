@@ -3,6 +3,7 @@ export { MemoSidePanel } from "./ui/MemoSidePanel";
 export { LecturePlayer } from "./ui/LecturePlayer";
 export { LectureScriptPlayer } from "./ui/LectureScriptPlayer";
 export { LectureAnimationDevPanel } from "./ui/LectureAnimationDevPanel";
+export { useDemoLectureScript } from "./model/lecture/useDemoLectureScript";
 export { useTreeEditorActions } from "./model/actions/useTreeEditorActions";
 export { useDeleteTreeTag } from "./model/actions/delete-tree-tag/useDeleteTreeTag";
 export { useInitializeTree } from "./model/initialization/useInitializeTree";
