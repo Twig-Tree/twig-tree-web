@@ -7,6 +7,7 @@ export { useLectureAnimationStore } from "./model/lecture/lectureAnimationStore"
 export { getEditorLectureAnimation } from "./lib/lecture/getEditorLectureScript";
 export { createLectureNodeIdResolver } from "./lib/lecture/createLectureNodeIdResolver";
 export { useDemoLectureScript } from "./model/lecture/useDemoLectureScript";
+export { useIsLectureActive } from "./model/lecture/lectureStore";
 export { NodeContextMenu } from "./ui/NodeContextMenu";
 export { DropIndicatorOverlay } from "./ui/DropIndicatorOverlay";
 export { useTreeEditorActions } from "./model/actions/useTreeEditorActions";

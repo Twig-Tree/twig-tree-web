@@ -17,6 +17,7 @@ import { getEditorLectureScript } from "../lib/lecture/getEditorLectureScript";
 import { useLectureAnimationStore } from "../model/lecture/lectureAnimationStore";
 import { useLectureStore } from "../model/lecture/lectureStore";
 import { useLecturePlayback } from "../model/lecture/useLecturePlayback";
+import { useLectureKeyboard } from "../model/lecture/useLectureKeyboard";
 import { useTreeStore } from "../model/treeStore";
 
 type LecturePlayerProps = {
@@ -86,6 +87,8 @@ export function LecturePlayer({
     resetVisual();
     window.requestAnimationFrame(onResetCamera); // 작은 시작 화면으로 돌아간 플레이어의 크기로 맞추도록 그려진 뒤에 옮긴다.
   };
+
+  useLectureKeyboard({ onStop: handleStop });
 
   if (status === "idle") {
     if (script === null) return null;

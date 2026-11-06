@@ -47,6 +47,17 @@ const initialState = {
 강의 재생 위치는 treeStore와 따로 둔다. 강의는 서버와 무관한 화면 상태라 undo 대상이 아니고,
 강의가 진행될 때마다 treeStore의 handleSet 비교를 거칠 이유도 없다. 강조·접힘 store와 같은 이유다.
 */
+/*
+함수 이름 : useIsLectureActive
+기능 : 강의가 재생 중이거나 일시정지 중인지 구독한다.
+인자 : 없음
+반환값 : 강의가 진행되는 중이면 true
+*/
+export const useIsLectureActive = () =>
+  useLectureStore(
+    (state) => state.status === "playing" || state.status === "paused",
+  );
+
 export const useLectureStore = create<LectureState>()((set, get) => ({
   ...initialState,
 

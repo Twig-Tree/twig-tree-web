@@ -19,6 +19,7 @@ import {
   useEditorLayout,
   useFocusNode,
   useInitializeTree,
+  useIsLectureActive,
   useNodeContextMenu,
   useMoveNodeByDrag,
   useReactFlowStoreSetters,
@@ -213,6 +214,11 @@ function LayoutFlow({ workspaceId, treeId }: LayoutFlowProps) {
 
   const lectureScript = useDemoLectureScript();
 
+  /*
+  강의 중에는 방향키가 강의 이동에 쓰이므로 React Flow의 방향키 노드 이동을 끈다. 켜 두면 선택한 노드가 함께 움직인다.
+  */
+  const isLectureActive = useIsLectureActive();
+
   if (isLoading) {
     return <div>Loading...</div>;
   }
@@ -253,7 +259,7 @@ function LayoutFlow({ workspaceId, treeId }: LayoutFlowProps) {
           onPaneClick={handlePaneClick}
           onNodeDrag={onNodeDrag}
           onNodeDragStop={onNodeDragStop}
-          disableKeyboardA11y={isMutating}
+          disableKeyboardA11y={isMutating || isLectureActive}
           nodesDraggable={!isMutating && !isTransitioning}
           /*
           부모와 순서는 노드를 끌어 바꾼다. 엣지를 잇거나 끝을 옮기는 편집은 서버에 저장할 수 없어 막는다.
