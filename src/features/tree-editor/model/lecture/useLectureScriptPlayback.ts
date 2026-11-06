@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useEffectEvent, useState } from "react";
 import { playSentence, type LectureAudioMode } from "./lectureSpeech";
 import { useLectureAnimationStore } from "./lectureAnimationStore";
 import { runLectureAnimation } from "./runLectureAnimation";
@@ -35,6 +35,16 @@ export const useLectureScriptPlayback = ({
     koreanVoice !== null && !hasSpeechFailed ? "speech" : "silent";
   const voice = audioMode === "speech" ? koreanVoice : null;
 
+  /*
+  revealNodes는 보이는 노드가 바뀔 때마다 새 함수가 된다. effect가 이 함수에 반응하면 접힌 노드를 펼치거나 트리를 편집할 때
+  읽던 비트가 처음부터 다시 시작되므로, effect event로 감싸 위치와 재생 상태가 바뀔 때만 비트를 시작한다.
+  */
+  const revealBeatNodes = useEffectEvent(
+    (clientIds: string[], options: { maxZoom: number; duration: number }) =>
+      revealNodes(clientIds, options),
+  );
+  const resetBeatCamera = useEffectEvent(() => resetCamera());
+
   useEffect(() => {
     if (status !== "playing" || script === null) return;
 
@@ -46,8 +56,8 @@ export const useLectureScriptPlayback = ({
 
     const controller = new AbortController();
     const animationCompletion = runLectureAnimation(beat.animation, {
-      revealNodes,
-      resetCamera,
+      revealNodes: (clientIds, options) => revealBeatNodes(clientIds, options),
+      resetCamera: () => resetBeatCamera(),
       signal: controller.signal,
     });
     let finishNarration = () => {};
@@ -90,16 +100,7 @@ export const useLectureScriptPlayback = ({
         useLectureAnimationStore.getState().resetVisual();
       }
     };
-  }, [
-    status,
-    script,
-    sceneIndex,
-    beatIndex,
-    voice,
-    completeBeat,
-    revealNodes,
-    resetCamera,
-  ]);
+  }, [status, script, sceneIndex, beatIndex, voice, completeBeat]);
 
   return audioMode;
 };

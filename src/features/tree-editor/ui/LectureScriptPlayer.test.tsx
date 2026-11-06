@@ -205,6 +205,51 @@ describe("LectureScriptPlayer", () => {
     );
   });
 
+  /*
+  useFocusNode의 revealNodes는 보이는 노드가 바뀔 때마다 새 함수가 된다.
+  접힌 노드를 펼치거나 트리를 편집해도 읽던 비트가 처음부터 다시 시작되면 안 된다.
+  */
+  it("카메라 함수가 새 함수로 바뀌어도 진행 중인 비트를 다시 시작하지 않는다", async () => {
+    setWorldGeographyTree();
+    const { rerender } = renderPlayer();
+    await userEvent.click(screen.getByRole("button", { name: "강의 시작" }));
+    const nextRevealNodes = vi.fn();
+    const nextResetCamera = vi.fn();
+
+    rerender(
+      <LectureScriptPlayer
+        script={WORLD_GEOGRAPHY_LECTURE_SCRIPT}
+        onRevealNodes={nextRevealNodes}
+        onResetCamera={nextResetCamera}
+      />,
+    );
+
+    expect(onRevealNodes).toHaveBeenCalledTimes(1);
+    expect(nextRevealNodes).not.toHaveBeenCalled();
+  });
+
+  it("다음 비트의 동작은 가장 최근의 카메라 함수로 실행한다", async () => {
+    setWorldGeographyTree();
+    const { rerender } = renderPlayer();
+    await userEvent.click(screen.getByRole("button", { name: "강의 시작" }));
+    const nextRevealNodes = vi.fn();
+
+    rerender(
+      <LectureScriptPlayer
+        script={WORLD_GEOGRAPHY_LECTURE_SCRIPT}
+        onRevealNodes={nextRevealNodes}
+        onResetCamera={onResetCamera}
+      />,
+    );
+    await userEvent.click(screen.getByRole("button", { name: "다음 장면" }));
+
+    expect(onRevealNodes).toHaveBeenCalledTimes(1);
+    expect(nextRevealNodes).toHaveBeenCalledExactlyOnceWith(
+      ["europe", "france", "germany", "euro"],
+      { maxZoom: 1.1, duration: 700 },
+    );
+  });
+
   it("플레이어가 사라지면 persist 레이어를 정리한다", async () => {
     setWorldGeographyTree();
     const { unmount } = renderPlayer();
