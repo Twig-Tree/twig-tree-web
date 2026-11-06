@@ -67,12 +67,19 @@ export const getExitingElements = ({
       return [];
     }
 
+    const visitedClientIds = new Set([node.id]); // 잘못된 구조에 순환이 있어도 계산이 끝나게 한다.
     let ancestorClientId = parentByChild.get(node.id);
 
     while (
       ancestorClientId !== undefined &&
       !visibleClientIds.has(ancestorClientId)
     ) {
+      /*
+      보이는 조상을 만나지 못하고 한 바퀴 돌았으면 들어갈 자리가 없다.
+      */
+      if (visitedClientIds.has(ancestorClientId)) return [];
+
+      visitedClientIds.add(ancestorClientId);
       ancestorClientId = parentByChild.get(ancestorClientId);
     }
 

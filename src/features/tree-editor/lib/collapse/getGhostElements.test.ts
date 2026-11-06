@@ -62,6 +62,46 @@ describe("getExitingElements", () => {
     expect(exiting.nodes.map(({ node }) => node.id)).toEqual(["b"]);
     expect(exiting.edges.map((edge) => edge.target)).toEqual(["b"]);
   });
+
+  it("보이는 조상 없이 순환하는 노드는 들어갈 자리가 없어 대상이 아니다", () => {
+    const cycleEdges = [
+      createEditorEdge({ sourceClientId: "a", targetClientId: "b" }),
+      createEditorEdge({ sourceClientId: "b", targetClientId: "a" }),
+    ];
+
+    const exiting = getExitingElements({
+      renderedNodes: [a, b],
+      renderedEdges: cycleEdges,
+      nodes: [],
+      storedClientIds: new Set(["a", "b"]),
+      storedEdges: cycleEdges,
+    });
+
+    expect(exiting).toEqual({ nodes: [], edges: [] });
+  });
+
+  it("순환에 묶이지 않은 노드는 보이는 조상을 그대로 찾는다", () => {
+    const tailEdges = [
+      createEditorEdge({ sourceClientId: "a", targetClientId: "b" }),
+      createEditorEdge({ sourceClientId: "b", targetClientId: "a" }),
+      createEditorEdge({ sourceClientId: "r", targetClientId: "c" }),
+    ];
+
+    const exiting = getExitingElements({
+      renderedNodes: [a, b, c],
+      renderedEdges: tailEdges,
+      nodes: [r],
+      storedClientIds: new Set(["r", "a", "b", "c"]),
+      storedEdges: tailEdges,
+    });
+
+    expect(
+      exiting.nodes.map(({ node, ancestorClientId }) => [
+        node.id,
+        ancestorClientId,
+      ]),
+    ).toEqual([["c", "r"]]);
+  });
 });
 
 describe("getGhostNodes", () => {
