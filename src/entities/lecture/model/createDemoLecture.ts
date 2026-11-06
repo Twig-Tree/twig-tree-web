@@ -16,6 +16,14 @@ export interface DemoLecture {
 }
 
 /*
+데모 강의가 재생될 트리의 원본. 이름과 부모·자식 관계만 갖고, 서버 ID와 화면 위치는 DB에 만들 때 정해진다.
+*/
+export interface DemoTreeNode {
+  name: string;
+  children?: DemoTreeNode[];
+}
+
+/*
 함수 이름 : createDemoLecture
 기능 : 노드 이름 경로와 대본 생성 함수를 묶어 지금 트리에 맞출 수 있는 데모 강의를 만든다.
 인자 : Record<K, LectureNodePath> nodePaths -> 대본이 가리키는 노드의 이름과 경로

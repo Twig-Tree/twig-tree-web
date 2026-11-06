@@ -14,4 +14,6 @@ export type {
   LectureScript,
   LectureTraceAction,
 } from "./model/types";
+export type { DemoTreeNode } from "./model/createDemoLecture";
 export { DEMO_LECTURES } from "./model/demoLectures";
+export { GOGURYEO_DEMO_TREE } from "./model/mockGoguryeoLectureScript";

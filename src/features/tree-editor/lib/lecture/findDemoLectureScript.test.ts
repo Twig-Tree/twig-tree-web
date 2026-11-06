@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { type DemoTreeNode, GOGURYEO_DEMO_TREE } from "@/src/entities/lecture";
 import { createEditorEdge } from "../add-node/createEditorEdge";
 import { createEditorNode } from "../add-node/createEditorNode";
 import { findDemoLectureScript } from "./findDemoLectureScript";
@@ -53,6 +54,24 @@ const WORLD_GEOGRAPHY_ROWS: TreeRow[] = [
   ["yen", "japan", "엔", "614"],
 ];
 
+/*
+DB에 만들 트리 원본이 대본의 이름 경로와 맞는지 보려고 원본을 그대로 행으로 편다.
+*/
+const createRowsFromDemoTree = (root: DemoTreeNode): TreeRow[] => {
+  const rows: TreeRow[] = [];
+
+  const visit = (node: DemoTreeNode, parentClientId: string | null) => {
+    const clientId = `c${rows.length}`;
+
+    rows.push([clientId, parentClientId, node.name, String(rows.length + 1)]);
+    node.children?.forEach((child) => visit(child, clientId));
+  };
+
+  visit(root, null);
+
+  return rows;
+};
+
 describe("findDemoLectureScript", () => {
   it("이름 구조가 맞는 트리의 서버 노드 ID로 세계 지리 대본을 만든다", () => {
     const { nodes, edges } = createTree(WORLD_GEOGRAPHY_ROWS);
@@ -80,6 +99,19 @@ describe("findDemoLectureScript", () => {
       "505",
     ]);
     expect(script?.scenes.flatMap((scene) => scene.beats)).toHaveLength(13);
+    expect(script && getEditorLectureScript(script, nodes)).not.toBeNull();
+  });
+
+  it("고구려 트리 원본으로 만든 트리에서 고구려 대본을 만든다", () => {
+    const { nodes, edges } = createTree(
+      createRowsFromDemoTree(GOGURYEO_DEMO_TREE),
+    );
+
+    const script = findDemoLectureScript(nodes, edges);
+
+    expect(script?.id).toBe("korean-history-goguryeo");
+    expect(script?.scenes).toHaveLength(6);
+    expect(script?.scenes.flatMap((scene) => scene.beats)).toHaveLength(18);
     expect(script && getEditorLectureScript(script, nodes)).not.toBeNull();
   });
 
