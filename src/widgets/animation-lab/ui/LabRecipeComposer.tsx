@@ -1,10 +1,10 @@
 import {
-  getLectureActionNodeIds,
   type LectureAnimation,
   type ScenarioDelivery,
 } from "@/src/entities/lecture";
 import { Button } from "@/src/shared/ui/button";
 import { ANIMATION_LAB_TREE } from "../model/fixtureTree";
+import { getLabAnimationLines } from "../model/labAnimationLines";
 import {
   LAB_DELIVERY_OPTIONS,
   LAB_RECIPE_IDS,
@@ -37,38 +37,6 @@ const DELIVERY_FIELDS = [
 const labelByNodeId = new Map(
   ANIMATION_LAB_TREE.map((node) => [node.id, node.label]),
 );
-
-/*
-함수 이름 : getAnimationLines
-기능 : 애니메이션을 들여쓴 한 줄 요약 목록으로 펼친다. recipe가 어떤 단위 동작을 만들었는지 한눈에 보기 위해서다.
-인자 : LectureAnimation animation -> 펼칠 애니메이션
-number depth -> 들여쓰기 깊이
-반환값 : 깊이와 문구 목록
-*/
-const getAnimationLines = (
-  animation: LectureAnimation,
-  depth = 0,
-): { depth: number; text: string }[] => {
-  if (animation.type === "group") {
-    return [
-      { depth, text: animation.mode === "sequence" ? "순차" : "병렬" },
-      ...animation.children.flatMap((child) =>
-        getAnimationLines(child, depth + 1),
-      ),
-    ];
-  }
-
-  const labels = (getLectureActionNodeIds(animation) ?? []).map(
-    (nodeId) => labelByNodeId.get(nodeId) ?? nodeId,
-  );
-  const details = [
-    labels.join(animation.type === "trace" ? " → " : ", "),
-    "durationMs" in animation ? `${animation.durationMs}ms` : null,
-    "persist" in animation && animation.persist ? "유지" : null,
-  ].filter(Boolean);
-
-  return [{ depth, text: [animation.type, ...details].join(" · ") }];
-};
 
 /*
 함수 이름 : LabRecipeComposer
@@ -190,11 +158,13 @@ export function LabRecipeComposer({
             </Button>
           </div>
           <ol className="rounded-control border border-line bg-surface p-2 font-mono text-xs text-content">
-            {getAnimationLines(run.animation).map(({ depth, text }, index) => (
-              <li key={index} style={{ paddingLeft: `${depth * 12}px` }}>
-                {text}
-              </li>
-            ))}
+            {getLabAnimationLines(run.animation, labelByNodeId).map(
+              ({ depth, text }, index) => (
+                <li key={index} style={{ paddingLeft: `${depth * 12}px` }}>
+                  {text}
+                </li>
+              ),
+            )}
           </ol>
         </section>
       ) : null}

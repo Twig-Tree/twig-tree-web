@@ -2,12 +2,15 @@ import {
   compileLectureScenario,
   createLectureCompilerTree,
   LECTURE_SCENARIO_FIXTURES,
+  lectureScenarioSchema,
   type LectureAnimation,
+  type LectureBeat,
   type LectureCompileIssue,
   type LectureCompileIssueSeverity,
   type LectureCompileIssueStage,
   type LectureCompilerTree,
   type LectureCompileSourceMap,
+  type LectureScenario,
   type LectureScenarioFixture,
   type LectureScript,
 } from "@/src/entities/lecture";
@@ -59,6 +62,7 @@ export type LabScenarioIssueGroup = {
 export type LabScenarioRun =
   | {
       success: true;
+      scenario: LectureScenario; // 컴파일을 통과한 시나리오
       script: LectureScript;
       sourceMap: LectureCompileSourceMap;
       animation: LectureAnimation; // 대본 전체를 한 번에 재생하는 애니메이션
@@ -157,9 +161,26 @@ export const getLabScenarioIssueGroups = (
 };
 
 /*
+함수 이름 : getLabBeatAnimation
+기능 : 비트 하나를 내레이션 시간만큼은 머무는 애니메이션으로 만든다. 음성을 끈 강의 플레이어가 비트를 넘기는 기준과 같다.
+인자 : LectureBeat beat -> 대본 비트
+반환값 : 내레이션 시간과 비트 연출을 함께 시작하는 병렬 그룹
+*/
+export const getLabBeatAnimation = ({
+  animation,
+  narration,
+}: LectureBeat): LectureAnimation => ({
+  type: "group",
+  mode: "parallel",
+  children: [
+    { type: "wait", durationMs: narration.fallbackDurationMs }, // 먼저 시작해야 재생 상태에 연출 이름이 남는다
+    animation,
+  ],
+});
+
+/*
 함수 이름 : getLabScenarioAnimation
-기능 : 대본 전체를 애니메이션 하나로 잇는다. 비트는 내레이션 시간만큼은 머물고, 장면이 바뀌면 남은 효과를 지운다.
-음성을 끈 강의 플레이어와 같은 흐름이다.
+기능 : 대본 전체를 애니메이션 하나로 잇는다. 장면이 바뀌면 남은 효과를 지운다. 강의 플레이어와 같은 흐름이다.
 인자 : LectureScript script -> 컴파일한 대본
 반환값 : 대본 전체를 차례로 재생하는 애니메이션
 */
@@ -170,16 +191,7 @@ export const getLabScenarioAnimation = (
   mode: "sequence",
   children: script.scenes.flatMap((scene, sceneIndex) => [
     ...(sceneIndex > 0 ? [{ type: "reset", scope: "visual" } as const] : []),
-    ...scene.beats.map(
-      ({ animation, narration }): LectureAnimation => ({
-        type: "group",
-        mode: "parallel",
-        children: [
-          { type: "wait", durationMs: narration.fallbackDurationMs }, // 먼저 시작해야 재생 상태에 연출 이름이 남는다
-          animation,
-        ],
-      }),
-    ),
+    ...scene.beats.map(getLabBeatAnimation),
   ]),
 });
 
@@ -232,6 +244,7 @@ export const getLabScenarioRun = (
 
   return {
     success: true,
+    scenario: lectureScenarioSchema.parse(scenario), // 컴파일러가 같은 스키마로 통과시켰으므로 실패하지 않는다
     script: result.script,
     sourceMap: result.sourceMap,
     animation: getLabScenarioAnimation(result.script),
