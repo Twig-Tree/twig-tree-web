@@ -61,6 +61,7 @@ export const getEditorLectureAnimation = (
             type: animation.type,
             targetClientIds,
             style: animation.style,
+            ...(animation.tone === undefined ? {} : { tone: animation.tone }),
             durationMs: animation.durationMs,
             ...(animation.persist === undefined
               ? {}
@@ -88,6 +89,13 @@ export const getEditorLectureAnimation = (
         type: animation.type,
         clientIds,
         durationMs: animation.durationMs,
+        ...(animation.mode === undefined ? {} : { mode: animation.mode }),
+        ...(animation.direction === undefined
+          ? {}
+          : { direction: animation.direction }),
+        ...(animation.persist === undefined
+          ? {}
+          : { persist: animation.persist }),
       };
     }
     case "collapse":
@@ -102,6 +110,7 @@ export const getEditorLectureAnimation = (
       };
     }
     case "reset":
+    case "wait":
       return animation;
   }
 };
