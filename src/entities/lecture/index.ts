@@ -98,3 +98,13 @@ export {
 export { getAnimationCompositionIssues } from "./model/recipes/getAnimationCompositionIssues";
 export { createRecipeFailure } from "./model/recipes/getLectureRecipeAnimation";
 export type { LectureRecipeFailure } from "./model/recipes/types";
+export type {
+  LectureCompileIssue,
+  LectureCompileIssueSeverity,
+  LectureCompileIssueStage,
+  LectureCompileResult,
+  LectureCompileSource,
+  LectureCompileSourceMap,
+  LectureCompilerTree,
+  LectureSourceMapEntry,
+} from "./model/compiler/types";
