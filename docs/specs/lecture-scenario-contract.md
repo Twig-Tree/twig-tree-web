@@ -126,3 +126,5 @@ JSON Schema로 표현할 수 없는 규칙은 파일에 빠져 있다.
 intent를 추가하면 유효 fixture 중 하나에 그 intent를 쓰는 cue를 넣는다. 넣지 않으면 fixture 테스트가 실패한다.
 
 `trees/`에는 유효 fixture마다 같은 이름으로 그 시나리오가 전제하는 트리를 둔다. 컴파일러 테스트가 이 트리로 fixture를 실제로 컴파일한다([컴파일러 fixture](./lecture-compiler.md#fixture)). 유효 fixture를 추가하면 트리도 함께 추가한다.
+
+`fixtures/index.ts`는 fixture와 트리를 `LECTURE_SCENARIO_FIXTURES`로 묶어 애니메이션 랩에 공개한다. fixture를 추가하면 이 목록에도 넣는다. 디렉터리와 목록이 다르면 `fixtures/index.test.ts`가 실패한다.

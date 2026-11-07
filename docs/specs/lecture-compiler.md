@@ -130,7 +130,7 @@ beat ID별로 `{ animationPath, source }` 목록을 둔다. beat ID는 시나리
 - `animationPath`: 비트 animation 안의 위치. 이 위치 아래의 모든 동작이 같은 출처다.
 - `source`: cue가 만든 동작이면 `{ type: "cue", cueIndex, intent, recipeId }`, 컴파일러가 넣은 동작이면 `{ type: "compiler", reason }`이다. 지금 `reason`은 cue 없는 비트의 `empty-beat`뿐이다.
 
-랩(#136)이 cue → recipe → 동작을 보여 주고, 운영 로그(#133)가 생성 동작에서 원래 cue를 거슬러 찾을 때 쓴다.
+[애니메이션 랩](../../src/widgets/animation-lab/README.md#컴파일-결과)이 cue → recipe → 동작을 보여 주고, 운영 로그(#133)가 생성 동작에서 원래 cue를 거슬러 찾을 때 쓴다.
 
 ## Fixture
 
