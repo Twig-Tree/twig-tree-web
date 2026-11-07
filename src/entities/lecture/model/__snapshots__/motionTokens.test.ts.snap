@@ -1,0 +1,59 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`motion token > 값이 바뀌면 의도한 변경인지 확인한다 1`] = `
+{
+  "duration": {
+    "camera": {
+      "normal": 700,
+      "quick": 600,
+      "slow": 900,
+    },
+    "emphasis": {
+      "normal": 1200,
+      "quick": 800,
+      "slow": 1800,
+    },
+    "layoutHold": {
+      "normal": 850,
+      "quick": 800,
+      "slow": 1050,
+    },
+    "pause": {
+      "normal": 450,
+      "quick": 300,
+      "slow": 700,
+    },
+    "traceSegment": {
+      "normal": 650,
+      "quick": 450,
+      "slow": 900,
+    },
+  },
+  "easing": {
+    "enter": "ease-out",
+    "exit": "ease-in",
+    "move": "ease-in-out",
+  },
+  "intensity": {
+    "medium": {
+      "focusMaxZoom": 1.2,
+      "highlightStyle": "pulse",
+    },
+    "strong": {
+      "focusMaxZoom": 1.4,
+      "highlightStyle": "pop",
+    },
+    "subtle": {
+      "focusMaxZoom": 1,
+      "highlightStyle": "steady",
+    },
+  },
+  "tone": {
+    "accent": "accent",
+    "danger": "danger",
+    "neutral": null,
+    "positive": "success",
+    "warning": "warning",
+  },
+}
+`;

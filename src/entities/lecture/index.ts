@@ -51,3 +51,17 @@ export {
   LECTURE_ATOMIC_EFFECTS,
   LECTURE_EFFECT_TYPES,
 } from "./model/atomicEffects";
+export type {
+  LectureDurationSlot,
+  LectureEasingToken,
+  LectureIntensity,
+  LectureIntensityToken,
+  LecturePace,
+  LectureSemanticTone,
+} from "./model/motionTokens";
+export {
+  LECTURE_DURATION_TOKENS,
+  LECTURE_EASING_TOKENS,
+  LECTURE_INTENSITY_TOKENS,
+  LECTURE_TONE_TOKENS,
+} from "./model/motionTokens";
