@@ -128,3 +128,22 @@ export {
   getLectureScenarioStrictJsonSchema,
   getLectureScenarioWithoutNulls,
 } from "./model/generation/strictJsonSchema";
+export type {
+  LectureGenerationIssue,
+  LectureGenerationIssueStage,
+  LectureGenerationMetrics,
+  LectureGenerationResult,
+  LectureGenerationStep,
+  LectureGenerationUsage,
+} from "./model/generation/generationResult";
+export { getLectureGenerationResult } from "./model/generation/generationResult";
+export type {
+  LectureRepairIssue,
+  LectureRepairRequest,
+} from "./model/generation/repairRequest";
+export {
+  MAX_LECTURE_REPAIR_ATTEMPTS,
+  MAX_LECTURE_REPAIR_ISSUES,
+  getLectureIssuePathText,
+  getLectureRepairRequest,
+} from "./model/generation/repairRequest";

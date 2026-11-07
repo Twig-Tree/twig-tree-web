@@ -89,10 +89,6 @@ pnpm exec vitest run src/entities/lecture/model/generation/vocabulary.test.ts -u
 
 strict 모드 응답은 빠진 필드를 `null`로 채워 온다. `getLectureScenarioWithoutNulls`가 객체의 `null` 필드를 빼서 시나리오 계약의 모양으로 되돌린 뒤, `lectureScenarioSchema`로 다시 검사한다. 이 검사가 strict 스키마에서 빠진 빈 문자열, 노드 중복, ID 중복을 잡는다.
 
-```text
-응답 문자열 → JSON → getLectureScenarioWithoutNulls → lectureScenarioSchema → 컴파일러
-```
-
 `strictJsonSchema.test.ts`는 모든 valid fixture를 strict 응답 모양으로 바꿨다가 되돌려, 원래 시나리오와 같고 스키마를 통과하는지 확인한다.
 
 시나리오 스키마를 바꾼 뒤에는 두 파일을 함께 다시 만든다.
@@ -101,9 +97,67 @@ strict 모드 응답은 빠진 필드를 `null`로 채워 온다. `getLectureSce
 pnpm exec vitest run src/entities/lecture/model/scenario/jsonSchema.test.ts src/entities/lecture/model/generation/strictJsonSchema.test.ts -u
 ```
 
+## 응답 처리
+
+`getLectureGenerationResult`가 모델 응답 문자열을 세 단계로 처리한다. 결과의 `failedStep`이 멈춘 단계를 알려 주고, 로그와 평가는 이 값으로 실패를 나눈다.
+
+```text
+응답 문자열 ─json→ JSON ─schema→ getLectureScenarioWithoutNulls, lectureScenarioSchema ─compile→ 대본
+```
+
+| 단계      | 실패의 뜻                                        | 대응                    |
+| --------- | ------------------------------------------------ | ----------------------- |
+| `json`    | 응답이 잘렸거나 모델이 거절했다                  | 같은 요청을 다시 보낸다 |
+| `schema`  | strict 스키마가 못 막는 규칙을 어겼다            | repair                  |
+| `compile` | 없는 노드, 트리와 맞지 않는 role, 조합·시간 문제 | repair                  |
+
+문제(`issues`)는 컴파일러의 문제 형식에 `json` 단계를 더한 것이다. `json` 단계 문제는 시나리오 위치가 없어 `path`가 빈 배열이다.
+
+### 측정값
+
+성공과 실패 모두 `metrics`를 담는다.
+
+| 필드                                  | 내용                                                           |
+| ------------------------------------- | -------------------------------------------------------------- |
+| `issueCountByStage`                   | 단계별 문제 수(error와 warning). 문제가 없는 단계도 0으로 둔다 |
+| `sceneCount`, `beatCount`, `cueCount` | 시나리오 크기. 스키마를 통과하지 못하면 `null`                 |
+| `usage`                               | `{ inputTokens, outputTokens }`. 백엔드가 담아 준 값           |
+
+토큰 사용량은 프론트엔드가 셀 수 없으므로 백엔드가 모델 응답의 `usage`를 생성 응답에 함께 담아 준다. 받지 못하면 `null`이다.
+
+## Repair
+
+컴파일까지 가지 못한 시나리오는 문제를 알려 주고 한 번 고쳐 받는다. `getLectureRepairRequest`가 정책에 맞을 때만 요청을 만든다.
+
+| 정책           | 값                                                                       |
+| -------------- | ------------------------------------------------------------------------ |
+| 대상 단계      | `schema`, `compile`. `json`은 고칠 시나리오가 없어 다시 요청한다         |
+| 대상 문제      | error만. warning은 대본을 만들 수 있다                                   |
+| 최대 횟수      | `MAX_LECTURE_REPAIR_ATTEMPTS` = 1                                        |
+| 요청당 문제 수 | `MAX_LECTURE_REPAIR_ISSUES` = 20. 넘는 수는 `omittedIssueCount`로 알린다 |
+
+요청 형식은 다음과 같다.
+
+```json
+{
+  "attempt": 1,
+  "previousResponseText": "{\"scenarioSchemaVersion\":1, ...}",
+  "issues": [
+    {
+      "stage": "node",
+      "path": "$.scenes[0].beats[0].cues[0].roles.subject",
+      "message": "트리에 없는 노드(999)입니다."
+    }
+  ],
+  "omittedIssueCount": 0
+}
+```
+
+`path`는 `$`로 시작하는 경로다. 배열 순번은 대괄호, 필드는 점으로 잇는다. 직전 응답을 함께 보내 백엔드가 요청 사이에 상태를 갖지 않게 한다. 백엔드는 처음 요청의 outline, 어휘와 함께 이 내용을 프롬프트에 싣고, 같은 strict 스키마로 다시 받는다.
+
 ## 다음 단계
 
 아래는 #137의 다음 단계에서 정한다.
 
-- 응답 처리 단계(JSON, 스키마, 컴파일) 구분과 측정값
-- 컴파일 실패 시 repair 요청에 담을 문제 형식과 정책
+- 대표 요청과 기대 속성을 담은 평가 fixture, 저장한 응답을 채점하는 오프라인 실행기
+- 백엔드 엔드포인트 요청·응답 형식
