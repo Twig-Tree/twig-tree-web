@@ -87,3 +87,11 @@ export {
   defineLectureRecipe,
   getLectureRecipeAnimation,
 } from "./model/recipes/getLectureRecipeAnimation";
+export type {
+  LectureRecipeId,
+  LectureRecipeRegistryVersion,
+} from "./model/recipes/registry";
+export {
+  getLectureRecipe,
+  LECTURE_RECIPE_REGISTRIES,
+} from "./model/recipes/registry";
