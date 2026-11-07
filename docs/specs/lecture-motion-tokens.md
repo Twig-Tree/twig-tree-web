@@ -6,7 +6,7 @@
 시나리오 cue (intent, delivery?)
     ↓ getResolvedDelivery      빠진 delivery를 intent 기본값으로 채운다
     ↓ getLectureMotion         토큰 표에서 구체 값을 고른다
-레시피 (#138)                  값을 atomic 동작에 넣는다
+레시피                         값을 atomic 동작에 넣는다 (lecture-recipes.md)
     ↓ getReducedMotionAnimation  동작 줄이기 사용자용 대본
 대본 (LectureScript)
     ↓ 렌더러                   반복 애니메이션의 주기와 곡선은 CSS 변수가 정한다
@@ -137,7 +137,7 @@
 
 ## 값을 바꿀 때
 
-토큰 표나 intent 기본값을 바꾸면 같은 시나리오가 다른 연출로 컴파일된다. [`recipeRegistryVersion`](./lecture-scenario-contract.md#버전)은 같은 시나리오와 같은 버전이 항상 같은 연출을 만든다고 약속하므로, 이미 배포된 레시피 버전이 쓰는 값은 고치지 않고 새 레시피 버전에서 바꾼다. 레시피가 생기기 전인 지금은 자유롭게 바꿀 수 있다.
+토큰 표나 intent 기본값을 바꾸면 같은 시나리오가 다른 연출로 컴파일된다. [`recipeRegistryVersion`](./lecture-scenario-contract.md#버전)은 같은 시나리오와 같은 버전이 항상 같은 연출을 만든다고 약속하므로, 이미 배포된 레시피 버전이 쓰는 값은 고치지 않고 새 레시피 버전에서 바꾼다. 레시피 버전 1은 아직 배포 전이라 지금은 바꿀 수 있다([recipe registry](./lecture-recipes.md#registry)).
 
 표가 바뀌면 `motionTokens.test.ts`와 `lectureMotion.test.ts`의 스냅샷이 실패한다. 의도한 변경이면 `-u`로 갱신한다.
 
