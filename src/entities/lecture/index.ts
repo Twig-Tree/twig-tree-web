@@ -41,11 +41,13 @@ export {
 export type {
   LectureEffectAction,
   LectureEffectDefinition,
+  LectureEffectNodeIdsField,
   LectureEffectType,
 } from "./model/atomicEffects";
 export {
   getLectureActionNodeIds,
   getLectureActionWithNodeIds,
+  getLectureEffectNodeIdsField,
   LECTURE_ATOMIC_EFFECTS,
   LECTURE_EFFECT_TYPES,
 } from "./model/atomicEffects";

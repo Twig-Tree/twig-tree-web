@@ -179,6 +179,16 @@ export const getLectureSeekState = ({
         if (!isPersistent) previewLayerIds.push(layer.id);
         break;
       }
+      case "wait":
+        break; // 시간만 보내므로 되감은 상태에 남기는 것이 없다
+      default: {
+        /*
+        동작 종류가 늘었는데 되감기에 분기를 빠뜨리면 여기서 타입 오류가 난다.
+        */
+        const unhandledAction: never = action;
+
+        return unhandledAction;
+      }
     }
   };
 

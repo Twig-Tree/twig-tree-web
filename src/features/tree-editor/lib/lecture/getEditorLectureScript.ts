@@ -1,15 +1,28 @@
 import {
+  getLectureActionNodeIds,
+  getLectureEffectNodeIdsField,
   type LectureAnimation,
+  type LectureEffectNodeIdsField,
   type LectureScript,
 } from "@/src/entities/lecture";
 import {
   type CustomEditorNode,
   type EditorLectureAnimation,
+  type EditorLectureAnimationAction,
   type EditorLectureScript,
 } from "../../model/types";
 import { createLectureNodeIdResolver } from "./createLectureNodeIdResolver";
 
 type FindClientId = ReturnType<typeof createLectureNodeIdResolver>;
+
+/*
+대본의 노드 ID 필드가 편집기 동작에서 갖는 이름. Record라서 registry에 새 필드가 생기면 여기서 타입 오류가 난다.
+*/
+const EDITOR_CLIENT_IDS_FIELD: Record<LectureEffectNodeIdsField, string> = {
+  targetNodeIds: "targetClientIds",
+  exceptNodeIds: "exceptClientIds",
+  nodeIds: "clientIds",
+};
 
 /*
 함수 이름 : getEditorLectureAnimation
@@ -35,84 +48,30 @@ export const getEditorLectureAnimation = (
     return { ...animation, children };
   }
 
-  const getClientIds = (nodeIds: string[]): string[] | null => {
-    const clientIds = nodeIds.map(findClientId);
+  const field = getLectureEffectNodeIdsField(animation);
+  const nodeIds = getLectureActionNodeIds(animation);
 
-    return clientIds.includes(null)
-      ? null
-      : clientIds.filter((clientId) => clientId !== null);
-  };
-
-  switch (animation.type) {
-    case "focus":
-    case "highlight": {
-      const targetClientIds = getClientIds(animation.targetNodeIds);
-
-      if (targetClientIds === null) return null;
-
-      return animation.type === "focus"
-        ? {
-            type: animation.type,
-            targetClientIds,
-            maxZoom: animation.maxZoom,
-            durationMs: animation.durationMs,
-          }
-        : {
-            type: animation.type,
-            targetClientIds,
-            style: animation.style,
-            ...(animation.tone === undefined ? {} : { tone: animation.tone }),
-            durationMs: animation.durationMs,
-            ...(animation.persist === undefined
-              ? {}
-              : { persist: animation.persist }),
-          };
-    }
-    case "dim": {
-      const exceptClientIds = getClientIds(animation.exceptNodeIds);
-
-      if (exceptClientIds === null) return null;
-      return {
-        type: animation.type,
-        exceptClientIds,
-        durationMs: animation.durationMs,
-        ...(animation.persist === undefined
-          ? {}
-          : { persist: animation.persist }),
-      };
-    }
-    case "trace": {
-      const clientIds = getClientIds(animation.nodeIds);
-
-      if (clientIds === null) return null;
-      return {
-        type: animation.type,
-        clientIds,
-        durationMs: animation.durationMs,
-        ...(animation.mode === undefined ? {} : { mode: animation.mode }),
-        ...(animation.direction === undefined
-          ? {}
-          : { direction: animation.direction }),
-        ...(animation.persist === undefined
-          ? {}
-          : { persist: animation.persist }),
-      };
-    }
-    case "collapse":
-    case "expand": {
-      const targetClientIds = getClientIds(animation.targetNodeIds);
-
-      if (targetClientIds === null) return null;
-      return {
-        type: animation.type,
-        targetClientIds,
-        durationMs: animation.durationMs,
-      };
-    }
-    case "reset":
-    case "wait":
-      return animation;
+  /*
+  동작 종류와 필드를 TS가 함께 좁히지 못해 아래 두 결과를 단언한다. 동작마다 옮긴 결과는 getEditorLectureScript.test.ts가 확인한다.
+  노드를 가리키지 않는 동작(wait, reset)은 편집기에서도 모양이 같다.
+  */
+  if (field === null || nodeIds === null) {
+    return animation as EditorLectureAnimationAction;
   }
+
+  const clientIds = nodeIds.map(findClientId);
+
+  if (clientIds.includes(null)) return null;
+
+  /*
+  노드 필드 하나만 편집기 이름으로 옮기고 나머지 옵션은 그대로 둔다.
+  */
+  const editorAction: Record<string, unknown> = { ...animation };
+
+  delete editorAction[field];
+  editorAction[EDITOR_CLIENT_IDS_FIELD[field]] = clientIds;
+
+  return editorAction as EditorLectureAnimationAction;
 };
 
 /*

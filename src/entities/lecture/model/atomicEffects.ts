@@ -32,6 +32,15 @@ type NodeIdsField<A> = {
   [K in keyof A]-?: A[K] extends string[] ? K : never;
 }[keyof A];
 
+/*
+모든 동작의 노드 ID 목록 필드 이름. 편집기처럼 필드 이름을 다른 이름으로 옮겨 적는 쪽이 빠짐없이 대응했는지 확인할 때 쓴다.
+*/
+export type LectureEffectNodeIdsField = LectureAnimationAction extends infer A
+  ? A extends LectureAnimationAction
+    ? NodeIdsField<A>
+    : never
+  : never;
+
 export type LectureEffectTarget<T extends LectureEffectType> =
   NodeIdsField<LectureEffectAction<T>> extends never
     ? null
@@ -139,12 +148,12 @@ export const LECTURE_EFFECT_TYPES = Object.keys(
 인자 : LectureAnimationAction action -> 단위 동작
 반환값 : 필드 이름. 노드를 가리키지 않는 동작이면 null
 */
-const getLectureEffectNodeIdsField = (
+export const getLectureEffectNodeIdsField = (
   action: LectureAnimationAction,
-): string | null =>
+): LectureEffectNodeIdsField | null =>
   (
     LECTURE_ATOMIC_EFFECTS[action.type] as {
-      target: { field: string } | null;
+      target: { field: LectureEffectNodeIdsField } | null;
     }
   ).target?.field ?? null;
 
