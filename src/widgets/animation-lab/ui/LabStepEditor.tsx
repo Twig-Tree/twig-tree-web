@@ -1,12 +1,12 @@
 import { X } from "lucide-react";
-import { type LectureAnimationAction } from "@/src/entities/lecture";
+import {
+  type LectureAnimationAction,
+  getLectureActionNodeIds,
+  getLectureActionWithNodeIds,
+} from "@/src/entities/lecture";
 import { IconButton } from "@/src/shared/ui/icon-button";
 import { ANIMATION_LAB_TREE } from "../model/fixtureTree";
-import {
-  getLabActionNodeIds,
-  getLabActionWithNodeIds,
-  type LabStep,
-} from "../model/labTimeline";
+import { type LabStep } from "../model/labTimeline";
 import { validateLabAction } from "../model/validateLabStep";
 
 type LabStepEditorProps = {
@@ -25,6 +25,7 @@ const NODE_FIELD_LABELS: Record<LectureAnimationAction["type"], string> = {
   collapse: "자식을 접을 노드",
   expand: "자식을 펼칠 노드",
   reset: "",
+  wait: "",
 };
 
 const labelByNodeId = new Map(
@@ -39,7 +40,7 @@ const labelByNodeId = new Map(
 */
 export function LabStepEditor({ step, onChangeAction }: LabStepEditorProps) {
   const { action } = step;
-  const nodeIds = getLabActionNodeIds(action);
+  const nodeIds = getLectureActionNodeIds(action);
   const issue = validateLabAction(action, ANIMATION_LAB_TREE);
 
   return (
@@ -65,7 +66,7 @@ export function LabStepEditor({ step, onChangeAction }: LabStepEditorProps) {
                   className="!h-6 !w-6"
                   onClick={() =>
                     onChangeAction(
-                      getLabActionWithNodeIds(
+                      getLectureActionWithNodeIds(
                         action,
                         nodeIds.filter((id) => id !== nodeId),
                       ),
@@ -128,14 +129,84 @@ export function LabStepEditor({ step, onChangeAction }: LabStepEditorProps) {
               onChange={(event) =>
                 onChangeAction({
                   ...action,
-                  style: event.target.value as "steady" | "pulse",
+                  style: event.target.value as
+                    | "steady"
+                    | "pulse"
+                    | "pop"
+                    | "bounce"
+                    | "shake",
                 })
               }
             >
               <option value="steady">steady</option>
               <option value="pulse">pulse</option>
+              <option value="pop">pop</option>
+              <option value="bounce">bounce</option>
+              <option value="shake">shake</option>
             </select>
           </label>
+        ) : null}
+
+        {action.type === "highlight" ? (
+          <label className="text-xs font-semibold text-content-secondary">
+            색상 역할
+            <select
+              value={action.tone ?? "accent"}
+              className={`mt-1 ${FIELD_CLASS}`}
+              onChange={(event) =>
+                onChangeAction({
+                  ...action,
+                  tone: event.target.value as
+                    | "accent"
+                    | "success"
+                    | "warning"
+                    | "danger",
+                })
+              }
+            >
+              <option value="accent">accent</option>
+              <option value="success">success</option>
+              <option value="warning">warning</option>
+              <option value="danger">danger</option>
+            </select>
+          </label>
+        ) : null}
+
+        {action.type === "trace" ? (
+          <>
+            <label className="text-xs font-semibold text-content-secondary">
+              진행 방식
+              <select
+                value={action.mode ?? "simultaneous"}
+                className={`mt-1 ${FIELD_CLASS}`}
+                onChange={(event) =>
+                  onChangeAction({
+                    ...action,
+                    mode: event.target.value as "simultaneous" | "progressive",
+                  })
+                }
+              >
+                <option value="simultaneous">동시</option>
+                <option value="progressive">순차</option>
+              </select>
+            </label>
+            <label className="text-xs font-semibold text-content-secondary">
+              진행 방향
+              <select
+                value={action.direction ?? "forward"}
+                className={`mt-1 ${FIELD_CLASS}`}
+                onChange={(event) =>
+                  onChangeAction({
+                    ...action,
+                    direction: event.target.value as "forward" | "reverse",
+                  })
+                }
+              >
+                <option value="forward">부모 → 자식</option>
+                <option value="reverse">자식 → 부모</option>
+              </select>
+            </label>
+          </>
         ) : null}
 
         {action.type === "reset" ? (
@@ -159,7 +230,9 @@ export function LabStepEditor({ step, onChangeAction }: LabStepEditorProps) {
         ) : null}
       </div>
 
-      {action.type === "highlight" || action.type === "dim" ? (
+      {action.type === "highlight" ||
+      action.type === "dim" ||
+      action.type === "trace" ? (
         <label className="flex items-center gap-2 text-xs font-medium text-content-secondary">
           <input
             type="checkbox"

@@ -11,14 +11,17 @@ import { CustomEditorNode } from "@/src/features/tree-editor/model/types";
 import { useUpdateNodeName } from "@/src/features/tree-editor/model/actions/update-node-name/useUpdateNodeName";
 import { useTreeStore } from "@/src/features/tree-editor/model/treeStore";
 import { useHighlightStore } from "@/src/features/tree-editor/model/highlight/highlightStore";
+import { getLectureHighlightMotionStyle } from "@/src/features/tree-editor/lib/lecture/getLectureHighlightMotionStyle";
 import {
   getCurrentLectureScene,
   useLectureStore,
 } from "@/src/features/tree-editor/model/lecture/lectureStore";
 import {
+  getLectureNodeHighlightStyle,
+  getLectureNodeHighlightMotionDuration,
+  getLectureNodeHighlightTone,
   isLectureNodeDimmed,
   isLectureNodeHighlighted,
-  isLectureNodePulsing,
   useLectureAnimationStore,
 } from "@/src/features/tree-editor/model/lecture/lectureAnimationStore";
 import { CollapseToggleButton } from "./CollapseToggleButton";
@@ -55,8 +58,14 @@ export function CustomNode({
   const isLectureHighlighted = useLectureAnimationStore((state) =>
     isLectureNodeHighlighted(state, id),
   );
-  const isLecturePulsing = useLectureAnimationStore((state) =>
-    isLectureNodePulsing(state, id),
+  const lectureHighlightStyle = useLectureAnimationStore((state) =>
+    getLectureNodeHighlightStyle(state, id),
+  );
+  const lectureHighlightTone = useLectureAnimationStore((state) =>
+    getLectureNodeHighlightTone(state, id),
+  );
+  const lectureHighlightMotionDuration = useLectureAnimationStore((state) =>
+    getLectureNodeHighlightMotionDuration(state, id),
   );
   const isLectureDimmed = useLectureAnimationStore((state) =>
     isLectureNodeDimmed(state, id),
@@ -198,8 +207,13 @@ export function CustomNode({
       data-highlighted={isHighlighted}
       data-lecture-current={isLectureCurrent}
       data-lecture-highlighted={isLectureHighlighted}
-      data-lecture-pulsing={isLecturePulsing}
+      data-lecture-highlight-style={lectureHighlightStyle ?? undefined}
+      data-lecture-highlight-tone={lectureHighlightTone ?? undefined}
       data-lecture-dimmed={isLectureDimmed}
+      style={getLectureHighlightMotionStyle(
+        lectureHighlightStyle,
+        lectureHighlightMotionDuration,
+      )}
     >
       <Handle
         type="target"
@@ -210,7 +224,7 @@ export function CustomNode({
       />
 
       {isEditing ? (
-        <div className="flex flex-col items-stretch gap-1">
+        <div className="custom-node__content flex flex-col items-stretch gap-1">
           <input
             ref={inputRef}
             type="text"
@@ -242,7 +256,7 @@ export function CustomNode({
           aria-label={`노드 제목 ${data.label} 편집`}
           onDoubleClick={startEditing}
           onKeyDown={handleTitleKeyDown}
-          className="nodrag cursor-text"
+          className="custom-node__content nodrag cursor-text"
         >
           {data.label}
         </button>

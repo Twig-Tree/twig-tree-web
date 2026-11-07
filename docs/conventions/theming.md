@@ -97,3 +97,5 @@ React Flow는 자기 CSS 변수를 읽으므로 `app/xy-theme.css`가 그 변수
 | 축소 하한 (0.3)            | `src/features/tree-editor/constants/flowConfig.ts` |
 
 화살촉의 채움, 도트 색, 접기 버튼의 모양과 위치는 테마 파일에서 정한다.
+
+강의 연출의 시간과 곡선도 모든 테마가 함께 쓴다. `app/xy-theme.css`의 `--lecture-*` 변수에 있고, 테마별로 나누는 방법은 [강의 motion token](../specs/lecture-motion-tokens.md#테마별-값으로-나누기)에 적었다.

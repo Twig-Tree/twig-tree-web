@@ -60,6 +60,11 @@ describe("useAnimationLabPlayback", () => {
 
     act(() => result.current.play(highlight));
     expect(result.current.isPlaying).toBe(true);
+    expect(result.current.stage).toBe("Camera reset");
+    expect(resetCamera).toHaveBeenCalledTimes(1);
+    expect(getLayerCount()).toBe(0);
+
+    await advance(900);
     expect(result.current.stage).toBe("Pulse");
     expect(getLayerCount()).toBe(1);
     expect([...useLectureAnimationStore.getState().layers.values()]).toEqual([
@@ -70,8 +75,12 @@ describe("useAnimationLabPlayback", () => {
     ]);
 
     await advance(1000);
-    expect(result.current.isPlaying).toBe(false);
+    expect(result.current.stage).toBe("Camera reset");
+    expect(resetCamera).toHaveBeenCalledTimes(2);
     expect(getLayerCount()).toBe(0);
+
+    await advance(900);
+    expect(result.current.isPlaying).toBe(false);
   });
 
   it("트리에 없는 노드를 가리키면 재생하지 않는다", () => {
@@ -96,6 +105,7 @@ describe("useAnimationLabPlayback", () => {
 
     expect(result.current.isPlaying).toBe(false);
     expect(getLayerCount()).toBe(0);
+    expect(resetCamera).toHaveBeenCalledTimes(2);
 
     await advance(5000);
     expect(getLayerCount()).toBe(0);
@@ -105,15 +115,32 @@ describe("useAnimationLabPlayback", () => {
     const { result, rerender } = renderPlayback(true);
 
     act(() => result.current.play(highlight));
-    await advance(1000);
+    await advance(2800);
     expect(result.current.isPlaying).toBe(true);
 
-    await advance(700);
+    await advance(1000);
+    expect(resetCamera).toHaveBeenCalledTimes(3);
+    await advance(900);
     expect(getLayerCount()).toBe(1);
 
     rerender({ isLooping: false });
     await advance(1000);
+    await advance(900);
     expect(result.current.isPlaying).toBe(false);
+  });
+
+  it("다음 회차를 기다리는 중에 반복을 끄면 다시 재생하지 않는다", async () => {
+    const { result, rerender } = renderPlayback(true);
+
+    act(() => result.current.play(highlight));
+    await advance(2800);
+    await advance(500);
+    rerender({ isLooping: false });
+    await advance(500);
+
+    expect(result.current.isPlaying).toBe(false);
+    expect(resetCamera).toHaveBeenCalledTimes(2);
+    expect(getLayerCount()).toBe(0);
   });
 
   it("접힌 노드가 펼쳐져 revealNodes가 바뀌어도 재생을 다시 시작하지 않는다", async () => {
@@ -132,12 +159,17 @@ describe("useAnimationLabPlayback", () => {
         durationMs: 1000,
       }),
     );
+    expect(resetCamera).toHaveBeenCalledOnce();
+    expect(revealNodes).not.toHaveBeenCalled();
+
+    await advance(900);
     expect(revealNodes).toHaveBeenCalledOnce();
 
     rerender({ revealNodes: nextRevealNodes });
     expect(nextRevealNodes).not.toHaveBeenCalled();
 
     await advance(1000);
+    await advance(900);
     expect(result.current.isPlaying).toBe(false);
   });
 });

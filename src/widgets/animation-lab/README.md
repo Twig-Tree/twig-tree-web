@@ -10,16 +10,21 @@
 
 타임라인은 단계 목록(`model/labTimeline.ts`)이고, 각 단계는 대본 계약의 단위 동작을 그대로 담는다. 노드는 고정 트리의 서버 ID로 가리킨다. `앞 단계와 동시에 시작`을 켠 단계끼리 병렬 그룹으로 묶이고, 그 묶음을 순서대로 이어 `beat.animation` 하나를 만든다. 재생은 제품과 같은 `runLectureAnimation`을 쓴다.
 
+단위 동작은 카메라(`focus`), 노드(`highlight`, `dim`), 연결선(`trace`), 구조(`collapse`, `expand`), 흐름 제어(`wait`, `reset`)로 나뉜다. `highlight`는 스타일과 의미 색상을, `trace`는 동시·순차 진행과 정·역방향 및 유지 여부를 고를 수 있다. 프리셋은 동작을 직접 갖지 않고 [recipe](../../../docs/specs/lecture-recipes.md) 호출 목록(`recipeId`, 입력, delivery)만 갖는다. 랩은 고정 트리로 recipe의 트리 창구(`createLabRecipeTree`)를 만들어 recipe를 차례로 실행하고, 그 결과를 타임라인 단계로 바꾼다. 시간은 motion token에서 오므로 프리셋에 숫자를 적지 않는다. 새 연출이 필요하면 프리셋에 동작을 적지 말고 recipe를 추가한다.
+
+프리셋을 불러온 뒤의 타임라인은 일반 단계라 자유롭게 고칠 수 있다. 고친 결과는 프리셋에 저장되지 않는다.
+
 대본 계약은 그룹을 얼마든지 중첩할 수 있지만 타임라인은 "순차 안의 병렬"까지만 표현한다. JSON 편집기에 더 깊은 중첩을 넣으면 적용하지 않고 안내한다.
 
 복사한 JSON의 노드 ID는 고정 트리의 ID이므로, 대본에 옮길 때는 `nodeIds.xxx`처럼 그 대본의 ID로 바꾼다.
 
 ## 새 효과 추가
 
-새 효과는 타임라인 값만으로는 만들 수 없고, 렌더러와 계약에 코드를 더해야 한다.
+새 효과는 타임라인 값만으로는 만들 수 없고, 렌더러와 계약에 코드를 더해야 한다. 계약과 registry, 실행기에 추가하는 순서는 [강의 대본 계약](../../../docs/specs/lecture-script-contract.md#새-동작-추가)을 따르고, 화면에서는 다음을 더한다.
 
-1. `entities/lecture/model/types.ts`에 동작 타입을 추가한다.
-2. `features/tree-editor/model/types.ts`의 편집기 타입과 `lib/lecture/getEditorLectureScript.ts`의 변환을 맞춘다. 타입 검사가 빈 자리를 알려 준다.
-3. `lectureAnimationStore`에 레이어와 판단 함수를, `runLectureAnimation`에 실행을 추가한다.
-4. `CustomNode`나 `CustomEdge`가 판단 함수를 구독해 data 속성을 달고, `app/xy-theme.css`에서 모양을 정한다. 색은 테마 토큰을 쓴다.
-5. 이 화면의 `labTimeline.ts`, `validateLabStep.ts`, `LabStepEditor.tsx`에 새 동작을 넣어 재생해 본다.
+1. `lectureAnimationStore`에 레이어와 판단 함수를 추가한다.
+2. `CustomNode`나 `CustomEdge`가 판단 함수를 구독해 data 속성을 달고, `app/xy-theme.css`에서 모양을 정한다. 색은 테마 토큰을 쓴다.
+3. 이 화면의 `model/labActions.ts`에 이름과 기본값을 채운다. 빠뜨리면 타입 오류가 난다.
+4. 편집 필드가 필요하면 `LabStepEditor.tsx`에, 재생해도 변화가 없는 조건이 있으면 `validateLabStep.ts`에 추가하고 재생해 본다.
+
+JSON 편집기는 대본 스키마(`lectureAnimationActionSchema`)로 동작을 검사하므로 따로 고치지 않는다. 대상 노드를 읽고 바꾸는 일도 registry의 필드 이름으로 처리한다.

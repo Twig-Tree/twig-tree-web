@@ -142,6 +142,22 @@ describe("getLectureSeekState", () => {
     });
   });
 
+  it("유지되는 dim은 레이어로 남기고, 유지되지 않는 dim은 뺀다", () => {
+    const script = createScript([
+      { type: "dim", exceptClientIds: ["c2"], durationMs: 500, persist: true },
+      { type: "dim", exceptClientIds: ["c3"], durationMs: 500 },
+      focus("c1"),
+    ]);
+
+    const { layers } = getState(script, 0, 2);
+
+    expect(layers).toHaveLength(1);
+    expect(layers[0]).toMatchObject({
+      type: "dim",
+      exceptClientIds: new Set(["c2"]),
+    });
+  });
+
   it("병렬 그룹 안의 순차 동작은 재생과 같은 순서로 적용한다", () => {
     const script = createScript([
       {
@@ -154,6 +170,39 @@ describe("getLectureSeekState", () => {
             children: [focus("c5"), collapse("c2")],
           },
           expand("c2"),
+        ],
+      },
+      focus("c1"),
+    ]);
+
+    expect([...getState(script, 0, 1).collapsedServerIds]).toEqual(["s2"]);
+  });
+
+  it("유지되는 progressive trace도 경로를 다 그린 뒤에 다음 동작이 시작한다", () => {
+    const script = createScript([
+      {
+        type: "group",
+        mode: "parallel",
+        children: [
+          {
+            type: "group",
+            mode: "sequence",
+            children: [
+              {
+                type: "trace",
+                clientIds: ["c1", "c2"],
+                durationMs: 500,
+                mode: "progressive",
+                persist: true,
+              },
+              collapse("c2"),
+            ],
+          },
+          {
+            type: "group",
+            mode: "sequence",
+            children: [{ type: "wait", durationMs: 100 }, expand("c2")],
+          },
         ],
       },
       focus("c1"),

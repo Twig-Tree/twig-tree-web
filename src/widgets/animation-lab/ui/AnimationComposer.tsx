@@ -1,40 +1,33 @@
-import { ArrowDown, ArrowUp, Play, Square, Undo2, X } from "lucide-react";
+import { useState } from "react";
+import { ArrowDown, ArrowUp, X } from "lucide-react";
 import { Button } from "@/src/shared/ui/button";
 import { IconButton } from "@/src/shared/ui/icon-button";
-import { type LectureAnimationAction } from "@/src/entities/lecture";
-import { ANIMATION_LAB_TREE } from "../model/fixtureTree";
 import {
-  getLabActionNodeIds,
-  getLabAnimation,
-  type LabActionType,
-  type LabStep,
-} from "../model/labTimeline";
-import { LAB_PRESETS } from "../model/presets";
+  type LectureAnimationAction,
+  getLectureActionNodeIds,
+  LECTURE_EFFECT_TYPES,
+} from "@/src/entities/lecture";
+import { ANIMATION_LAB_TREE } from "../model/fixtureTree";
+import { LAB_ACTIONS } from "../model/labActions";
+import { getLabAnimation } from "../model/labTimeline";
+import {
+  LAB_PRESET_CATEGORIES,
+  createLabPresetSteps,
+  LAB_PRESETS,
+  type LabPresetCategory,
+} from "../model/presets";
 import { type useLabTimeline } from "../model/useLabTimeline";
-import { validateLabAction } from "../model/validateLabStep";
 import { LabJsonEditor } from "./LabJsonEditor";
 import { LabStepEditor } from "./LabStepEditor";
 
 type AnimationComposerProps = {
   timeline: ReturnType<typeof useLabTimeline>; // 편집 중인 타임라인
-  isPlaying: boolean; // 재생 중인지 여부
-  stage: string | null; // 지금 실행 중인 동작 이름
-  isLooping: boolean; // 반복 재생 여부
-  onChangeLooping: (isLooping: boolean) => void; // 반복 재생을 켜고 끈다
-  onPlay: () => void; // 타임라인을 재생한다
-  onStop: () => void; // 재생을 멈추고 시각 효과를 지운다
-  onReset: () => void; // 재생을 멈추고 카메라까지 되돌린다
 };
 
-const ACTION_BUTTONS: { type: LabActionType; label: string }[] = [
-  { type: "focus", label: "Focus" },
-  { type: "highlight", label: "Highlight" },
-  { type: "dim", label: "Dim" },
-  { type: "trace", label: "Trace" },
-  { type: "collapse", label: "Collapse" },
-  { type: "expand", label: "Expand" },
-  { type: "reset", label: "Reset" },
-];
+const ACTION_BUTTONS = LECTURE_EFFECT_TYPES.map((type) => ({
+  type,
+  label: LAB_ACTIONS[type].label,
+}));
 
 const labelByNodeId = new Map(
   ANIMATION_LAB_TREE.map((node) => [node.id, node.label]),
@@ -48,8 +41,9 @@ const labelByNodeId = new Map(
 */
 const getLabActionSummary = (action: LectureAnimationAction): string => {
   if (action.type === "reset") return action.scope;
+  if (action.type === "wait") return `${action.durationMs}ms`;
 
-  const labels = (getLabActionNodeIds(action) ?? []).map(
+  const labels = (getLectureActionNodeIds(action) ?? []).map(
     (nodeId) => labelByNodeId.get(nodeId) ?? nodeId,
   );
   const separator = action.type === "trace" ? " → " : ", ";
@@ -59,20 +53,14 @@ const getLabActionSummary = (action: LectureAnimationAction): string => {
 
 /*
 함수 이름 : AnimationComposer
-기능 : 프리셋과 단계 추가로 타임라인을 만들고, 값을 고쳐 바로 재생하게 한다.
+기능 : 프리셋과 단계 추가로 타임라인을 만들고 단계마다 값을 고친다. 재생은 화면이 모드와 함께 다룬다.
 인자 : AnimationComposerProps
 반환값 : 애니메이션 조합 도구
 */
-export function AnimationComposer({
-  timeline,
-  isPlaying,
-  stage,
-  isLooping,
-  onChangeLooping,
-  onPlay,
-  onStop,
-  onReset,
-}: AnimationComposerProps) {
+export function AnimationComposer({ timeline }: AnimationComposerProps) {
+  const [presetCategory, setPresetCategory] = useState<
+    "전체" | LabPresetCategory
+  >("전체");
   const {
     steps,
     activeStepId,
@@ -86,70 +74,52 @@ export function AnimationComposer({
   } = timeline;
 
   const activeStep = steps.find((step) => step.id === activeStepId);
-
-  /*
-  빈 대상으로 재생하면 실패한 것처럼 보이므로 막는다. 연결선 경고는 일부라도 보이지만, 끊긴 경로는 고쳐야 할 입력이라 함께 막는다.
-  */
-  const isPlayDisabled =
-    steps.length === 0 ||
-    steps.some(
-      (step: LabStep) =>
-        validateLabAction(step.action, ANIMATION_LAB_TREE) !== null,
-    );
+  const visiblePresets =
+    presetCategory === "전체"
+      ? LAB_PRESETS
+      : LAB_PRESETS.filter((preset) => preset.category === presetCategory);
 
   return (
     <div className="flex flex-col gap-4">
-      <section aria-label="재생" className="flex flex-col gap-2">
-        <div className="flex gap-2">
-          <Button
-            variant="primary"
-            className="flex-1"
-            disabled={isPlayDisabled}
-            onClick={onPlay}
-          >
-            <Play className="size-4" aria-hidden="true" />
-            {isPlaying ? "처음부터" : "재생"}
-          </Button>
-          <Button className="flex-1" disabled={!isPlaying} onClick={onStop}>
-            <Square className="size-3.5" aria-hidden="true" />
-            중단
-          </Button>
-          <Button className="flex-1" onClick={onReset}>
-            <Undo2 className="size-3.5" aria-hidden="true" />
-            초기화
-          </Button>
-        </div>
-
-        <div className="flex items-center justify-between">
-          <label className="flex items-center gap-2 text-xs font-medium text-content-secondary">
-            <input
-              type="checkbox"
-              checked={isLooping}
-              onChange={(event) => onChangeLooping(event.target.checked)}
-            />
-            반복 재생
-          </label>
-          <p
-            role="status"
-            aria-live="polite"
-            className="text-xs font-medium text-accent"
-          >
-            {isPlaying ? `실행 중: ${stage ?? "준비"}` : "대기 중"}
-          </p>
-        </div>
-      </section>
-
       <section aria-label="프리셋">
-        <h3 className="text-xs font-bold text-content-secondary">프리셋</h3>
-        <div className="mt-2 flex flex-wrap gap-1.5">
-          {LAB_PRESETS.map((preset) => (
+        <div className="flex items-center justify-between gap-2">
+          <h3 className="text-xs font-bold text-content-secondary">프리셋</h3>
+          <span className="text-xs text-content-muted">
+            {visiblePresets.length}개
+          </span>
+        </div>
+        <div
+          className="mt-2 flex flex-wrap gap-1.5"
+          role="group"
+          aria-label="프리셋 분류"
+        >
+          {(["전체", ...LAB_PRESET_CATEGORIES] as const).map((category) => (
             <Button
-              key={preset.id}
-              className="!h-8 !px-3 text-xs"
-              onClick={() => replaceSteps(preset.createSteps())}
+              key={category}
+              variant={presetCategory === category ? "primary" : undefined}
+              className="!h-7 !px-2.5 text-xs"
+              aria-pressed={presetCategory === category}
+              onClick={() => setPresetCategory(category)}
             >
-              {preset.label}
+              {category}
             </Button>
+          ))}
+        </div>
+        <div className="mt-2 grid grid-cols-2 gap-2">
+          {visiblePresets.map((preset) => (
+            <button
+              type="button"
+              key={preset.id}
+              className="rounded-control border border-line bg-surface p-2 text-left transition-colors hover:border-accent"
+              onClick={() => replaceSteps(createLabPresetSteps(preset))}
+            >
+              <span className="block text-xs font-semibold text-content">
+                {preset.label}
+              </span>
+              <span className="mt-0.5 block text-xs leading-4 text-content-muted">
+                {preset.description}
+              </span>
+            </button>
           ))}
         </div>
       </section>

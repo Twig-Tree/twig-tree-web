@@ -1,0 +1,70 @@
+{
+  "scenarioSchemaVersion": 1,
+  "recipeRegistryVersion": 1,
+  "title": "고구려에 대한 흔한 오해",
+  "scenes": [
+    {
+      "id": "capital",
+      "nodeId": "2",
+      "beats": [
+        {
+          "id": "capital-1",
+          "narration": {
+            "text": "고구려의 수도는 한 번에 정해진 것이 아닙니다."
+          },
+          "cues": [
+            {
+              "intent": "warn",
+              "roles": {
+                "subject": ["2"]
+              },
+              "delivery": {
+                "tone": "warning"
+              }
+            }
+          ]
+        },
+        {
+          "id": "capital-2",
+          "narration": {
+            "text": "처음부터 평양이 수도였다고 생각하기 쉽지만 사실이 아닙니다."
+          },
+          "cues": [
+            {
+              "intent": "incorrect",
+              "roles": {
+                "incorrectAnswer": ["5"],
+                "correctAnswer": ["3"]
+              },
+              "delivery": {
+                "tone": "danger",
+                "intensity": "strong"
+              }
+            }
+          ]
+        },
+        {
+          "id": "capital-3",
+          "narration": {
+            "text": "졸본에서 국내성, 그리고 평양으로 옮겼습니다."
+          },
+          "cues": [
+            {
+              "intent": "trace",
+              "roles": {
+                "source": "3",
+                "destination": "5"
+              }
+            },
+            {
+              "intent": "correct",
+              "roles": {
+                "correctAnswer": ["3", "4", "5"]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

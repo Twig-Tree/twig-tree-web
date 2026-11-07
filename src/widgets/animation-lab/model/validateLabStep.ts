@@ -1,5 +1,6 @@
 import { type LectureAnimationAction } from "@/src/entities/lecture";
 import { type TreeNode } from "@/src/entities/tree";
+import { type LabStep } from "./labTimeline";
 
 /*
 함수 이름 : validateLabAction
@@ -64,6 +65,22 @@ export const validateLabAction = (
         ? null
         : "자식이 없는 노드는 접거나 펼쳐도 보이는 변화가 없습니다.";
     case "reset":
+    case "wait":
       return null;
   }
 };
+
+/*
+함수 이름 : isLabTimelinePlayable
+기능 : 타임라인을 재생해도 되는지 판단한다. 빈 대상으로 재생하면 실패한 것처럼 보이므로 막는다.
+연결선 경고는 일부라도 보이지만, 끊긴 경로는 고쳐야 할 입력이라 함께 막는다.
+인자 : LabStep[] steps -> 타임라인 단계
+TreeNode[] tree -> 대상 노드를 찾을 고정 트리
+반환값 : 단계가 하나 이상이고 모든 단계에 문제가 없으면 true
+*/
+export const isLabTimelinePlayable = (
+  steps: LabStep[],
+  tree: TreeNode[],
+): boolean =>
+  steps.length > 0 &&
+  steps.every((step) => validateLabAction(step.action, tree) === null);

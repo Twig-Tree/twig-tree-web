@@ -1,15 +1,18 @@
 import { describe, expect, it } from "vitest";
 import {
+  LECTURE_EFFECT_TYPES,
+  lectureAnimationActionSchema,
   type LectureHighlightAction,
   type LectureTraceAction,
 } from "@/src/entities/lecture";
 import { ANIMATION_LAB_TREE } from "./fixtureTree";
 import {
+  createDefaultLabAction,
   createLabStep,
   getLabAnimation,
   getLabStepsFromJson,
 } from "./labTimeline";
-import { LAB_PRESETS } from "./presets";
+import { createLabPresetSteps, LAB_PRESETS } from "./presets";
 import { validateLabAction } from "./validateLabStep";
 
 const pulse: LectureHighlightAction = {
@@ -81,6 +84,36 @@ describe("getLabStepsFromJson", () => {
     ]);
   });
 
+  it("확장된 강조·추적과 wait를 JSON에서 읽는다", () => {
+    const animation = {
+      type: "group",
+      mode: "sequence",
+      children: [
+        {
+          type: "highlight",
+          targetNodeIds: ["1"],
+          style: "bounce",
+          tone: "success",
+          durationMs: 500,
+        },
+        { type: "wait", durationMs: 250 },
+        {
+          type: "trace",
+          nodeIds: ["1", "2"],
+          durationMs: 800,
+          mode: "progressive",
+          direction: "reverse",
+          persist: true,
+        },
+      ],
+    };
+
+    const result = getLabStepsFromJson(JSON.stringify(animation));
+    if ("error" in result) throw new Error(result.error);
+
+    expect(getLabAnimation(result.steps)).toEqual(animation);
+  });
+
   it.each([
     ["문법 오류", "{"],
     ["없는 동작", JSON.stringify({ type: "shake", durationMs: 100 })],
@@ -134,9 +167,76 @@ describe("validateLabAction", () => {
   it.each(LAB_PRESETS.map((preset) => [preset.label, preset] as const))(
     "프리셋 %s는 바로 재생할 수 있다",
     (_, preset) => {
-      for (const step of preset.createSteps()) {
+      for (const step of createLabPresetSteps(preset)) {
         expect(validateLabAction(step.action, ANIMATION_LAB_TREE)).toBeNull();
       }
     },
   );
+});
+
+describe("createDefaultLabAction", () => {
+  it.each(LECTURE_EFFECT_TYPES)(
+    "%s의 기본값은 대본 스키마를 통과한다",
+    (type) => {
+      const action = createDefaultLabAction(type);
+
+      expect(action.type).toBe(type);
+      expect(lectureAnimationActionSchema.safeParse(action).success).toBe(true);
+    },
+  );
+});
+
+describe("getLabStepsFromJson의 스키마 검사", () => {
+  it("허용하지 않는 값이 있는 동작을 거부한다", () => {
+    expect(
+      getLabStepsFromJson(
+        JSON.stringify({
+          type: "highlight",
+          targetNodeIds: ["1"],
+          style: "wobble",
+          durationMs: 100,
+        }),
+      ),
+    ).toHaveProperty("error");
+  });
+
+  it("빈 병렬 그룹을 거부한다", () => {
+    expect(
+      getLabStepsFromJson(
+        JSON.stringify({
+          type: "group",
+          mode: "sequence",
+          children: [{ type: "group", mode: "parallel", children: [] }],
+        }),
+      ),
+    ).toHaveProperty("error");
+  });
+
+  it("모르는 필드가 있는 동작은 필드 이름과 함께 거부한다", () => {
+    expect(
+      getLabStepsFromJson(
+        JSON.stringify({
+          type: "group",
+          mode: "sequence",
+          children: [
+            { type: "wait", durationMs: 100 },
+            {
+              type: "group",
+              mode: "parallel",
+              children: [
+                { type: "wait", durationMs: 100 },
+                {
+                  type: "highlight",
+                  targetNodeIds: ["1"],
+                  style: "steady",
+                  durationMs: 100,
+                  persits: true,
+                },
+              ],
+            },
+          ],
+        }),
+      ),
+    ).toEqual({ error: "알 수 없는 필드가 있습니다: persits" });
+  });
 });

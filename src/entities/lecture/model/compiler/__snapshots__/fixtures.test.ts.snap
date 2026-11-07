@@ -1,0 +1,1267 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`시나리오 fixture 컴파일 > goguryeo-misconceptions.json를 경고 없이 컴파일하고 결과가 대본 스키마를 통과한다 1`] = `
+{
+  "script": {
+    "id": "goguryeo-misconceptions",
+    "scenes": [
+      {
+        "beats": [
+          {
+            "animation": {
+              "children": [
+                {
+                  "durationMs": 1200,
+                  "style": "shake",
+                  "targetNodeIds": [
+                    "2",
+                  ],
+                  "tone": "warning",
+                  "type": "highlight",
+                },
+                {
+                  "durationMs": 450,
+                  "type": "wait",
+                },
+                {
+                  "durationMs": 1200,
+                  "style": "steady",
+                  "targetNodeIds": [
+                    "2",
+                  ],
+                  "tone": "warning",
+                  "type": "highlight",
+                },
+              ],
+              "mode": "sequence",
+              "type": "group",
+            },
+            "id": "capital-1",
+            "narration": {
+              "fallbackDurationMs": 2860,
+              "text": "고구려의 수도는 한 번에 정해진 것이 아닙니다.",
+            },
+          },
+          {
+            "animation": {
+              "children": [
+                {
+                  "durationMs": 1200,
+                  "style": "shake",
+                  "targetNodeIds": [
+                    "5",
+                  ],
+                  "tone": "danger",
+                  "type": "highlight",
+                },
+                {
+                  "durationMs": 450,
+                  "type": "wait",
+                },
+                {
+                  "durationMs": 1200,
+                  "style": "bounce",
+                  "targetNodeIds": [
+                    "3",
+                  ],
+                  "tone": "success",
+                  "type": "highlight",
+                },
+              ],
+              "mode": "sequence",
+              "type": "group",
+            },
+            "id": "capital-2",
+            "narration": {
+              "fallbackDurationMs": 3630,
+              "text": "처음부터 평양이 수도였다고 생각하기 쉽지만 사실이 아닙니다.",
+            },
+          },
+          {
+            "animation": {
+              "children": [
+                {
+                  "children": [
+                    {
+                      "durationMs": 700,
+                      "maxZoom": 1.2,
+                      "targetNodeIds": [
+                        "3",
+                        "4",
+                        "5",
+                      ],
+                      "type": "focus",
+                    },
+                    {
+                      "direction": "forward",
+                      "durationMs": 1300,
+                      "mode": "progressive",
+                      "nodeIds": [
+                        "3",
+                        "4",
+                        "5",
+                      ],
+                      "type": "trace",
+                    },
+                    {
+                      "durationMs": 1200,
+                      "style": "pulse",
+                      "targetNodeIds": [
+                        "5",
+                      ],
+                      "tone": "accent",
+                      "type": "highlight",
+                    },
+                  ],
+                  "mode": "sequence",
+                  "type": "group",
+                },
+                {
+                  "durationMs": 1200,
+                  "style": "bounce",
+                  "targetNodeIds": [
+                    "3",
+                    "4",
+                    "5",
+                  ],
+                  "tone": "success",
+                  "type": "highlight",
+                },
+              ],
+              "mode": "sequence",
+              "type": "group",
+            },
+            "id": "capital-3",
+            "narration": {
+              "fallbackDurationMs": 2750,
+              "text": "졸본에서 국내성, 그리고 평양으로 옮겼습니다.",
+            },
+          },
+        ],
+        "id": "capital",
+        "nodeId": "2",
+      },
+    ],
+    "title": "고구려에 대한 흔한 오해",
+  },
+  "sourceMap": {
+    "capital-1": [
+      {
+        "animationPath": [],
+        "source": {
+          "cueIndex": 0,
+          "intent": "warn",
+          "recipeId": "warn",
+          "type": "cue",
+        },
+      },
+    ],
+    "capital-2": [
+      {
+        "animationPath": [],
+        "source": {
+          "cueIndex": 0,
+          "intent": "incorrect",
+          "recipeId": "verdict",
+          "type": "cue",
+        },
+      },
+    ],
+    "capital-3": [
+      {
+        "animationPath": [
+          "children",
+          0,
+        ],
+        "source": {
+          "cueIndex": 0,
+          "intent": "trace",
+          "recipeId": "trace-path",
+          "type": "cue",
+        },
+      },
+      {
+        "animationPath": [
+          "children",
+          1,
+        ],
+        "source": {
+          "cueIndex": 1,
+          "intent": "correct",
+          "recipeId": "verdict",
+          "type": "cue",
+        },
+      },
+    ],
+  },
+}
+`;
+
+exports[`시나리오 fixture 컴파일 > http-request-flow.json를 경고 없이 컴파일하고 결과가 대본 스키마를 통과한다 1`] = `
+{
+  "script": {
+    "id": "http-request-flow",
+    "scenes": [
+      {
+        "beats": [
+          {
+            "animation": {
+              "children": [
+                {
+                  "durationMs": 700,
+                  "maxZoom": 1.2,
+                  "targetNodeIds": [
+                    "1",
+                  ],
+                  "type": "focus",
+                },
+                {
+                  "durationMs": 1200,
+                  "style": "pulse",
+                  "targetNodeIds": [
+                    "1",
+                  ],
+                  "tone": "accent",
+                  "type": "highlight",
+                },
+              ],
+              "mode": "sequence",
+              "type": "group",
+            },
+            "id": "overview-1",
+            "narration": {
+              "fallbackDurationMs": 2970,
+              "text": "브라우저에서 시작한 요청은 여러 단계를 거칩니다.",
+            },
+          },
+          {
+            "animation": {
+              "children": [
+                {
+                  "durationMs": 900,
+                  "maxZoom": 1.2,
+                  "targetNodeIds": [
+                    "2",
+                    "3",
+                    "4",
+                    "5",
+                    "6",
+                  ],
+                  "type": "focus",
+                },
+                {
+                  "direction": "forward",
+                  "durationMs": 3600,
+                  "mode": "progressive",
+                  "nodeIds": [
+                    "2",
+                    "3",
+                    "4",
+                    "5",
+                    "6",
+                  ],
+                  "persist": true,
+                  "type": "trace",
+                },
+                {
+                  "durationMs": 1800,
+                  "persist": true,
+                  "style": "pulse",
+                  "targetNodeIds": [
+                    "6",
+                  ],
+                  "tone": "accent",
+                  "type": "highlight",
+                },
+              ],
+              "mode": "sequence",
+              "type": "group",
+            },
+            "id": "overview-2",
+            "narration": {
+              "fallbackDurationMs": 3740,
+              "text": "주소를 입력한 순간부터 서버가 응답하기까지 따라가 보겠습니다.",
+            },
+          },
+        ],
+        "id": "overview",
+        "nodeId": "1",
+      },
+      {
+        "beats": [
+          {
+            "animation": {
+              "children": [
+                {
+                  "children": [
+                    {
+                      "durationMs": 600,
+                      "maxZoom": 1,
+                      "targetNodeIds": [
+                        "3",
+                      ],
+                      "type": "focus",
+                    },
+                    {
+                      "durationMs": 800,
+                      "exceptNodeIds": [
+                        "3",
+                      ],
+                      "type": "dim",
+                    },
+                  ],
+                  "mode": "sequence",
+                  "type": "group",
+                },
+                {
+                  "children": [
+                    {
+                      "durationMs": 850,
+                      "targetNodeIds": [
+                        "3",
+                      ],
+                      "type": "expand",
+                    },
+                    {
+                      "durationMs": 700,
+                      "maxZoom": 1.2,
+                      "targetNodeIds": [
+                        "3",
+                        "7",
+                        "8",
+                      ],
+                      "type": "focus",
+                    },
+                    {
+                      "durationMs": 1200,
+                      "style": "pulse",
+                      "targetNodeIds": [
+                        "7",
+                        "8",
+                      ],
+                      "tone": "accent",
+                      "type": "highlight",
+                    },
+                  ],
+                  "mode": "sequence",
+                  "type": "group",
+                },
+              ],
+              "mode": "sequence",
+              "type": "group",
+            },
+            "id": "dns-1",
+            "narration": {
+              "fallbackDurationMs": 3080,
+              "text": "가장 먼저 DNS가 도메인을 IP 주소로 바꿉니다.",
+            },
+          },
+          {
+            "animation": {
+              "children": [
+                {
+                  "durationMs": 600,
+                  "maxZoom": 1.2,
+                  "targetNodeIds": [
+                    "2",
+                    "3",
+                    "4",
+                    "5",
+                    "6",
+                  ],
+                  "type": "focus",
+                },
+                {
+                  "direction": "reverse",
+                  "durationMs": 1800,
+                  "mode": "progressive",
+                  "nodeIds": [
+                    "2",
+                    "3",
+                    "4",
+                    "5",
+                    "6",
+                  ],
+                  "type": "trace",
+                },
+                {
+                  "durationMs": 800,
+                  "style": "pulse",
+                  "targetNodeIds": [
+                    "2",
+                  ],
+                  "tone": "accent",
+                  "type": "highlight",
+                },
+              ],
+              "mode": "sequence",
+              "type": "group",
+            },
+            "id": "dns-2",
+            "narration": {
+              "fallbackDurationMs": 2200,
+              "text": "응답은 같은 길을 거꾸로 돌아옵니다.",
+            },
+          },
+        ],
+        "id": "dns",
+        "nodeId": "3",
+      },
+    ],
+    "title": "HTTP 요청이 서버에 도착하기까지",
+  },
+  "sourceMap": {
+    "dns-1": [
+      {
+        "animationPath": [
+          "children",
+          0,
+        ],
+        "source": {
+          "cueIndex": 0,
+          "intent": "transition",
+          "recipeId": "introduce",
+          "type": "cue",
+        },
+      },
+      {
+        "animationPath": [
+          "children",
+          1,
+        ],
+        "source": {
+          "cueIndex": 1,
+          "intent": "decompose",
+          "recipeId": "reveal-branch",
+          "type": "cue",
+        },
+      },
+    ],
+    "dns-2": [
+      {
+        "animationPath": [],
+        "source": {
+          "cueIndex": 0,
+          "intent": "trace",
+          "recipeId": "trace-path",
+          "type": "cue",
+        },
+      },
+    ],
+    "overview-1": [
+      {
+        "animationPath": [],
+        "source": {
+          "cueIndex": 0,
+          "intent": "introduce",
+          "recipeId": "introduce",
+          "type": "cue",
+        },
+      },
+    ],
+    "overview-2": [
+      {
+        "animationPath": [],
+        "source": {
+          "cueIndex": 0,
+          "intent": "trace",
+          "recipeId": "trace-path",
+          "type": "cue",
+        },
+      },
+    ],
+  },
+}
+`;
+
+exports[`시나리오 fixture 컴파일 > mammal-vs-reptile.json를 경고 없이 컴파일하고 결과가 대본 스키마를 통과한다 1`] = `
+{
+  "script": {
+    "id": "mammal-vs-reptile",
+    "scenes": [
+      {
+        "beats": [
+          {
+            "animation": {
+              "children": [
+                {
+                  "durationMs": 700,
+                  "maxZoom": 1.2,
+                  "targetNodeIds": [
+                    "2",
+                    "3",
+                  ],
+                  "type": "focus",
+                },
+                {
+                  "durationMs": 1200,
+                  "style": "pulse",
+                  "targetNodeIds": [
+                    "2",
+                  ],
+                  "tone": "accent",
+                  "type": "highlight",
+                },
+                {
+                  "durationMs": 1200,
+                  "style": "pulse",
+                  "targetNodeIds": [
+                    "3",
+                  ],
+                  "tone": "accent",
+                  "type": "highlight",
+                },
+              ],
+              "mode": "sequence",
+              "type": "group",
+            },
+            "id": "compare-1",
+            "narration": {
+              "fallbackDurationMs": 3080,
+              "text": "포유류와 파충류는 체온을 유지하는 방식이 다릅니다.",
+            },
+          },
+          {
+            "animation": {
+              "children": [
+                {
+                  "durationMs": 900,
+                  "maxZoom": 1,
+                  "targetNodeIds": [
+                    "4",
+                    "6",
+                    "5",
+                    "7",
+                  ],
+                  "type": "focus",
+                },
+                {
+                  "durationMs": 1800,
+                  "style": "steady",
+                  "targetNodeIds": [
+                    "4",
+                    "6",
+                  ],
+                  "tone": "accent",
+                  "type": "highlight",
+                },
+                {
+                  "durationMs": 1800,
+                  "style": "steady",
+                  "targetNodeIds": [
+                    "5",
+                    "7",
+                  ],
+                  "tone": "accent",
+                  "type": "highlight",
+                },
+              ],
+              "mode": "sequence",
+              "type": "group",
+            },
+            "id": "compare-2",
+            "narration": {
+              "fallbackDurationMs": 3080,
+              "text": "특히 포유류의 털과 파충류의 비늘을 비교해 보세요.",
+            },
+          },
+        ],
+        "id": "compare",
+        "nodeId": "1",
+      },
+      {
+        "beats": [
+          {
+            "animation": {
+              "children": [
+                {
+                  "durationMs": 1200,
+                  "exceptNodeIds": [
+                    "8",
+                  ],
+                  "type": "dim",
+                },
+                {
+                  "durationMs": 1200,
+                  "style": "pop",
+                  "targetNodeIds": [
+                    "8",
+                  ],
+                  "tone": "accent",
+                  "type": "highlight",
+                },
+              ],
+              "mode": "parallel",
+              "type": "group",
+            },
+            "id": "quiz-1",
+            "narration": {
+              "fallbackDurationMs": 2090,
+              "text": "문제입니다. 고래는 어느 쪽일까요?",
+            },
+          },
+          {
+            "animation": {
+              "children": [
+                {
+                  "durationMs": 1200,
+                  "style": "shake",
+                  "targetNodeIds": [
+                    "3",
+                  ],
+                  "tone": "danger",
+                  "type": "highlight",
+                },
+                {
+                  "durationMs": 450,
+                  "type": "wait",
+                },
+                {
+                  "durationMs": 1200,
+                  "style": "bounce",
+                  "targetNodeIds": [
+                    "2",
+                  ],
+                  "tone": "success",
+                  "type": "highlight",
+                },
+              ],
+              "mode": "sequence",
+              "type": "group",
+            },
+            "id": "quiz-2",
+            "narration": {
+              "fallbackDurationMs": 3520,
+              "text": "정답은 포유류입니다. 물고기처럼 보여도 폐로 숨을 쉽니다.",
+            },
+          },
+        ],
+        "id": "quiz",
+        "nodeId": "1",
+      },
+    ],
+    "title": "포유류와 파충류 비교",
+  },
+  "sourceMap": {
+    "compare-1": [
+      {
+        "animationPath": [],
+        "source": {
+          "cueIndex": 0,
+          "intent": "compare",
+          "recipeId": "compare",
+          "type": "cue",
+        },
+      },
+    ],
+    "compare-2": [
+      {
+        "animationPath": [],
+        "source": {
+          "cueIndex": 0,
+          "intent": "compare",
+          "recipeId": "compare",
+          "type": "cue",
+        },
+      },
+    ],
+    "quiz-1": [
+      {
+        "animationPath": [],
+        "source": {
+          "cueIndex": 0,
+          "intent": "emphasize",
+          "recipeId": "spotlight",
+          "type": "cue",
+        },
+      },
+    ],
+    "quiz-2": [
+      {
+        "animationPath": [],
+        "source": {
+          "cueIndex": 0,
+          "intent": "correct",
+          "recipeId": "verdict",
+          "type": "cue",
+        },
+      },
+    ],
+  },
+}
+`;
+
+exports[`시나리오 fixture 컴파일 > photosynthesis-summary.json를 경고 없이 컴파일하고 결과가 대본 스키마를 통과한다 1`] = `
+{
+  "script": {
+    "id": "photosynthesis-summary",
+    "scenes": [
+      {
+        "beats": [
+          {
+            "animation": {
+              "durationMs": 0,
+              "type": "wait",
+            },
+            "id": "intro-1",
+            "narration": {
+              "fallbackDurationMs": 2090,
+              "text": "오늘은 광합성을 정리해 보겠습니다.",
+            },
+          },
+          {
+            "animation": {
+              "children": [
+                {
+                  "durationMs": 700,
+                  "maxZoom": 1.2,
+                  "targetNodeIds": [
+                    "1",
+                    "2",
+                    "3",
+                  ],
+                  "type": "focus",
+                },
+                {
+                  "durationMs": 1200,
+                  "style": "pulse",
+                  "targetNodeIds": [
+                    "1",
+                  ],
+                  "tone": "accent",
+                  "type": "highlight",
+                },
+                {
+                  "durationMs": 1200,
+                  "style": "steady",
+                  "targetNodeIds": [
+                    "2",
+                    "3",
+                  ],
+                  "tone": "accent",
+                  "type": "highlight",
+                },
+              ],
+              "mode": "sequence",
+              "type": "group",
+            },
+            "id": "intro-2",
+            "narration": {
+              "fallbackDurationMs": 2860,
+              "text": "광합성은 빛 반응과 탄소 고정으로 이루어집니다.",
+            },
+          },
+        ],
+        "id": "intro",
+        "nodeId": "1",
+      },
+      {
+        "beats": [
+          {
+            "animation": {
+              "children": [
+                {
+                  "durationMs": 700,
+                  "maxZoom": 1.2,
+                  "targetNodeIds": [
+                    "2",
+                    "3",
+                  ],
+                  "type": "focus",
+                },
+                {
+                  "direction": "forward",
+                  "durationMs": 650,
+                  "mode": "progressive",
+                  "nodeIds": [
+                    "2",
+                    "3",
+                  ],
+                  "type": "trace",
+                },
+                {
+                  "durationMs": 1200,
+                  "style": "pulse",
+                  "targetNodeIds": [
+                    "3",
+                  ],
+                  "tone": "accent",
+                  "type": "highlight",
+                },
+              ],
+              "mode": "sequence",
+              "type": "group",
+            },
+            "id": "wrap-up-1",
+            "narration": {
+              "fallbackDurationMs": 2970,
+              "text": "빛 반응에서 만든 에너지가 탄소 고정에 쓰입니다.",
+            },
+          },
+          {
+            "animation": {
+              "children": [
+                {
+                  "durationMs": 600,
+                  "maxZoom": 1,
+                  "targetNodeIds": [
+                    "2",
+                    "3",
+                  ],
+                  "type": "focus",
+                },
+                {
+                  "durationMs": 800,
+                  "style": "steady",
+                  "targetNodeIds": [
+                    "2",
+                  ],
+                  "tone": "accent",
+                  "type": "highlight",
+                },
+                {
+                  "durationMs": 800,
+                  "style": "steady",
+                  "targetNodeIds": [
+                    "3",
+                  ],
+                  "tone": "accent",
+                  "type": "highlight",
+                },
+              ],
+              "mode": "sequence",
+              "type": "group",
+            },
+            "id": "wrap-up-2",
+            "narration": {
+              "fallbackDurationMs": 2420,
+              "text": "배운 내용을 다시 한번 짚어 보겠습니다.",
+            },
+          },
+          {
+            "animation": {
+              "children": [
+                {
+                  "durationMs": 900,
+                  "maxZoom": 1.2,
+                  "targetNodeIds": [
+                    "1",
+                    "2",
+                  ],
+                  "type": "focus",
+                },
+                {
+                  "durationMs": 1050,
+                  "targetNodeIds": [
+                    "1",
+                  ],
+                  "type": "collapse",
+                },
+                {
+                  "durationMs": 1800,
+                  "persist": true,
+                  "style": "pulse",
+                  "targetNodeIds": [
+                    "1",
+                  ],
+                  "tone": "accent",
+                  "type": "highlight",
+                },
+              ],
+              "mode": "sequence",
+              "type": "group",
+            },
+            "id": "wrap-up-3",
+            "narration": {
+              "fallbackDurationMs": 3300,
+              "text": "광합성은 빛 에너지를 화학 에너지로 바꾸는 과정입니다.",
+            },
+          },
+        ],
+        "id": "wrap-up",
+        "nodeId": "1",
+      },
+    ],
+    "title": "광합성 정리",
+  },
+  "sourceMap": {
+    "intro-1": [
+      {
+        "animationPath": [],
+        "source": {
+          "reason": "empty-beat",
+          "type": "compiler",
+        },
+      },
+    ],
+    "intro-2": [
+      {
+        "animationPath": [],
+        "source": {
+          "cueIndex": 0,
+          "intent": "introduce",
+          "recipeId": "introduce",
+          "type": "cue",
+        },
+      },
+    ],
+    "wrap-up-1": [
+      {
+        "animationPath": [],
+        "source": {
+          "cueIndex": 0,
+          "intent": "trace",
+          "recipeId": "trace-path",
+          "type": "cue",
+        },
+      },
+    ],
+    "wrap-up-2": [
+      {
+        "animationPath": [],
+        "source": {
+          "cueIndex": 0,
+          "intent": "recap",
+          "recipeId": "recap",
+          "type": "cue",
+        },
+      },
+    ],
+    "wrap-up-3": [
+      {
+        "animationPath": [],
+        "source": {
+          "cueIndex": 0,
+          "intent": "summarize",
+          "recipeId": "collapse-summary",
+          "type": "cue",
+        },
+      },
+    ],
+  },
+}
+`;
+
+exports[`시나리오 fixture 컴파일 > world-geography.json를 경고 없이 컴파일하고 결과가 대본 스키마를 통과한다 1`] = `
+{
+  "script": {
+    "id": "world-geography",
+    "scenes": [
+      {
+        "beats": [
+          {
+            "animation": {
+              "children": [
+                {
+                  "durationMs": 900,
+                  "maxZoom": 1.2,
+                  "targetNodeIds": [
+                    "2",
+                    "1",
+                  ],
+                  "type": "focus",
+                },
+                {
+                  "durationMs": 1800,
+                  "style": "pulse",
+                  "targetNodeIds": [
+                    "2",
+                  ],
+                  "tone": "accent",
+                  "type": "highlight",
+                },
+                {
+                  "durationMs": 1800,
+                  "style": "steady",
+                  "targetNodeIds": [
+                    "1",
+                  ],
+                  "tone": "accent",
+                  "type": "highlight",
+                },
+              ],
+              "mode": "sequence",
+              "type": "group",
+            },
+            "id": "asia-1",
+            "narration": {
+              "fallbackDurationMs": 1760,
+              "text": "먼저 아시아를 살펴보겠습니다.",
+            },
+          },
+          {
+            "animation": {
+              "children": [
+                {
+                  "durationMs": 850,
+                  "targetNodeIds": [
+                    "2",
+                  ],
+                  "type": "expand",
+                },
+                {
+                  "durationMs": 700,
+                  "maxZoom": 1.2,
+                  "targetNodeIds": [
+                    "2",
+                    "5",
+                    "6",
+                    "7",
+                  ],
+                  "type": "focus",
+                },
+                {
+                  "durationMs": 1200,
+                  "style": "pulse",
+                  "targetNodeIds": [
+                    "5",
+                    "6",
+                    "7",
+                  ],
+                  "tone": "accent",
+                  "type": "highlight",
+                },
+              ],
+              "mode": "sequence",
+              "type": "group",
+            },
+            "id": "asia-2",
+            "narration": {
+              "fallbackDurationMs": 3740,
+              "text": "아시아는 동아시아, 동남아시아, 남아시아로 나눌 수 있습니다.",
+            },
+          },
+          {
+            "animation": {
+              "children": [
+                {
+                  "children": [
+                    {
+                      "durationMs": 1200,
+                      "exceptNodeIds": [
+                        "5",
+                      ],
+                      "persist": true,
+                      "type": "dim",
+                    },
+                    {
+                      "durationMs": 1200,
+                      "persist": true,
+                      "style": "pop",
+                      "targetNodeIds": [
+                        "5",
+                      ],
+                      "tone": "accent",
+                      "type": "highlight",
+                    },
+                  ],
+                  "mode": "parallel",
+                  "type": "group",
+                },
+                {
+                  "children": [
+                    {
+                      "durationMs": 700,
+                      "maxZoom": 1.2,
+                      "targetNodeIds": [
+                        "8",
+                        "9",
+                        "10",
+                      ],
+                      "type": "focus",
+                    },
+                    {
+                      "children": [
+                        {
+                          "durationMs": 1200,
+                          "exceptNodeIds": [
+                            "8",
+                            "9",
+                            "10",
+                          ],
+                          "type": "dim",
+                        },
+                        {
+                          "durationMs": 1200,
+                          "style": "pulse",
+                          "targetNodeIds": [
+                            "8",
+                            "9",
+                            "10",
+                          ],
+                          "tone": "accent",
+                          "type": "highlight",
+                        },
+                      ],
+                      "mode": "parallel",
+                      "type": "group",
+                    },
+                  ],
+                  "mode": "sequence",
+                  "type": "group",
+                },
+              ],
+              "mode": "sequence",
+              "type": "group",
+            },
+            "id": "asia-3",
+            "narration": {
+              "fallbackDurationMs": 2970,
+              "text": "이 중 동아시아에 한국, 중국, 일본이 있습니다.",
+            },
+          },
+        ],
+        "id": "asia",
+        "nodeId": "2",
+      },
+      {
+        "beats": [
+          {
+            "animation": {
+              "children": [
+                {
+                  "durationMs": 600,
+                  "maxZoom": 1,
+                  "targetNodeIds": [
+                    "3",
+                  ],
+                  "type": "focus",
+                },
+                {
+                  "durationMs": 800,
+                  "exceptNodeIds": [
+                    "3",
+                  ],
+                  "type": "dim",
+                },
+              ],
+              "mode": "sequence",
+              "type": "group",
+            },
+            "id": "europe-1",
+            "narration": {
+              "fallbackDurationMs": 1980,
+              "text": "이제 유럽으로 넘어가 보겠습니다.",
+            },
+          },
+          {
+            "animation": {
+              "children": [
+                {
+                  "durationMs": 600,
+                  "maxZoom": 1,
+                  "targetNodeIds": [
+                    "2",
+                    "3",
+                  ],
+                  "type": "focus",
+                },
+                {
+                  "durationMs": 800,
+                  "style": "steady",
+                  "targetNodeIds": [
+                    "2",
+                  ],
+                  "tone": "accent",
+                  "type": "highlight",
+                },
+                {
+                  "durationMs": 800,
+                  "style": "steady",
+                  "targetNodeIds": [
+                    "3",
+                  ],
+                  "tone": "accent",
+                  "type": "highlight",
+                },
+              ],
+              "mode": "sequence",
+              "type": "group",
+            },
+            "id": "europe-2",
+            "narration": {
+              "fallbackDurationMs": 2970,
+              "text": "정리하면, 두 대륙 모두 여러 지역으로 나뉩니다.",
+            },
+          },
+        ],
+        "id": "europe",
+        "nodeId": "3",
+      },
+    ],
+    "title": "세계 지리: 대륙과 나라",
+  },
+  "sourceMap": {
+    "asia-1": [
+      {
+        "animationPath": [],
+        "source": {
+          "cueIndex": 0,
+          "intent": "introduce",
+          "recipeId": "introduce",
+          "type": "cue",
+        },
+      },
+    ],
+    "asia-2": [
+      {
+        "animationPath": [],
+        "source": {
+          "cueIndex": 0,
+          "intent": "decompose",
+          "recipeId": "reveal-branch",
+          "type": "cue",
+        },
+      },
+    ],
+    "asia-3": [
+      {
+        "animationPath": [
+          "children",
+          0,
+        ],
+        "source": {
+          "cueIndex": 0,
+          "intent": "emphasize",
+          "recipeId": "spotlight",
+          "type": "cue",
+        },
+      },
+      {
+        "animationPath": [
+          "children",
+          1,
+        ],
+        "source": {
+          "cueIndex": 1,
+          "intent": "reveal",
+          "recipeId": "reveal-nodes",
+          "type": "cue",
+        },
+      },
+    ],
+    "europe-1": [
+      {
+        "animationPath": [],
+        "source": {
+          "cueIndex": 0,
+          "intent": "transition",
+          "recipeId": "introduce",
+          "type": "cue",
+        },
+      },
+    ],
+    "europe-2": [
+      {
+        "animationPath": [],
+        "source": {
+          "cueIndex": 0,
+          "intent": "recap",
+          "recipeId": "recap",
+          "type": "cue",
+        },
+      },
+    ],
+  },
+}
+`;

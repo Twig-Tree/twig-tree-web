@@ -1,7 +1,9 @@
 import {
   type LectureAnimation,
   type LectureAnimationAction,
+  lectureAnimationActionSchema,
 } from "@/src/entities/lecture";
+import { LAB_ACTIONS } from "./labActions";
 
 export type LabActionType = LectureAnimationAction["type"];
 
@@ -40,73 +42,7 @@ export const createLabStep = (
 */
 export const createDefaultLabAction = (
   type: LabActionType,
-): LectureAnimationAction => {
-  switch (type) {
-    case "focus":
-      return { type, targetNodeIds: [], maxZoom: 1.3, durationMs: 600 };
-    case "highlight":
-      return { type, targetNodeIds: [], style: "pulse", durationMs: 900 };
-    case "dim":
-      return { type, exceptNodeIds: [], durationMs: 900 };
-    case "trace":
-      return { type, nodeIds: [], durationMs: 1200 };
-    case "collapse":
-    case "expand":
-      return { type, targetNodeIds: [], durationMs: 800 };
-    case "reset":
-      return { type, scope: "visual" };
-  }
-};
-
-/*
-함수 이름 : getLabActionNodeIds
-기능 : 동작 종류마다 이름이 다른 대상 노드 목록을 읽는다.
-인자 : LectureAnimationAction action -> 단위 동작
-반환값 : 대상 노드 ID 목록. reset은 대상이 없어 null
-*/
-export const getLabActionNodeIds = (
-  action: LectureAnimationAction,
-): string[] | null => {
-  switch (action.type) {
-    case "focus":
-    case "highlight":
-    case "collapse":
-    case "expand":
-      return action.targetNodeIds;
-    case "dim":
-      return action.exceptNodeIds;
-    case "trace":
-      return action.nodeIds;
-    case "reset":
-      return null;
-  }
-};
-
-/*
-함수 이름 : getLabActionWithNodeIds
-기능 : 동작의 대상 노드 목록을 바꾼 새 동작을 만든다.
-인자 : LectureAnimationAction action -> 단위 동작
-string[] nodeIds -> 새 대상 노드 ID 목록
-반환값 : 대상이 바뀐 단위 동작
-*/
-export const getLabActionWithNodeIds = (
-  action: LectureAnimationAction,
-  nodeIds: string[],
-): LectureAnimationAction => {
-  switch (action.type) {
-    case "focus":
-    case "highlight":
-    case "collapse":
-    case "expand":
-      return { ...action, targetNodeIds: nodeIds };
-    case "dim":
-      return { ...action, exceptNodeIds: nodeIds };
-    case "trace":
-      return { ...action, nodeIds };
-    case "reset":
-      return action;
-  }
-};
+): LectureAnimationAction => LAB_ACTIONS[type].createDefault();
 
 /*
 함수 이름 : getLabAnimation
@@ -135,64 +71,60 @@ export const getLabAnimation = (steps: LabStep[]): LectureAnimation => {
     : { type: "group", mode: "sequence", children };
 };
 
-const isStringArray = (value: unknown): value is string[] =>
-  Array.isArray(value) && value.every((item) => typeof item === "string");
-
-const isDuration = (value: unknown): value is number =>
-  typeof value === "number" && Number.isFinite(value) && value >= 0;
-
-/*
-함수 이름 : isLectureAnimationAction
-기능 : JSON에서 읽은 값이 대본 계약의 단위 동작 형식인지 판단한다.
-인자 : Record<string, unknown> value -> 검사할 객체
-반환값 : 단위 동작 형식이면 true
-*/
-const isLectureAnimationAction = (
-  value: Record<string, unknown>,
-): value is Record<string, unknown> & LectureAnimationAction => {
-  const hasValidPersist =
-    value.persist === undefined || typeof value.persist === "boolean";
-
-  switch (value.type) {
-    case "focus":
-      return (
-        isStringArray(value.targetNodeIds) &&
-        typeof value.maxZoom === "number" &&
-        Number.isFinite(value.maxZoom) &&
-        value.maxZoom > 0 &&
-        isDuration(value.durationMs)
-      );
-    case "highlight":
-      return (
-        isStringArray(value.targetNodeIds) &&
-        (value.style === "steady" || value.style === "pulse") &&
-        isDuration(value.durationMs) &&
-        hasValidPersist
-      );
-    case "dim":
-      return (
-        isStringArray(value.exceptNodeIds) &&
-        isDuration(value.durationMs) &&
-        hasValidPersist
-      );
-    case "trace":
-      return isStringArray(value.nodeIds) && isDuration(value.durationMs);
-    case "collapse":
-    case "expand":
-      return isStringArray(value.targetNodeIds) && isDuration(value.durationMs);
-    case "reset":
-      return (
-        value.scope === "visual" ||
-        value.scope === "camera" ||
-        value.scope === "all"
-      );
-    default:
-      return false;
-  }
-};
-
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null && !Array.isArray(value);
+
+/*
+함수 이름 : getUnknownActionFields
+기능 : 대본 스키마를 통과한 동작에서 스키마가 모르는 필드 이름을 찾는다.
+스키마는 모르는 필드를 버리므로, persist를 persits로 잘못 쓰면 오류 없이 효과가 사라진다. 편집기에서는 이를 오류로 알린다.
+대본 스키마 자체를 엄격하게 바꾸지 않는 것은 서버가 필드를 더할 때 대본 전체가 거부되지 않게 하기 위해서다.
+인자 : unknown value -> JSON에서 읽은 값
+반환값 : 모르는 필드 이름 목록. 동작 형식이 아니면 빈 목록
+*/
+const getUnknownActionFields = (value: unknown): string[] => {
+  const result = lectureAnimationActionSchema.safeParse(value);
+
+  if (!result.success || !isRecord(value)) return [];
+
+  return Object.keys(value).filter((key) => !(key in result.data));
+};
+
+/*
+함수 이름 : getActionFromJson
+기능 : JSON에서 읽은 값을 대본 스키마로 검사해 단위 동작으로 읽는다.
+인자 : unknown value -> JSON에서 읽은 값
+반환값 : 단위 동작. 형식이 틀렸거나 모르는 필드가 있으면 null
+*/
+const getActionFromJson = (value: unknown): LectureAnimationAction | null => {
+  const result = lectureAnimationActionSchema.safeParse(value);
+
+  return result.success && getUnknownActionFields(value).length === 0
+    ? result.data
+    : null;
+};
+
+/*
+함수 이름 : getFirstUnknownActionField
+기능 : 타임라인이 읽는 동작들(순차 그룹의 자식과 그 안의 병렬 그룹 자식)에서 처음 나오는 모르는 필드를 찾는다.
+인자 : unknown[] items -> 순차 그룹의 자식 목록
+반환값 : 모르는 필드 이름. 없으면 null
+*/
+const getFirstUnknownActionField = (items: unknown[]): string | null => {
+  for (const item of items) {
+    const children =
+      isRecord(item) && item.type === "group" && Array.isArray(item.children)
+        ? item.children
+        : [item];
+
+    for (const child of children) {
+      const [field] = getUnknownActionFields(child);
+      if (field !== undefined) return field;
+    }
+  }
+
+  return null;
+};
 
 /*
 함수 이름 : getBatchFromJson
@@ -202,23 +134,25 @@ const isRecord = (value: unknown): value is Record<string, unknown> =>
 */
 const getBatchFromJson = (value: unknown): LectureAnimationAction[] | null => {
   if (!isRecord(value)) return null;
-  if (isLectureAnimationAction(value)) return [value];
+
+  const action = getActionFromJson(value);
+  if (action !== null) return [action];
+
   if (value.type !== "group" || value.mode !== "parallel") return null;
-  if (!Array.isArray(value.children)) return null;
+  if (!Array.isArray(value.children) || value.children.length === 0) {
+    return null;
+  }
 
-  const actions = value.children.filter(
-    (child): child is LectureAnimationAction =>
-      isRecord(child) && isLectureAnimationAction(child),
-  );
+  const actions = value.children.map(getActionFromJson);
 
-  return actions.length === value.children.length && actions.length > 0
-    ? actions
-    : null;
+  return actions.includes(null)
+    ? null
+    : actions.filter((child) => child !== null);
 };
 
 /*
 함수 이름 : getLabStepsFromJson
-기능 : 직접 고친 JSON을 타임라인 단계로 읽는다. 대본 계약은 그룹을 얼마든지 중첩할 수 있지만 타임라인은 "순차 안의 병렬"까지만 표현한다.
+기능 : 직접 고친 JSON을 타임라인 단계로 읽는다.
 인자 : string text -> 애니메이션 JSON 문자열
 반환값 : 읽은 단계 목록, 또는 화면에 보여줄 안내 문구
 */
@@ -231,6 +165,16 @@ export const getLabStepsFromJson = (text: string): LabJsonResult => {
     return { error: "JSON 문법이 올바르지 않습니다." };
   }
 
+  return getLabStepsFromAnimation(parsed);
+};
+
+/*
+함수 이름 : getLabStepsFromAnimation
+기능 : 애니메이션 값을 타임라인 단계로 읽는다. 대본 계약은 그룹을 얼마든지 중첩할 수 있지만 타임라인은 "순차 안의 병렬"까지만 표현한다.
+인자 : unknown parsed -> 애니메이션 값. JSON에서 읽었거나 recipe가 만든 값
+반환값 : 읽은 단계 목록, 또는 화면에 보여줄 안내 문구
+*/
+export const getLabStepsFromAnimation = (parsed: unknown): LabJsonResult => {
   const isSequence =
     isRecord(parsed) &&
     parsed.type === "group" &&
@@ -248,6 +192,12 @@ export const getLabStepsFromJson = (text: string): LabJsonResult => {
     const batch = getBatchFromJson(item);
 
     if (batch === null) {
+      const unknownField = getFirstUnknownActionField(items);
+
+      if (unknownField !== null) {
+        return { error: `알 수 없는 필드가 있습니다: ${unknownField}` };
+      }
+
       return {
         error:
           "동작 형식이 틀렸거나, 타임라인이 표현할 수 없는 중첩입니다. 순차 그룹 안의 병렬 그룹까지만 읽습니다.",

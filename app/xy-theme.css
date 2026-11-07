@@ -32,6 +32,22 @@ React Flow가 읽는 CSS 변수에 값을 넣어야 하므로 Tailwind 유틸리
 
   background-image: var(--theme-canvas-image);
   background-size: var(--theme-canvas-image-size);
+
+  /*
+  강의 연출의 시간과 곡선. 테마마다 다르게 쓰는 일이 아직 없어 테마 파일이 아니라 여기에 둔다.
+  곡선 이름은 entities/lecture의 LECTURE_EASING_TOKENS와 같다. bounce와 shake 주기는 표시 시간에 맞춰 주기를 다시 계산하는
+  getLectureHighlightMotionStyle의 기준값과 같아야 한다.
+  */
+  --lecture-ease-enter: ease-out;
+  --lecture-ease-move: ease-in-out;
+  --lecture-fade-duration: 240ms;
+  --lecture-current-duration: 260ms;
+  --lecture-pulse-cycle: 900ms;
+  --lecture-pop-duration: 650ms;
+  --lecture-bounce-cycle: 800ms;
+  --lecture-shake-cycle: 550ms;
+  --lecture-trace-cycle: 520ms;
+  --lecture-dim-opacity: 0.22;
 }
 
 /* Customizing Default Theming */
@@ -99,26 +115,62 @@ React Flow가 읽는 CSS 변수에 값을 넣어야 하므로 Tailwind 유틸리
     0 0 0 3px var(--xy-theme-lecture-current),
     0 0 18px 2px
       color-mix(in srgb, var(--xy-theme-lecture-current) 35%, transparent);
-  transition: box-shadow 200ms ease-out;
+  transition: box-shadow var(--lecture-current-duration)
+    var(--lecture-ease-enter);
 }
 
 .react-flow__node:has(> .custom-node[data-lecture-highlighted="true"]) {
+  --lecture-highlight-color: var(--xy-theme-lecture-animation);
   box-shadow:
-    0 0 0 3px var(--xy-theme-lecture-animation),
+    0 0 0 3px var(--lecture-highlight-color),
     0 0 20px 3px
-      color-mix(in srgb, var(--xy-theme-lecture-animation) 40%, transparent);
+      color-mix(in srgb, var(--lecture-highlight-color) 40%, transparent);
   transition:
-    box-shadow 180ms ease-out,
-    opacity 180ms ease-out;
+    box-shadow var(--lecture-fade-duration) var(--lecture-ease-enter),
+    opacity var(--lecture-fade-duration) var(--lecture-ease-enter);
 }
 
-.react-flow__node:has(> .custom-node[data-lecture-pulsing="true"]) {
-  animation: lecture-node-pulse 700ms ease-in-out infinite alternate;
+.react-flow__node:has(> .custom-node[data-lecture-highlight-tone="success"]) {
+  --lecture-highlight-color: var(--theme-success);
+}
+
+.react-flow__node:has(> .custom-node[data-lecture-highlight-tone="warning"]) {
+  --lecture-highlight-color: var(--theme-warning);
+}
+
+.react-flow__node:has(> .custom-node[data-lecture-highlight-tone="danger"]) {
+  --lecture-highlight-color: var(--theme-danger);
+}
+
+.react-flow__node:has(> .custom-node[data-lecture-highlight-style="pulse"]) {
+  animation: lecture-node-pulse var(--lecture-pulse-cycle)
+    var(--lecture-ease-move) infinite alternate;
+}
+
+/*
+.custom-node 전체에 transform을 적용하면 그 안의 절대 위치 Handle이 텍스트 폭을 좌표 기준으로 삼는다.
+이동 효과는 텍스트 콘텐츠에만 적용해 연결 포인트를 노드 외곽에 고정한다.
+*/
+.custom-node[data-lecture-highlight-style="pop"] > .custom-node__content {
+  animation: lecture-node-pop var(--lecture-pop-duration)
+    var(--lecture-ease-enter) both;
+}
+
+.custom-node[data-lecture-highlight-style="bounce"] > .custom-node__content {
+  animation: lecture-node-bounce
+    var(--lecture-highlight-cycle, var(--lecture-bounce-cycle))
+    var(--lecture-ease-move) var(--lecture-highlight-iterations, infinite);
+}
+
+.custom-node[data-lecture-highlight-style="shake"] > .custom-node__content {
+  animation: lecture-node-shake
+    var(--lecture-highlight-cycle, var(--lecture-shake-cycle))
+    var(--lecture-ease-move) var(--lecture-highlight-iterations, infinite);
 }
 
 .react-flow__node:has(> .custom-node[data-lecture-dimmed="true"]) {
-  opacity: 0.22;
-  transition: opacity 180ms ease-out;
+  opacity: var(--lecture-dim-opacity);
+  transition: opacity var(--lecture-fade-duration) var(--lecture-ease-enter);
 }
 
 .react-flow__edge-path.lecture-edge-traced {
@@ -127,22 +179,61 @@ React Flow가 읽는 CSS 변수에 값을 넣어야 하므로 Tailwind 유틸리
   stroke-linecap: round;
   stroke-dasharray: 12 8;
   filter: drop-shadow(0 0 4px var(--xy-theme-lecture-animation));
-  animation: lecture-edge-trace 400ms linear infinite;
+  animation: lecture-edge-trace var(--lecture-trace-cycle) linear infinite; /* 점선이 끊김 없이 흐르려면 등속이어야 한다 */
+}
+
+.react-flow__edge-path.lecture-edge-traced-reverse {
+  animation-direction: reverse;
 }
 
 @keyframes lecture-node-pulse {
   from {
     box-shadow:
-      0 0 0 3px var(--xy-theme-lecture-animation),
+      0 0 0 3px var(--lecture-highlight-color),
       0 0 14px 2px
-        color-mix(in srgb, var(--xy-theme-lecture-animation) 35%, transparent);
+        color-mix(in srgb, var(--lecture-highlight-color) 35%, transparent);
   }
 
   to {
     box-shadow:
-      0 0 0 5px var(--xy-theme-lecture-animation),
+      0 0 0 5px var(--lecture-highlight-color),
       0 0 32px 8px
-        color-mix(in srgb, var(--xy-theme-lecture-animation) 65%, transparent);
+        color-mix(in srgb, var(--lecture-highlight-color) 65%, transparent);
+  }
+}
+
+@keyframes lecture-node-pop {
+  0% {
+    transform: scale(0.92);
+  }
+  55% {
+    transform: scale(1.12);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes lecture-node-bounce {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+@keyframes lecture-node-shake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-5px);
+  }
+  75% {
+    transform: translateX(5px);
   }
 }
 
@@ -157,7 +248,8 @@ React Flow가 읽는 CSS 변수에 값을 넣어야 하므로 Tailwind 유틸리
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .react-flow__node:has(> .custom-node[data-lecture-pulsing="true"]),
+  .react-flow__node:has(> .custom-node[data-lecture-highlight-style]),
+  .custom-node[data-lecture-highlight-style] > .custom-node__content,
   .react-flow__edge-path.lecture-edge-traced {
     animation: none;
   }

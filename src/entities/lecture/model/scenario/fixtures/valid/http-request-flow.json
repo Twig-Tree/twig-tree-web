@@ -1,0 +1,91 @@
+{
+  "scenarioSchemaVersion": 1,
+  "recipeRegistryVersion": 1,
+  "title": "HTTP 요청이 서버에 도착하기까지",
+  "scenes": [
+    {
+      "id": "overview",
+      "nodeId": "1",
+      "beats": [
+        {
+          "id": "overview-1",
+          "narration": {
+            "text": "브라우저에서 시작한 요청은 여러 단계를 거칩니다."
+          },
+          "cues": [
+            {
+              "intent": "introduce",
+              "roles": {
+                "subject": "1"
+              }
+            }
+          ]
+        },
+        {
+          "id": "overview-2",
+          "narration": {
+            "text": "주소를 입력한 순간부터 서버가 응답하기까지 따라가 보겠습니다."
+          },
+          "cues": [
+            {
+              "intent": "trace",
+              "roles": {
+                "source": "2",
+                "destination": "6"
+              },
+              "delivery": {
+                "pace": "slow",
+                "continuity": "persist"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "dns",
+      "nodeId": "3",
+      "beats": [
+        {
+          "id": "dns-1",
+          "narration": {
+            "text": "가장 먼저 DNS가 도메인을 IP 주소로 바꿉니다."
+          },
+          "cues": [
+            {
+              "intent": "transition",
+              "roles": {
+                "destination": "3"
+              }
+            },
+            {
+              "intent": "decompose",
+              "roles": {
+                "parent": "3",
+                "children": ["7", "8"]
+              }
+            }
+          ]
+        },
+        {
+          "id": "dns-2",
+          "narration": {
+            "text": "응답은 같은 길을 거꾸로 돌아옵니다."
+          },
+          "cues": [
+            {
+              "intent": "trace",
+              "roles": {
+                "source": "6",
+                "destination": "2"
+              },
+              "delivery": {
+                "pace": "quick"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

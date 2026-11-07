@@ -39,12 +39,15 @@ type LectureSeekState = {
 
 /*
 함수 이름 : getActionDurationMs
-기능 : 재생기가 단위 동작 다음으로 넘어가기까지 기다리는 시간을 구한다.
+기능 : 재생기가 단위 동작 다음으로 넘어가기까지 기다리는 시간을 구한다. progressive trace는 유지되더라도 경로를 다 그린 뒤에 넘어간다.
 인자 : EditorLectureAnimationAction action -> 단위 동작
 반환값 : 기다리는 시간(ms)
 */
 const getActionDurationMs = (action: EditorLectureAnimationAction): number => {
   if (action.type === "reset") return 0;
+  if (action.type === "trace" && action.mode === "progressive") {
+    return action.durationMs;
+  }
   if ("persist" in action && action.persist) return 0;
 
   return action.durationMs;
@@ -98,7 +101,8 @@ const getOrderedActions = (
   animation: EditorLectureAnimation,
 ): EditorLectureAnimationAction[] =>
   getTimedActions(animation, 0)
-    .actions.toSorted((a, b) => a.startMs - b.startMs)
+    .actions.slice()
+    .sort((a, b) => a.startMs - b.startMs)
     .map(({ action }) => action);
 
 /*
@@ -174,6 +178,16 @@ export const getLectureSeekState = ({
         layers.push(layer);
         if (!isPersistent) previewLayerIds.push(layer.id);
         break;
+      }
+      case "wait":
+        break; // 시간만 보내므로 되감은 상태에 남기는 것이 없다
+      default: {
+        /*
+        동작 종류가 늘었는데 되감기에 분기를 빠뜨리면 여기서 타입 오류가 난다.
+        */
+        const unhandledAction: never = action;
+
+        return unhandledAction;
       }
     }
   };

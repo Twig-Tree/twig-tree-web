@@ -1,0 +1,2284 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`recipe registry 1 > collapse-summary > delivery 변형마다 만든 애니메이션이 바뀌면 의도한 변경인지 확인한다 1`] = `
+{
+  "default": {
+    "children": [
+      {
+        "durationMs": 900,
+        "maxZoom": 1.2,
+        "targetNodeIds": [
+          "2",
+          "5",
+          "6",
+          "7",
+        ],
+        "type": "focus",
+      },
+      {
+        "durationMs": 1050,
+        "targetNodeIds": [
+          "2",
+        ],
+        "type": "collapse",
+      },
+      {
+        "durationMs": 1800,
+        "style": "pulse",
+        "targetNodeIds": [
+          "2",
+        ],
+        "tone": "accent",
+        "type": "highlight",
+      },
+    ],
+    "mode": "sequence",
+    "type": "group",
+  },
+  "neutral": {
+    "children": [
+      {
+        "durationMs": 900,
+        "maxZoom": 1.2,
+        "targetNodeIds": [
+          "2",
+          "5",
+          "6",
+          "7",
+        ],
+        "type": "focus",
+      },
+      {
+        "durationMs": 1050,
+        "targetNodeIds": [
+          "2",
+        ],
+        "type": "collapse",
+      },
+      {
+        "durationMs": 1800,
+        "exceptNodeIds": [
+          "2",
+        ],
+        "type": "dim",
+      },
+    ],
+    "mode": "sequence",
+    "type": "group",
+  },
+  "neutralPersist": {
+    "children": [
+      {
+        "durationMs": 900,
+        "maxZoom": 1.2,
+        "targetNodeIds": [
+          "2",
+          "5",
+          "6",
+          "7",
+        ],
+        "type": "focus",
+      },
+      {
+        "durationMs": 1050,
+        "targetNodeIds": [
+          "2",
+        ],
+        "type": "collapse",
+      },
+      {
+        "durationMs": 1800,
+        "exceptNodeIds": [
+          "2",
+        ],
+        "persist": true,
+        "type": "dim",
+      },
+    ],
+    "mode": "sequence",
+    "type": "group",
+  },
+  "persist": {
+    "children": [
+      {
+        "durationMs": 900,
+        "maxZoom": 1.2,
+        "targetNodeIds": [
+          "2",
+          "5",
+          "6",
+          "7",
+        ],
+        "type": "focus",
+      },
+      {
+        "durationMs": 1050,
+        "targetNodeIds": [
+          "2",
+        ],
+        "type": "collapse",
+      },
+      {
+        "durationMs": 1800,
+        "persist": true,
+        "style": "pulse",
+        "targetNodeIds": [
+          "2",
+        ],
+        "tone": "accent",
+        "type": "highlight",
+      },
+    ],
+    "mode": "sequence",
+    "type": "group",
+  },
+  "quickSubtle": {
+    "children": [
+      {
+        "durationMs": 600,
+        "maxZoom": 1,
+        "targetNodeIds": [
+          "2",
+          "5",
+          "6",
+          "7",
+        ],
+        "type": "focus",
+      },
+      {
+        "durationMs": 800,
+        "targetNodeIds": [
+          "2",
+        ],
+        "type": "collapse",
+      },
+      {
+        "durationMs": 800,
+        "style": "steady",
+        "targetNodeIds": [
+          "2",
+        ],
+        "tone": "accent",
+        "type": "highlight",
+      },
+    ],
+    "mode": "sequence",
+    "type": "group",
+  },
+  "slowStrong": {
+    "children": [
+      {
+        "durationMs": 900,
+        "maxZoom": 1.4,
+        "targetNodeIds": [
+          "2",
+          "5",
+          "6",
+          "7",
+        ],
+        "type": "focus",
+      },
+      {
+        "durationMs": 1050,
+        "targetNodeIds": [
+          "2",
+        ],
+        "type": "collapse",
+      },
+      {
+        "durationMs": 1800,
+        "style": "pop",
+        "targetNodeIds": [
+          "2",
+        ],
+        "tone": "accent",
+        "type": "highlight",
+      },
+    ],
+    "mode": "sequence",
+    "type": "group",
+  },
+}
+`;
+
+exports[`recipe registry 1 > compare > delivery 변형마다 만든 애니메이션이 바뀌면 의도한 변경인지 확인한다 1`] = `
+{
+  "default": {
+    "children": [
+      {
+        "durationMs": 700,
+        "maxZoom": 1.2,
+        "targetNodeIds": [
+          "5",
+          "6",
+        ],
+        "type": "focus",
+      },
+      {
+        "durationMs": 1200,
+        "style": "pulse",
+        "targetNodeIds": [
+          "5",
+        ],
+        "tone": "accent",
+        "type": "highlight",
+      },
+      {
+        "durationMs": 1200,
+        "style": "pulse",
+        "targetNodeIds": [
+          "6",
+        ],
+        "tone": "accent",
+        "type": "highlight",
+      },
+    ],
+    "mode": "sequence",
+    "type": "group",
+  },
+  "neutral": {
+    "children": [
+      {
+        "durationMs": 700,
+        "maxZoom": 1.2,
+        "targetNodeIds": [
+          "5",
+          "6",
+        ],
+        "type": "focus",
+      },
+      {
+        "durationMs": 1200,
+        "exceptNodeIds": [
+          "5",
+        ],
+        "type": "dim",
+      },
+      {
+        "durationMs": 1200,
+        "exceptNodeIds": [
+          "6",
+        ],
+        "type": "dim",
+      },
+    ],
+    "mode": "sequence",
+    "type": "group",
+  },
+  "neutralPersist": {
+    "children": [
+      {
+        "durationMs": 700,
+        "maxZoom": 1.2,
+        "targetNodeIds": [
+          "5",
+          "6",
+        ],
+        "type": "focus",
+      },
+      {
+        "durationMs": 1200,
+        "exceptNodeIds": [
+          "5",
+        ],
+        "type": "dim",
+      },
+      {
+        "durationMs": 1200,
+        "exceptNodeIds": [
+          "6",
+        ],
+        "type": "dim",
+      },
+      {
+        "durationMs": 1200,
+        "exceptNodeIds": [
+          "5",
+          "6",
+        ],
+        "persist": true,
+        "type": "dim",
+      },
+    ],
+    "mode": "sequence",
+    "type": "group",
+  },
+  "persist": {
+    "children": [
+      {
+        "durationMs": 700,
+        "maxZoom": 1.2,
+        "targetNodeIds": [
+          "5",
+          "6",
+        ],
+        "type": "focus",
+      },
+      {
+        "durationMs": 1200,
+        "persist": true,
+        "style": "pulse",
+        "targetNodeIds": [
+          "5",
+        ],
+        "tone": "accent",
+        "type": "highlight",
+      },
+      {
+        "durationMs": 1200,
+        "persist": true,
+        "style": "pulse",
+        "targetNodeIds": [
+          "6",
+        ],
+        "tone": "accent",
+        "type": "highlight",
+      },
+    ],
+    "mode": "sequence",
+    "type": "group",
+  },
+  "quickSubtle": {
+    "children": [
+      {
+        "durationMs": 600,
+        "maxZoom": 1,
+        "targetNodeIds": [
+          "5",
+          "6",
+        ],
+        "type": "focus",
+      },
+      {
+        "durationMs": 800,
+        "style": "steady",
+        "targetNodeIds": [
+          "5",
+        ],
+        "tone": "accent",
+        "type": "highlight",
+      },
+      {
+        "durationMs": 800,
+        "style": "steady",
+        "targetNodeIds": [
+          "6",
+        ],
+        "tone": "accent",
+        "type": "highlight",
+      },
+    ],
+    "mode": "sequence",
+    "type": "group",
+  },
+  "slowStrong": {
+    "children": [
+      {
+        "durationMs": 900,
+        "maxZoom": 1.4,
+        "targetNodeIds": [
+          "5",
+          "6",
+        ],
+        "type": "focus",
+      },
+      {
+        "durationMs": 1800,
+        "style": "pop",
+        "targetNodeIds": [
+          "5",
+        ],
+        "tone": "accent",
+        "type": "highlight",
+      },
+      {
+        "durationMs": 1800,
+        "style": "pop",
+        "targetNodeIds": [
+          "6",
+        ],
+        "tone": "accent",
+        "type": "highlight",
+      },
+    ],
+    "mode": "sequence",
+    "type": "group",
+  },
+}
+`;
+
+exports[`recipe registry 1 > introduce > delivery 변형마다 만든 애니메이션이 바뀌면 의도한 변경인지 확인한다 1`] = `
+{
+  "default": {
+    "children": [
+      {
+        "durationMs": 700,
+        "maxZoom": 1.4,
+        "targetNodeIds": [
+          "1",
+          "2",
+          "3",
+        ],
+        "type": "focus",
+      },
+      {
+        "durationMs": 1200,
+        "style": "pop",
+        "targetNodeIds": [
+          "1",
+        ],
+        "tone": "accent",
+        "type": "highlight",
+      },
+      {
+        "durationMs": 1200,
+        "style": "steady",
+        "targetNodeIds": [
+          "2",
+          "3",
+        ],
+        "tone": "accent",
+        "type": "highlight",
+      },
+    ],
+    "mode": "sequence",
+    "type": "group",
+  },
+  "neutral": {
+    "children": [
+      {
+        "durationMs": 700,
+        "maxZoom": 1.4,
+        "targetNodeIds": [
+          "1",
+          "2",
+          "3",
+        ],
+        "type": "focus",
+      },
+      {
+        "durationMs": 1200,
+        "exceptNodeIds": [
+          "1",
+        ],
+        "type": "dim",
+      },
+      {
+        "durationMs": 1200,
+        "exceptNodeIds": [
+          "2",
+          "3",
+        ],
+        "type": "dim",
+      },
+    ],
+    "mode": "sequence",
+    "type": "group",
+  },
+  "neutralPersist": {
+    "children": [
+      {
+        "durationMs": 700,
+        "maxZoom": 1.4,
+        "targetNodeIds": [
+          "1",
+          "2",
+          "3",
+        ],
+        "type": "focus",
+      },
+      {
+        "durationMs": 1200,
+        "exceptNodeIds": [
+          "1",
+        ],
+        "type": "dim",
+      },
+      {
+        "durationMs": 1200,
+        "exceptNodeIds": [
+          "2",
+          "3",
+        ],
+        "type": "dim",
+      },
+      {
+        "durationMs": 1200,
+        "exceptNodeIds": [
+          "1",
+          "2",
+          "3",
+        ],
+        "persist": true,
+        "type": "dim",
+      },
+    ],
+    "mode": "sequence",
+    "type": "group",
+  },
+  "persist": {
+    "children": [
+      {
+        "durationMs": 700,
+        "maxZoom": 1.4,
+        "targetNodeIds": [
+          "1",
+          "2",
+          "3",
+        ],
+        "type": "focus",
+      },
+      {
+        "durationMs": 1200,
+        "persist": true,
+        "style": "pop",
+        "targetNodeIds": [
+          "1",
+        ],
+        "tone": "accent",
+        "type": "highlight",
+      },
+      {
+        "durationMs": 1200,
+        "persist": true,
+        "style": "steady",
+        "targetNodeIds": [
+          "2",
+          "3",
+        ],
+        "tone": "accent",
+        "type": "highlight",
+      },
+    ],
+    "mode": "sequence",
+    "type": "group",
+  },
+  "quickSubtle": {
+    "children": [
+      {
+        "durationMs": 600,
+        "maxZoom": 1,
+        "targetNodeIds": [
+          "1",
+          "2",
+          "3",
+        ],
+        "type": "focus",
+      },
+      {
+        "durationMs": 800,
+        "style": "steady",
+        "targetNodeIds": [
+          "1",
+        ],
+        "tone": "accent",
+        "type": "highlight",
+      },
+      {
+        "durationMs": 800,
+        "style": "steady",
+        "targetNodeIds": [
+          "2",
+          "3",
+        ],
+        "tone": "accent",
+        "type": "highlight",
+      },
+    ],
+    "mode": "sequence",
+    "type": "group",
+  },
+  "slowStrong": {
+    "children": [
+      {
+        "durationMs": 900,
+        "maxZoom": 1.4,
+        "targetNodeIds": [
+          "1",
+          "2",
+          "3",
+        ],
+        "type": "focus",
+      },
+      {
+        "durationMs": 1800,
+        "style": "pop",
+        "targetNodeIds": [
+          "1",
+        ],
+        "tone": "accent",
+        "type": "highlight",
+      },
+      {
+        "durationMs": 1800,
+        "style": "steady",
+        "targetNodeIds": [
+          "2",
+          "3",
+        ],
+        "tone": "accent",
+        "type": "highlight",
+      },
+    ],
+    "mode": "sequence",
+    "type": "group",
+  },
+}
+`;
+
+exports[`recipe registry 1 > recap > delivery 변형마다 만든 애니메이션이 바뀌면 의도한 변경인지 확인한다 1`] = `
+{
+  "default": {
+    "children": [
+      {
+        "durationMs": 600,
+        "maxZoom": 1,
+        "targetNodeIds": [
+          "2",
+          "7",
+          "8",
+          "9",
+        ],
+        "type": "focus",
+      },
+      {
+        "durationMs": 800,
+        "style": "steady",
+        "targetNodeIds": [
+          "2",
+        ],
+        "tone": "accent",
+        "type": "highlight",
+      },
+      {
+        "durationMs": 800,
+        "style": "steady",
+        "targetNodeIds": [
+          "7",
+        ],
+        "tone": "accent",
+        "type": "highlight",
+      },
+      {
+        "durationMs": 800,
+        "style": "steady",
+        "targetNodeIds": [
+          "8",
+        ],
+        "tone": "accent",
+        "type": "highlight",
+      },
+      {
+        "durationMs": 800,
+        "style": "steady",
+        "targetNodeIds": [
+          "9",
+        ],
+        "tone": "accent",
+        "type": "highlight",
+      },
+    ],
+    "mode": "sequence",
+    "type": "group",
+  },
+  "neutral": {
+    "children": [
+      {
+        "durationMs": 600,
+        "maxZoom": 1,
+        "targetNodeIds": [
+          "2",
+          "7",
+          "8",
+          "9",
+        ],
+        "type": "focus",
+      },
+      {
+        "durationMs": 800,
+        "exceptNodeIds": [
+          "2",
+        ],
+        "type": "dim",
+      },
+      {
+        "durationMs": 800,
+        "exceptNodeIds": [
+          "7",
+        ],
+        "type": "dim",
+      },
+      {
+        "durationMs": 800,
+        "exceptNodeIds": [
+          "8",
+        ],
+        "type": "dim",
+      },
+      {
+        "durationMs": 800,
+        "exceptNodeIds": [
+          "9",
+        ],
+        "type": "dim",
+      },
+    ],
+    "mode": "sequence",
+    "type": "group",
+  },
+  "neutralPersist": {
+    "children": [
+      {
+        "durationMs": 600,
+        "maxZoom": 1,
+        "targetNodeIds": [
+          "2",
+          "7",
+          "8",
+          "9",
+        ],
+        "type": "focus",
+      },
+      {
+        "durationMs": 800,
+        "exceptNodeIds": [
+          "2",
+        ],
+        "type": "dim",
+      },
+      {
+        "durationMs": 800,
+        "exceptNodeIds": [
+          "7",
+        ],
+        "type": "dim",
+      },
+      {
+        "durationMs": 800,
+        "exceptNodeIds": [
+          "8",
+        ],
+        "type": "dim",
+      },
+      {
+        "durationMs": 800,
+        "exceptNodeIds": [
+          "9",
+        ],
+        "type": "dim",
+      },
+      {
+        "durationMs": 800,
+        "exceptNodeIds": [
+          "2",
+          "7",
+          "8",
+          "9",
+        ],
+        "persist": true,
+        "type": "dim",
+      },
+    ],
+    "mode": "sequence",
+    "type": "group",
+  },
+  "persist": {
+    "children": [
+      {
+        "durationMs": 600,
+        "maxZoom": 1,
+        "targetNodeIds": [
+          "2",
+          "7",
+          "8",
+          "9",
+        ],
+        "type": "focus",
+      },
+      {
+        "durationMs": 800,
+        "persist": true,
+        "style": "steady",
+        "targetNodeIds": [
+          "2",
+        ],
+        "tone": "accent",
+        "type": "highlight",
+      },
+      {
+        "durationMs": 800,
+        "persist": true,
+        "style": "steady",
+        "targetNodeIds": [
+          "7",
+        ],
+        "tone": "accent",
+        "type": "highlight",
+      },
+      {
+        "durationMs": 800,
+        "persist": true,
+        "style": "steady",
+        "targetNodeIds": [
+          "8",
+        ],
+        "tone": "accent",
+        "type": "highlight",
+      },
+      {
+        "durationMs": 800,
+        "persist": true,
+        "style": "steady",
+        "targetNodeIds": [
+          "9",
+        ],
+        "tone": "accent",
+        "type": "highlight",
+      },
+    ],
+    "mode": "sequence",
+    "type": "group",
+  },
+  "quickSubtle": {
+    "children": [
+      {
+        "durationMs": 600,
+        "maxZoom": 1,
+        "targetNodeIds": [
+          "2",
+          "7",
+          "8",
+          "9",
+        ],
+        "type": "focus",
+      },
+      {
+        "durationMs": 800,
+        "style": "steady",
+        "targetNodeIds": [
+          "2",
+        ],
+        "tone": "accent",
+        "type": "highlight",
+      },
+      {
+        "durationMs": 800,
+        "style": "steady",
+        "targetNodeIds": [
+          "7",
+        ],
+        "tone": "accent",
+        "type": "highlight",
+      },
+      {
+        "durationMs": 800,
+        "style": "steady",
+        "targetNodeIds": [
+          "8",
+        ],
+        "tone": "accent",
+        "type": "highlight",
+      },
+      {
+        "durationMs": 800,
+        "style": "steady",
+        "targetNodeIds": [
+          "9",
+        ],
+        "tone": "accent",
+        "type": "highlight",
+      },
+    ],
+    "mode": "sequence",
+    "type": "group",
+  },
+  "slowStrong": {
+    "children": [
+      {
+        "durationMs": 900,
+        "maxZoom": 1.4,
+        "targetNodeIds": [
+          "2",
+          "7",
+          "8",
+          "9",
+        ],
+        "type": "focus",
+      },
+      {
+        "durationMs": 1800,
+        "style": "pop",
+        "targetNodeIds": [
+          "2",
+        ],
+        "tone": "accent",
+        "type": "highlight",
+      },
+      {
+        "durationMs": 1800,
+        "style": "pop",
+        "targetNodeIds": [
+          "7",
+        ],
+        "tone": "accent",
+        "type": "highlight",
+      },
+      {
+        "durationMs": 1800,
+        "style": "pop",
+        "targetNodeIds": [
+          "8",
+        ],
+        "tone": "accent",
+        "type": "highlight",
+      },
+      {
+        "durationMs": 1800,
+        "style": "pop",
+        "targetNodeIds": [
+          "9",
+        ],
+        "tone": "accent",
+        "type": "highlight",
+      },
+    ],
+    "mode": "sequence",
+    "type": "group",
+  },
+}
+`;
+
+exports[`recipe registry 1 > reveal-branch > delivery 변형마다 만든 애니메이션이 바뀌면 의도한 변경인지 확인한다 1`] = `
+{
+  "default": {
+    "children": [
+      {
+        "durationMs": 850,
+        "targetNodeIds": [
+          "2",
+        ],
+        "type": "expand",
+      },
+      {
+        "durationMs": 700,
+        "maxZoom": 1.2,
+        "targetNodeIds": [
+          "2",
+          "5",
+          "6",
+          "7",
+        ],
+        "type": "focus",
+      },
+      {
+        "durationMs": 1200,
+        "style": "pulse",
+        "targetNodeIds": [
+          "5",
+          "6",
+          "7",
+        ],
+        "tone": "accent",
+        "type": "highlight",
+      },
+    ],
+    "mode": "sequence",
+    "type": "group",
+  },
+  "neutral": {
+    "children": [
+      {
+        "durationMs": 850,
+        "targetNodeIds": [
+          "2",
+        ],
+        "type": "expand",
+      },
+      {
+        "durationMs": 700,
+        "maxZoom": 1.2,
+        "targetNodeIds": [
+          "2",
+          "5",
+          "6",
+          "7",
+        ],
+        "type": "focus",
+      },
+      {
+        "durationMs": 1200,
+        "exceptNodeIds": [
+          "5",
+          "6",
+          "7",
+        ],
+        "type": "dim",
+      },
+    ],
+    "mode": "sequence",
+    "type": "group",
+  },
+  "neutralPersist": {
+    "children": [
+      {
+        "durationMs": 850,
+        "targetNodeIds": [
+          "2",
+        ],
+        "type": "expand",
+      },
+      {
+        "durationMs": 700,
+        "maxZoom": 1.2,
+        "targetNodeIds": [
+          "2",
+          "5",
+          "6",
+          "7",
+        ],
+        "type": "focus",
+      },
+      {
+        "durationMs": 1200,
+        "exceptNodeIds": [
+          "5",
+          "6",
+          "7",
+        ],
+        "persist": true,
+        "type": "dim",
+      },
+    ],
+    "mode": "sequence",
+    "type": "group",
+  },
+  "persist": {
+    "children": [
+      {
+        "durationMs": 850,
+        "targetNodeIds": [
+          "2",
+        ],
+        "type": "expand",
+      },
+      {
+        "durationMs": 700,
+        "maxZoom": 1.2,
+        "targetNodeIds": [
+          "2",
+          "5",
+          "6",
+          "7",
+        ],
+        "type": "focus",
+      },
+      {
+        "durationMs": 1200,
+        "persist": true,
+        "style": "pulse",
+        "targetNodeIds": [
+          "5",
+          "6",
+          "7",
+        ],
+        "tone": "accent",
+        "type": "highlight",
+      },
+    ],
+    "mode": "sequence",
+    "type": "group",
+  },
+  "quickSubtle": {
+    "children": [
+      {
+        "durationMs": 800,
+        "targetNodeIds": [
+          "2",
+        ],
+        "type": "expand",
+      },
+      {
+        "durationMs": 600,
+        "maxZoom": 1,
+        "targetNodeIds": [
+          "2",
+          "5",
+          "6",
+          "7",
+        ],
+        "type": "focus",
+      },
+      {
+        "durationMs": 800,
+        "style": "steady",
+        "targetNodeIds": [
+          "5",
+          "6",
+          "7",
+        ],
+        "tone": "accent",
+        "type": "highlight",
+      },
+    ],
+    "mode": "sequence",
+    "type": "group",
+  },
+  "slowStrong": {
+    "children": [
+      {
+        "durationMs": 1050,
+        "targetNodeIds": [
+          "2",
+        ],
+        "type": "expand",
+      },
+      {
+        "durationMs": 900,
+        "maxZoom": 1.4,
+        "targetNodeIds": [
+          "2",
+          "5",
+          "6",
+          "7",
+        ],
+        "type": "focus",
+      },
+      {
+        "durationMs": 1800,
+        "style": "pop",
+        "targetNodeIds": [
+          "5",
+          "6",
+          "7",
+        ],
+        "tone": "accent",
+        "type": "highlight",
+      },
+    ],
+    "mode": "sequence",
+    "type": "group",
+  },
+}
+`;
+
+exports[`recipe registry 1 > reveal-nodes > delivery 변형마다 만든 애니메이션이 바뀌면 의도한 변경인지 확인한다 1`] = `
+{
+  "default": {
+    "children": [
+      {
+        "durationMs": 700,
+        "maxZoom": 1.2,
+        "targetNodeIds": [
+          "11",
+          "12",
+        ],
+        "type": "focus",
+      },
+      {
+        "children": [
+          {
+            "durationMs": 1200,
+            "exceptNodeIds": [
+              "11",
+              "12",
+            ],
+            "type": "dim",
+          },
+          {
+            "durationMs": 1200,
+            "style": "pulse",
+            "targetNodeIds": [
+              "11",
+              "12",
+            ],
+            "tone": "accent",
+            "type": "highlight",
+          },
+        ],
+        "mode": "parallel",
+        "type": "group",
+      },
+    ],
+    "mode": "sequence",
+    "type": "group",
+  },
+  "neutral": {
+    "children": [
+      {
+        "durationMs": 700,
+        "maxZoom": 1.2,
+        "targetNodeIds": [
+          "11",
+          "12",
+        ],
+        "type": "focus",
+      },
+      {
+        "durationMs": 1200,
+        "exceptNodeIds": [
+          "11",
+          "12",
+        ],
+        "type": "dim",
+      },
+    ],
+    "mode": "sequence",
+    "type": "group",
+  },
+  "neutralPersist": {
+    "children": [
+      {
+        "durationMs": 700,
+        "maxZoom": 1.2,
+        "targetNodeIds": [
+          "11",
+          "12",
+        ],
+        "type": "focus",
+      },
+      {
+        "durationMs": 1200,
+        "exceptNodeIds": [
+          "11",
+          "12",
+        ],
+        "persist": true,
+        "type": "dim",
+      },
+    ],
+    "mode": "sequence",
+    "type": "group",
+  },
+  "persist": {
+    "children": [
+      {
+        "durationMs": 700,
+        "maxZoom": 1.2,
+        "targetNodeIds": [
+          "11",
+          "12",
+        ],
+        "type": "focus",
+      },
+      {
+        "children": [
+          {
+            "durationMs": 1200,
+            "exceptNodeIds": [
+              "11",
+              "12",
+            ],
+            "persist": true,
+            "type": "dim",
+          },
+          {
+            "durationMs": 1200,
+            "persist": true,
+            "style": "pulse",
+            "targetNodeIds": [
+              "11",
+              "12",
+            ],
+            "tone": "accent",
+            "type": "highlight",
+          },
+        ],
+        "mode": "parallel",
+        "type": "group",
+      },
+    ],
+    "mode": "sequence",
+    "type": "group",
+  },
+  "quickSubtle": {
+    "children": [
+      {
+        "durationMs": 600,
+        "maxZoom": 1,
+        "targetNodeIds": [
+          "11",
+          "12",
+        ],
+        "type": "focus",
+      },
+      {
+        "children": [
+          {
+            "durationMs": 800,
+            "exceptNodeIds": [
+              "11",
+              "12",
+            ],
+            "type": "dim",
+          },
+          {
+            "durationMs": 800,
+            "style": "steady",
+            "targetNodeIds": [
+              "11",
+              "12",
+            ],
+            "tone": "accent",
+            "type": "highlight",
+          },
+        ],
+        "mode": "parallel",
+        "type": "group",
+      },
+    ],
+    "mode": "sequence",
+    "type": "group",
+  },
+  "slowStrong": {
+    "children": [
+      {
+        "durationMs": 900,
+        "maxZoom": 1.4,
+        "targetNodeIds": [
+          "11",
+          "12",
+        ],
+        "type": "focus",
+      },
+      {
+        "children": [
+          {
+            "durationMs": 1800,
+            "exceptNodeIds": [
+              "11",
+              "12",
+            ],
+            "type": "dim",
+          },
+          {
+            "durationMs": 1800,
+            "style": "pop",
+            "targetNodeIds": [
+              "11",
+              "12",
+            ],
+            "tone": "accent",
+            "type": "highlight",
+          },
+        ],
+        "mode": "parallel",
+        "type": "group",
+      },
+    ],
+    "mode": "sequence",
+    "type": "group",
+  },
+}
+`;
+
+exports[`recipe registry 1 > spotlight > delivery 변형마다 만든 애니메이션이 바뀌면 의도한 변경인지 확인한다 1`] = `
+{
+  "default": {
+    "children": [
+      {
+        "durationMs": 1200,
+        "exceptNodeIds": [
+          "5",
+          "6",
+        ],
+        "type": "dim",
+      },
+      {
+        "durationMs": 1200,
+        "style": "pulse",
+        "targetNodeIds": [
+          "5",
+          "6",
+        ],
+        "tone": "accent",
+        "type": "highlight",
+      },
+    ],
+    "mode": "parallel",
+    "type": "group",
+  },
+  "neutral": {
+    "durationMs": 1200,
+    "exceptNodeIds": [
+      "5",
+      "6",
+    ],
+    "type": "dim",
+  },
+  "neutralPersist": {
+    "durationMs": 1200,
+    "exceptNodeIds": [
+      "5",
+      "6",
+    ],
+    "persist": true,
+    "type": "dim",
+  },
+  "persist": {
+    "children": [
+      {
+        "durationMs": 1200,
+        "exceptNodeIds": [
+          "5",
+          "6",
+        ],
+        "persist": true,
+        "type": "dim",
+      },
+      {
+        "durationMs": 1200,
+        "persist": true,
+        "style": "pulse",
+        "targetNodeIds": [
+          "5",
+          "6",
+        ],
+        "tone": "accent",
+        "type": "highlight",
+      },
+    ],
+    "mode": "parallel",
+    "type": "group",
+  },
+  "quickSubtle": {
+    "children": [
+      {
+        "durationMs": 800,
+        "exceptNodeIds": [
+          "5",
+          "6",
+        ],
+        "type": "dim",
+      },
+      {
+        "durationMs": 800,
+        "style": "steady",
+        "targetNodeIds": [
+          "5",
+          "6",
+        ],
+        "tone": "accent",
+        "type": "highlight",
+      },
+    ],
+    "mode": "parallel",
+    "type": "group",
+  },
+  "slowStrong": {
+    "children": [
+      {
+        "durationMs": 1800,
+        "exceptNodeIds": [
+          "5",
+          "6",
+        ],
+        "type": "dim",
+      },
+      {
+        "durationMs": 1800,
+        "style": "pop",
+        "targetNodeIds": [
+          "5",
+          "6",
+        ],
+        "tone": "accent",
+        "type": "highlight",
+      },
+    ],
+    "mode": "parallel",
+    "type": "group",
+  },
+}
+`;
+
+exports[`recipe registry 1 > tour-children > delivery 변형마다 만든 애니메이션이 바뀌면 의도한 변경인지 확인한다 1`] = `
+{
+  "default": {
+    "children": [
+      {
+        "durationMs": 600,
+        "maxZoom": 1.4,
+        "targetNodeIds": [
+          "2",
+          "5",
+          "6",
+          "7",
+        ],
+        "type": "focus",
+      },
+      {
+        "durationMs": 800,
+        "style": "pop",
+        "targetNodeIds": [
+          "5",
+        ],
+        "tone": "accent",
+        "type": "highlight",
+      },
+      {
+        "durationMs": 800,
+        "style": "pop",
+        "targetNodeIds": [
+          "6",
+        ],
+        "tone": "accent",
+        "type": "highlight",
+      },
+      {
+        "durationMs": 800,
+        "style": "pop",
+        "targetNodeIds": [
+          "7",
+        ],
+        "tone": "accent",
+        "type": "highlight",
+      },
+    ],
+    "mode": "sequence",
+    "type": "group",
+  },
+  "neutral": {
+    "children": [
+      {
+        "durationMs": 600,
+        "maxZoom": 1.4,
+        "targetNodeIds": [
+          "2",
+          "5",
+          "6",
+          "7",
+        ],
+        "type": "focus",
+      },
+      {
+        "durationMs": 800,
+        "exceptNodeIds": [
+          "5",
+        ],
+        "type": "dim",
+      },
+      {
+        "durationMs": 800,
+        "exceptNodeIds": [
+          "6",
+        ],
+        "type": "dim",
+      },
+      {
+        "durationMs": 800,
+        "exceptNodeIds": [
+          "7",
+        ],
+        "type": "dim",
+      },
+    ],
+    "mode": "sequence",
+    "type": "group",
+  },
+  "neutralPersist": {
+    "children": [
+      {
+        "durationMs": 600,
+        "maxZoom": 1.4,
+        "targetNodeIds": [
+          "2",
+          "5",
+          "6",
+          "7",
+        ],
+        "type": "focus",
+      },
+      {
+        "durationMs": 800,
+        "exceptNodeIds": [
+          "5",
+        ],
+        "type": "dim",
+      },
+      {
+        "durationMs": 800,
+        "exceptNodeIds": [
+          "6",
+        ],
+        "type": "dim",
+      },
+      {
+        "durationMs": 800,
+        "exceptNodeIds": [
+          "7",
+        ],
+        "type": "dim",
+      },
+      {
+        "durationMs": 800,
+        "exceptNodeIds": [
+          "5",
+          "6",
+          "7",
+        ],
+        "persist": true,
+        "type": "dim",
+      },
+    ],
+    "mode": "sequence",
+    "type": "group",
+  },
+  "persist": {
+    "children": [
+      {
+        "durationMs": 600,
+        "maxZoom": 1.4,
+        "targetNodeIds": [
+          "2",
+          "5",
+          "6",
+          "7",
+        ],
+        "type": "focus",
+      },
+      {
+        "durationMs": 800,
+        "persist": true,
+        "style": "pop",
+        "targetNodeIds": [
+          "5",
+        ],
+        "tone": "accent",
+        "type": "highlight",
+      },
+      {
+        "durationMs": 800,
+        "persist": true,
+        "style": "pop",
+        "targetNodeIds": [
+          "6",
+        ],
+        "tone": "accent",
+        "type": "highlight",
+      },
+      {
+        "durationMs": 800,
+        "persist": true,
+        "style": "pop",
+        "targetNodeIds": [
+          "7",
+        ],
+        "tone": "accent",
+        "type": "highlight",
+      },
+    ],
+    "mode": "sequence",
+    "type": "group",
+  },
+  "quickSubtle": {
+    "children": [
+      {
+        "durationMs": 600,
+        "maxZoom": 1,
+        "targetNodeIds": [
+          "2",
+          "5",
+          "6",
+          "7",
+        ],
+        "type": "focus",
+      },
+      {
+        "durationMs": 800,
+        "style": "steady",
+        "targetNodeIds": [
+          "5",
+        ],
+        "tone": "accent",
+        "type": "highlight",
+      },
+      {
+        "durationMs": 800,
+        "style": "steady",
+        "targetNodeIds": [
+          "6",
+        ],
+        "tone": "accent",
+        "type": "highlight",
+      },
+      {
+        "durationMs": 800,
+        "style": "steady",
+        "targetNodeIds": [
+          "7",
+        ],
+        "tone": "accent",
+        "type": "highlight",
+      },
+    ],
+    "mode": "sequence",
+    "type": "group",
+  },
+  "slowStrong": {
+    "children": [
+      {
+        "durationMs": 900,
+        "maxZoom": 1.4,
+        "targetNodeIds": [
+          "2",
+          "5",
+          "6",
+          "7",
+        ],
+        "type": "focus",
+      },
+      {
+        "durationMs": 1800,
+        "style": "pop",
+        "targetNodeIds": [
+          "5",
+        ],
+        "tone": "accent",
+        "type": "highlight",
+      },
+      {
+        "durationMs": 1800,
+        "style": "pop",
+        "targetNodeIds": [
+          "6",
+        ],
+        "tone": "accent",
+        "type": "highlight",
+      },
+      {
+        "durationMs": 1800,
+        "style": "pop",
+        "targetNodeIds": [
+          "7",
+        ],
+        "tone": "accent",
+        "type": "highlight",
+      },
+    ],
+    "mode": "sequence",
+    "type": "group",
+  },
+}
+`;
+
+exports[`recipe registry 1 > trace-path > delivery 변형마다 만든 애니메이션이 바뀌면 의도한 변경인지 확인한다 1`] = `
+{
+  "default": {
+    "children": [
+      {
+        "durationMs": 700,
+        "maxZoom": 1.2,
+        "targetNodeIds": [
+          "1",
+          "3",
+          "10",
+          "12",
+        ],
+        "type": "focus",
+      },
+      {
+        "direction": "forward",
+        "durationMs": 1950,
+        "mode": "progressive",
+        "nodeIds": [
+          "1",
+          "3",
+          "10",
+          "12",
+        ],
+        "type": "trace",
+      },
+      {
+        "durationMs": 1200,
+        "style": "pulse",
+        "targetNodeIds": [
+          "12",
+        ],
+        "tone": "accent",
+        "type": "highlight",
+      },
+    ],
+    "mode": "sequence",
+    "type": "group",
+  },
+  "neutral": {
+    "children": [
+      {
+        "durationMs": 700,
+        "maxZoom": 1.2,
+        "targetNodeIds": [
+          "1",
+          "3",
+          "10",
+          "12",
+        ],
+        "type": "focus",
+      },
+      {
+        "direction": "forward",
+        "durationMs": 1950,
+        "mode": "progressive",
+        "nodeIds": [
+          "1",
+          "3",
+          "10",
+          "12",
+        ],
+        "type": "trace",
+      },
+      {
+        "durationMs": 1200,
+        "exceptNodeIds": [
+          "12",
+        ],
+        "type": "dim",
+      },
+    ],
+    "mode": "sequence",
+    "type": "group",
+  },
+  "neutralPersist": {
+    "children": [
+      {
+        "durationMs": 700,
+        "maxZoom": 1.2,
+        "targetNodeIds": [
+          "1",
+          "3",
+          "10",
+          "12",
+        ],
+        "type": "focus",
+      },
+      {
+        "direction": "forward",
+        "durationMs": 1950,
+        "mode": "progressive",
+        "nodeIds": [
+          "1",
+          "3",
+          "10",
+          "12",
+        ],
+        "persist": true,
+        "type": "trace",
+      },
+      {
+        "durationMs": 1200,
+        "exceptNodeIds": [
+          "12",
+        ],
+        "persist": true,
+        "type": "dim",
+      },
+    ],
+    "mode": "sequence",
+    "type": "group",
+  },
+  "persist": {
+    "children": [
+      {
+        "durationMs": 700,
+        "maxZoom": 1.2,
+        "targetNodeIds": [
+          "1",
+          "3",
+          "10",
+          "12",
+        ],
+        "type": "focus",
+      },
+      {
+        "direction": "forward",
+        "durationMs": 1950,
+        "mode": "progressive",
+        "nodeIds": [
+          "1",
+          "3",
+          "10",
+          "12",
+        ],
+        "persist": true,
+        "type": "trace",
+      },
+      {
+        "durationMs": 1200,
+        "persist": true,
+        "style": "pulse",
+        "targetNodeIds": [
+          "12",
+        ],
+        "tone": "accent",
+        "type": "highlight",
+      },
+    ],
+    "mode": "sequence",
+    "type": "group",
+  },
+  "quickSubtle": {
+    "children": [
+      {
+        "durationMs": 600,
+        "maxZoom": 1,
+        "targetNodeIds": [
+          "1",
+          "3",
+          "10",
+          "12",
+        ],
+        "type": "focus",
+      },
+      {
+        "direction": "forward",
+        "durationMs": 1350,
+        "mode": "progressive",
+        "nodeIds": [
+          "1",
+          "3",
+          "10",
+          "12",
+        ],
+        "type": "trace",
+      },
+      {
+        "durationMs": 800,
+        "style": "steady",
+        "targetNodeIds": [
+          "12",
+        ],
+        "tone": "accent",
+        "type": "highlight",
+      },
+    ],
+    "mode": "sequence",
+    "type": "group",
+  },
+  "slowStrong": {
+    "children": [
+      {
+        "durationMs": 900,
+        "maxZoom": 1.4,
+        "targetNodeIds": [
+          "1",
+          "3",
+          "10",
+          "12",
+        ],
+        "type": "focus",
+      },
+      {
+        "direction": "forward",
+        "durationMs": 2700,
+        "mode": "progressive",
+        "nodeIds": [
+          "1",
+          "3",
+          "10",
+          "12",
+        ],
+        "type": "trace",
+      },
+      {
+        "durationMs": 1800,
+        "style": "pop",
+        "targetNodeIds": [
+          "12",
+        ],
+        "tone": "accent",
+        "type": "highlight",
+      },
+    ],
+    "mode": "sequence",
+    "type": "group",
+  },
+}
+`;
+
+exports[`recipe registry 1 > verdict > delivery 변형마다 만든 애니메이션이 바뀌면 의도한 변경인지 확인한다 1`] = `
+{
+  "default": {
+    "children": [
+      {
+        "durationMs": 1200,
+        "style": "shake",
+        "targetNodeIds": [
+          "6",
+        ],
+        "tone": "danger",
+        "type": "highlight",
+      },
+      {
+        "durationMs": 450,
+        "type": "wait",
+      },
+      {
+        "durationMs": 1200,
+        "style": "bounce",
+        "targetNodeIds": [
+          "5",
+        ],
+        "tone": "success",
+        "type": "highlight",
+      },
+    ],
+    "mode": "sequence",
+    "type": "group",
+  },
+  "neutral": {
+    "children": [
+      {
+        "durationMs": 1200,
+        "style": "shake",
+        "targetNodeIds": [
+          "6",
+        ],
+        "tone": "danger",
+        "type": "highlight",
+      },
+      {
+        "durationMs": 450,
+        "type": "wait",
+      },
+      {
+        "durationMs": 1200,
+        "style": "bounce",
+        "targetNodeIds": [
+          "5",
+        ],
+        "tone": "success",
+        "type": "highlight",
+      },
+    ],
+    "mode": "sequence",
+    "type": "group",
+  },
+  "neutralPersist": {
+    "children": [
+      {
+        "durationMs": 1200,
+        "style": "shake",
+        "targetNodeIds": [
+          "6",
+        ],
+        "tone": "danger",
+        "type": "highlight",
+      },
+      {
+        "durationMs": 450,
+        "type": "wait",
+      },
+      {
+        "durationMs": 1200,
+        "persist": true,
+        "style": "bounce",
+        "targetNodeIds": [
+          "5",
+        ],
+        "tone": "success",
+        "type": "highlight",
+      },
+    ],
+    "mode": "sequence",
+    "type": "group",
+  },
+  "persist": {
+    "children": [
+      {
+        "durationMs": 1200,
+        "style": "shake",
+        "targetNodeIds": [
+          "6",
+        ],
+        "tone": "danger",
+        "type": "highlight",
+      },
+      {
+        "durationMs": 450,
+        "type": "wait",
+      },
+      {
+        "durationMs": 1200,
+        "persist": true,
+        "style": "bounce",
+        "targetNodeIds": [
+          "5",
+        ],
+        "tone": "success",
+        "type": "highlight",
+      },
+    ],
+    "mode": "sequence",
+    "type": "group",
+  },
+  "quickSubtle": {
+    "children": [
+      {
+        "durationMs": 800,
+        "style": "steady",
+        "targetNodeIds": [
+          "6",
+        ],
+        "tone": "danger",
+        "type": "highlight",
+      },
+      {
+        "durationMs": 300,
+        "type": "wait",
+      },
+      {
+        "durationMs": 800,
+        "style": "steady",
+        "targetNodeIds": [
+          "5",
+        ],
+        "tone": "success",
+        "type": "highlight",
+      },
+    ],
+    "mode": "sequence",
+    "type": "group",
+  },
+  "slowStrong": {
+    "children": [
+      {
+        "durationMs": 1800,
+        "style": "shake",
+        "targetNodeIds": [
+          "6",
+        ],
+        "tone": "danger",
+        "type": "highlight",
+      },
+      {
+        "durationMs": 700,
+        "type": "wait",
+      },
+      {
+        "durationMs": 1800,
+        "style": "bounce",
+        "targetNodeIds": [
+          "5",
+        ],
+        "tone": "success",
+        "type": "highlight",
+      },
+    ],
+    "mode": "sequence",
+    "type": "group",
+  },
+}
+`;
+
+exports[`recipe registry 1 > warn > delivery 변형마다 만든 애니메이션이 바뀌면 의도한 변경인지 확인한다 1`] = `
+{
+  "default": {
+    "children": [
+      {
+        "durationMs": 1200,
+        "style": "shake",
+        "targetNodeIds": [
+          "9",
+        ],
+        "tone": "warning",
+        "type": "highlight",
+      },
+      {
+        "durationMs": 450,
+        "type": "wait",
+      },
+      {
+        "durationMs": 1200,
+        "style": "steady",
+        "targetNodeIds": [
+          "9",
+        ],
+        "tone": "warning",
+        "type": "highlight",
+      },
+    ],
+    "mode": "sequence",
+    "type": "group",
+  },
+  "neutral": {
+    "durationMs": 1200,
+    "exceptNodeIds": [
+      "9",
+    ],
+    "type": "dim",
+  },
+  "neutralPersist": {
+    "durationMs": 1200,
+    "exceptNodeIds": [
+      "9",
+    ],
+    "persist": true,
+    "type": "dim",
+  },
+  "persist": {
+    "children": [
+      {
+        "durationMs": 1200,
+        "style": "shake",
+        "targetNodeIds": [
+          "9",
+        ],
+        "tone": "warning",
+        "type": "highlight",
+      },
+      {
+        "durationMs": 450,
+        "type": "wait",
+      },
+      {
+        "durationMs": 1200,
+        "persist": true,
+        "style": "steady",
+        "targetNodeIds": [
+          "9",
+        ],
+        "tone": "warning",
+        "type": "highlight",
+      },
+    ],
+    "mode": "sequence",
+    "type": "group",
+  },
+  "quickSubtle": {
+    "durationMs": 800,
+    "style": "steady",
+    "targetNodeIds": [
+      "9",
+    ],
+    "tone": "warning",
+    "type": "highlight",
+  },
+  "slowStrong": {
+    "children": [
+      {
+        "durationMs": 1800,
+        "style": "shake",
+        "targetNodeIds": [
+          "9",
+        ],
+        "tone": "warning",
+        "type": "highlight",
+      },
+      {
+        "durationMs": 700,
+        "type": "wait",
+      },
+      {
+        "durationMs": 1800,
+        "style": "steady",
+        "targetNodeIds": [
+          "9",
+        ],
+        "tone": "warning",
+        "type": "highlight",
+      },
+    ],
+    "mode": "sequence",
+    "type": "group",
+  },
+}
+`;
