@@ -1,10 +1,13 @@
 import { describe, expect, it } from "vitest";
 import {
+  LECTURE_EFFECT_TYPES,
+  lectureAnimationActionSchema,
   type LectureHighlightAction,
   type LectureTraceAction,
 } from "@/src/entities/lecture";
 import { ANIMATION_LAB_TREE } from "./fixtureTree";
 import {
+  createDefaultLabAction,
   createLabStep,
   getLabAnimation,
   getLabStepsFromJson,
@@ -178,5 +181,44 @@ describe("validateLabAction", () => {
 
     expect(steps?.[0].action).toMatchObject({ durationMs: 900 });
     expect(steps?.[1].action).toMatchObject({ durationMs: 650 });
+  });
+});
+
+describe("createDefaultLabAction", () => {
+  it.each(LECTURE_EFFECT_TYPES)(
+    "%s의 기본값은 대본 스키마를 통과한다",
+    (type) => {
+      const action = createDefaultLabAction(type);
+
+      expect(action.type).toBe(type);
+      expect(lectureAnimationActionSchema.safeParse(action).success).toBe(true);
+    },
+  );
+});
+
+describe("getLabStepsFromJson의 스키마 검사", () => {
+  it("허용하지 않는 값이 있는 동작을 거부한다", () => {
+    expect(
+      getLabStepsFromJson(
+        JSON.stringify({
+          type: "highlight",
+          targetNodeIds: ["1"],
+          style: "wobble",
+          durationMs: 100,
+        }),
+      ),
+    ).toHaveProperty("error");
+  });
+
+  it("빈 병렬 그룹을 거부한다", () => {
+    expect(
+      getLabStepsFromJson(
+        JSON.stringify({
+          type: "group",
+          mode: "sequence",
+          children: [{ type: "group", mode: "parallel", children: [] }],
+        }),
+      ),
+    ).toHaveProperty("error");
   });
 });

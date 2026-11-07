@@ -1,10 +1,12 @@
 import { useState } from "react";
-import { type LectureAnimationAction } from "@/src/entities/lecture";
+import {
+  type LectureAnimationAction,
+  getLectureActionNodeIds,
+  getLectureActionWithNodeIds,
+} from "@/src/entities/lecture";
 import {
   createDefaultLabAction,
   createLabStep,
-  getLabActionNodeIds,
-  getLabActionWithNodeIds,
   type LabActionType,
   type LabStep,
 } from "./labTimeline";
@@ -63,13 +65,13 @@ export const useLabTimeline = (createInitialSteps: () => LabStep[]) => {
   const toggleActiveStepNode = (nodeId: string) => {
     setSteps((current) =>
       current.map((step) => {
-        const nodeIds = getLabActionNodeIds(step.action);
+        const nodeIds = getLectureActionNodeIds(step.action);
 
         if (step.id !== activeStepId || nodeIds === null) return step;
 
         return {
           ...step,
-          action: getLabActionWithNodeIds(
+          action: getLectureActionWithNodeIds(
             step.action,
             nodeIds.includes(nodeId)
               ? nodeIds.filter((id) => id !== nodeId)

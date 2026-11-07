@@ -1,12 +1,12 @@
 import { X } from "lucide-react";
-import { type LectureAnimationAction } from "@/src/entities/lecture";
+import {
+  type LectureAnimationAction,
+  getLectureActionNodeIds,
+  getLectureActionWithNodeIds,
+} from "@/src/entities/lecture";
 import { IconButton } from "@/src/shared/ui/icon-button";
 import { ANIMATION_LAB_TREE } from "../model/fixtureTree";
-import {
-  getLabActionNodeIds,
-  getLabActionWithNodeIds,
-  type LabStep,
-} from "../model/labTimeline";
+import { type LabStep } from "../model/labTimeline";
 import { validateLabAction } from "../model/validateLabStep";
 
 type LabStepEditorProps = {
@@ -40,7 +40,7 @@ const labelByNodeId = new Map(
 */
 export function LabStepEditor({ step, onChangeAction }: LabStepEditorProps) {
   const { action } = step;
-  const nodeIds = getLabActionNodeIds(action);
+  const nodeIds = getLectureActionNodeIds(action);
   const issue = validateLabAction(action, ANIMATION_LAB_TREE);
 
   return (
@@ -66,7 +66,7 @@ export function LabStepEditor({ step, onChangeAction }: LabStepEditorProps) {
                   className="!h-6 !w-6"
                   onClick={() =>
                     onChangeAction(
-                      getLabActionWithNodeIds(
+                      getLectureActionWithNodeIds(
                         action,
                         nodeIds.filter((id) => id !== nodeId),
                       ),

@@ -1,7 +1,9 @@
 import {
   type LectureAnimation,
   type LectureAnimationAction,
+  lectureAnimationActionSchema,
 } from "@/src/entities/lecture";
+import { LAB_ACTIONS } from "./labActions";
 
 export type LabActionType = LectureAnimationAction["type"];
 
@@ -40,89 +42,7 @@ export const createLabStep = (
 */
 export const createDefaultLabAction = (
   type: LabActionType,
-): LectureAnimationAction => {
-  switch (type) {
-    case "focus":
-      return { type, targetNodeIds: [], maxZoom: 1.3, durationMs: 800 };
-    case "highlight":
-      return {
-        type,
-        targetNodeIds: [],
-        style: "pulse",
-        tone: "accent",
-        durationMs: 1200,
-      };
-    case "dim":
-      return { type, exceptNodeIds: [], durationMs: 1200 };
-    case "trace":
-      return {
-        type,
-        nodeIds: [],
-        mode: "progressive",
-        direction: "forward",
-        durationMs: 1600,
-      };
-    case "wait":
-      return { type, durationMs: 800 };
-    case "collapse":
-    case "expand":
-      return { type, targetNodeIds: [], durationMs: 1100 };
-    case "reset":
-      return { type, scope: "visual" };
-  }
-};
-
-/*
-함수 이름 : getLabActionNodeIds
-기능 : 동작 종류마다 이름이 다른 대상 노드 목록을 읽는다.
-인자 : LectureAnimationAction action -> 단위 동작
-반환값 : 대상 노드 ID 목록. reset은 대상이 없어 null
-*/
-export const getLabActionNodeIds = (
-  action: LectureAnimationAction,
-): string[] | null => {
-  switch (action.type) {
-    case "focus":
-    case "highlight":
-    case "collapse":
-    case "expand":
-      return action.targetNodeIds;
-    case "dim":
-      return action.exceptNodeIds;
-    case "trace":
-      return action.nodeIds;
-    case "reset":
-    case "wait":
-      return null;
-  }
-};
-
-/*
-함수 이름 : getLabActionWithNodeIds
-기능 : 동작의 대상 노드 목록을 바꾼 새 동작을 만든다.
-인자 : LectureAnimationAction action -> 단위 동작
-string[] nodeIds -> 새 대상 노드 ID 목록
-반환값 : 대상이 바뀐 단위 동작
-*/
-export const getLabActionWithNodeIds = (
-  action: LectureAnimationAction,
-  nodeIds: string[],
-): LectureAnimationAction => {
-  switch (action.type) {
-    case "focus":
-    case "highlight":
-    case "collapse":
-    case "expand":
-      return { ...action, targetNodeIds: nodeIds };
-    case "dim":
-      return { ...action, exceptNodeIds: nodeIds };
-    case "trace":
-      return { ...action, nodeIds };
-    case "reset":
-    case "wait":
-      return action;
-  }
-};
+): LectureAnimationAction => LAB_ACTIONS[type].createDefault();
 
 /*
 함수 이름 : getLabAnimation
@@ -151,85 +71,20 @@ export const getLabAnimation = (steps: LabStep[]): LectureAnimation => {
     : { type: "group", mode: "sequence", children };
 };
 
-const isStringArray = (value: unknown): value is string[] =>
-  Array.isArray(value) && value.every((item) => typeof item === "string");
-
-const isDuration = (value: unknown): value is number =>
-  typeof value === "number" && Number.isFinite(value) && value >= 0;
-
-/*
-함수 이름 : isLectureAnimationAction
-기능 : JSON에서 읽은 값이 대본 계약의 단위 동작 형식인지 판단한다.
-인자 : Record<string, unknown> value -> 검사할 객체
-반환값 : 단위 동작 형식이면 true
-*/
-const isLectureAnimationAction = (
-  value: Record<string, unknown>,
-): value is Record<string, unknown> & LectureAnimationAction => {
-  const hasValidPersist =
-    value.persist === undefined || typeof value.persist === "boolean";
-
-  switch (value.type) {
-    case "focus":
-      return (
-        isStringArray(value.targetNodeIds) &&
-        typeof value.maxZoom === "number" &&
-        Number.isFinite(value.maxZoom) &&
-        value.maxZoom > 0 &&
-        isDuration(value.durationMs)
-      );
-    case "highlight":
-      return (
-        isStringArray(value.targetNodeIds) &&
-        (value.style === "steady" ||
-          value.style === "pulse" ||
-          value.style === "pop" ||
-          value.style === "bounce" ||
-          value.style === "shake") &&
-        (value.tone === undefined ||
-          value.tone === "accent" ||
-          value.tone === "success" ||
-          value.tone === "warning" ||
-          value.tone === "danger") &&
-        isDuration(value.durationMs) &&
-        hasValidPersist
-      );
-    case "dim":
-      return (
-        isStringArray(value.exceptNodeIds) &&
-        isDuration(value.durationMs) &&
-        hasValidPersist
-      );
-    case "trace":
-      return (
-        isStringArray(value.nodeIds) &&
-        isDuration(value.durationMs) &&
-        (value.mode === undefined ||
-          value.mode === "simultaneous" ||
-          value.mode === "progressive") &&
-        (value.direction === undefined ||
-          value.direction === "forward" ||
-          value.direction === "reverse") &&
-        hasValidPersist
-      );
-    case "wait":
-      return isDuration(value.durationMs);
-    case "collapse":
-    case "expand":
-      return isStringArray(value.targetNodeIds) && isDuration(value.durationMs);
-    case "reset":
-      return (
-        value.scope === "visual" ||
-        value.scope === "camera" ||
-        value.scope === "all"
-      );
-    default:
-      return false;
-  }
-};
-
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null && !Array.isArray(value);
+
+/*
+함수 이름 : getActionFromJson
+기능 : JSON에서 읽은 값을 대본 스키마로 검사해 단위 동작으로 읽는다.
+인자 : unknown value -> JSON에서 읽은 값
+반환값 : 단위 동작. 형식이 틀리면 null
+*/
+const getActionFromJson = (value: unknown): LectureAnimationAction | null => {
+  const result = lectureAnimationActionSchema.safeParse(value);
+
+  return result.success ? result.data : null;
+};
 
 /*
 함수 이름 : getBatchFromJson
@@ -239,18 +94,20 @@ const isRecord = (value: unknown): value is Record<string, unknown> =>
 */
 const getBatchFromJson = (value: unknown): LectureAnimationAction[] | null => {
   if (!isRecord(value)) return null;
-  if (isLectureAnimationAction(value)) return [value];
+
+  const action = getActionFromJson(value);
+  if (action !== null) return [action];
+
   if (value.type !== "group" || value.mode !== "parallel") return null;
-  if (!Array.isArray(value.children)) return null;
+  if (!Array.isArray(value.children) || value.children.length === 0) {
+    return null;
+  }
 
-  const actions = value.children.filter(
-    (child): child is LectureAnimationAction =>
-      isRecord(child) && isLectureAnimationAction(child),
-  );
+  const actions = value.children.map(getActionFromJson);
 
-  return actions.length === value.children.length && actions.length > 0
-    ? actions
-    : null;
+  return actions.includes(null)
+    ? null
+    : actions.filter((child) => child !== null);
 };
 
 /*
