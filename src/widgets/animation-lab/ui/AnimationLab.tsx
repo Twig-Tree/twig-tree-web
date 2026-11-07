@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   Background,
   BackgroundVariant,
@@ -116,11 +116,29 @@ function AnimationLabCanvas() {
     edges,
     onSelectedNodeHidden: handleSelectedNodeHidden,
   });
-  const { fitTreeView, runAfterNextLayout, isLayoutRunning } = useEditorLayout(
-    visibleNodes,
-    visibleEdges,
-    setNodes,
-  );
+  const {
+    fitTreeView,
+    fitTreeViewAfterNextLayout,
+    runAfterNextLayout,
+    isLayoutRunning,
+  } = useEditorLayout(visibleNodes, visibleEdges, setNodes);
+  /*
+  useEditorLayout은 처음 그릴 때 한 번만 화면을 맞춘다. 모드나 fixture로 트리를 바꾸면 카메라가 이전 트리의 자리에 남으므로,
+  store가 새 트리로 채워진 뒤의 레이아웃이 끝나면 다시 맞춘다. store의 treeId를 보는 이유는 이 effect가 새 노드의
+  레이아웃 계산이 시작된 뒤에 돌아, 이전 트리의 계산이 예약을 가져가지 않게 하기 위해서다. 처음 채울 때는 기존 맞춤에 맡긴다.
+  */
+  const storeTreeId = useTreeStore((state) => state.treeId);
+  const previousStoreTreeIdRef = useRef(storeTreeId);
+
+  useEffect(() => {
+    const previousTreeId = previousStoreTreeIdRef.current;
+    previousStoreTreeIdRef.current = storeTreeId;
+
+    if (previousTreeId === null || storeTreeId === previousTreeId) return;
+
+    fitTreeViewAfterNextLayout();
+  }, [storeTreeId, fitTreeViewAfterNextLayout]);
+
   const { revealNodes } = useFocusNode({
     visibleNodes,
     runAfterNextLayout,
@@ -196,7 +214,7 @@ function AnimationLabCanvas() {
         <h2 className="mb-3 text-sm font-bold text-content">Animation Lab</h2>
         <div className="flex flex-col gap-4">
           <div
-            role="tablist"
+            role="group"
             aria-label="실험 모드"
             className="grid grid-cols-3 gap-1 rounded-control border border-line bg-surface p-1"
           >
@@ -204,8 +222,7 @@ function AnimationLabCanvas() {
               <button
                 key={item.mode}
                 type="button"
-                role="tab"
-                aria-selected={mode === item.mode}
+                aria-pressed={mode === item.mode}
                 title={item.description}
                 className={`h-8 rounded-control text-xs font-bold ${
                   mode === item.mode
