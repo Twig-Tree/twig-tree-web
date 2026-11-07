@@ -58,7 +58,7 @@ durationMs의 뜻.
 type DurationMeaning = "effect" | "hold" | "none";
 
 /*
-움직임의 성격. 동작 줄이기(reduced-motion)에서 어떤 대체를 할지 정하는 기준이다. 대체 방법은 #135에서 정한다.
+움직임의 성격. 동작 줄이기(reduced-motion)에서 어떤 대체를 할지 정하는 기준이다. 대체 방법은 reducedMotion.ts에 있다.
 - camera: 화면이 이동한다
 - layout: 노드 배치가 바뀌며 노드가 움직인다
 - decoration: 노드나 연결선의 꾸밈이 바뀐다. 스타일에 따라 반복해서 움직일 수 있다
