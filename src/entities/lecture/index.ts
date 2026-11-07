@@ -65,3 +65,9 @@ export {
   LECTURE_INTENSITY_TOKENS,
   LECTURE_TONE_TOKENS,
 } from "./model/motionTokens";
+export type { LectureMotion, ResolvedDelivery } from "./model/lectureMotion";
+export {
+  getLectureMotion,
+  getResolvedDelivery,
+  LECTURE_INTENT_DELIVERY_DEFAULTS,
+} from "./model/lectureMotion";
