@@ -74,13 +74,13 @@ LectureScript
 
 동작마다 다른 사실은 `src/entities/lecture/model/atomicEffects.ts`의 `LECTURE_ATOMIC_EFFECTS` 한 곳에 둔다. 대상 노드 필드, 파라미터 검증처럼 여러 곳이 같은 사실을 쓰는 일은 이 값을 읽는다. 실행기와 되감기, 랩의 재생 전 검사는 동작마다 하는 일이 달라 분기를 유지한다.
 
-| 항목              | 뜻                                                                           |
-| ----------------- | ---------------------------------------------------------------------------- |
-| `schema`          | 파라미터 검증. `scriptSchema.ts`의 동작 스키마                               |
-| `target`          | 대상 종류(`family`)와 노드 ID 목록을 담는 필드 이름. 노드가 없으면 `null`    |
-| `isPersistable`   | `persist`로 효과를 유지할 수 있는지                                          |
-| `durationMeaning` | `effect`(효과가 보이는 시간), `hold`(다음 동작까지 기다리는 시간), `none`    |
-| `motion`          | `camera`, `layout`, `decoration`, `none`. 동작 줄이기에서 대체를 정하는 기준 |
+| 항목              | 뜻                                                                                                                           |
+| ----------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| `schema`          | 파라미터 검증. `scriptSchema.ts`의 동작 스키마                                                                               |
+| `target`          | 대상 종류(`family`)와 노드 ID 목록을 담는 필드 이름. 노드가 없으면 `null`                                                    |
+| `isPersistable`   | `persist`로 효과를 유지할 수 있는지                                                                                          |
+| `durationMeaning` | `effect`(효과가 보이는 시간), `hold`(다음 동작까지 기다리는 시간), `none`                                                    |
+| `motion`          | `camera`, `layout`, `decoration`, `none`. 동작 줄이기에서 대체를 정하는 기준. [정책](./lecture-motion-tokens.md#동작-줄이기) |
 
 `target`과 `isPersistable`은 동작 타입에서 정해지므로 틀리게 적으면 타입 오류가 난다.
 

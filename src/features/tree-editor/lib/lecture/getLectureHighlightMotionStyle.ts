@@ -1,6 +1,6 @@
 import { type CSSProperties } from "react";
 
-const MOTION_CYCLE_MS = { bounce: 800, shake: 550 } as const; // 표시 시간을 나누기 전 한 번 움직이는 기준 시간
+const MOTION_CYCLE_MS = { bounce: 800, shake: 550 } as const; // 표시 시간을 나누기 전 한 번 움직이는 기준 시간. xy-theme.css의 --lecture-bounce-cycle, --lecture-shake-cycle과 같다
 
 /*
 함수 이름 : getLectureHighlightMotionStyle
