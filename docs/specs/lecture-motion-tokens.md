@@ -87,13 +87,13 @@
 
 ## 동작 줄이기
 
-`getReducedMotionAnimation`은 동작 줄이기를 켠 사용자에게 보낼 대본을 만든다. 무엇을 바꿀지는 [atomic effect registry](./lecture-script-contract.md#atomic-effect-registry)의 `motion` 값이 정한다.
+`getReducedMotionAnimation`은 동작 줄이기를 켠 사용자에게 보낼 대본을 만든다. 무엇을 바꿀지는 [atomic effect registry](./lecture-script-contract.md#atomic-effect-registry)의 `motion`과 `durationMeaning` 값이 정한다.
 
 | `motion`     | 동작                 | 바꾸는 것                                            |
 | ------------ | -------------------- | ---------------------------------------------------- |
 | `camera`     | `focus`              | `durationMs`를 0으로. 바로 도착한다                  |
 | `camera`     | `reset`              | 없음. 시간 필드가 없다                               |
-| `layout`     | `collapse`, `expand` | `durationMs`를 0으로                                 |
+| `layout`     | `collapse`, `expand` | 없음. `durationMs`는 전환 시간이 아니라 hold다       |
 | `decoration` | `highlight`          | 움직이는 `style`을 `steady`로                        |
 | `decoration` | `trace`              | `progressive`를 `simultaneous`로. 전체 시간은 그대로 |
 | `decoration` | `dim`                | 없음. 흐림 자체가 내용이다                           |
@@ -101,13 +101,15 @@
 
 그룹의 순서와 병렬 구조는 바꾸지 않는다.
 
+`collapse`·`expand`의 `durationMs`는 다음 동작까지 기다리는 시간이다. 노드가 실제로 움직이는 시간은 대본에 없고 편집기의 `useNodeTransition`이 정하므로, 노드 전환을 줄이는 일은 대본이 아니라 런타임이 맡는다. 이 정책은 그 처리에 기댄다. hold를 0으로 바꾸면 런타임이 전환을 줄이지 않는 경우 전환 도중에 다음 동작이 시작되므로 바꾸지 않는다.
+
 이 함수는 아직 런타임에 연결하지 않았다. 지금 편집기는 같은 설정을 세 곳에서 따로 처리한다.
 
 - 카메라: `useCameraMove`가 `getMotionDuration`으로 이동 시간을 0으로 만든다.
 - 노드 전환: `useNodeTransition`이 같은 함수를 쓴다.
 - 꾸밈: `app/xy-theme.css`의 `@media (prefers-reduced-motion: reduce)`가 반복 애니메이션을 끈다.
 
-컴파일러(#139)가 생기면 대본 단계에서 이 정책을 적용하고, 런타임의 처리는 대본에 없는 움직임(편집 중 접기·펼치기 등)에만 남긴다.
+컴파일러(#139)가 생기면 대본 단계에서 이 정책을 적용한다. 카메라와 꾸밈은 대본만으로 줄어들고, 노드 전환은 계속 런타임이 줄인다.
 
 ## CSS 변수
 

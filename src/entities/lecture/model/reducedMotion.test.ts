@@ -74,11 +74,11 @@ const CASES: {
   },
   collapse: {
     input: { type: "collapse", targetNodeIds: ["1"], durationMs: 850 },
-    expected: { type: "collapse", targetNodeIds: ["1"], durationMs: 0 },
+    expected: { type: "collapse", targetNodeIds: ["1"], durationMs: 850 },
   },
   expand: {
     input: { type: "expand", targetNodeIds: ["1"], durationMs: 850 },
-    expected: { type: "expand", targetNodeIds: ["1"], durationMs: 0 },
+    expected: { type: "expand", targetNodeIds: ["1"], durationMs: 850 },
   },
   reset: {
     input: { type: "reset", scope: "all" },
