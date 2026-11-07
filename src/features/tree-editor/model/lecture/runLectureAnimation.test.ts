@@ -208,6 +208,67 @@ describe("runLectureAnimation", () => {
 
     expect(resetCamera).toHaveBeenCalledOnce();
   });
+
+  it("wait는 시각 상태를 바꾸지 않고 지정한 시간만 기다린다", async () => {
+    let isCompleted = false;
+    void runLectureAnimation(
+      { type: "wait", durationMs: 500 },
+      { revealNodes },
+    ).then(() => {
+      isCompleted = true;
+    });
+
+    await vi.advanceTimersByTimeAsync(499);
+    expect(isCompleted).toBe(false);
+    expect(useLectureAnimationStore.getState().layers.size).toBe(0);
+
+    await vi.advanceTimersByTimeAsync(1);
+    expect(isCompleted).toBe(true);
+  });
+
+  it("progressive trace는 연결선을 진행 방향에 맞춰 하나씩 추가한다", async () => {
+    const completed = runLectureAnimation(
+      {
+        type: "trace",
+        clientIds: ["c1", "c2", "c3"],
+        durationMs: 1000,
+        mode: "progressive",
+        direction: "reverse",
+      },
+      { revealNodes },
+    );
+
+    let state = useLectureAnimationStore.getState();
+    expect(isLectureEdgeTraced(state, "c1", "c2")).toBe(false);
+    expect(isLectureEdgeTraced(state, "c2", "c3")).toBe(true);
+
+    await vi.advanceTimersByTimeAsync(500);
+    state = useLectureAnimationStore.getState();
+    expect(isLectureEdgeTraced(state, "c1", "c2")).toBe(true);
+
+    await vi.advanceTimersByTimeAsync(500);
+    await completed;
+    expect(useLectureAnimationStore.getState().layers.size).toBe(0);
+  });
+
+  it("persist progressive trace는 진행을 마친 뒤 경로를 유지한다", async () => {
+    const completed = runLectureAnimation(
+      {
+        type: "trace",
+        clientIds: ["c1", "c2"],
+        durationMs: 300,
+        mode: "progressive",
+        persist: true,
+      },
+      { revealNodes },
+    );
+
+    await vi.advanceTimersByTimeAsync(300);
+    await completed;
+    expect(
+      isLectureEdgeTraced(useLectureAnimationStore.getState(), "c1", "c2"),
+    ).toBe(true);
+  });
 });
 
 describe("runLectureAnimation 접기와 펼치기", () => {

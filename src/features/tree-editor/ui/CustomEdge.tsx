@@ -1,6 +1,6 @@
 import { CustomEditorEdge } from "@/src/features/tree-editor/model/types";
 import {
-  isLectureEdgeTraced,
+  getLectureEdgeTraceDirection,
   useLectureAnimationStore,
 } from "@/src/features/tree-editor/model/lecture/lectureAnimationStore";
 import { useTheme, type ThemeId } from "@/src/shared/lib/theme";
@@ -43,9 +43,10 @@ export function CustomEdge({
   style,
 }: EdgeProps<CustomEditorEdge>) {
   const { theme } = useTheme();
-  const isTraced = useLectureAnimationStore((state) =>
-    isLectureEdgeTraced(state, source, target),
+  const traceDirection = useLectureAnimationStore((state) =>
+    getLectureEdgeTraceDirection(state, source, target),
   );
+  const isTraced = traceDirection !== null;
 
   const [edgePath] = getSmoothStepPath({
     sourceX,
@@ -100,7 +101,11 @@ export function CustomEdge({
                 strokeLinecap: "round",
               }
         }
-        className={isTraced ? "lecture-edge-traced" : undefined}
+        className={
+          isTraced
+            ? `lecture-edge-traced lecture-edge-traced-${traceDirection}`
+            : undefined
+        }
       />
     </>
   );

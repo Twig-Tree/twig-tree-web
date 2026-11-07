@@ -81,6 +81,36 @@ describe("getLabStepsFromJson", () => {
     ]);
   });
 
+  it("확장된 강조·추적과 wait를 JSON에서 읽는다", () => {
+    const animation = {
+      type: "group",
+      mode: "sequence",
+      children: [
+        {
+          type: "highlight",
+          targetNodeIds: ["1"],
+          style: "bounce",
+          tone: "success",
+          durationMs: 500,
+        },
+        { type: "wait", durationMs: 250 },
+        {
+          type: "trace",
+          nodeIds: ["1", "2"],
+          durationMs: 800,
+          mode: "progressive",
+          direction: "reverse",
+          persist: true,
+        },
+      ],
+    };
+
+    const result = getLabStepsFromJson(JSON.stringify(animation));
+    if ("error" in result) throw new Error(result.error);
+
+    expect(getLabAnimation(result.steps)).toEqual(animation);
+  });
+
   it.each([
     ["문법 오류", "{"],
     ["없는 동작", JSON.stringify({ type: "shake", durationMs: 100 })],
@@ -139,4 +169,14 @@ describe("validateLabAction", () => {
       }
     },
   );
+
+  it("프리셋 동작 시간을 공통 배율로 느리게 조정한다", () => {
+    const overview = LAB_PRESETS.find(
+      (preset) => preset.id === "overview-tour",
+    );
+    const steps = overview?.createSteps();
+
+    expect(steps?.[0].action).toMatchObject({ durationMs: 900 });
+    expect(steps?.[1].action).toMatchObject({ durationMs: 650 });
+  });
 });
