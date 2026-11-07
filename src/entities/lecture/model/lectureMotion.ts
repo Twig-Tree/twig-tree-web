@@ -105,18 +105,16 @@ export type LectureMotion = LectureIntensityToken & {
 };
 
 /*
-함수 이름 : getResolvedDelivery
-기능 : cue의 delivery에서 빠진 값을 intent의 기본값으로 채운다.
-인자 : SemanticIntent intent -> cue의 intent
-ScenarioDelivery | undefined delivery -> 모델이 고른 전달 방식
+함수 이름 : getDeliveryWithDefaults
+기능 : delivery에서 빠진 값을 주어진 기본값으로 채운다.
+인자 : ResolvedDelivery defaults -> 빠진 값에 쓸 기본값
+ScenarioDelivery | undefined delivery -> 고른 전달 방식
 반환값 : 모든 값이 채워진 delivery
 */
-export const getResolvedDelivery = (
-  intent: SemanticIntent,
+export const getDeliveryWithDefaults = (
+  defaults: ResolvedDelivery,
   delivery: ScenarioDelivery | undefined,
 ): ResolvedDelivery => {
-  const defaults = LECTURE_INTENT_DELIVERY_DEFAULTS[intent];
-
   /*
   스프레드로 합치면 delivery에 undefined로 들어온 값이 기본값을 지워 필드마다 고른다.
   */
@@ -129,21 +127,30 @@ export const getResolvedDelivery = (
 };
 
 /*
-함수 이름 : getLectureMotion
-기능 : cue의 intent와 delivery를 motion token 표에서 찾아 대본에 넣을 구체 값으로 바꾼다.
+함수 이름 : getResolvedDelivery
+기능 : cue의 delivery에서 빠진 값을 intent의 기본값으로 채운다.
 인자 : SemanticIntent intent -> cue의 intent
 ScenarioDelivery | undefined delivery -> 모델이 고른 전달 방식
-반환값 : 자리별 시간, 강조 스타일과 색, focus 배율, 유지 여부
+반환값 : 모든 값이 채워진 delivery
 */
-export const getLectureMotion = (
+export const getResolvedDelivery = (
   intent: SemanticIntent,
   delivery: ScenarioDelivery | undefined,
-): LectureMotion => {
-  const { pace, intensity, tone, continuity } = getResolvedDelivery(
-    intent,
-    delivery,
-  );
+): ResolvedDelivery =>
+  getDeliveryWithDefaults(LECTURE_INTENT_DELIVERY_DEFAULTS[intent], delivery);
 
+/*
+함수 이름 : getLectureMotionFromDelivery
+기능 : 모두 채워진 delivery를 motion token 표에서 찾아 대본에 넣을 구체 값으로 바꾼다.
+인자 : ResolvedDelivery delivery -> 모든 값이 채워진 전달 방식
+반환값 : 자리별 시간, 강조 스타일과 색, focus 배율, 유지 여부
+*/
+export const getLectureMotionFromDelivery = ({
+  pace,
+  intensity,
+  tone,
+  continuity,
+}: ResolvedDelivery): LectureMotion => {
   const durationMs = Object.fromEntries(
     Object.entries(LECTURE_DURATION_TOKENS).map(([slot, byPace]) => [
       slot,
@@ -158,3 +165,16 @@ export const getLectureMotion = (
     persist: continuity === "persist",
   };
 };
+
+/*
+함수 이름 : getLectureMotion
+기능 : cue의 intent와 delivery를 motion token 표에서 찾아 대본에 넣을 구체 값으로 바꾼다.
+인자 : SemanticIntent intent -> cue의 intent
+ScenarioDelivery | undefined delivery -> 모델이 고른 전달 방식
+반환값 : 자리별 시간, 강조 스타일과 색, focus 배율, 유지 여부
+*/
+export const getLectureMotion = (
+  intent: SemanticIntent,
+  delivery: ScenarioDelivery | undefined,
+): LectureMotion =>
+  getLectureMotionFromDelivery(getResolvedDelivery(intent, delivery));

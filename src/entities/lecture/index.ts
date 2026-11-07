@@ -75,3 +75,15 @@ export {
   getReducedMotionAction,
   getReducedMotionAnimation,
 } from "./model/reducedMotion";
+export { getLectureMotionFromDelivery } from "./model/lectureMotion";
+export type {
+  LectureRecipeContext,
+  LectureRecipeDefinition,
+  LectureRecipeIssue,
+  LectureRecipeResult,
+  LectureRecipeTree,
+} from "./model/recipes/types";
+export {
+  defineLectureRecipe,
+  getLectureRecipeAnimation,
+} from "./model/recipes/getLectureRecipeAnimation";
