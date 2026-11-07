@@ -1,0 +1,10 @@
+{
+  "request": "고구려 수도가 처음부터 평양이었다는 오해를 바로잡아 줘.",
+  "treeName": "goguryeo-misconceptions",
+  "expectations": {
+    "requiredIntents": ["incorrect", "correct"],
+    "requiredNodeIds": ["3", "5"],
+    "scopeNodeId": "2"
+  },
+  "responses": []
+}

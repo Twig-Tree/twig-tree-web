@@ -1,0 +1,10 @@
+{
+  "request": "포유류와 파충류가 어떻게 다른지 비교해서 설명해 줘.",
+  "treeName": "mammal-vs-reptile",
+  "expectations": {
+    "requiredIntents": ["compare"],
+    "requiredNodeIds": ["2", "3"],
+    "scopeNodeId": null
+  },
+  "responses": []
+}

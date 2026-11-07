@@ -1,0 +1,10 @@
+{
+  "request": "광합성 과정을 짧게 정리해 줘.",
+  "treeName": "photosynthesis-summary",
+  "expectations": {
+    "requiredIntents": ["summarize"],
+    "requiredNodeIds": ["1", "2", "3"],
+    "scopeNodeId": null
+  },
+  "responses": []
+}

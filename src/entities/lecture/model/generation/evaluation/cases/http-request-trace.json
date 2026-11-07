@@ -1,0 +1,10 @@
+{
+  "request": "브라우저의 요청이 서버 응답에 이르기까지 거치는 단계를 따라가 줘.",
+  "treeName": "http-request-flow",
+  "expectations": {
+    "requiredIntents": ["trace"],
+    "requiredNodeIds": ["2", "6"],
+    "scopeNodeId": null
+  },
+  "responses": []
+}

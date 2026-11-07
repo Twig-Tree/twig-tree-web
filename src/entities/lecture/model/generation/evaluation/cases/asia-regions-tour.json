@@ -1,0 +1,10 @@
+{
+  "request": "아시아를 지역과 나라로 나눠 소개한 뒤 유럽으로 넘어가 줘.",
+  "treeName": "world-geography",
+  "expectations": {
+    "requiredIntents": ["decompose", "transition"],
+    "requiredNodeIds": ["2", "3", "5"],
+    "scopeNodeId": null
+  },
+  "responses": []
+}

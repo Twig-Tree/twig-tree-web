@@ -155,9 +155,61 @@ pnpm exec vitest run src/entities/lecture/model/scenario/jsonSchema.test.ts src/
 
 `path`는 `$`로 시작하는 경로다. 배열 순번은 대괄호, 필드는 점으로 잇는다. 직전 응답을 함께 보내 백엔드가 요청 사이에 상태를 갖지 않게 한다. 백엔드는 처음 요청의 outline, 어휘와 함께 이 내용을 프롬프트에 싣고, 같은 strict 스키마로 다시 받는다.
 
+## 평가
+
+모델이나 프롬프트를 바꿨을 때 같은 요청으로 비교하기 위해, 대표 요청과 저장한 모델 응답을 평가 case로 둔다. 위치는 `src/entities/lecture/model/generation/evaluation/`이다.
+
+```text
+cases/<이름>.json ─ 저장한 응답 ─▶ getLectureGenerationResult ─▶ 기대 속성 채점 ─▶ report.md
+```
+
+case 파일은 요청 하나와 그 요청에 대한 응답을 담는다. 트리는 시나리오 fixture의 `trees/<이름>.json`을 이름으로 가리킨다.
+
+```json
+{
+  "request": "포유류와 파충류가 어떻게 다른지 비교해서 설명해 줘.",
+  "treeName": "mammal-vs-reptile",
+  "expectations": {
+    "requiredIntents": ["compare"],
+    "requiredNodeIds": ["2", "3"],
+    "scopeNodeId": null
+  },
+  "responses": [
+    {
+      "model": "gpt-4o-mini-2024-07-18",
+      "recordedAt": "2026-11-08T12:00:00.000Z",
+      "responseText": "{...}",
+      "usage": { "inputTokens": 1200, "outputTokens": 340 }
+    }
+  ]
+}
+```
+
+기대 속성은 정답 시나리오가 아니라 최소 조건이다. 같은 요청에도 좋은 시나리오가 여럿이기 때문이다.
+
+| 필드              | 조건                                                            |
+| ----------------- | --------------------------------------------------------------- |
+| `requiredIntents` | 적어도 한 번 쓴 intent                                          |
+| `requiredNodeIds` | 장면의 `nodeId`나 role에서 적어도 한 번 가리킨 노드             |
+| `scopeNodeId`     | 가리킨 노드가 모두 이 노드의 하위 트리 안. `null`이면 트리 전체 |
+
+채점기는 모델을 부르지 않고 저장한 응답만 읽는다. 응답마다 실제 생성 경로(`getLectureGenerationResult`)를 거쳐 멈춘 단계와 측정값을 얻고, 컴파일에 성공하면 기대 속성을 검사한다. 결과는 모델별 요약으로 모은다.
+
+| 값          | 뜻                                        |
+| ----------- | ----------------------------------------- |
+| 스키마 통과 | `json`, `schema` 단계를 지난 응답의 비율  |
+| 컴파일 통과 | 대본까지 만든 응답의 비율                 |
+| 기대 충족   | 컴파일에 성공하고 기대 속성을 갖춘 비율   |
+| 평균 토큰   | `usage`가 있는 응답의 입력·출력 토큰 평균 |
+
+결과는 `evaluation/report.md`에 쓴다. 응답을 더한 뒤 다음 명령으로 다시 만든다. 결과가 바뀌었는데 파일을 갱신하지 않으면 테스트가 실패한다.
+
+```bash
+pnpm exec vitest run src/entities/lecture/model/generation/evaluation/evaluation.test.ts -u
+```
+
+지금은 실제 모델 응답이 없다. 백엔드 엔드포인트가 생기면 case마다 응답을 쌓는다. 테스트는 같은 트리의 valid 시나리오 fixture를 참고 답안으로 붙여, 모든 case의 기대 속성이 도달할 수 있는 조건인지 확인한다.
+
 ## 다음 단계
 
-아래는 #137의 다음 단계에서 정한다.
-
-- 대표 요청과 기대 속성을 담은 평가 fixture, 저장한 응답을 채점하는 오프라인 실행기
-- 백엔드 엔드포인트 요청·응답 형식
+- 백엔드 엔드포인트 요청·응답 형식, strict 스키마 전달 방식, `usage` 반환, 재시도·repair 정책을 백엔드 저장소 이슈로 정리한다.
