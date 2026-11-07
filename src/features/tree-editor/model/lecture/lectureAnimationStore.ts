@@ -7,6 +7,7 @@ export type LectureVisualLayer =
       clientIds: ReadonlySet<string>;
       style: "steady" | "pulse" | "pop" | "bounce" | "shake";
       tone?: "accent" | "success" | "warning" | "danger";
+      motionDurationMs?: number | null; // 반복 움직임을 끝낼 시간. 유지되는 강조는 null
     }
   | {
       id: string;
@@ -108,6 +109,19 @@ export const getLectureNodeHighlightTone = (
   );
 
   return layer?.type === "highlight" ? (layer.tone ?? "accent") : null;
+};
+
+export const getLectureNodeHighlightMotionDuration = (
+  state: LectureAnimationState,
+  clientId: string,
+): number | null => {
+  const layers = [...state.layers.values()].reverse();
+  const layer = layers.find(
+    (candidate) =>
+      candidate.type === "highlight" && candidate.clientIds.has(clientId),
+  );
+
+  return layer?.type === "highlight" ? (layer.motionDurationMs ?? null) : null;
 };
 
 export const isLectureNodeDimmed = (

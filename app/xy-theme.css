@@ -138,11 +138,13 @@ React Flow가 읽는 CSS 변수에 값을 넣어야 하므로 Tailwind 유틸리
 }
 
 .custom-node[data-lecture-highlight-style="bounce"] > .custom-node__content {
-  animation: lecture-node-bounce 800ms ease-in-out infinite;
+  animation: lecture-node-bounce var(--lecture-highlight-cycle, 800ms)
+    ease-in-out var(--lecture-highlight-iterations, infinite);
 }
 
 .custom-node[data-lecture-highlight-style="shake"] > .custom-node__content {
-  animation: lecture-node-shake 550ms ease-in-out infinite;
+  animation: lecture-node-shake var(--lecture-highlight-cycle, 550ms)
+    ease-in-out var(--lecture-highlight-iterations, infinite);
 }
 
 .react-flow__node:has(> .custom-node[data-lecture-dimmed="true"]) {

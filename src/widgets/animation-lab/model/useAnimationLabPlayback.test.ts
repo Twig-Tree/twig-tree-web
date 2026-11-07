@@ -129,6 +129,20 @@ describe("useAnimationLabPlayback", () => {
     expect(result.current.isPlaying).toBe(false);
   });
 
+  it("다음 회차를 기다리는 중에 반복을 끄면 다시 재생하지 않는다", async () => {
+    const { result, rerender } = renderPlayback(true);
+
+    act(() => result.current.play(highlight));
+    await advance(2800);
+    await advance(500);
+    rerender({ isLooping: false });
+    await advance(500);
+
+    expect(result.current.isPlaying).toBe(false);
+    expect(resetCamera).toHaveBeenCalledTimes(2);
+    expect(getLayerCount()).toBe(0);
+  });
+
   it("접힌 노드가 펼쳐져 revealNodes가 바뀌어도 재생을 다시 시작하지 않는다", async () => {
     const nextRevealNodes = vi.fn();
     const { result, rerender } = renderHook(

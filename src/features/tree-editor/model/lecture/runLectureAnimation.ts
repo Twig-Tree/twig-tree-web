@@ -76,7 +76,7 @@ const runProgressiveTrace = async (
   signal: AbortSignal | undefined,
 ): Promise<boolean> => {
   const orderedEdgeKeys =
-    direction === "reverse" ? edgeKeys.toReversed() : edgeKeys;
+    direction === "reverse" ? [...edgeKeys].reverse() : edgeKeys;
   const visibleEdgeKeys = new Set<string>();
   const stepDurationMs =
     edgeKeys.length === 0 ? durationMs : durationMs / edgeKeys.length;
@@ -120,6 +120,7 @@ export const createLectureVisualLayer = (
         clientIds: new Set(animation.targetClientIds),
         style: animation.style,
         tone: animation.tone ?? "accent",
+        motionDurationMs: animation.persist ? null : animation.durationMs,
       };
     case "dim":
       return {

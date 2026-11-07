@@ -246,7 +246,7 @@ const BASE_LAB_PRESETS: LabPreset[] = [
     createSteps: () => [
       createLabStep({
         type: "collapse",
-        targetNodeIds: ["3"],
+        targetNodeIds: ["3", "10"],
         durationMs: 600,
       }),
       createLabStep({ type: "expand", targetNodeIds: ["3"], durationMs: 650 }),

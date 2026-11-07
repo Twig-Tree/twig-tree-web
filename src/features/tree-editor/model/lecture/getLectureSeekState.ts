@@ -101,7 +101,8 @@ const getOrderedActions = (
   animation: EditorLectureAnimation,
 ): EditorLectureAnimationAction[] =>
   getTimedActions(animation, 0)
-    .actions.toSorted((a, b) => a.startMs - b.startMs)
+    .actions.slice()
+    .sort((a, b) => a.startMs - b.startMs)
     .map(({ action }) => action);
 
 /*
