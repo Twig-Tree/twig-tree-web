@@ -1,6 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
-  LECTURE_ATOMIC_EFFECTS,
   LECTURE_EFFECT_TYPES,
   type LectureAnimationAction,
   type LectureEffectType,
@@ -9,7 +8,10 @@ import { createEditorEdge } from "../../lib/add-node/createEditorEdge";
 import { createEditorNode } from "../../lib/add-node/createEditorNode";
 import { createLectureNodeIdResolver } from "../../lib/lecture/createLectureNodeIdResolver";
 import { getEditorLectureAnimation } from "../../lib/lecture/getEditorLectureScript";
-import { type EditorLectureScript } from "../types";
+import {
+  type EditorLectureAnimationAction,
+  type EditorLectureScript,
+} from "../types";
 import { getLectureSeekState } from "./getLectureSeekState";
 import { useLectureAnimationStore } from "./lectureAnimationStore";
 import { runLectureAnimation } from "./runLectureAnimation";
@@ -53,6 +55,32 @@ const SAMPLE_ACTIONS: { [T in LectureEffectType]: LectureAnimationAction } = {
   reset: { type: "reset", scope: "all" },
 };
 
+/*
+SAMPLE_ACTIONS를 편집기 동작으로 바꾼 기대값. 노드 필드만 편집기 이름과 clientId로 바뀌고 나머지 옵션은 그대로다.
+*/
+const EXPECTED_EDITOR_ACTIONS: {
+  [T in LectureEffectType]: EditorLectureAnimationAction;
+} = {
+  focus: {
+    type: "focus",
+    targetClientIds: ["c2"],
+    maxZoom: 1,
+    durationMs: 300,
+  },
+  highlight: {
+    type: "highlight",
+    targetClientIds: ["c2"],
+    style: "pulse",
+    durationMs: 300,
+  },
+  dim: { type: "dim", exceptClientIds: ["c2"], durationMs: 300 },
+  trace: { type: "trace", clientIds: ["c1", "c2", "c3"], durationMs: 300 },
+  wait: { type: "wait", durationMs: 300 },
+  collapse: { type: "collapse", targetClientIds: ["c2"], durationMs: 300 },
+  expand: { type: "expand", targetClientIds: ["c2"], durationMs: 300 },
+  reset: { type: "reset", scope: "all" },
+};
+
 const getEditorAction = (type: LectureEffectType) => {
   const editorAction = getEditorLectureAnimation(
     SAMPLE_ACTIONS[type],
@@ -79,23 +107,7 @@ describe("등록된 모든 동작", () => {
   it.each(LECTURE_EFFECT_TYPES)(
     "%s의 노드 ID를 편집기 clientId로 옮긴다",
     (type) => {
-      const editorAction = getEditorAction(type) as Record<string, unknown>;
-      const target = LECTURE_ATOMIC_EFFECTS[type].target as {
-        field: string;
-      } | null;
-
-      expect(editorAction.type).toBe(type);
-      if (target === null) return;
-
-      expect(editorAction).not.toHaveProperty(target.field);
-      expect(
-        Object.values(editorAction).some(
-          (value) =>
-            Array.isArray(value) &&
-            value.length > 0 &&
-            value.every((id) => String(id).startsWith("c")),
-        ),
-      ).toBe(true);
+      expect(getEditorAction(type)).toEqual(EXPECTED_EDITOR_ACTIONS[type]);
     },
   );
 

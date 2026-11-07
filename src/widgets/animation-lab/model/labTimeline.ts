@@ -75,15 +75,55 @@ const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null && !Array.isArray(value);
 
 /*
+함수 이름 : getUnknownActionFields
+기능 : 대본 스키마를 통과한 동작에서 스키마가 모르는 필드 이름을 찾는다.
+스키마는 모르는 필드를 버리므로, persist를 persits로 잘못 쓰면 오류 없이 효과가 사라진다. 편집기에서는 이를 오류로 알린다.
+대본 스키마 자체를 엄격하게 바꾸지 않는 것은 서버가 필드를 더할 때 대본 전체가 거부되지 않게 하기 위해서다.
+인자 : unknown value -> JSON에서 읽은 값
+반환값 : 모르는 필드 이름 목록. 동작 형식이 아니면 빈 목록
+*/
+const getUnknownActionFields = (value: unknown): string[] => {
+  const result = lectureAnimationActionSchema.safeParse(value);
+
+  if (!result.success || !isRecord(value)) return [];
+
+  return Object.keys(value).filter((key) => !(key in result.data));
+};
+
+/*
 함수 이름 : getActionFromJson
 기능 : JSON에서 읽은 값을 대본 스키마로 검사해 단위 동작으로 읽는다.
 인자 : unknown value -> JSON에서 읽은 값
-반환값 : 단위 동작. 형식이 틀리면 null
+반환값 : 단위 동작. 형식이 틀렸거나 모르는 필드가 있으면 null
 */
 const getActionFromJson = (value: unknown): LectureAnimationAction | null => {
   const result = lectureAnimationActionSchema.safeParse(value);
 
-  return result.success ? result.data : null;
+  return result.success && getUnknownActionFields(value).length === 0
+    ? result.data
+    : null;
+};
+
+/*
+함수 이름 : getFirstUnknownActionField
+기능 : 타임라인이 읽는 동작들(순차 그룹의 자식과 그 안의 병렬 그룹 자식)에서 처음 나오는 모르는 필드를 찾는다.
+인자 : unknown[] items -> 순차 그룹의 자식 목록
+반환값 : 모르는 필드 이름. 없으면 null
+*/
+const getFirstUnknownActionField = (items: unknown[]): string | null => {
+  for (const item of items) {
+    const children =
+      isRecord(item) && item.type === "group" && Array.isArray(item.children)
+        ? item.children
+        : [item];
+
+    for (const child of children) {
+      const [field] = getUnknownActionFields(child);
+      if (field !== undefined) return field;
+    }
+  }
+
+  return null;
 };
 
 /*
@@ -142,6 +182,12 @@ export const getLabStepsFromJson = (text: string): LabJsonResult => {
     const batch = getBatchFromJson(item);
 
     if (batch === null) {
+      const unknownField = getFirstUnknownActionField(items);
+
+      if (unknownField !== null) {
+        return { error: `알 수 없는 필드가 있습니다: ${unknownField}` };
+      }
+
       return {
         error:
           "동작 형식이 틀렸거나, 타임라인이 표현할 수 없는 중첩입니다. 순차 그룹 안의 병렬 그룹까지만 읽습니다.",

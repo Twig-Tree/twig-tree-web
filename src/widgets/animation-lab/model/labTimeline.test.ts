@@ -221,4 +221,32 @@ describe("getLabStepsFromJson의 스키마 검사", () => {
       ),
     ).toHaveProperty("error");
   });
+
+  it("모르는 필드가 있는 동작은 필드 이름과 함께 거부한다", () => {
+    expect(
+      getLabStepsFromJson(
+        JSON.stringify({
+          type: "group",
+          mode: "sequence",
+          children: [
+            { type: "wait", durationMs: 100 },
+            {
+              type: "group",
+              mode: "parallel",
+              children: [
+                { type: "wait", durationMs: 100 },
+                {
+                  type: "highlight",
+                  targetNodeIds: ["1"],
+                  style: "steady",
+                  durationMs: 100,
+                  persits: true,
+                },
+              ],
+            },
+          ],
+        }),
+      ),
+    ).toEqual({ error: "알 수 없는 필드가 있습니다: persits" });
+  });
 });
