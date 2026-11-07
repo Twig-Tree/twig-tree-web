@@ -113,3 +113,64 @@ describe("getAnimationCompositionIssues", () => {
     expect(getIssuePaths(highlight("1", true), true)).toEqual([]);
   });
 });
+
+describe("getAnimationCompositionIssues의 실행 시각", () => {
+  const wait = (durationMs: number): LectureAnimation => ({
+    type: "wait",
+    durationMs,
+  });
+  const reset: LectureAnimation = { type: "reset", scope: "visual" };
+
+  it("병렬 갈래에서 먼저 실행된 reset은 나중에 시작한 persist를 지우지 않는다", () => {
+    expect(
+      getIssuePaths(parallel(sequence(wait(500), highlight("1", true)), reset)),
+    ).toEqual([["children", 0, "children", 1]]);
+  });
+
+  it("병렬 갈래에서 나중에 실행된 reset은 먼저 시작한 persist를 지운다", () => {
+    expect(
+      getIssuePaths(parallel(highlight("1", true), sequence(wait(500), reset))),
+    ).toEqual([]);
+  });
+
+  it("같은 시각이면 적힌 순서대로 적용한다", () => {
+    expect(getIssuePaths(parallel(highlight("1", true), reset))).toEqual([]);
+    expect(getIssuePaths(parallel(reset, highlight("1", true)))).toEqual([
+      ["children", 1],
+    ]);
+  });
+});
+
+describe("getAnimationCompositionIssues의 persist 흐림 충돌", () => {
+  const persistDim = (...exceptNodeIds: string[]): LectureAnimation => ({
+    type: "dim",
+    exceptNodeIds,
+    durationMs: 1200,
+    persist: true,
+  });
+
+  it("다른 노드를 남기는 persist 흐림이 함께 남으면 나중 흐림을 가리킨다", () => {
+    expect(
+      getIssuePaths(sequence(persistDim("1"), persistDim("2")), true),
+    ).toEqual([["children", 1]]);
+  });
+
+  it("같은 노드를 남기는 persist 흐림은 겹쳐도 된다", () => {
+    expect(
+      getIssuePaths(sequence(persistDim("1", "2"), persistDim("2", "1")), true),
+    ).toEqual([]);
+  });
+
+  it("reset 뒤의 흐림은 앞의 흐림과 겹치지 않는다", () => {
+    expect(
+      getIssuePaths(
+        sequence(
+          persistDim("1"),
+          { type: "reset", scope: "visual" },
+          persistDim("2"),
+        ),
+        true,
+      ),
+    ).toEqual([]);
+  });
+});

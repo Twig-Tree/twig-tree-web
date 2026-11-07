@@ -65,6 +65,7 @@ const DELIVERY_VARIANTS: Record<string, ScenarioDelivery | undefined> = {
   slowStrong: { pace: "slow", intensity: "strong" },
   neutral: { tone: "neutral" },
   persist: { continuity: "persist" },
+  neutralPersist: { tone: "neutral", continuity: "persist" },
 };
 
 /*
@@ -222,6 +223,24 @@ describe("recipe registry 1", () => {
         issues: [{ path }],
       });
     });
+
+    it.each(["reveal-branch", "tour-children"] as const)(
+      "%s는 parent의 자식이 아닌 노드를 children 위치로 거부한다",
+      (id) => {
+        expect(
+          getResult(id, undefined, { parent: "12", children: ["5"] }),
+        ).toMatchObject({
+          success: false,
+          issues: [{ path: ["children", 0] }],
+        });
+        expect(
+          getResult(id, undefined, { parent: "2", children: ["5", "8"] }),
+        ).toMatchObject({
+          success: false,
+          issues: [{ path: ["children", 1] }],
+        });
+      },
+    );
 
     it("자식 목록을 주면 그 노드만 그 순서로 쓴다", () => {
       expect(

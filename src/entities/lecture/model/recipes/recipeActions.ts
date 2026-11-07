@@ -172,3 +172,42 @@ export const createExpand = (
   targetNodeIds,
   durationMs: motion.durationMs.layoutHold,
 });
+
+type EmphasisStep = {
+  nodeIds: string[]; // 이번에 강조할 노드
+  style?: LectureHighlightAction["style"]; // 없으면 intensity가 고른 스타일
+};
+
+/*
+함수 이름 : createEmphasisSteps
+기능 : 노드 묶음을 차례로 강조하는 동작 목록을 만든다.
+tone이 neutral이면 강조가 "이 노드만 빼고 흐리기"가 된다. 흐림이 여러 개 함께 남으면 서로의 대상을 흐려 모두 흐려지므로,
+persist일 때는 차례 강조를 남기지 않고 마지막에 모든 묶음을 남기는 흐림 하나만 유지한다.
+인자 : EmphasisStep[] steps -> 차례로 강조할 노드 묶음
+LectureMotion motion -> 표시 시간, 스타일, 색, 유지 여부
+반환값 : 차례로 실행할 동작 목록
+*/
+export const createEmphasisSteps = (
+  steps: EmphasisStep[],
+  motion: LectureMotion,
+): LectureAnimation[] => {
+  const shouldMergePersistentDim =
+    motion.highlightTone === null && motion.persist && steps.length > 1;
+
+  const emphases = steps.map(({ nodeIds, style }) =>
+    createEmphasis(nodeIds, motion, {
+      style,
+      persist: shouldMergePersistentDim ? false : motion.persist,
+    }),
+  );
+
+  return shouldMergePersistentDim
+    ? [
+        ...emphases,
+        createDim(
+          steps.flatMap(({ nodeIds }) => nodeIds),
+          motion,
+        ),
+      ]
+    : emphases;
+};

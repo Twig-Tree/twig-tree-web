@@ -46,7 +46,8 @@ type LectureRecipeDefinition<Input> = {
 - **값**: 시간·배율·색은 recipe 본문에 적지 않고 `context.motion`에서 읽는다([motion token](./lecture-motion-tokens.md)). pace·intensity·tone 변형 때문에 recipe를 따로 만들지 않는다.
   - `bounce`·`shake`처럼 강도가 아니라 의미가 있는 움직임과, 판정처럼 의미가 정한 색만 recipe가 직접 고른다.
   - `tone: neutral`이면 `createEmphasis`가 강조 대신 흐림을 만든다.
-- **실패**: 입력 모양은 맞지만 트리와 맞지 않으면(경로가 없음, 자식이 없음) `createRecipeFailure(path, message)`를 돌려준다. `path`는 입력 안의 위치이고, 컴파일러가 cue의 role 위치로 옮겨 보고한다.
+  - 여러 묶음을 차례로 강조할 때는 `createEmphasisSteps`를 쓴다. neutral·persist이면 흐림이 서로의 대상을 흐리지 않도록, 차례 강조는 남기지 않고 마지막에 모든 묶음을 남기는 흐림 하나만 유지한다.
+- **실패**: 입력 모양은 맞지만 트리와 맞지 않으면(경로가 없음, 자식이 없음, 자식이 아닌 노드를 `children`에 줌) `createRecipeFailure(path, message)`를 돌려준다. `path`는 입력 안의 위치이고, 컴파일러가 cue의 role 위치로 옮겨 보고한다.
 
 ### 트리 창구
 
@@ -61,18 +62,20 @@ entity는 트리 데이터를 import하지 않으므로 recipe는 함수 두 개
 
 ## Recipe 목록 (버전 1)
 
-| ID                 | 입력                                       | 연출                                                              | 실패                             |
-| ------------------ | ------------------------------------------ | ----------------------------------------------------------------- | -------------------------------- |
-| `introduce`        | `subject` 하나, `context` 선택             | 주제와 주변으로 카메라 → 주제 강조 → 주변이 있으면 함께 고정 강조 |                                  |
-| `spotlight`        | `subject` 1+                               | 주변 흐림과 대상 강조를 동시에                                    |                                  |
-| `compare`          | `left` 1+, `right` 1+                      | 양쪽으로 카메라 → 왼쪽 강조 → 오른쪽 강조                         |                                  |
-| `warn`             | `subject` 1+                               | 흔들림 → 쉼 → 고정 강조. subtle이나 neutral이면 고정 강조 하나    |                                  |
-| `verdict`          | `correctAnswer` 1+, `incorrectAnswer` 선택 | 오답 흔들림(danger) → 쉼 → 정답 bounce(success). tone은 무시      |                                  |
-| `trace-path`       | `source`, `destination`                    | 경로로 카메라 → 연결선을 하나씩 → 도착점 강조. 위로 가면 역방향   | 조상·자손이 아니면 `destination` |
-| `reveal-branch`    | `parent`, `children` 선택                  | 펼치기 → 카메라 → 자식 함께 강조                                  | 자식이 없으면 `parent`           |
-| `tour-children`    | `parent`, `children` 선택                  | 카메라 → 자식을 하나씩 강조                                       | 자식이 없으면 `parent`           |
-| `collapse-summary` | `subject` 하나                             | 가지 전체로 카메라 → 접기 → 부모 강조                             | 자식이 없으면 `subject`          |
-| `recap`            | `subject` 1+                               | 한 화면에 모은 뒤 하나씩 강조                                     |                                  |
+| ID                 | 입력                                       | 연출                                                              | 실패                                                |
+| ------------------ | ------------------------------------------ | ----------------------------------------------------------------- | --------------------------------------------------- |
+| `introduce`        | `subject` 하나, `context` 선택             | 주제와 주변으로 카메라 → 주제 강조 → 주변이 있으면 함께 고정 강조 |                                                     |
+| `spotlight`        | `subject` 1+                               | 주변 흐림과 대상 강조를 동시에                                    |                                                     |
+| `compare`          | `left` 1+, `right` 1+                      | 양쪽으로 카메라 → 왼쪽 강조 → 오른쪽 강조                         |                                                     |
+| `warn`             | `subject` 1+                               | 흔들림 → 쉼 → 고정 강조. subtle이나 neutral이면 고정 강조 하나    |                                                     |
+| `verdict`          | `correctAnswer` 1+, `incorrectAnswer` 선택 | 오답 흔들림(danger) → 쉼 → 정답 bounce(success). tone은 무시      |                                                     |
+| `trace-path`       | `source`, `destination`                    | 경로로 카메라 → 연결선을 하나씩 → 도착점 강조. 위로 가면 역방향   | 조상·자손이 아니면 `destination`                    |
+| `reveal-branch`    | `parent`, `children` 선택                  | 펼치기 → 카메라 → 자식 함께 강조                                  | 자식이 없으면 `parent`, 자식이 아니면 `children[i]` |
+| `tour-children`    | `parent`, `children` 선택                  | 카메라 → 자식을 하나씩 강조                                       | 자식이 없으면 `parent`, 자식이 아니면 `children[i]` |
+| `collapse-summary` | `subject` 하나                             | 가지 전체로 카메라 → 접기 → 부모 강조                             | 자식이 없으면 `subject`                             |
+| `recap`            | `subject` 1+                               | 한 화면에 모은 뒤 하나씩 강조                                     |                                                     |
+
+`collapse-summary`는 접기 전에 부모와 직계 자식으로 카메라를 맞춘다. 손자 이하가 펼쳐져 있으면 화면 밖으로 잘릴 수 있다. 런타임 focus는 대상의 조상을 펼치므로 모든 자손을 대상으로 넣으면 접혀 있던 가지까지 펼쳐 버린다. recipe는 접힘 상태를 모르므로, 지금 보이는 자손을 알려 주는 트리 창구가 생기면(#139) 그때 넓힌다.
 
 recipe 하나는 카메라 이동부터 강조까지 완결된 연출이다. 여러 recipe를 이어 부르면 단계마다 카메라 이동과 강조가 반복되어 길어진다. 랩의 "한 단계씩 펼치기"(recipe 4개, 약 9.4초)가 그 예다.
 
@@ -95,11 +98,14 @@ getLectureRecipe(1, "trace-path");
 
 `getAnimationCompositionIssues(animation, { allowLingeringPersist })`는 동작끼리 함께 실행될 수 있는지 검사한다. 대본 스키마는 동작 하나하나의 모양만 본다.
 
-| 검사                                                   | 이유                                                       |
-| ------------------------------------------------------ | ---------------------------------------------------------- |
-| 병렬 묶음에서 둘 이상의 갈래가 카메라를 움직임         | 마지막 이동만 남는다. `reset`의 `visual` scope는 세지 않음 |
-| 병렬 묶음의 다른 갈래가 같은 노드를 접거나 펼침        | 결과가 실행 순서에 따라 달라진다                           |
-| reset(`visual`, `all`) 없이 끝까지 남는 `persist` 효과 | `continuity: persist`면 의도라서 부르는 쪽이 허용을 정한다 |
+| 검사                                                   | 이유                                                                              |
+| ------------------------------------------------------ | --------------------------------------------------------------------------------- |
+| 병렬 묶음에서 둘 이상의 갈래가 카메라를 움직임         | 마지막 이동만 남는다. `reset`의 `visual` scope는 세지 않음                        |
+| 병렬 묶음의 다른 갈래가 같은 노드를 접거나 펼침        | 결과가 실행 순서에 따라 달라진다                                                  |
+| reset(`visual`, `all`) 없이 끝까지 남는 `persist` 효과 | `continuity: persist`면 의도라서 부르는 쪽이 허용을 정한다                        |
+| 다른 노드를 남기는 `persist` 흐림이 함께 남음          | 각 흐림이 다른 흐림의 대상을 흐려 모든 노드가 흐려진다. 허용 옵션과 관계없이 검사 |
+
+persist와 reset은 적힌 순서가 아니라 실행 시각 순서로 따라간다. 순차 그룹은 앞 동작의 시간만큼 늦게, 병렬 갈래는 같은 시각에 시작한다. 같은 시각이면 실행기처럼 적힌 순서로 적용한다. 그래서 `parallel(sequence(wait, persist 강조), reset)`에서는 reset이 먼저 실행되어 강조가 남는다.
 
 recipe가 만든 결과에 문제가 있으면 recipe의 버그다. 그래서 실행 함수에서 검사하지 않고, 모든 recipe × delivery 결과를 테스트로 검사한다. 컴파일러는 여러 cue를 이은 비트 전체를 이 함수로 검사한다. 이때 `path`는 애니메이션 안의 위치다.
 
@@ -108,7 +114,7 @@ recipe가 만든 결과에 문제가 있으면 recipe의 버그다. 그래서 �
 1. `recipes/<이름>.ts`에 `defineLectureRecipe`로 정의한다. 입력은 `createRecipeInputSchema`로, 동작은 `recipeActions.ts`의 함수로 만든다. 숫자를 직접 쓰지 않는다.
 2. `registry.ts`의 해당 버전에 등록한다. 배포된 버전이면 새 버전을 만든다.
 3. `registry.test.ts`의 `SAMPLE_INPUTS`에 대표 입력을 넣는다. 빠뜨리면 타입 오류가 난다. 넣으면 다음 검사가 자동으로 붙는다.
-   - delivery 5가지 결과 스냅샷
+   - delivery 6가지 결과 스냅샷(기본, quick·subtle, slow·strong, neutral, persist, neutral·persist)
    - 대본 스키마 통과
    - 조합 검증 통과
    - 랩 타임라인 모양(순차 안의 병렬) 이내

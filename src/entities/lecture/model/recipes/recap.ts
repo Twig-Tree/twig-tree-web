@@ -1,5 +1,9 @@
 import { defineLectureRecipe } from "./getLectureRecipeAnimation";
-import { createEmphasis, createFocus, createSequence } from "./recipeActions";
+import {
+  createEmphasisSteps,
+  createFocus,
+  createSequence,
+} from "./recipeActions";
 import { createRecipeInputSchema, recipeRole } from "./recipeInputSchema";
 
 /*
@@ -16,6 +20,9 @@ export const recapRecipe = defineLectureRecipe({
   create: ({ subject }, { motion }) =>
     createSequence([
       createFocus(subject, motion),
-      ...subject.map((nodeId) => createEmphasis([nodeId], motion)),
+      ...createEmphasisSteps(
+        subject.map((nodeId) => ({ nodeIds: [nodeId] })),
+        motion,
+      ),
     ]),
 });

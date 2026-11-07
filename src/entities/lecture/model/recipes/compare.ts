@@ -1,5 +1,9 @@
 import { defineLectureRecipe } from "./getLectureRecipeAnimation";
-import { createEmphasis, createFocus, createSequence } from "./recipeActions";
+import {
+  createEmphasisSteps,
+  createFocus,
+  createSequence,
+} from "./recipeActions";
 import { createRecipeInputSchema, recipeRole } from "./recipeInputSchema";
 
 /*
@@ -19,7 +23,6 @@ export const compareRecipe = defineLectureRecipe({
   create: ({ left, right }, { motion }) =>
     createSequence([
       createFocus([...left, ...right], motion),
-      createEmphasis(left, motion),
-      createEmphasis(right, motion),
+      ...createEmphasisSteps([{ nodeIds: left }, { nodeIds: right }], motion),
     ]),
 });

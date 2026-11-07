@@ -41,6 +41,22 @@ describe("LAB_PRESETS", () => {
   );
 });
 
+describe("LAB_PRESETS의 연출", () => {
+  it("역방향 복귀는 루트에서 퀵 정렬까지의 경로를 거꾸로 그린다", () => {
+    const preset = LAB_PRESETS.find(({ id }) => id === "reverse-review");
+    const traces = createLabPresetSteps(preset!).filter(
+      ({ action }) => action.type === "trace",
+    );
+
+    expect(traces.map(({ action }) => action)).toEqual([
+      expect.objectContaining({
+        nodeIds: ["1", "3", "10", "12"],
+        direction: "reverse",
+      }),
+    ]);
+  });
+});
+
 describe("createLabRecipeTree", () => {
   const tree = createLabRecipeTree(ANIMATION_LAB_TREE);
 

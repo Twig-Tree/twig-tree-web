@@ -1,5 +1,9 @@
 import { defineLectureRecipe } from "./getLectureRecipeAnimation";
-import { createEmphasis, createFocus, createSequence } from "./recipeActions";
+import {
+  createEmphasisSteps,
+  createFocus,
+  createSequence,
+} from "./recipeActions";
 import { createRecipeInputSchema, recipeRole } from "./recipeInputSchema";
 
 /*
@@ -20,9 +24,14 @@ export const introduceRecipe = defineLectureRecipe({
   create: ({ subject, context = [] }, { motion }) =>
     createSequence([
       createFocus([subject, ...context], motion),
-      createEmphasis([subject], motion),
-      ...(context.length > 0
-        ? [createEmphasis(context, motion, { style: "steady" })]
-        : []),
+      ...createEmphasisSteps(
+        [
+          { nodeIds: [subject] },
+          ...(context.length > 0
+            ? [{ nodeIds: context, style: "steady" as const }]
+            : []),
+        ],
+        motion,
+      ),
     ]),
 });
