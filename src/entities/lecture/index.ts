@@ -33,3 +33,8 @@ export {
   LECTURE_SCENARIO_SCHEMA_VERSION,
   lectureScenarioSchema,
 } from "./model/scenario/schema";
+export {
+  lectureAnimationActionSchema,
+  lectureAnimationSchema,
+  lectureScriptSchema,
+} from "./model/scriptSchema";
