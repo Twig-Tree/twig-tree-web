@@ -1,8 +1,10 @@
+import { type LectureAnimation } from "@/src/entities/lecture";
 import {
   LAB_SCENARIO_FIXTURES,
   type LabScenarioIssueGroup,
   type LabScenarioRun,
 } from "../model/labScenarioRun";
+import { LabScenarioOutline } from "./LabScenarioOutline";
 
 export type LabScenarioDraft = {
   fixtureId: string; // 캔버스와 컴파일에 쓸 트리를 정한 fixture
@@ -13,6 +15,7 @@ type LabScenarioComposerProps = {
   draft: LabScenarioDraft;
   run: LabScenarioRun; // draft를 컴파일한 결과
   onChangeDraft: (draft: LabScenarioDraft) => void;
+  onPlayPart: (animation: LectureAnimation) => void; // 비트나 cue 하나만 재생한다
 };
 
 const FIXTURE_GROUPS = [
@@ -74,7 +77,7 @@ function LabScenarioIssueList({ groups }: { groups: LabScenarioIssueGroup[] }) {
 
 /*
 함수 이름 : LabScenarioComposer
-기능 : fixture를 불러와 시나리오 JSON을 고치고, 컴파일 문제를 cue 위치별로 보여 준다.
+기능 : fixture를 불러와 시나리오 JSON을 고치고, 컴파일 문제를 cue 위치별로 보여 준다. 성공하면 컴파일 결과를 펼쳐 보여 준다.
 인자 : LabScenarioComposerProps
 반환값 : 시나리오 편집 도구
 */
@@ -82,7 +85,15 @@ export function LabScenarioComposer({
   draft,
   run,
   onChangeDraft,
+  onPlayPart,
 }: LabScenarioComposerProps) {
+  const fixture = LAB_SCENARIO_FIXTURES.find(
+    ({ id }) => id === draft.fixtureId,
+  );
+  const labelByNodeId = new Map(
+    (fixture?.treeNodes ?? []).map((node) => [node.id, node.label]),
+  );
+
   return (
     <div className="flex flex-col gap-4">
       <section aria-label="fixture 선택" className="flex flex-col gap-2">
@@ -163,6 +174,20 @@ export function LabScenarioComposer({
           <LabScenarioIssueList groups={run.issueGroups} />
         </section>
       )}
+
+      {run.success ? (
+        <section aria-label="컴파일 결과" className="flex flex-col gap-2">
+          <h3 className="text-xs font-bold text-content-secondary">
+            컴파일 결과
+          </h3>
+          <LabScenarioOutline
+            script={run.script}
+            sourceMap={run.sourceMap}
+            labelByNodeId={labelByNodeId}
+            onPlay={onPlayPart}
+          />
+        </section>
+      ) : null}
     </div>
   );
 }

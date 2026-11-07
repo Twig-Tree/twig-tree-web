@@ -269,6 +269,7 @@ function AnimationLabCanvas() {
                 if (draft.fixtureId !== scenarioDraft.fixtureId) stop(); // 트리가 바뀌므로 재생 중인 효과를 걷어 낸다
                 setScenarioDraft(draft);
               }}
+              onPlayPart={play}
             />
           ) : null}
         </div>
