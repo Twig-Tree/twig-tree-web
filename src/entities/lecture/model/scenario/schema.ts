@@ -1,5 +1,9 @@
 import * as z from "zod/mini";
 import { isValidApiId } from "@/src/shared/lib/validation/isValidApiId";
+import {
+  getRepeatedRoleNodePaths,
+  getRepeatedScenarioIdPaths,
+} from "./scenarioChecks";
 
 /*
 외부 모델이 생성하는 강의 시나리오의 계약.
@@ -61,14 +65,28 @@ const createCueSchema = <
 ) =>
   z.strictObject({
     intent: z.literal(intent),
-    roles: z.strictObject(roles),
+    roles: z.strictObject(roles).check(
+      z.superRefine((value, context) => {
+        const repeatedPaths = getRepeatedRoleNodePaths(
+          value as Record<string, string | string[] | undefined>,
+        );
+
+        for (const path of repeatedPaths) {
+          context.addIssue({
+            code: "custom",
+            message: "한 cue에서 같은 노드를 두 번 쓸 수 없습니다.",
+            path,
+          });
+        }
+      }),
+    ),
     delivery: z.optional(scenarioDeliverySchema),
   });
 
 /*
 cue는 intent 값으로 갈라지는 discriminatedUnion이다. intent마다 받는 role이 달라,
 잘못된 조합이 "어느 intent의 어느 role이 틀렸는지"로 보고된다.
-role 사이의 관계(겹침, 출발과 도착이 같음)는 모양으로 표현할 수 없어 따로 검사한다.
+role 사이의 관계(겹침, 출발과 도착이 같음)는 모양으로 표현할 수 없어 roles에 검사를 붙인다.
 */
 export const scenarioCueSchema = z.discriminatedUnion("intent", [
   createCueSchema("introduce", { subject: one, context: optionalMany }),
@@ -113,9 +131,21 @@ export const scenarioSceneSchema = z.strictObject({
   beats: z.array(scenarioBeatSchema).check(z.minLength(1)),
 });
 
-export const lectureScenarioSchema = z.strictObject({
-  scenarioSchemaVersion: z.literal(LECTURE_SCENARIO_SCHEMA_VERSION),
-  recipeRegistryVersion: z.int().check(z.positive()), // 지원 범위는 버전 정책 단계에서 정한다
-  title: z.string().check(z.minLength(1)),
-  scenes: z.array(scenarioSceneSchema).check(z.minLength(1)),
-});
+export const lectureScenarioSchema = z
+  .strictObject({
+    scenarioSchemaVersion: z.literal(LECTURE_SCENARIO_SCHEMA_VERSION),
+    recipeRegistryVersion: z.int().check(z.positive()), // 지원 범위는 버전 정책 단계에서 정한다
+    title: z.string().check(z.minLength(1)),
+    scenes: z.array(scenarioSceneSchema).check(z.minLength(1)),
+  })
+  .check(
+    z.superRefine((scenario, context) => {
+      for (const path of getRepeatedScenarioIdPaths(scenario)) {
+        context.addIssue({
+          code: "custom",
+          message: "scene ID와 beat ID는 시나리오 안에서 고유해야 합니다.",
+          path,
+        });
+      }
+    }),
+  );

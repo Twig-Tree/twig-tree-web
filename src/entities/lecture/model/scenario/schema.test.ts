@@ -233,4 +233,100 @@ describe("lectureScenarioSchema", () => {
       ).toContain("cue.roles.right.1");
     });
   });
+
+  describe("관계 검사", () => {
+    const getCueIssues = (cue: unknown) => {
+      const scenario = createScenario();
+      scenario.scenes[0].beats[0].cues = [cue as ScenarioCue];
+
+      return getIssuePaths(scenario).map((path) =>
+        path.replace("scenes.0.beats.0.cues.0", "cue"),
+      );
+    };
+
+    it.each([
+      [
+        "compare의 양쪽이 겹치면",
+        { intent: "compare", roles: { left: ["1", "2"], right: ["2"] } },
+        ["cue.roles.right.0"],
+      ],
+      [
+        "trace의 출발과 도착이 같으면",
+        { intent: "trace", roles: { source: "1", destination: "1" } },
+        ["cue.roles.destination"],
+      ],
+      [
+        "정답과 오답이 겹치면",
+        {
+          intent: "correct",
+          roles: { correctAnswer: ["2"], incorrectAnswer: ["3", "2"] },
+        },
+        ["cue.roles.incorrectAnswer.1"],
+      ],
+      [
+        "decompose의 부모가 자식 목록에 있으면",
+        { intent: "decompose", roles: { parent: "1", children: ["1"] } },
+        ["cue.roles.children.0"],
+      ],
+      [
+        "한 role에 같은 노드가 두 번 있으면",
+        { intent: "emphasize", roles: { subject: ["1", "1"] } },
+        ["cue.roles.subject.1"],
+      ],
+    ])("%s 두 번째 위치로 거부한다", (_, cue, paths) => {
+      expect(getCueIssues(cue)).toEqual(paths);
+    });
+
+    it("scene ID와 beat ID가 시나리오 안에서 겹치면 거부한다", () => {
+      const scenario = createScenario();
+      scenario.scenes.push({
+        ...scenario.scenes[0],
+        beats: [{ ...scenario.scenes[0].beats[1] }],
+      });
+
+      expect(getIssuePaths(scenario)).toEqual([
+        "scenes.1.id",
+        "scenes.1.beats.0.id",
+      ]);
+    });
+
+    it.each([
+      { scenes: "x" },
+      { scenes: [null] },
+      { scenes: [{ id: 1, nodeId: "1", beats: [null] }] },
+      {
+        scenes: [
+          {
+            id: "a",
+            nodeId: "1",
+            beats: [
+              {
+                id: "b",
+                narration: { text: "x" },
+                cues: [
+                  { intent: "compare", roles: "x" },
+                  { intent: "compare", roles: { left: 5, right: ["3"] } },
+                ],
+              },
+            ],
+          },
+        ],
+      },
+    ])("모양이 깨진 입력도 관계 검사에서 예외 없이 거부한다 %#", (broken) => {
+      const result = lectureScenarioSchema.safeParse({
+        ...createScenario(),
+        ...broken,
+      });
+
+      expect(result.success).toBe(false);
+    });
+
+    it("다른 오류가 있어도 ID 중복을 함께 알린다", () => {
+      const scenario = createScenario();
+      scenario.title = "";
+      scenario.scenes[0].beats[1].id = "beat-1";
+
+      expect(getIssuePaths(scenario)).toEqual(["title", "scenes.0.beats.1.id"]);
+    });
+  });
 });
