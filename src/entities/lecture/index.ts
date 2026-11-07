@@ -116,3 +116,11 @@ export type {
   LectureScenarioFixtureTreeNode,
 } from "./model/scenario/fixtures";
 export { LECTURE_SCENARIO_FIXTURES } from "./model/scenario/fixtures";
+export type { LectureOutlineNode } from "./model/generation/treeOutline";
+export { getLectureTreeOutline } from "./model/generation/treeOutline";
+export type {
+  LectureGenerationIntent,
+  LectureGenerationRole,
+  LectureGenerationVocabulary,
+} from "./model/generation/vocabulary";
+export { getLectureGenerationVocabulary } from "./model/generation/vocabulary";
