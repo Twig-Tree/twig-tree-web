@@ -71,3 +71,7 @@ export {
   getResolvedDelivery,
   LECTURE_INTENT_DELIVERY_DEFAULTS,
 } from "./model/lectureMotion";
+export {
+  getReducedMotionAction,
+  getReducedMotionAnimation,
+} from "./model/reducedMotion";
