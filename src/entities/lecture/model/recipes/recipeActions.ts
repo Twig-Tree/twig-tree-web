@@ -1,9 +1,12 @@
 import { type LectureMotion } from "../lectureMotion";
 import {
   type LectureAnimation,
+  type LectureCollapseAction,
   type LectureDimAction,
+  type LectureExpandAction,
   type LectureFocusAction,
   type LectureHighlightAction,
+  type LectureTraceAction,
   type LectureWaitAction,
 } from "../types";
 
@@ -115,4 +118,57 @@ export const createEmphasis = (
 export const createPause = (motion: LectureMotion): LectureWaitAction => ({
   type: "wait",
   durationMs: motion.durationMs.pause,
+});
+
+/*
+함수 이름 : createTrace
+기능 : 부모→자식 순서의 경로를 따라 연결선을 하나씩 그린다. 전체 시간은 연결선 수에 비례한다.
+인자 : string[] nodeIds -> 부모→자식 순서의 경로
+LectureMotion motion -> 연결선 하나의 시간과 유지 여부
+"forward" | "reverse" direction -> 자식 쪽으로 내려갈지, 부모 쪽으로 올라갈지
+반환값 : trace 동작
+*/
+export const createTrace = (
+  nodeIds: string[],
+  motion: LectureMotion,
+  direction: "forward" | "reverse",
+): LectureTraceAction => ({
+  type: "trace",
+  nodeIds,
+  durationMs: motion.durationMs.traceSegment * Math.max(1, nodeIds.length - 1),
+  mode: "progressive",
+  direction,
+  ...(motion.persist ? { persist: true } : {}),
+});
+
+/*
+함수 이름 : createCollapse
+기능 : 노드의 자식을 접고, 노드 전환이 끝날 때까지 기다린다.
+인자 : string[] targetNodeIds -> 자식을 접을 노드
+LectureMotion motion -> 기다리는 시간
+반환값 : collapse 동작
+*/
+export const createCollapse = (
+  targetNodeIds: string[],
+  motion: LectureMotion,
+): LectureCollapseAction => ({
+  type: "collapse",
+  targetNodeIds,
+  durationMs: motion.durationMs.layoutHold,
+});
+
+/*
+함수 이름 : createExpand
+기능 : 노드의 자식을 펼치고, 노드 전환이 끝날 때까지 기다린다.
+인자 : string[] targetNodeIds -> 자식을 펼칠 노드
+LectureMotion motion -> 기다리는 시간
+반환값 : expand 동작
+*/
+export const createExpand = (
+  targetNodeIds: string[],
+  motion: LectureMotion,
+): LectureExpandAction => ({
+  type: "expand",
+  targetNodeIds,
+  durationMs: motion.durationMs.layoutHold,
 });

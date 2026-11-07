@@ -5,6 +5,7 @@ import {
 import { type ScenarioDelivery } from "../scenario/types";
 import {
   type LectureRecipeDefinition,
+  type LectureRecipeFailure,
   type LectureRecipeResult,
   type LectureRecipeTree,
 } from "./types";
@@ -31,7 +32,7 @@ export const defineLectureRecipe = <Input>(
 인자 : LectureRecipeDefinition<Input> recipe -> 실행할 recipe
 unknown input -> recipe 입력
 GetLectureRecipeAnimationOptions options -> delivery와 트리 조회 함수
-반환값 : 애니메이션, 또는 입력 위치별 오류 목록
+반환값 : 애니메이션, 또는 입력 위치별 오류 목록. 입력 모양이 틀렸거나 recipe가 트리와 맞지 않는다고 판단한 경우다
 */
 export const getLectureRecipeAnimation = <Input>(
   recipe: LectureRecipeDefinition<Input>,
@@ -54,8 +55,21 @@ export const getLectureRecipeAnimation = <Input>(
     getDeliveryWithDefaults(recipe.defaultDelivery, delivery),
   );
 
-  return {
-    success: true,
-    animation: recipe.create(parsed.data, { motion, tree }),
-  };
+  const created = recipe.create(parsed.data, { motion, tree });
+
+  return "issues" in created
+    ? { success: false, issues: created.issues }
+    : { success: true, animation: created };
 };
+
+/*
+함수 이름 : createRecipeFailure
+기능 : 입력 한 곳에 대한 recipe 실패를 만든다.
+인자 : PropertyKey[] path -> 입력 안의 위치
+string message -> 실패 이유
+반환값 : recipe 실패
+*/
+export const createRecipeFailure = (
+  path: PropertyKey[],
+  message: string,
+): LectureRecipeFailure => ({ issues: [{ path, message }] });

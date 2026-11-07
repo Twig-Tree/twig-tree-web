@@ -15,18 +15,19 @@ recipe가 트리를 읽는 창구. entity는 트리 데이터를 import하지 �
 */
 export type LectureRecipeTree = {
   getChildIds: (nodeId: string) => string[]; // 화면에 보이는 순서의 자식 노드 ID. 없거나 모르는 노드면 빈 목록
-  getPathNodeIds: (fromNodeId: string, toNodeId: string) => string[] | null; // 연결선을 따라 이어지는 경로(양 끝 포함). 이어지지 않으면 null
+  /*
+  조상에서 자손까지 연결선을 따라 내려가는 경로(양 끝 포함). 대본의 trace는 부모→자식 순서로 노드를 받으므로 이 순서로 돌려준다.
+  ancestorNodeId가 descendantNodeId의 조상이 아니면 null
+  */
+  getPathNodeIds: (
+    ancestorNodeId: string,
+    descendantNodeId: string,
+  ) => string[] | null;
 };
 
 export type LectureRecipeContext = {
   motion: LectureMotion; // delivery를 토큰 표에서 찾은 구체 값
   tree: LectureRecipeTree;
-};
-
-export type LectureRecipeDefinition<Input> = {
-  inputSchema: z.ZodMiniType<Input>; // 노드 역할의 모양과 개수. 통과하지 못하면 create를 부르지 않는다
-  defaultDelivery: ResolvedDelivery; // 부르는 쪽이 비운 delivery를 채운다. 컴파일러는 intent 기본값으로 모두 채워 넘긴다
-  create: (input: Input, context: LectureRecipeContext) => LectureAnimation;
 };
 
 /*
@@ -35,6 +36,20 @@ recipe를 만들지 못한 이유. path는 입력 안의 위치로, 컴파일러
 export type LectureRecipeIssue = {
   path: PropertyKey[];
   message: string;
+};
+
+/*
+입력 모양은 맞지만 트리와 맞지 않아(경로가 없음, 자식이 없음) 만들 수 없을 때 create가 돌려준다.
+*/
+export type LectureRecipeFailure = { issues: LectureRecipeIssue[] };
+
+export type LectureRecipeDefinition<Input> = {
+  inputSchema: z.ZodMiniType<Input>; // 노드 역할의 모양과 개수. 통과하지 못하면 create를 부르지 않는다
+  defaultDelivery: ResolvedDelivery; // 부르는 쪽이 비운 delivery를 채운다. 컴파일러는 intent 기본값으로 모두 채워 넘긴다
+  create: (
+    input: Input,
+    context: LectureRecipeContext,
+  ) => LectureAnimation | LectureRecipeFailure;
 };
 
 export type LectureRecipeResult =

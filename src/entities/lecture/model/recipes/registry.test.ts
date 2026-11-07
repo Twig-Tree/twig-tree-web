@@ -9,9 +9,34 @@ import {
 } from "./registry";
 import { type LectureRecipeTree } from "./types";
 
+/*
+시험용 트리. 1 → (2, 3, 4), 2 → (5, 6, 7), 3 → (8, 9, 10), 10 → (11, 12)
+*/
+const CHILD_IDS: Record<string, string[]> = {
+  "1": ["2", "3", "4"],
+  "2": ["5", "6", "7"],
+  "3": ["8", "9", "10"],
+  "10": ["11", "12"],
+};
+
+const getParentId = (nodeId: string): string | undefined =>
+  Object.keys(CHILD_IDS).find((parentId) =>
+    CHILD_IDS[parentId].includes(nodeId),
+  );
+
 const tree: LectureRecipeTree = {
-  getChildIds: () => [],
-  getPathNodeIds: () => null,
+  getChildIds: (nodeId) => CHILD_IDS[nodeId] ?? [],
+  getPathNodeIds: (ancestorNodeId, descendantNodeId) => {
+    const path = [descendantNodeId];
+
+    while (path[0] !== ancestorNodeId) {
+      const parentId = getParentId(path[0]);
+      if (parentId === undefined) return null;
+      path.unshift(parentId);
+    }
+
+    return path;
+  },
 };
 
 const recipes = LECTURE_RECIPE_REGISTRIES[1];
@@ -24,6 +49,12 @@ const SAMPLE_INPUTS: Record<LectureRecipeId<1>, unknown> = {
   spotlight: { subject: ["5", "6"] },
   compare: { left: ["5"], right: ["6"] },
   warn: { subject: ["9"] },
+  verdict: { correctAnswer: ["5"], incorrectAnswer: ["6"] },
+  "trace-path": { source: "1", destination: "12" },
+  "reveal-branch": { parent: "2" },
+  "tour-children": { parent: "2" },
+  "collapse-summary": { subject: "2" },
+  recap: { subject: ["2", "7", "8", "9"] },
 };
 
 const DELIVERY_VARIANTS: Record<string, ScenarioDelivery | undefined> = {
@@ -36,18 +67,22 @@ const DELIVERY_VARIANTS: Record<string, ScenarioDelivery | undefined> = {
 
 const RECIPE_IDS = Object.keys(SAMPLE_INPUTS) as LectureRecipeId<1>[];
 
+const getResult = (
+  id: LectureRecipeId<1>,
+  delivery: ScenarioDelivery | undefined,
+  input: unknown = SAMPLE_INPUTS[id],
+) =>
+  getLectureRecipeAnimation(getLectureRecipe(1, id), input, { delivery, tree });
+
 const getAnimation = (
   id: LectureRecipeId<1>,
   delivery: ScenarioDelivery | undefined,
+  input: unknown = SAMPLE_INPUTS[id],
 ) => {
-  const result = getLectureRecipeAnimation(
-    getLectureRecipe(1, id),
-    SAMPLE_INPUTS[id],
-    {
-      delivery,
-      tree,
-    },
-  );
+  const result = getLectureRecipeAnimation(getLectureRecipe(1, id), input, {
+    delivery,
+    tree,
+  });
 
   if (!result.success) throw new Error(JSON.stringify(result.issues));
 
@@ -109,5 +144,81 @@ describe("recipe registry 1", () => {
     );
 
     expect(result.success).toBe(false);
+  });
+
+  describe("트리를 읽는 recipe", () => {
+    it("도착 노드가 위에 있으면 같은 경로를 거꾸로 그린다", () => {
+      expect(
+        getAnimation("trace-path", undefined, {
+          source: "12",
+          destination: "3",
+        }),
+      ).toMatchObject({
+        children: [
+          { type: "focus", targetNodeIds: ["3", "10", "12"] },
+          { type: "trace", nodeIds: ["3", "10", "12"], direction: "reverse" },
+          { type: "highlight", targetNodeIds: ["3"] },
+        ],
+      });
+    });
+
+    it("순차 추적 시간은 연결선 수에 비례한다", () => {
+      expect(getAnimation("trace-path", { pace: "normal" })).toMatchObject({
+        children: [{}, { type: "trace", durationMs: 650 * 3 }, {}],
+      });
+    });
+
+    it("조상·자손 관계가 아니면 도착 노드 위치로 실패를 보고한다", () => {
+      expect(
+        getResult("trace-path", undefined, { source: "5", destination: "12" }),
+      ).toEqual({
+        success: false,
+        issues: [{ path: ["destination"], message: expect.any(String) }],
+      });
+    });
+
+    it.each([
+      ["reveal-branch", { parent: "12" }, ["parent"]],
+      ["tour-children", { parent: "12" }, ["parent"]],
+      ["collapse-summary", { subject: "12" }, ["subject"]],
+    ] as const)("%s는 자식이 없는 노드에서 실패한다", (id, input, path) => {
+      expect(getResult(id, undefined, input)).toMatchObject({
+        success: false,
+        issues: [{ path }],
+      });
+    });
+
+    it("자식 목록을 주면 그 노드만 그 순서로 쓴다", () => {
+      expect(
+        getAnimation("tour-children", undefined, {
+          parent: "2",
+          children: ["7", "5"],
+        }),
+      ).toMatchObject({
+        children: [
+          { type: "focus", targetNodeIds: ["2", "7", "5"] },
+          { targetNodeIds: ["7"] },
+          { targetNodeIds: ["5"] },
+        ],
+      });
+    });
+  });
+
+  describe("verdict", () => {
+    it("delivery tone과 관계없이 정답은 success, 오답은 danger다", () => {
+      expect(getAnimation("verdict", { tone: "neutral" })).toMatchObject({
+        children: [
+          { style: "shake", tone: "danger" },
+          { type: "wait" },
+          { style: "bounce", tone: "success" },
+        ],
+      });
+    });
+
+    it("오답이 없으면 정답만 강조한다", () => {
+      expect(
+        getAnimation("verdict", undefined, { correctAnswer: ["5"] }),
+      ).toMatchObject({ type: "highlight", targetNodeIds: ["5"] });
+    });
   });
 });

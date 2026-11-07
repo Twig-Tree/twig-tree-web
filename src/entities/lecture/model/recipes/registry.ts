@@ -1,8 +1,14 @@
 import { type SUPPORTED_RECIPE_REGISTRY_VERSIONS } from "../scenario/schema";
+import { collapseSummaryRecipe } from "./collapseSummary";
 import { compareRecipe } from "./compare";
 import { introduceRecipe } from "./introduce";
+import { recapRecipe } from "./recap";
+import { revealBranchRecipe } from "./revealBranch";
 import { type LectureRecipeDefinition } from "./types";
 import { spotlightRecipe } from "./spotlight";
+import { tourChildrenRecipe } from "./tourChildren";
+import { tracePathRecipe } from "./tracePath";
+import { verdictRecipe } from "./verdict";
 import { warnRecipe } from "./warn";
 
 export type LectureRecipeRegistryVersion =
@@ -23,6 +29,12 @@ export const LECTURE_RECIPE_REGISTRIES = {
     spotlight: spotlightRecipe,
     compare: compareRecipe,
     warn: warnRecipe,
+    verdict: verdictRecipe,
+    "trace-path": tracePathRecipe,
+    "reveal-branch": revealBranchRecipe,
+    "tour-children": tourChildrenRecipe,
+    "collapse-summary": collapseSummaryRecipe,
+    recap: recapRecipe,
   },
 } satisfies Record<LectureRecipeRegistryVersion, object>;
 
