@@ -124,3 +124,7 @@ export type {
   LectureGenerationVocabulary,
 } from "./model/generation/vocabulary";
 export { getLectureGenerationVocabulary } from "./model/generation/vocabulary";
+export {
+  getLectureScenarioStrictJsonSchema,
+  getLectureScenarioWithoutNulls,
+} from "./model/generation/strictJsonSchema";

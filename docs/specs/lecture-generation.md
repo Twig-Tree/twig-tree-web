@@ -71,10 +71,39 @@ pnpm exec vitest run src/entities/lecture/model/generation/vocabulary.test.ts -u
 - outline, 어휘, 사용자 요청을 프롬프트에 싣는다. 어휘 파일은 이 저장소의 파일을 그대로 읽거나 복사한다.
 - 모델 응답을 그대로 프론트엔드에 넘긴다. 시나리오 검사와 컴파일은 프론트엔드가 한다.
 
+## 출력 스키마
+
+모델 출력은 OpenAI structured output의 strict 모드(`response_format: { type: "json_schema", json_schema: { strict: true, ... } }`)로 받는다. strict 모드는 JSON Schema의 일부만 받으므로, 이 모드에 넘길 스키마는 [lecture-scenario.strict.schema.json](./lecture-scenario.strict.schema.json)으로 따로 둔다. `getLectureScenarioStrictJsonSchema`가 [시나리오 JSON Schema](./lecture-scenario.schema.json)를 옮겨 만든 파일이므로 직접 고치지 않는다.
+
+[OpenAI 문서의 Supported schemas](https://developers.openai.com/api/docs/guides/structured-outputs)를 2026-11에 확인한 기준이다.
+
+| 시나리오 JSON Schema | strict 스키마                   | 이유                            |
+| -------------------- | ------------------------------- | ------------------------------- |
+| 선택 필드            | `required`에 넣고 `null`을 허용 | 모든 필드가 `required`여야 한다 |
+| `oneOf` (cue)        | `anyOf`                         | 지원 목록에 `anyOf`만 있다      |
+| `const`              | 값 하나짜리 `enum`              | 문서에 `const` 지원이 없다      |
+| `minLength`          | 뺀다                            | 문자열 지원 목록에 없다         |
+| `$schema`            | 뺀다                            | 문서에 없다                     |
+
+`pattern`, `minItems`, `$defs`와 `$ref`는 그대로 둔다. 루트는 `anyOf`가 아닌 객체이고, 모든 객체에 `additionalProperties: false`가 있다. 시나리오 스키마에 확인하지 않은 키워드가 생기면 변환이 실패한다. 지원 여부를 확인한 뒤 `STRICT_JSON_SCHEMA_KEYWORDS`에 더한다.
+
+strict 모드 응답은 빠진 필드를 `null`로 채워 온다. `getLectureScenarioWithoutNulls`가 객체의 `null` 필드를 빼서 시나리오 계약의 모양으로 되돌린 뒤, `lectureScenarioSchema`로 다시 검사한다. 이 검사가 strict 스키마에서 빠진 빈 문자열, 노드 중복, ID 중복을 잡는다.
+
+```text
+응답 문자열 → JSON → getLectureScenarioWithoutNulls → lectureScenarioSchema → 컴파일러
+```
+
+`strictJsonSchema.test.ts`는 모든 valid fixture를 strict 응답 모양으로 바꿨다가 되돌려, 원래 시나리오와 같고 스키마를 통과하는지 확인한다.
+
+시나리오 스키마를 바꾼 뒤에는 두 파일을 함께 다시 만든다.
+
+```bash
+pnpm exec vitest run src/entities/lecture/model/scenario/jsonSchema.test.ts src/entities/lecture/model/generation/strictJsonSchema.test.ts -u
+```
+
 ## 다음 단계
 
 아래는 #137의 다음 단계에서 정한다.
 
-- OpenAI strict structured output에 맞춘 모델용 JSON Schema와 응답 정규화
 - 응답 처리 단계(JSON, 스키마, 컴파일) 구분과 측정값
 - 컴파일 실패 시 repair 요청에 담을 문제 형식과 정책

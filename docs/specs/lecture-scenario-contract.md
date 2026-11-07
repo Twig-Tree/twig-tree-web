@@ -114,7 +114,7 @@ JSON Schema로 표현할 수 없는 규칙은 파일에 빠져 있다.
 
 따라서 모델 출력이 JSON Schema를 통과해도, 프론트는 `lectureScenarioSchema`로 다시 검사한다.
 
-모델에 함께 넘기는 트리 outline과 어휘는 [강의 생성 입력 계약](./lecture-generation.md)에 있다. OpenAI strict 모드에 맞춘 스키마와 백엔드 전달 방식은 [#137](https://github.com/Twig-Tree/twig-tree-web/issues/137)의 다음 단계에서 정한다.
+모델에 함께 넘기는 트리 outline과 어휘는 [강의 생성 입력 계약](./lecture-generation.md)에 있다. OpenAI strict 모드에 넘기는 스키마는 [출력 스키마](./lecture-generation.md#출력-스키마)에 있다.
 
 ## Fixture
 
