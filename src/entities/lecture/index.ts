@@ -38,3 +38,14 @@ export {
   lectureAnimationSchema,
   lectureScriptSchema,
 } from "./model/scriptSchema";
+export type {
+  LectureEffectAction,
+  LectureEffectDefinition,
+  LectureEffectType,
+} from "./model/atomicEffects";
+export {
+  getLectureActionNodeIds,
+  getLectureActionWithNodeIds,
+  LECTURE_ATOMIC_EFFECTS,
+  LECTURE_EFFECT_TYPES,
+} from "./model/atomicEffects";
