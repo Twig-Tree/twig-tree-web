@@ -42,6 +42,7 @@ export type LectureCompileIssue = {
 
 /*
 생성한 동작의 출처. cue가 만든 동작은 cue 순번과 고른 recipe를, 컴파일러가 직접 넣은 동작은 이유를 남긴다.
+장면이 끝날 때 남은 persist 효과는 플레이어가 지우므로 컴파일러가 reset을 넣지 않는다(lecture-script-contract.md).
 */
 export type LectureCompileSource =
   | {
@@ -52,7 +53,7 @@ export type LectureCompileSource =
     }
   | {
       type: "compiler";
-      reason: "scene-reset"; // 장면이 끝날 때 남은 persist 효과를 지운다
+      reason: "empty-beat"; // cue가 없는 비트도 대본에는 애니메이션이 있어야 해서 길이 0인 wait을 넣는다
     };
 
 export type LectureSourceMapEntry = {
