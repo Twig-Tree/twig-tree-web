@@ -68,19 +68,54 @@ LectureScript
 
 테스트에서는 `src/tests/mocks/data.ts`의 세계 지리 fixture가 고정 ID를 제공한다.
 
-## 런타임 검증 후속 작업
+## Atomic effect registry
 
-TypeScript 타입은 네트워크에서 받은 JSON을 검증하지 않는다. 강의 API를 연결할 때는 런타임 스키마 검증을
-반드시 추가한다. 라이브러리는 `zod/mini`로 정했고, 외부 모델이 만드는 [강의 시나리오](./lecture-scenario-contract.md)는 이미 이것으로 검증한다.
-이 대본의 스키마는 `types.ts`의 타입을 그대로 두고 따로 작성한 뒤 두 쪽이 같은지 타입 검사와 fixture로 대조한다.
-스키마가 허용값 하나를 빠뜨리는 것은 한쪽 방향의 타입 표기로는 잡히지 않기 때문이다. 다음 조건을 검증해야 한다.
+위 표의 동작(`group` 제외)은 플레이어가 실행하는 가장 작은 단위인 atomic effect다. 외부 모델에는 노출하지 않는 내부 계약이며, 외부 모델은 [강의 시나리오](./lecture-scenario-contract.md)만 만든다.
 
-- 허용된 animation type과 group mode만 사용한다.
+동작마다 다른 사실은 `src/entities/lecture/model/atomicEffects.ts`의 `LECTURE_ATOMIC_EFFECTS` 한 곳에 둔다. 대상 노드 필드, 파라미터 검증처럼 여러 곳이 같은 사실을 쓰는 일은 이 값을 읽는다. 실행기와 되감기, 랩의 재생 전 검사는 동작마다 하는 일이 달라 분기를 유지한다.
+
+| 항목              | 뜻                                                                           |
+| ----------------- | ---------------------------------------------------------------------------- |
+| `schema`          | 파라미터 검증. `scriptSchema.ts`의 동작 스키마                               |
+| `target`          | 대상 종류(`family`)와 노드 ID 목록을 담는 필드 이름. 노드가 없으면 `null`    |
+| `isPersistable`   | `persist`로 효과를 유지할 수 있는지                                          |
+| `durationMeaning` | `effect`(효과가 보이는 시간), `hold`(다음 동작까지 기다리는 시간), `none`    |
+| `motion`          | `camera`, `layout`, `decoration`, `none`. 동작 줄이기에서 대체를 정하는 기준 |
+
+`target`과 `isPersistable`은 동작 타입에서 정해지므로 틀리게 적으면 타입 오류가 난다.
+
+### ID 규칙
+
+동작 ID는 대본 JSON의 `type` 값이다. 저장된 대본이 깨지지 않도록 기존 ID는 바꾸지 않는다.
+
+노드가 아닌 대상을 다루는 동작은 `<대상>.<동작>`으로 짓는다(예: `text.typewriter`). 이때 `target.family`에 대상 종류를 더하고, 그 대상을 가리키는 필드 규칙을 정한다. 텍스트 효과는 아직 없다.
+
+### 새 동작 추가
+
+1. `types.ts`에 동작 타입을 추가하고 `scriptSchema.ts`에 스키마를 추가한다. 두 쪽이 다르면 `scriptSchema.test.ts`의 타입 대조가 `tsc`에서 실패한다.
+2. `LECTURE_ATOMIC_EFFECTS`에 등록한다. 빠뜨리면 타입 오류가 난다.
+3. 편집기 타입(`features/tree-editor/model/types.ts`)에 동작을 추가한다. 노드 필드 이름이 새로 생기면 `getEditorLectureScript.ts`의 `EDITOR_CLIENT_IDS_FIELD`도 채운다.
+4. 실행기(`runLectureAnimation`)와 되감기(`getLectureSeekState`)에 분기를 추가한다. 빠뜨리면 타입 오류가 난다.
+5. `lectureEffectCoverage.test.ts`의 예시 동작을 채운다. 등록된 모든 동작이 변환·실행·되감기를 지나는지 확인한다.
+6. 랩의 `LAB_ACTIONS`에 이름과 기본값을 채운다. 화면이 필요한 효과는 [랩 README](../../src/widgets/animation-lab/README.md)를 따른다.
+
+## 런타임 검증
+
+TypeScript 타입은 네트워크에서 받은 JSON을 검증하지 않는다. 라이브러리는 `zod/mini`로 정했다.
+
+대본의 모양은 `lectureScriptSchema`(`src/entities/lecture/model/scriptSchema.ts`)가 검사한다. 타입의 원본은 `types.ts`이고, 스키마는 따로 작성해 두 쪽이 같은지 양방향 타입 검사로 대조한다. 한쪽 방향 표기(`ZodMiniType<LectureScript>`)는 스키마가 허용값 하나를 빠뜨려도 통과하기 때문이다. 대조는 CI의 `tsc --noEmit`에서 실패한다. `vitest --typecheck`는 이 오류를 잡지 않는다.
+
+지금 스키마가 보는 것은 다음과 같다.
+
+- 허용된 animation type, group mode, 옵션 값만 사용한다.
+- `durationMs`와 `fallbackDurationMs`가 유한한 0 이상의 숫자다.
+- `maxZoom`이 유한하고 0보다 크다.
+
+강의 API를 연결할 때 다음 조건을 더한다. 랩은 빈 대상 목록을 편집 중인 상태로 다루므로 스키마가 아니라 API 경계에서 검사한다.
+
 - `scene.id`와 `beat.id`가 대본 안에서 중복되지 않는다.
 - `nodeId`와 각 노드 ID 배열이 비어 있지 않다.
-- `durationMs`와 `fallbackDurationMs`가 유한한 양수이며 제품 상한을 넘지 않는다.
-- `maxZoom`이 허용 배율 안에 있다.
-- 재귀 group 깊이와 children, scene, beat 개수가 제품 상한을 넘지 않는다.
+- 시간, `maxZoom`, 재귀 group 깊이, children·scene·beat 개수가 제품 상한을 넘지 않는다.
 - `trace.nodeIds`에는 최소 두 노드가 있고 실제 트리에서 인접한 엣지로 연결된다.
 - 대본이 참조하는 모든 node ID가 현재 트리에 존재한다.
 
