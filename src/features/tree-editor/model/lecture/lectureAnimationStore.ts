@@ -5,9 +5,7 @@ export type LectureVisualLayer =
       id: string;
       type: "highlight";
       clientIds: ReadonlySet<string>;
-      style: "steady" | "pulse" | "pop" | "bounce" | "shake";
-      tone?: "accent" | "success" | "warning" | "danger";
-      motionDurationMs?: number | null; // 반복 움직임을 끝낼 시간. 유지되는 강조는 null
+      style: "steady" | "pulse";
     }
   | {
       id: string;
@@ -18,7 +16,6 @@ export type LectureVisualLayer =
       id: string;
       type: "trace";
       edgeKeys: ReadonlySet<string>;
-      direction?: "forward" | "reverse";
     };
 
 interface LectureAnimationState {
@@ -85,45 +82,6 @@ export const isLectureNodePulsing = (
       layer.clientIds.has(clientId),
   );
 
-export const getLectureNodeHighlightStyle = (
-  state: LectureAnimationState,
-  clientId: string,
-): "steady" | "pulse" | "pop" | "bounce" | "shake" | null => {
-  const layers = [...state.layers.values()].reverse();
-  const layer = layers.find(
-    (candidate) =>
-      candidate.type === "highlight" && candidate.clientIds.has(clientId),
-  );
-
-  return layer?.type === "highlight" ? layer.style : null;
-};
-
-export const getLectureNodeHighlightTone = (
-  state: LectureAnimationState,
-  clientId: string,
-): "accent" | "success" | "warning" | "danger" | null => {
-  const layers = [...state.layers.values()].reverse();
-  const layer = layers.find(
-    (candidate) =>
-      candidate.type === "highlight" && candidate.clientIds.has(clientId),
-  );
-
-  return layer?.type === "highlight" ? (layer.tone ?? "accent") : null;
-};
-
-export const getLectureNodeHighlightMotionDuration = (
-  state: LectureAnimationState,
-  clientId: string,
-): number | null => {
-  const layers = [...state.layers.values()].reverse();
-  const layer = layers.find(
-    (candidate) =>
-      candidate.type === "highlight" && candidate.clientIds.has(clientId),
-  );
-
-  return layer?.type === "highlight" ? (layer.motionDurationMs ?? null) : null;
-};
-
 export const isLectureNodeDimmed = (
   state: LectureAnimationState,
   clientId: string,
@@ -142,19 +100,4 @@ export const isLectureEdgeTraced = (
   return [...state.layers.values()].some(
     (layer) => layer.type === "trace" && layer.edgeKeys.has(edgeKey),
   );
-};
-
-export const getLectureEdgeTraceDirection = (
-  state: LectureAnimationState,
-  sourceClientId: string,
-  targetClientId: string,
-): "forward" | "reverse" | null => {
-  const edgeKey = getLectureEdgeKey(sourceClientId, targetClientId);
-  const layers = [...state.layers.values()].reverse();
-  const layer = layers.find(
-    (candidate) =>
-      candidate.type === "trace" && candidate.edgeKeys.has(edgeKey),
-  );
-
-  return layer?.type === "trace" ? (layer.direction ?? "forward") : null;
 };

@@ -1,9 +1,6 @@
 import { afterEach, describe, expect, it } from "vitest";
 import {
-  getLectureEdgeTraceDirection,
   getLectureEdgeKey,
-  getLectureNodeHighlightStyle,
-  getLectureNodeHighlightTone,
   isLectureEdgeTraced,
   isLectureNodeDimmed,
   isLectureNodeHighlighted,
@@ -29,17 +26,14 @@ describe("lectureAnimationStore", () => {
       id: "pulse",
       type: "highlight",
       clientIds: new Set(["c2"]),
-      style: "bounce",
-      tone: "success",
+      style: "pulse",
     });
 
     const state = useLectureAnimationStore.getState();
     expect(isLectureNodeHighlighted(state, "c1")).toBe(true);
     expect(isLectureNodeHighlighted(state, "c2")).toBe(true);
     expect(isLectureNodePulsing(state, "c1")).toBe(false);
-    expect(isLectureNodePulsing(state, "c2")).toBe(false);
-    expect(getLectureNodeHighlightStyle(state, "c2")).toBe("bounce");
-    expect(getLectureNodeHighlightTone(state, "c2")).toBe("success");
+    expect(isLectureNodePulsing(state, "c2")).toBe(true);
   });
 
   it("dim 레이어의 예외 노드는 유지하고 나머지 노드만 흐리게 한다", () => {
@@ -59,13 +53,11 @@ describe("lectureAnimationStore", () => {
       id: "trace",
       type: "trace",
       edgeKeys: new Set([getLectureEdgeKey("c1", "c2")]),
-      direction: "reverse",
     });
 
     const state = useLectureAnimationStore.getState();
     expect(isLectureEdgeTraced(state, "c1", "c2")).toBe(true);
     expect(isLectureEdgeTraced(state, "c2", "c1")).toBe(false);
-    expect(getLectureEdgeTraceDirection(state, "c1", "c2")).toBe("reverse");
   });
 
   it("레이어 하나를 제거하거나 전체 시각 상태를 초기화한다", () => {

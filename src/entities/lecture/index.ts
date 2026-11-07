@@ -15,7 +15,6 @@ export type {
   LectureScene,
   LectureScript,
   LectureTraceAction,
-  LectureWaitAction,
 } from "./model/types";
 export type { DemoTreeNode } from "./model/createDemoLecture";
 export { DEMO_LECTURES, DEMO_TREES } from "./model/demoLectures";

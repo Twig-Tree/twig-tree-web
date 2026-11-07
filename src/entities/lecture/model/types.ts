@@ -27,8 +27,7 @@ export interface LectureFocusAction {
 export interface LectureHighlightAction {
   type: "highlight";
   targetNodeIds: LectureNodeId[];
-  style: "steady" | "pulse" | "pop" | "bounce" | "shake";
-  tone?: "accent" | "success" | "warning" | "danger";
+  style: "steady" | "pulse";
   durationMs: number;
   persist?: boolean; // true이면 다음 reset 전까지 강조를 유지한다
 }
@@ -43,14 +42,6 @@ export interface LectureDimAction {
 export interface LectureTraceAction {
   type: "trace";
   nodeIds: LectureNodeId[]; // 연결선을 따라갈 순서로 나열한 노드
-  durationMs: number;
-  mode?: "simultaneous" | "progressive";
-  direction?: "forward" | "reverse";
-  persist?: boolean;
-}
-
-export interface LectureWaitAction {
-  type: "wait";
   durationMs: number;
 }
 
@@ -79,7 +70,6 @@ export type LectureAnimationAction =
   | LectureHighlightAction
   | LectureDimAction
   | LectureTraceAction
-  | LectureWaitAction
   | LectureCollapseAction
   | LectureExpandAction
   | LectureResetAction;

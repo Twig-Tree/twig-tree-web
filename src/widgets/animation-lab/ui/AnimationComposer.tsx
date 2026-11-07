@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { ArrowDown, ArrowUp, Play, Square, Undo2, X } from "lucide-react";
 import { Button } from "@/src/shared/ui/button";
 import { IconButton } from "@/src/shared/ui/icon-button";
@@ -10,11 +9,7 @@ import {
   type LabActionType,
   type LabStep,
 } from "../model/labTimeline";
-import {
-  LAB_PRESET_CATEGORIES,
-  LAB_PRESETS,
-  type LabPresetCategory,
-} from "../model/presets";
+import { LAB_PRESETS } from "../model/presets";
 import { type useLabTimeline } from "../model/useLabTimeline";
 import { validateLabAction } from "../model/validateLabStep";
 import { LabJsonEditor } from "./LabJsonEditor";
@@ -36,7 +31,6 @@ const ACTION_BUTTONS: { type: LabActionType; label: string }[] = [
   { type: "highlight", label: "Highlight" },
   { type: "dim", label: "Dim" },
   { type: "trace", label: "Trace" },
-  { type: "wait", label: "Wait" },
   { type: "collapse", label: "Collapse" },
   { type: "expand", label: "Expand" },
   { type: "reset", label: "Reset" },
@@ -54,7 +48,6 @@ const labelByNodeId = new Map(
 */
 const getLabActionSummary = (action: LectureAnimationAction): string => {
   if (action.type === "reset") return action.scope;
-  if (action.type === "wait") return `${action.durationMs}ms`;
 
   const labels = (getLabActionNodeIds(action) ?? []).map(
     (nodeId) => labelByNodeId.get(nodeId) ?? nodeId,
@@ -80,9 +73,6 @@ export function AnimationComposer({
   onStop,
   onReset,
 }: AnimationComposerProps) {
-  const [presetCategory, setPresetCategory] = useState<
-    "전체" | LabPresetCategory
-  >("전체");
   const {
     steps,
     activeStepId,
@@ -96,10 +86,6 @@ export function AnimationComposer({
   } = timeline;
 
   const activeStep = steps.find((step) => step.id === activeStepId);
-  const visiblePresets =
-    presetCategory === "전체"
-      ? LAB_PRESETS
-      : LAB_PRESETS.filter((preset) => preset.category === presetCategory);
 
   /*
   빈 대상으로 재생하면 실패한 것처럼 보이므로 막는다. 연결선 경고는 일부라도 보이지만, 끊긴 경로는 고쳐야 할 입력이라 함께 막는다.
@@ -154,44 +140,16 @@ export function AnimationComposer({
       </section>
 
       <section aria-label="프리셋">
-        <div className="flex items-center justify-between gap-2">
-          <h3 className="text-xs font-bold text-content-secondary">프리셋</h3>
-          <span className="text-xs text-content-muted">
-            {visiblePresets.length}개
-          </span>
-        </div>
-        <div
-          className="mt-2 flex flex-wrap gap-1.5"
-          role="group"
-          aria-label="프리셋 분류"
-        >
-          {(["전체", ...LAB_PRESET_CATEGORIES] as const).map((category) => (
+        <h3 className="text-xs font-bold text-content-secondary">프리셋</h3>
+        <div className="mt-2 flex flex-wrap gap-1.5">
+          {LAB_PRESETS.map((preset) => (
             <Button
-              key={category}
-              variant={presetCategory === category ? "primary" : undefined}
-              className="!h-7 !px-2.5 text-xs"
-              aria-pressed={presetCategory === category}
-              onClick={() => setPresetCategory(category)}
-            >
-              {category}
-            </Button>
-          ))}
-        </div>
-        <div className="mt-2 grid grid-cols-2 gap-2">
-          {visiblePresets.map((preset) => (
-            <button
-              type="button"
               key={preset.id}
-              className="rounded-control border border-line bg-surface p-2 text-left transition-colors hover:border-accent"
+              className="!h-8 !px-3 text-xs"
               onClick={() => replaceSteps(preset.createSteps())}
             >
-              <span className="block text-xs font-semibold text-content">
-                {preset.label}
-              </span>
-              <span className="mt-0.5 block text-xs leading-4 text-content-muted">
-                {preset.description}
-              </span>
-            </button>
+              {preset.label}
+            </Button>
           ))}
         </div>
       </section>

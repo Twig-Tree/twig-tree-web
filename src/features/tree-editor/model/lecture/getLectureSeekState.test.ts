@@ -162,39 +162,6 @@ describe("getLectureSeekState", () => {
     expect([...getState(script, 0, 1).collapsedServerIds]).toEqual(["s2"]);
   });
 
-  it("유지되는 progressive trace도 경로를 다 그린 뒤에 다음 동작이 시작한다", () => {
-    const script = createScript([
-      {
-        type: "group",
-        mode: "parallel",
-        children: [
-          {
-            type: "group",
-            mode: "sequence",
-            children: [
-              {
-                type: "trace",
-                clientIds: ["c1", "c2"],
-                durationMs: 500,
-                mode: "progressive",
-                persist: true,
-              },
-              collapse("c2"),
-            ],
-          },
-          {
-            type: "group",
-            mode: "sequence",
-            children: [{ type: "wait", durationMs: 100 }, expand("c2")],
-          },
-        ],
-      },
-      focus("c1"),
-    ]);
-
-    expect([...getState(script, 0, 1).collapsedServerIds]).toEqual(["s2"]);
-  });
-
   it("일시정지 중에는 옮길 비트의 유지되지 않는 연출도 보여 준다", () => {
     const script = createScript([
       highlight("c1", true),

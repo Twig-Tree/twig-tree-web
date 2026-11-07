@@ -10,31 +10,8 @@ import {
   type EditorLectureAnimationAction,
 } from "@/src/features/tree-editor";
 
-const SEQUENCE_GAP_MS = 250; // 순차 단계 사이의 전환 간격
-const LOOP_GAP_MS = 1000; // 반복 재생에서 다음 회차까지 쉬는 시간
-const CAMERA_CLEANUP_MS = 900; // 전체 트리 화면으로 돌아가는 공통 카메라 전환을 기다리는 시간
-
-const waitForPlayback = (
-  durationMs: number,
-  signal: AbortSignal,
-): Promise<boolean> =>
-  new Promise((resolve) => {
-    if (signal.aborted) {
-      resolve(false);
-      return;
-    }
-
-    const handleAbort = () => {
-      window.clearTimeout(timeoutId);
-      resolve(false);
-    };
-    const timeoutId = window.setTimeout(() => {
-      signal.removeEventListener("abort", handleAbort);
-      resolve(true);
-    }, durationMs);
-
-    signal.addEventListener("abort", handleAbort, { once: true });
-  });
+const SEQUENCE_GAP_MS = 160; // 순차 단계 사이의 전환 간격
+const LOOP_GAP_MS = 700; // 반복 재생에서 다음 회차까지 쉬는 시간
 
 type UseAnimationLabPlaybackParams = {
   revealNodes: (
@@ -50,15 +27,11 @@ const getStageLabel = (action: EditorLectureAnimationAction): string => {
     case "focus":
       return "Focus";
     case "highlight":
-      return action.style === "steady"
-        ? "Highlight"
-        : `${action.style[0].toUpperCase()}${action.style.slice(1)}`;
+      return action.style === "pulse" ? "Pulse" : "Highlight";
     case "dim":
       return "Dim";
     case "trace":
-      return action.mode === "progressive" ? "Progressive trace" : "Trace";
-    case "wait":
-      return "Wait";
+      return "Trace";
     case "collapse":
       return "Collapse";
     case "expand":
@@ -101,19 +74,10 @@ export const useAnimationLabPlayback = ({
     const controller = new AbortController();
     const { signal } = controller;
 
-    const resetPlaybackCamera = async (): Promise<boolean> => {
-      if (signal.aborted) return false;
-      setStage("Camera reset");
-      resetStepCamera();
-      return waitForPlayback(CAMERA_CLEANUP_MS, signal);
-    };
-
-    const runOnce = async () => {
+    const runOnce = () => {
       useLectureAnimationStore.getState().resetVisual();
 
-      if (!(await resetPlaybackCamera())) return;
-
-      await runLectureAnimation(running.animation, {
+      return runLectureAnimation(running.animation, {
         revealNodes: (clientIds, options) =>
           revealStepNodes(clientIds, options),
         resetCamera: () => resetStepCamera(),
@@ -121,16 +85,14 @@ export const useAnimationLabPlayback = ({
         sequenceGapMs: SEQUENCE_GAP_MS,
         onActionStart: (action) => setStage(getStageLabel(action)),
       });
-
-      if (!signal.aborted) await resetPlaybackCamera();
     };
 
     const run = async () => {
       await runOnce();
 
       while (!signal.aborted && getIsLooping()) {
-        const completedGap = await waitForPlayback(LOOP_GAP_MS, signal);
-        if (completedGap && getIsLooping()) await runOnce(); // 기다리는 사이에 반복을 끌 수 있다.
+        await new Promise((resolve) => setTimeout(resolve, LOOP_GAP_MS));
+        if (!signal.aborted && getIsLooping()) await runOnce(); // 기다리는 사이에 반복을 끌 수 있다.
       }
 
       if (signal.aborted) return;
@@ -160,7 +122,6 @@ export const useAnimationLabPlayback = ({
     setRunning(null);
     setStage(null);
     useLectureAnimationStore.getState().resetVisual();
-    resetCamera();
   };
 
   return { play, stop, isPlaying: running !== null, stage };

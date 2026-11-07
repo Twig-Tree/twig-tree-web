@@ -61,42 +61,14 @@ const waitForLectureAnimation = (
     signal?.addEventListener("abort", handleAbort, { once: true });
   });
 
-const getTraceEdgeKeys = (clientIds: string[]): string[] =>
-  clientIds
-    .slice(1)
-    .map((targetClientId, index) =>
-      getLectureEdgeKey(clientIds[index], targetClientId),
-    );
-
-const runProgressiveTrace = async (
-  layerId: string,
-  edgeKeys: string[],
-  direction: "forward" | "reverse",
-  durationMs: number,
-  signal: AbortSignal | undefined,
-): Promise<boolean> => {
-  const orderedEdgeKeys =
-    direction === "reverse" ? [...edgeKeys].reverse() : edgeKeys;
-  const visibleEdgeKeys = new Set<string>();
-  const stepDurationMs =
-    edgeKeys.length === 0 ? durationMs : durationMs / edgeKeys.length;
-
-  for (const edgeKey of orderedEdgeKeys) {
-    if (signal?.aborted) return false;
-    visibleEdgeKeys.add(edgeKey);
-    useLectureAnimationStore.getState().setLayer({
-      id: layerId,
-      type: "trace",
-      edgeKeys: new Set(visibleEdgeKeys),
-      direction,
-    });
-
-    const completed = await waitForLectureAnimation(stepDurationMs, signal);
-    if (!completed) return false;
-  }
-
-  return true;
-};
+const getTraceEdgeKeys = (clientIds: string[]): Set<string> =>
+  new Set(
+    clientIds
+      .slice(1)
+      .map((targetClientId, index) =>
+        getLectureEdgeKey(clientIds[index], targetClientId),
+      ),
+  );
 
 /*
 함수 이름 : createLectureVisualLayer
@@ -119,8 +91,6 @@ export const createLectureVisualLayer = (
         type: animation.type,
         clientIds: new Set(animation.targetClientIds),
         style: animation.style,
-        tone: animation.tone ?? "accent",
-        motionDurationMs: animation.persist ? null : animation.durationMs,
       };
     case "dim":
       return {
@@ -132,8 +102,7 @@ export const createLectureVisualLayer = (
       return {
         id,
         type: animation.type,
-        edgeKeys: new Set(getTraceEdgeKeys(animation.clientIds)),
-        direction: animation.direction ?? "forward",
+        edgeKeys: getTraceEdgeKeys(animation.clientIds),
       };
   }
 };
@@ -228,33 +197,12 @@ const runLectureAnimationAction = async (
     return;
   }
 
-  if (animation.type === "wait") {
-    await waitForLectureAnimation(animation.durationMs, context.signal);
-    return;
-  }
-
   if (animation.type === "reset") {
     if (animation.scope === "visual" || animation.scope === "all") {
       useLectureAnimationStore.getState().resetVisual();
     }
     if (animation.scope === "camera" || animation.scope === "all") {
       context.resetCamera?.();
-    }
-    return;
-  }
-
-  if (animation.type === "trace" && animation.mode === "progressive") {
-    const layerId = createLayerId();
-    const completed = await runProgressiveTrace(
-      layerId,
-      getTraceEdgeKeys(animation.clientIds),
-      animation.direction ?? "forward",
-      animation.durationMs,
-      context.signal,
-    );
-
-    if (!animation.persist || !completed) {
-      useLectureAnimationStore.getState().removeLayer(layerId);
     }
     return;
   }

@@ -41,25 +41,6 @@ describe("CustomEdge", () => {
     expect(container.querySelector(".lecture-edge-traced")).not.toBeNull();
   });
 
-  it("역방향 추적이면 역방향 클래스를 함께 적용한다", () => {
-    useLectureAnimationStore.getState().setLayer({
-      id: "trace",
-      type: "trace",
-      edgeKeys: new Set([getLectureEdgeKey("parent", "child")]),
-      direction: "reverse",
-    });
-
-    const { container } = render(
-      <svg>
-        <CustomEdge {...edgeProps} />
-      </svg>,
-    );
-
-    expect(
-      container.querySelector(".lecture-edge-traced-reverse"),
-    ).not.toBeNull();
-  });
-
   it("다른 연결선을 추적할 때는 애니메이션 클래스를 적용하지 않는다", () => {
     useLectureAnimationStore.getState().setLayer({
       id: "trace",
