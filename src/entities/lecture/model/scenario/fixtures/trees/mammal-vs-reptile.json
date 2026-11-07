@@ -1,0 +1,42 @@
+[
+  {
+    "id": "1",
+    "parentId": null,
+    "name": "척추동물"
+  },
+  {
+    "id": "2",
+    "parentId": "1",
+    "name": "포유류"
+  },
+  {
+    "id": "3",
+    "parentId": "1",
+    "name": "파충류"
+  },
+  {
+    "id": "4",
+    "parentId": "2",
+    "name": "털"
+  },
+  {
+    "id": "6",
+    "parentId": "2",
+    "name": "항온"
+  },
+  {
+    "id": "8",
+    "parentId": "2",
+    "name": "고래"
+  },
+  {
+    "id": "5",
+    "parentId": "3",
+    "name": "비늘"
+  },
+  {
+    "id": "7",
+    "parentId": "3",
+    "name": "변온"
+  }
+]

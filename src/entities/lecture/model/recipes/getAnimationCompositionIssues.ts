@@ -50,16 +50,33 @@ type TimedAction = IndexedAction & {
   startMs: number; // 애니메이션 시작부터 이 동작이 시작하기까지의 시간
 };
 
+const isPersistent = (action: LectureAnimationAction): boolean =>
+  "persist" in action && action.persist === true;
+
+/*
+함수 이름 : getActionDurationMs
+기능 : 실행기가 단위 동작 하나를 기다리는 시간을 구한다.
+persist 효과는 레이어를 남긴 채 바로 다음 동작으로 넘어가므로 0이다. progressive trace만 경로를 다 그린 뒤 넘어간다.
+인자 : LectureAnimationAction action -> 단위 동작
+반환값 : 기다리는 시간(ms). reset처럼 시간이 없는 동작은 0
+*/
+const getActionDurationMs = (action: LectureAnimationAction): number => {
+  if (!("durationMs" in action)) return 0;
+
+  const isProgressiveTrace =
+    action.type === "trace" && action.mode === "progressive";
+
+  return isPersistent(action) && !isProgressiveTrace ? 0 : action.durationMs;
+};
+
 /*
 함수 이름 : getAnimationDurationMs
-기능 : 애니메이션이 끝나기까지의 시간을 구한다. 순차 그룹은 자식 시간을 더하고, 병렬 그룹은 가장 긴 자식을 기다린다.
+기능 : 애니메이션이 끝나기까지의 시간을 실행기의 완료 규칙대로 구한다. 순차 그룹은 자식 시간을 더하고, 병렬 그룹은 가장 긴 자식을 기다린다.
 인자 : LectureAnimation animation -> 애니메이션
-반환값 : 걸리는 시간(ms). reset처럼 시간이 없는 동작은 0
+반환값 : 걸리는 시간(ms)
 */
-const getAnimationDurationMs = (animation: LectureAnimation): number => {
-  if (animation.type !== "group") {
-    return "durationMs" in animation ? animation.durationMs : 0;
-  }
+export const getAnimationDurationMs = (animation: LectureAnimation): number => {
+  if (animation.type !== "group") return getActionDurationMs(animation);
 
   const childDurations = animation.children.map(getAnimationDurationMs);
 
@@ -109,10 +126,7 @@ const getTimedActions = (animation: LectureAnimation): TimedAction[] => {
 const isVisualReset = (action: LectureAnimationAction): boolean =>
   action.type === "reset" && action.scope !== "camera";
 
-const isPersistent = (action: LectureAnimationAction): boolean =>
-  "persist" in action && action.persist === true;
-
-const isCameraAction = (action: LectureAnimationAction): boolean =>
+export const isCameraAction = (action: LectureAnimationAction): boolean =>
   action.type === "reset"
     ? action.scope !== "visual"
     : LECTURE_ATOMIC_EFFECTS[action.type].motion === "camera";

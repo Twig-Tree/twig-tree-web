@@ -1,0 +1,62 @@
+[
+  {
+    "id": "1",
+    "parentId": null,
+    "name": "세계"
+  },
+  {
+    "id": "2",
+    "parentId": "1",
+    "name": "아시아"
+  },
+  {
+    "id": "3",
+    "parentId": "1",
+    "name": "유럽"
+  },
+  {
+    "id": "4",
+    "parentId": "1",
+    "name": "아프리카"
+  },
+  {
+    "id": "5",
+    "parentId": "2",
+    "name": "동아시아"
+  },
+  {
+    "id": "6",
+    "parentId": "2",
+    "name": "동남아시아"
+  },
+  {
+    "id": "7",
+    "parentId": "2",
+    "name": "남아시아"
+  },
+  {
+    "id": "8",
+    "parentId": "5",
+    "name": "한국"
+  },
+  {
+    "id": "9",
+    "parentId": "5",
+    "name": "중국"
+  },
+  {
+    "id": "10",
+    "parentId": "5",
+    "name": "일본"
+  },
+  {
+    "id": "11",
+    "parentId": "3",
+    "name": "서유럽"
+  },
+  {
+    "id": "12",
+    "parentId": "3",
+    "name": "동유럽"
+  }
+]
