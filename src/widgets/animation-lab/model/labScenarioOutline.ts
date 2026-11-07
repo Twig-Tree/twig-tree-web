@@ -1,10 +1,26 @@
 import {
+  getLectureMotion,
+  getResolvedDelivery,
   type LectureAnimation,
   type LectureBeat,
   type LectureCompileSource,
   type LectureCompileSourceMap,
+  type LectureMotion,
+  type LectureScenario,
   type LectureScript,
+  type ResolvedDelivery,
+  type ScenarioCue,
+  type ScenarioDelivery,
 } from "@/src/entities/lecture";
+
+/*
+cue가 실제로 쓴 전달 방식. 컴파일러와 같은 함수로 계산해, 모델이 고른 값과 intent 기본값으로 채운 값을 구분해 보여 준다.
+*/
+export type LabOutlineCueDelivery = {
+  delivery: ResolvedDelivery; // intent 기본값으로 채운 delivery
+  cueFields: (keyof ScenarioDelivery)[]; // 시나리오의 cue가 직접 고른 필드
+  motion: LectureMotion; // delivery를 motion token으로 바꾼 값
+};
 
 /*
 컴파일 결과를 장면 → 비트 → 출처(cue 또는 컴파일러) → 동작 순서로 펼친 모양.
@@ -14,6 +30,7 @@ export type LabOutlineSource = {
   key: string; // 비트 안에서 고유한 키
   source: LectureCompileSource;
   animation: LectureAnimation; // 이 출처가 만든 동작
+  cueDelivery: LabOutlineCueDelivery | null; // 컴파일러가 넣은 동작이면 null
 };
 
 export type LabOutlineBeat = {
@@ -51,18 +68,46 @@ const getAnimationAtPath = (
 };
 
 /*
+함수 이름 : getCueDelivery
+기능 : cue의 delivery를 intent 기본값으로 채우고 motion token으로 바꾼다.
+인자 : ScenarioCue cue -> 시나리오 cue
+반환값 : 채운 delivery, cue가 고른 필드, motion
+*/
+const getCueDelivery = ({
+  intent,
+  delivery,
+}: ScenarioCue): LabOutlineCueDelivery => ({
+  delivery: getResolvedDelivery(intent, delivery),
+  cueFields: (Object.keys(delivery ?? {}) as (keyof ScenarioDelivery)[]).filter(
+    (field) => delivery?.[field] !== undefined,
+  ),
+  motion: getLectureMotion(intent, delivery),
+});
+
+/*
 함수 이름 : getLabScenarioOutline
 기능 : 대본과 source map으로 장면 → 비트 → 출처 → 동작 트리를 만든다.
 source map이 가리키는 위치에 동작이 없으면 컴파일러와 source map이 어긋난 버그이므로 예외로 알린다.
 인자 : LectureScript script -> 컴파일한 대본
 LectureCompileSourceMap sourceMap -> beat ID별 동작 출처
+LectureScenario scenario -> 컴파일한 시나리오. cue의 delivery를 읽는다
 반환값 : 장면별 비트와 출처 목록
 */
 export const getLabScenarioOutline = (
   script: LectureScript,
   sourceMap: LectureCompileSourceMap,
-): LabOutlineScene[] =>
-  script.scenes.map(({ id, nodeId, beats }) => ({
+  scenario: LectureScenario,
+): LabOutlineScene[] => {
+  /*
+  beat ID는 시나리오 전체에서 고유하고 대본도 같은 ID를 쓴다(LectureCompileSourceMap).
+  */
+  const cuesByBeatId = new Map(
+    scenario.scenes.flatMap(({ beats }) =>
+      beats.map((beat) => [beat.id, beat.cues] as const),
+    ),
+  );
+
+  return script.scenes.map(({ id, nodeId, beats }) => ({
     id,
     nodeId,
     beats: beats.map((beat) => ({
@@ -77,8 +122,19 @@ export const getLabScenarioOutline = (
             );
           }
 
-          return { key: `${index}`, source, animation };
+          const cue =
+            source.type === "cue"
+              ? cuesByBeatId.get(beat.id)?.[source.cueIndex]
+              : undefined;
+
+          return {
+            key: `${index}`,
+            source,
+            animation,
+            cueDelivery: cue ? getCueDelivery(cue) : null,
+          };
         },
       ),
     })),
   }));
+};

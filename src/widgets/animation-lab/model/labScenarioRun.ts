@@ -2,6 +2,7 @@ import {
   compileLectureScenario,
   createLectureCompilerTree,
   LECTURE_SCENARIO_FIXTURES,
+  lectureScenarioSchema,
   type LectureAnimation,
   type LectureBeat,
   type LectureCompileIssue,
@@ -9,6 +10,7 @@ import {
   type LectureCompileIssueStage,
   type LectureCompilerTree,
   type LectureCompileSourceMap,
+  type LectureScenario,
   type LectureScenarioFixture,
   type LectureScript,
 } from "@/src/entities/lecture";
@@ -60,6 +62,7 @@ export type LabScenarioIssueGroup = {
 export type LabScenarioRun =
   | {
       success: true;
+      scenario: LectureScenario; // 컴파일을 통과한 시나리오
       script: LectureScript;
       sourceMap: LectureCompileSourceMap;
       animation: LectureAnimation; // 대본 전체를 한 번에 재생하는 애니메이션
@@ -241,6 +244,7 @@ export const getLabScenarioRun = (
 
   return {
     success: true,
+    scenario: lectureScenarioSchema.parse(scenario), // 컴파일러가 같은 스키마로 통과시켰으므로 실패하지 않는다
     script: result.script,
     sourceMap: result.sourceMap,
     animation: getLabScenarioAnimation(result.script),

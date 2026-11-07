@@ -29,7 +29,11 @@ describe("getLabScenarioOutline", () => {
     );
     if (!run.success) throw new Error(JSON.stringify(run.issueGroups));
 
-    const outline = getLabScenarioOutline(run.script, run.sourceMap);
+    const outline = getLabScenarioOutline(
+      run.script,
+      run.sourceMap,
+      run.scenario,
+    );
     const scenario = fixture.scenario as {
       scenes: { beats: { cues: unknown[] }[] }[];
     };
@@ -45,7 +49,11 @@ describe("getLabScenarioOutline", () => {
 
   it("cue가 여럿이면 cue마다 순차 그룹의 자식을 붙인다", () => {
     const run = compile(undefined);
-    const outline = getLabScenarioOutline(run.script, run.sourceMap);
+    const outline = getLabScenarioOutline(
+      run.script,
+      run.sourceMap,
+      run.scenario,
+    );
     const beat = outline
       .flatMap(({ beats }) => beats)
       .find(({ sources }) => sources.length > 1);
@@ -69,16 +77,43 @@ describe("getLabScenarioOutline", () => {
     scenario.scenes[0].beats[0].cues = [];
 
     const run = compile(scenario);
-    const [firstBeat] = getLabScenarioOutline(run.script, run.sourceMap)[0]
-      .beats;
+    const [firstBeat] = getLabScenarioOutline(
+      run.script,
+      run.sourceMap,
+      run.scenario,
+    )[0].beats;
 
     expect(firstBeat.sources).toEqual([
       {
         key: "0",
         source: { type: "compiler", reason: "empty-beat" },
         animation: { type: "wait", durationMs: 0 },
+        cueDelivery: null,
       },
     ]);
+  });
+
+  it("cue가 고른 delivery와 intent 기본값으로 채운 값을 구분한다", () => {
+    const fixture = LAB_SCENARIO_FIXTURES.find(
+      ({ id }) => id === "valid/world-geography",
+    )!;
+    const scenario = structuredClone(fixture.scenario) as {
+      scenes: { beats: { cues: { delivery?: object }[] }[] }[];
+    };
+    scenario.scenes[0].beats[0].cues[0].delivery = { pace: "slow" };
+
+    const run = compile(scenario);
+    const [source] = getLabScenarioOutline(
+      run.script,
+      run.sourceMap,
+      run.scenario,
+    )[0].beats[0].sources;
+
+    expect(source.cueDelivery).toMatchObject({
+      delivery: { pace: "slow" },
+      cueFields: ["pace"],
+    });
+    expect(source.cueDelivery?.motion.durationMs).toBeDefined();
   });
 
   it("source map이 없는 위치를 가리키면 예외로 알린다", () => {
@@ -86,15 +121,19 @@ describe("getLabScenarioOutline", () => {
     const beatId = run.script.scenes[0].beats[0].id;
 
     expect(() =>
-      getLabScenarioOutline(run.script, {
-        ...run.sourceMap,
-        [beatId]: [
-          {
-            animationPath: ["children", 99],
-            source: { type: "compiler", reason: "empty-beat" },
-          },
-        ],
-      }),
+      getLabScenarioOutline(
+        run.script,
+        {
+          ...run.sourceMap,
+          [beatId]: [
+            {
+              animationPath: ["children", 99],
+              source: { type: "compiler", reason: "empty-beat" },
+            },
+          ],
+        },
+        run.scenario,
+      ),
     ).toThrow(beatId);
   });
 });
