@@ -109,3 +109,5 @@ export type {
   LectureSourceMapEntry,
 } from "./model/compiler/types";
 export { compileLectureScenario } from "./model/compiler/compileLectureScenario";
+export type { LectureCompilerTreeNode } from "./model/compiler/createLectureCompilerTree";
+export { createLectureCompilerTree } from "./model/compiler/createLectureCompilerTree";

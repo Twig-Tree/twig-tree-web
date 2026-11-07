@@ -5,6 +5,8 @@ export { LecturePlayer } from "./ui/LecturePlayer";
 export { runLectureAnimation } from "./model/lecture/runLectureAnimation";
 export { useLectureAnimationStore } from "./model/lecture/lectureAnimationStore";
 export { getEditorLectureAnimation } from "./lib/lecture/getEditorLectureScript";
+export { compileEditorLectureScenario } from "./lib/lecture/compileEditorLectureScenario";
+export type { EditorLectureCompileResult } from "./lib/lecture/compileEditorLectureScenario";
 export { createLectureNodeIdResolver } from "./lib/lecture/createLectureNodeIdResolver";
 export { useDemoLectureScript } from "./model/lecture/useDemoLectureScript";
 export { useIsLectureActive } from "./model/lecture/lectureStore";
