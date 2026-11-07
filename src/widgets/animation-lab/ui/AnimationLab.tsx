@@ -30,6 +30,10 @@ import {
   LAB_RECIPE_SAMPLE_INPUTS,
 } from "../model/labRecipeRun";
 import {
+  getLabScenarioRun,
+  LAB_SCENARIO_FIXTURES,
+} from "../model/labScenarioRun";
+import {
   getLabAnimation,
   getLabStepsFromAnimation,
 } from "../model/labTimeline";
@@ -40,12 +44,21 @@ import { isLabTimelinePlayable } from "../model/validateLabStep";
 import { AnimationComposer } from "./AnimationComposer";
 import { LabPlaybackControls } from "./LabPlaybackControls";
 import { type LabRecipeDraft, LabRecipeComposer } from "./LabRecipeComposer";
+import {
+  createLabScenarioDraft,
+  LabScenarioComposer,
+} from "./LabScenarioComposer";
 
-type LabMode = "atomic" | "recipe";
+type LabMode = "atomic" | "recipe" | "scenario";
 
 const LAB_MODES: { mode: LabMode; label: string; description: string }[] = [
   { mode: "atomic", label: "Atomic", description: "단위 동작을 직접 조합" },
   { mode: "recipe", label: "Recipe", description: "recipe 하나를 실행" },
+  {
+    mode: "scenario",
+    label: "Scenario",
+    description: "시나리오를 컴파일해 실행",
+  },
 ];
 
 const INITIAL_RECIPE_DRAFT: LabRecipeDraft = {
@@ -58,11 +71,15 @@ const INITIAL_RECIPE_DRAFT: LabRecipeDraft = {
   delivery: {},
 };
 
+const INITIAL_SCENARIO_DRAFT = createLabScenarioDraft(
+  LAB_SCENARIO_FIXTURES[0].id,
+);
+
 const handleSelectedNodeHidden = () => {}; // 닫을 메모 패널이 없다. 렌더마다 새 함수가 되면 useVisibleElements의 effect가 매번 다시 돈다.
 
 /*
 함수 이름 : AnimationLabCanvas
-기능 : 서버 없이 고정 트리를 실제 편집기의 노드·연결선·카메라로 그리고, 타임라인으로 조합한 애니메이션을 실행한다.
+기능 : 서버 없이 고정 트리나 시나리오 fixture의 트리를 실제 편집기의 노드·연결선·카메라로 그리고, 모드별로 만든 애니메이션을 실행한다.
 인자 : 없음
 반환값 : 애니메이션 조합 도구와 트리 캔버스
 
@@ -75,10 +92,24 @@ function AnimationLabCanvas() {
   const onEdgesChange = useTreeStore((state) => state.onEdgesChange);
   const { setNodes } = useReactFlowStoreSetters();
 
-  useInitializeTree({
-    treeId: ANIMATION_LAB_TREE_ID,
-    treeData: ANIMATION_LAB_TREE,
-  });
+  const [mode, setMode] = useState<LabMode>("atomic");
+  const [scenarioDraft, setScenarioDraft] = useState(INITIAL_SCENARIO_DRAFT);
+  const scenarioFixture =
+    LAB_SCENARIO_FIXTURES.find(({ id }) => id === scenarioDraft.fixtureId) ??
+    LAB_SCENARIO_FIXTURES[0];
+
+  /*
+  Scenario 모드는 fixture가 전제하는 트리를 그린다. 트리 ID가 바뀌면 useInitializeTree가 store를 새로 채운다.
+  노드 ID가 트리마다 겹치므로 다른 모드는 고정 트리로 돌아온다.
+  */
+  useInitializeTree(
+    mode === "scenario"
+      ? {
+          treeId: scenarioFixture.treeId,
+          treeData: scenarioFixture.treeNodes,
+        }
+      : { treeId: ANIMATION_LAB_TREE_ID, treeData: ANIMATION_LAB_TREE },
+  );
 
   const { visibleNodes, visibleEdges } = useVisibleElements({
     nodes,
@@ -105,13 +136,16 @@ function AnimationLabCanvas() {
     isLayoutRunning,
   });
 
-  const [mode, setMode] = useState<LabMode>("atomic");
   const timeline = useLabTimeline(() => createLabPresetSteps(LAB_PRESETS[0]));
   const [recipeDraft, setRecipeDraft] = useState(INITIAL_RECIPE_DRAFT);
   const recipeRun = getLabRecipeRun(
     recipeDraft.recipeId,
     recipeDraft.inputText,
     recipeDraft.delivery,
+  );
+  const scenarioRun = getLabScenarioRun(
+    scenarioDraft.scenarioText,
+    scenarioFixture.compilerTree,
   );
   const [isLooping, setIsLooping] = useState(false);
   const { play, stop, isPlaying, stage } = useAnimationLabPlayback({
@@ -133,9 +167,13 @@ function AnimationLabCanvas() {
       ? isLabTimelinePlayable(timeline.steps, ANIMATION_LAB_TREE)
         ? getLabAnimation(timeline.steps)
         : null
-      : recipeRun.success
-        ? recipeRun.animation
-        : null;
+      : mode === "recipe"
+        ? recipeRun.success
+          ? recipeRun.animation
+          : null
+        : scenarioRun.success
+          ? scenarioRun.animation
+          : null;
 
   /*
   recipe 결과를 단위 동작으로 풀어 Atomic 타임라인에서 하나씩 고치게 한다.
@@ -160,7 +198,7 @@ function AnimationLabCanvas() {
           <div
             role="tablist"
             aria-label="실험 모드"
-            className="grid grid-cols-2 gap-1 rounded-control border border-line bg-surface p-1"
+            className="grid grid-cols-3 gap-1 rounded-control border border-line bg-surface p-1"
           >
             {LAB_MODES.map((item) => (
               <button
@@ -197,16 +235,25 @@ function AnimationLabCanvas() {
             onReset={handleReset}
           />
 
-          {mode === "atomic" ? (
-            <AnimationComposer timeline={timeline} />
-          ) : (
+          {mode === "atomic" ? <AnimationComposer timeline={timeline} /> : null}
+          {mode === "recipe" ? (
             <LabRecipeComposer
               draft={recipeDraft}
               run={recipeRun}
               onChangeDraft={setRecipeDraft}
               onMoveToTimeline={handleMoveToTimeline}
             />
-          )}
+          ) : null}
+          {mode === "scenario" ? (
+            <LabScenarioComposer
+              draft={scenarioDraft}
+              run={scenarioRun}
+              onChangeDraft={(draft) => {
+                if (draft.fixtureId !== scenarioDraft.fixtureId) stop(); // 트리가 바뀌므로 재생 중인 효과를 걷어 낸다
+                setScenarioDraft(draft);
+              }}
+            />
+          ) : null}
         </div>
       </aside>
 

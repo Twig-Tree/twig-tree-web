@@ -111,3 +111,8 @@ export type {
 export { compileLectureScenario } from "./model/compiler/compileLectureScenario";
 export type { LectureCompilerTreeNode } from "./model/compiler/createLectureCompilerTree";
 export { createLectureCompilerTree } from "./model/compiler/createLectureCompilerTree";
+export type {
+  LectureScenarioFixture,
+  LectureScenarioFixtureTreeNode,
+} from "./model/scenario/fixtures";
+export { LECTURE_SCENARIO_FIXTURES } from "./model/scenario/fixtures";
