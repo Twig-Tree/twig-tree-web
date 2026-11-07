@@ -62,7 +62,13 @@ const getAnimationAtPath = (
     current = (current as Record<PropertyKey, unknown>)[key];
   }
 
-  return typeof current === "object" && current !== null
+  /*
+  경로가 ["children"]처럼 그룹의 자식 배열을 가리키면 객체여도 동작이 아니다. 동작과 그룹은 모두 type을 가진다.
+  */
+  return typeof current === "object" &&
+    current !== null &&
+    !Array.isArray(current) &&
+    typeof (current as { type?: unknown }).type === "string"
     ? (current as LectureAnimation)
     : null;
 };

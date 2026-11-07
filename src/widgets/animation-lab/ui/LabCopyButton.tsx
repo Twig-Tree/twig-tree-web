@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Button } from "@/src/shared/ui/button";
 
 type LabCopyButtonProps = {
@@ -14,18 +14,41 @@ type LabCopyButtonProps = {
 */
 export function LabCopyButton({ label, text }: LabCopyButtonProps) {
   const [status, setStatus] = useState<"idle" | "copied" | "failed">("idle");
+  const resetTimerRef = useRef<number | null>(null);
+
+  /*
+  결과 표시를 지우는 타이머는 하나만 둔다. 이어서 누르면 앞 타이머가 새 결과를 일찍 지우므로 취소하고 다시 시작한다.
+  */
+  const showStatus = (nextStatus: "copied" | "failed") => {
+    if (resetTimerRef.current !== null) {
+      window.clearTimeout(resetTimerRef.current);
+    }
+
+    setStatus(nextStatus);
+    resetTimerRef.current = window.setTimeout(() => {
+      resetTimerRef.current = null;
+      setStatus("idle");
+    }, 1200);
+  };
+
+  useEffect(
+    () => () => {
+      if (resetTimerRef.current !== null) {
+        window.clearTimeout(resetTimerRef.current);
+      }
+    },
+    [],
+  );
 
   const handleCopy = async () => {
     if (text === null) return;
 
     try {
       await navigator.clipboard.writeText(text);
-      setStatus("copied");
+      showStatus("copied");
     } catch {
-      setStatus("failed"); // 권한이 없거나 창에 포커스가 없으면 실패한다
+      showStatus("failed"); // 권한이 없거나 창에 포커스가 없으면 실패한다
     }
-
-    window.setTimeout(() => setStatus("idle"), 1200);
   };
 
   return (

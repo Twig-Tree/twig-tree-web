@@ -166,11 +166,33 @@ function AnimationLabCanvas() {
     scenarioFixture.compilerTree,
   );
   const [isLooping, setIsLooping] = useState(false);
-  const { play, stop, isPlaying, stage } = useAnimationLabPlayback({
+  const {
+    play: startPlayback,
+    stop: stopPlayback,
+    isPlaying,
+    stage,
+  } = useAnimationLabPlayback({
     revealNodes,
     resetCamera: fitTreeView,
     isLooping,
   });
+
+  /*
+  focus는 레이아웃 계산 중이면 카메라 이동을 runAfterNextLayout에 맡긴다. 재생을 바꾸거나 멈출 때 그 예약이 남으면
+  새 재생이 카메라를 되돌린 뒤 이전 대상으로 움직이므로 먼저 비운다. 예약 자리는 하나라 빈 함수로 덮으면 지워진다.
+  트리를 바꿀 때의 화면 맞춤은 stop 뒤의 effect가 예약하므로 지워지지 않는다.
+  */
+  const clearPendingCameraMove = () => runAfterNextLayout(() => {});
+
+  const play = (animation: LectureAnimation) => {
+    clearPendingCameraMove();
+    startPlayback(animation);
+  };
+
+  const stop = () => {
+    clearPendingCameraMove();
+    stopPlayback();
+  };
 
   const handleReset = () => {
     stop();

@@ -109,14 +109,34 @@ describe("getLabScenarioOutline", () => {
       run.scenario,
     )[0].beats[0].sources;
 
-    expect(source.cueDelivery).toMatchObject({
-      delivery: { pace: "slow" },
+    /*
+    introduce의 기본값(normal, medium, accent, transient) 중 pace만 cue가 바꿨다. 시간은 motionTokens.ts의 slow 열이다.
+    */
+    expect(source.cueDelivery).toEqual({
+      delivery: {
+        pace: "slow",
+        intensity: "medium",
+        tone: "accent",
+        continuity: "transient",
+      },
       cueFields: ["pace"],
+      motion: expect.objectContaining({
+        persist: false,
+        durationMs: {
+          camera: 900,
+          emphasis: 1800,
+          pause: 700,
+          traceSegment: 900,
+          layoutHold: 1050,
+        },
+      }),
     });
-    expect(source.cueDelivery?.motion.durationMs).toBeDefined();
   });
 
-  it("source map이 없는 위치를 가리키면 예외로 알린다", () => {
+  it.each([
+    ["없는 위치", ["children", 99]],
+    ["자식 배열", ["children"]],
+  ])("source map이 %s를 가리키면 예외로 알린다", (_, animationPath) => {
     const run = compile(undefined);
     const beatId = run.script.scenes[0].beats[0].id;
 
@@ -127,7 +147,7 @@ describe("getLabScenarioOutline", () => {
           ...run.sourceMap,
           [beatId]: [
             {
-              animationPath: ["children", 99],
+              animationPath,
               source: { type: "compiler", reason: "empty-beat" },
             },
           ],
