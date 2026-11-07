@@ -32,21 +32,63 @@ export const scenarioDeliverySchema = z.strictObject({
   continuity: z.optional(z.enum(["transient", "persist"])), // persist면 같은 장면의 다음 비트까지 효과를 남긴다
 });
 
+const nodeIdListSchema = z.array(nodeIdSchema).check(z.minLength(1));
+
+/*
+role의 개수 규칙은 모양으로 표현한다.
+- 정확히 하나: 노드 ID 문자열
+- 하나 이상: 비어 있지 않은 배열
+- 선택: optional. 없으면 0개이므로, 주어진 배열은 비어 있으면 안 된다.
+*/
+const one = nodeIdSchema;
+const many = nodeIdListSchema;
+const optionalMany = z.optional(nodeIdListSchema);
+const optionalOne = z.optional(nodeIdSchema);
+
+/*
+함수 이름 : createCueSchema
+기능 : intent 하나와 그 intent가 받는 role 모양으로 cue 스키마를 만든다. 정의하지 않은 role은 strict 검사로 거부된다.
+인자 : Intent intent -> cue의 intent 값
+Roles roles -> role 이름별 개수 규칙
+반환값 : intent를 판별값으로 갖는 cue 스키마
+*/
+const createCueSchema = <
+  Intent extends string,
+  Roles extends Record<string, z.ZodMiniType>,
+>(
+  intent: Intent,
+  roles: Roles,
+) =>
+  z.strictObject({
+    intent: z.literal(intent),
+    roles: z.strictObject(roles),
+    delivery: z.optional(scenarioDeliverySchema),
+  });
+
 /*
 cue는 intent 값으로 갈라지는 discriminatedUnion이다. intent마다 받는 role이 달라,
 잘못된 조합이 "어느 intent의 어느 role이 틀렸는지"로 보고된다.
+role 사이의 관계(겹침, 출발과 도착이 같음)는 모양으로 표현할 수 없어 따로 검사한다.
 */
-const introduceCueSchema = z.strictObject({
-  intent: z.literal("introduce"),
-  roles: z.strictObject({
-    subject: nodeIdSchema,
-    context: z.optional(z.array(nodeIdSchema)),
-  }),
-  delivery: z.optional(scenarioDeliverySchema),
-});
-
 export const scenarioCueSchema = z.discriminatedUnion("intent", [
-  introduceCueSchema,
+  createCueSchema("introduce", { subject: one, context: optionalMany }),
+  createCueSchema("emphasize", { subject: many }),
+  createCueSchema("compare", { left: many, right: many }),
+  createCueSchema("decompose", { parent: one, children: optionalMany }), // children이 없으면 parent의 모든 자식
+  createCueSchema("trace", { source: one, destination: one }), // 경로는 서비스가 트리에서 찾는다
+  createCueSchema("reveal", { subject: many }),
+  createCueSchema("warn", { subject: many }),
+  createCueSchema("correct", {
+    correctAnswer: many,
+    incorrectAnswer: optionalMany,
+  }),
+  createCueSchema("incorrect", {
+    incorrectAnswer: many,
+    correctAnswer: optionalMany,
+  }),
+  createCueSchema("transition", { destination: one, source: optionalOne }),
+  createCueSchema("recap", { subject: many }),
+  createCueSchema("summarize", { subject: one, context: optionalMany }),
 ]);
 
 /*

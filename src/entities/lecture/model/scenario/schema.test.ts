@@ -1,7 +1,9 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, expectTypeOf, it } from "vitest";
 import {
   type LectureScenario,
   lectureScenarioSchema,
+  type ScenarioCue,
+  type SemanticIntent,
 } from "@/src/entities/lecture";
 
 const createScenario = (): LectureScenario => ({
@@ -123,5 +125,112 @@ describe("lectureScenarioSchema", () => {
         scenes: [{ id: "scene-1", nodeId: "12", beats: [] }],
       }),
     ).toEqual(["scenes.0.beats"]);
+  });
+
+  describe("intent별 role", () => {
+    const getCueIssuePaths = (cue: unknown) => {
+      const scenario = createScenario();
+      scenario.scenes[0].beats[0].cues = [cue as ScenarioCue];
+
+      return getIssuePaths(scenario).map((path) =>
+        path.replace("scenes.0.beats.0.cues.0", "cue"),
+      );
+    };
+
+    const validCues: Record<SemanticIntent, ScenarioCue> = {
+      introduce: { intent: "introduce", roles: { subject: "1" } },
+      emphasize: { intent: "emphasize", roles: { subject: ["1", "2"] } },
+      compare: { intent: "compare", roles: { left: ["1"], right: ["2", "3"] } },
+      decompose: { intent: "decompose", roles: { parent: "1" } },
+      trace: { intent: "trace", roles: { source: "1", destination: "4" } },
+      reveal: { intent: "reveal", roles: { subject: ["2"] } },
+      warn: { intent: "warn", roles: { subject: ["2"] } },
+      correct: {
+        intent: "correct",
+        roles: { correctAnswer: ["2"], incorrectAnswer: ["3"] },
+      },
+      incorrect: { intent: "incorrect", roles: { incorrectAnswer: ["3"] } },
+      transition: { intent: "transition", roles: { destination: "5" } },
+      recap: { intent: "recap", roles: { subject: ["1", "2"] } },
+      summarize: {
+        intent: "summarize",
+        roles: { subject: "1", context: ["2", "3"] },
+      },
+    };
+
+    it.each(Object.values(validCues))(
+      "$intent의 유효한 role을 통과시킨다",
+      (cue) => {
+        expect(getCueIssuePaths(cue)).toEqual([]);
+      },
+    );
+
+    it("하나만 받는 role은 문자열, 여러 개를 받는 role은 배열로 추출한다", () => {
+      type Cue<Intent extends SemanticIntent> = Extract<
+        ScenarioCue,
+        { intent: Intent }
+      >;
+
+      expectTypeOf<Cue<"trace">["roles"]>().toEqualTypeOf<{
+        source: string;
+        destination: string;
+      }>();
+      expectTypeOf<Cue<"compare">["roles"]>().toEqualTypeOf<{
+        left: string[];
+        right: string[];
+      }>();
+      expectTypeOf<Cue<"decompose">["roles"]>().toEqualTypeOf<{
+        parent: string;
+        children?: string[] | undefined;
+      }>();
+    });
+
+    it("필수 role이 빠지면 그 role 위치로 거부한다", () => {
+      expect(
+        getCueIssuePaths({ intent: "compare", roles: { left: ["1"] } }),
+      ).toEqual(["cue.roles.right"]);
+      expect(
+        getCueIssuePaths({ intent: "trace", roles: { source: "1" } }),
+      ).toEqual(["cue.roles.destination"]);
+    });
+
+    it("다른 intent의 role을 쓰면 거부한다", () => {
+      expect(
+        getCueIssuePaths({
+          intent: "warn",
+          roles: { subject: ["1"], correctAnswer: ["2"] },
+        }),
+      ).toEqual(["cue.roles"]);
+    });
+
+    it("개수 규칙과 다른 모양을 거부한다", () => {
+      expect(
+        getCueIssuePaths({ intent: "introduce", roles: { subject: ["1"] } }),
+      ).toEqual(["cue.roles.subject"]);
+      expect(
+        getCueIssuePaths({ intent: "emphasize", roles: { subject: "1" } }),
+      ).toEqual(["cue.roles.subject"]);
+    });
+
+    it("필수든 선택이든 주어진 배열이 비어 있으면 거부한다", () => {
+      expect(
+        getCueIssuePaths({ intent: "recap", roles: { subject: [] } }),
+      ).toEqual(["cue.roles.subject"]);
+      expect(
+        getCueIssuePaths({
+          intent: "decompose",
+          roles: { parent: "1", children: [] },
+        }),
+      ).toEqual(["cue.roles.children"]);
+    });
+
+    it("role 안의 노드 ID 형식도 검사한다", () => {
+      expect(
+        getCueIssuePaths({
+          intent: "compare",
+          roles: { left: ["1"], right: ["2", "x"] },
+        }),
+      ).toContain("cue.roles.right.1");
+    });
   });
 });
