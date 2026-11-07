@@ -1,12 +1,14 @@
 import { describe, expect, it } from "vitest";
 import { type ScenarioDelivery } from "../scenario/types";
 import { lectureAnimationSchema } from "../scriptSchema";
+import { getAnimationCompositionIssues } from "./getAnimationCompositionIssues";
 import { getLectureRecipeAnimation } from "./getLectureRecipeAnimation";
 import {
   getLectureRecipe,
   LECTURE_RECIPE_REGISTRIES,
   type LectureRecipeId,
 } from "./registry";
+import { type LectureAnimation } from "../types";
 import { type LectureRecipeTree } from "./types";
 
 /*
@@ -65,6 +67,21 @@ const DELIVERY_VARIANTS: Record<string, ScenarioDelivery | undefined> = {
   persist: { continuity: "persist" },
 };
 
+/*
+랩 타임라인은 단위 동작, 동작만 담은 병렬 그룹, 그리고 그 둘을 담은 순차 그룹까지만 표현한다.
+recipe 규칙이 아니라 프리셋을 랩에서 편집하기 위한 조건이다.
+*/
+const isActionOnlyParallel = (animation: LectureAnimation): boolean =>
+  animation.type !== "group" ||
+  (animation.mode === "parallel" &&
+    animation.children.every((child) => child.type !== "group"));
+
+const isLabTimelineShape = (animation: LectureAnimation): boolean =>
+  isActionOnlyParallel(animation) ||
+  (animation.type === "group" &&
+    animation.mode === "sequence" &&
+    animation.children.every(isActionOnlyParallel));
+
 const RECIPE_IDS = Object.keys(SAMPLE_INPUTS) as LectureRecipeId<1>[];
 
 const getResult = (
@@ -112,6 +129,24 @@ describe("recipe registry 1", () => {
         expect(
           lectureAnimationSchema.safeParse(getAnimation(id, delivery)).success,
         ).toBe(true);
+      },
+    );
+
+    it.each(Object.entries(DELIVERY_VARIANTS))(
+      "%s delivery로 만든 애니메이션은 함께 실행할 수 있다",
+      (_, delivery) => {
+        expect(
+          getAnimationCompositionIssues(getAnimation(id, delivery), {
+            allowLingeringPersist: delivery?.continuity === "persist",
+          }),
+        ).toEqual([]);
+      },
+    );
+
+    it.each(Object.entries(DELIVERY_VARIANTS))(
+      "%s delivery로 만든 애니메이션은 랩 타임라인이 표현하는 모양(순차 안의 병렬)을 넘지 않는다",
+      (_, delivery) => {
+        expect(isLabTimelineShape(getAnimation(id, delivery))).toBe(true);
       },
     );
 

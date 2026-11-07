@@ -31,7 +31,9 @@ export type LectureRecipeContext = {
 };
 
 /*
-recipe를 만들지 못한 이유. path는 입력 안의 위치로, 컴파일러가 cue의 role 위치로 옮겨 보고한다.
+recipe를 만들지 못했거나 애니메이션을 함께 실행할 수 없는 이유.
+path는 recipe 실패면 입력 안의 위치이고, 조합 검사(getAnimationCompositionIssues)면 애니메이션 안의 위치다.
+컴파일러가 각각 cue의 role 위치와 생성 동작의 출처로 옮겨 보고한다.
 */
 export type LectureRecipeIssue = {
   path: PropertyKey[];

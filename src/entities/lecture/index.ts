@@ -95,3 +95,6 @@ export {
   getLectureRecipe,
   LECTURE_RECIPE_REGISTRIES,
 } from "./model/recipes/registry";
+export { getAnimationCompositionIssues } from "./model/recipes/getAnimationCompositionIssues";
+export { createRecipeFailure } from "./model/recipes/getLectureRecipeAnimation";
+export type { LectureRecipeFailure } from "./model/recipes/types";
