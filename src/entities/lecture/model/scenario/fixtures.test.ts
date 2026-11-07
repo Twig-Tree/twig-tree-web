@@ -32,20 +32,24 @@ const invalidFixtures = readFixtures("invalid") as {
   };
 }[];
 
-const ALL_INTENTS: SemanticIntent[] = [
-  "introduce",
-  "emphasize",
-  "compare",
-  "decompose",
-  "trace",
-  "reveal",
-  "warn",
-  "correct",
-  "incorrect",
-  "transition",
-  "recap",
-  "summarize",
-];
+/*
+Record로 두어 intent를 추가하면 여기서 타입 오류가 나고, 아래 테스트가 유효 fixture에 그 intent가 있는지 확인하게 된다.
+*/
+const INTENT_SET: Record<SemanticIntent, true> = {
+  introduce: true,
+  emphasize: true,
+  compare: true,
+  decompose: true,
+  trace: true,
+  reveal: true,
+  warn: true,
+  correct: true,
+  incorrect: true,
+  transition: true,
+  recap: true,
+  summarize: true,
+};
+const ALL_INTENTS = Object.keys(INTENT_SET);
 
 describe("강의 시나리오 fixture", () => {
   it("대표 강의 시나리오가 5개 이상이고 모든 intent를 한 번 이상 쓴다", () => {
