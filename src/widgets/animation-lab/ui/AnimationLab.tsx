@@ -19,15 +19,44 @@ import {
   useTreeStore,
   useVisibleElements,
 } from "@/src/features/tree-editor";
+import { type LectureAnimation } from "@/src/entities/lecture";
 import {
   ANIMATION_LAB_TREE,
   ANIMATION_LAB_TREE_ID,
 } from "../model/fixtureTree";
-import { getLabAnimation } from "../model/labTimeline";
+import {
+  getLabRecipeRun,
+  LAB_RECIPE_IDS,
+  LAB_RECIPE_SAMPLE_INPUTS,
+} from "../model/labRecipeRun";
+import {
+  getLabAnimation,
+  getLabStepsFromAnimation,
+} from "../model/labTimeline";
 import { createLabPresetSteps, LAB_PRESETS } from "../model/presets";
 import { useAnimationLabPlayback } from "../model/useAnimationLabPlayback";
 import { useLabTimeline } from "../model/useLabTimeline";
+import { isLabTimelinePlayable } from "../model/validateLabStep";
 import { AnimationComposer } from "./AnimationComposer";
+import { LabPlaybackControls } from "./LabPlaybackControls";
+import { type LabRecipeDraft, LabRecipeComposer } from "./LabRecipeComposer";
+
+type LabMode = "atomic" | "recipe";
+
+const LAB_MODES: { mode: LabMode; label: string; description: string }[] = [
+  { mode: "atomic", label: "Atomic", description: "단위 동작을 직접 조합" },
+  { mode: "recipe", label: "Recipe", description: "recipe 하나를 실행" },
+];
+
+const INITIAL_RECIPE_DRAFT: LabRecipeDraft = {
+  recipeId: LAB_RECIPE_IDS[0],
+  inputText: JSON.stringify(
+    LAB_RECIPE_SAMPLE_INPUTS[LAB_RECIPE_IDS[0]],
+    null,
+    2,
+  ),
+  delivery: {},
+};
 
 const handleSelectedNodeHidden = () => {}; // 닫을 메모 패널이 없다. 렌더마다 새 함수가 되면 useVisibleElements의 effect가 매번 다시 돈다.
 
@@ -76,7 +105,14 @@ function AnimationLabCanvas() {
     isLayoutRunning,
   });
 
+  const [mode, setMode] = useState<LabMode>("atomic");
   const timeline = useLabTimeline(() => createLabPresetSteps(LAB_PRESETS[0]));
+  const [recipeDraft, setRecipeDraft] = useState(INITIAL_RECIPE_DRAFT);
+  const recipeRun = getLabRecipeRun(
+    recipeDraft.recipeId,
+    recipeDraft.inputText,
+    recipeDraft.delivery,
+  );
   const [isLooping, setIsLooping] = useState(false);
   const { play, stop, isPlaying, stage } = useAnimationLabPlayback({
     revealNodes,
@@ -89,6 +125,30 @@ function AnimationLabCanvas() {
     fitTreeView();
   };
 
+  /*
+  모드마다 재생할 애니메이션이 다르다. 고쳐야 할 입력이 남아 있으면 재생을 막는다.
+  */
+  const playableAnimation =
+    mode === "atomic"
+      ? isLabTimelinePlayable(timeline.steps, ANIMATION_LAB_TREE)
+        ? getLabAnimation(timeline.steps)
+        : null
+      : recipeRun.success
+        ? recipeRun.animation
+        : null;
+
+  /*
+  recipe 결과를 단위 동작으로 풀어 Atomic 타임라인에서 하나씩 고치게 한다.
+  */
+  const handleMoveToTimeline = (animation: LectureAnimation) => {
+    const result = getLabStepsFromAnimation(animation);
+    if ("error" in result) return;
+
+    stop();
+    timeline.replaceSteps(result.steps);
+    setMode("atomic");
+  };
+
   return (
     <div className="flex h-full min-h-0 w-full">
       <aside
@@ -96,16 +156,58 @@ function AnimationLabCanvas() {
         className="w-96 shrink-0 overflow-y-auto border-r border-line bg-surface-muted p-4"
       >
         <h2 className="mb-3 text-sm font-bold text-content">Animation Lab</h2>
-        <AnimationComposer
-          timeline={timeline}
-          isPlaying={isPlaying}
-          stage={stage}
-          isLooping={isLooping}
-          onChangeLooping={setIsLooping}
-          onPlay={() => play(getLabAnimation(timeline.steps))}
-          onStop={stop}
-          onReset={handleReset}
-        />
+        <div className="flex flex-col gap-4">
+          <div
+            role="tablist"
+            aria-label="실험 모드"
+            className="grid grid-cols-2 gap-1 rounded-control border border-line bg-surface p-1"
+          >
+            {LAB_MODES.map((item) => (
+              <button
+                key={item.mode}
+                type="button"
+                role="tab"
+                aria-selected={mode === item.mode}
+                title={item.description}
+                className={`h-8 rounded-control text-xs font-bold ${
+                  mode === item.mode
+                    ? "bg-accent text-on-accent"
+                    : "text-content-secondary hover:bg-surface-hover"
+                }`}
+                onClick={() => {
+                  stop();
+                  setMode(item.mode);
+                }}
+              >
+                {item.label}
+              </button>
+            ))}
+          </div>
+
+          <LabPlaybackControls
+            isPlayDisabled={playableAnimation === null}
+            isPlaying={isPlaying}
+            stage={stage}
+            isLooping={isLooping}
+            onChangeLooping={setIsLooping}
+            onPlay={() => {
+              if (playableAnimation) play(playableAnimation);
+            }}
+            onStop={stop}
+            onReset={handleReset}
+          />
+
+          {mode === "atomic" ? (
+            <AnimationComposer timeline={timeline} />
+          ) : (
+            <LabRecipeComposer
+              draft={recipeDraft}
+              run={recipeRun}
+              onChangeDraft={setRecipeDraft}
+              onMoveToTimeline={handleMoveToTimeline}
+            />
+          )}
+        </div>
       </aside>
 
       <div className="relative min-h-0 min-w-0 flex-1">
@@ -118,7 +220,7 @@ function AnimationLabCanvas() {
           onNodesChange={onNodesChange}
           onEdgesChange={onEdgesChange}
           onNodeClick={(_, node) => {
-            if (node.data.serverId !== null) {
+            if (mode === "atomic" && node.data.serverId !== null) {
               timeline.toggleActiveStepNode(node.data.serverId);
             }
           }}

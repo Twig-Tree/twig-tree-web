@@ -2,11 +2,13 @@ import {
   getLectureRecipe,
   getLectureRecipeAnimation,
   type LectureAnimation,
-  type LectureRecipeId,
   type ScenarioDelivery,
 } from "@/src/entities/lecture";
-import { ANIMATION_LAB_TREE } from "./fixtureTree";
-import { createLabRecipeTree } from "./labRecipeTree";
+import {
+  LAB_RECIPE_REGISTRY_VERSION,
+  LAB_RECIPE_TREE,
+  type LabRecipeId,
+} from "./labRecipeRun";
 import { getLabStepsFromAnimation, type LabStep } from "./labTimeline";
 
 export const LAB_PRESET_CATEGORIES = [
@@ -23,7 +25,7 @@ export type LabPresetCategory = (typeof LAB_PRESET_CATEGORIES)[number];
 프리셋이 부르는 recipe 하나. 노드는 model/fixtureTree.ts의 고정 트리를 가리킨다.
 */
 export type LabRecipeCall = {
-  recipeId: LectureRecipeId<typeof LAB_RECIPE_REGISTRY_VERSION>;
+  recipeId: LabRecipeId;
   input: Record<string, string | string[]>; // recipe의 노드 역할. 형식은 recipe 스키마가 검사한다
   delivery?: ScenarioDelivery; // 비우면 recipe의 기본값을 쓴다
 };
@@ -35,10 +37,6 @@ export type LabPreset = {
   description: string;
   calls: LabRecipeCall[]; // 차례로 실행할 recipe. 프리셋은 동작을 직접 갖지 않는다
 };
-
-const LAB_RECIPE_REGISTRY_VERSION = 1;
-
-const labRecipeTree = createLabRecipeTree(ANIMATION_LAB_TREE);
 
 export const LAB_PRESETS: LabPreset[] = [
   {
@@ -246,7 +244,7 @@ export const getLabPresetAnimation = (preset: LabPreset): LectureAnimation => {
     const result = getLectureRecipeAnimation(
       getLectureRecipe(LAB_RECIPE_REGISTRY_VERSION, recipeId),
       input,
-      { delivery, tree: labRecipeTree },
+      { delivery, tree: LAB_RECIPE_TREE },
     );
 
     if (!result.success) {

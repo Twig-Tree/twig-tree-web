@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ArrowDown, ArrowUp, Play, Square, Undo2, X } from "lucide-react";
+import { ArrowDown, ArrowUp, X } from "lucide-react";
 import { Button } from "@/src/shared/ui/button";
 import { IconButton } from "@/src/shared/ui/icon-button";
 import {
@@ -9,7 +9,7 @@ import {
 } from "@/src/entities/lecture";
 import { ANIMATION_LAB_TREE } from "../model/fixtureTree";
 import { LAB_ACTIONS } from "../model/labActions";
-import { getLabAnimation, type LabStep } from "../model/labTimeline";
+import { getLabAnimation } from "../model/labTimeline";
 import {
   LAB_PRESET_CATEGORIES,
   createLabPresetSteps,
@@ -17,19 +17,11 @@ import {
   type LabPresetCategory,
 } from "../model/presets";
 import { type useLabTimeline } from "../model/useLabTimeline";
-import { validateLabAction } from "../model/validateLabStep";
 import { LabJsonEditor } from "./LabJsonEditor";
 import { LabStepEditor } from "./LabStepEditor";
 
 type AnimationComposerProps = {
   timeline: ReturnType<typeof useLabTimeline>; // 편집 중인 타임라인
-  isPlaying: boolean; // 재생 중인지 여부
-  stage: string | null; // 지금 실행 중인 동작 이름
-  isLooping: boolean; // 반복 재생 여부
-  onChangeLooping: (isLooping: boolean) => void; // 반복 재생을 켜고 끈다
-  onPlay: () => void; // 타임라인을 재생한다
-  onStop: () => void; // 재생을 멈추고 시각 효과를 지운다
-  onReset: () => void; // 재생을 멈추고 카메라까지 되돌린다
 };
 
 const ACTION_BUTTONS = LECTURE_EFFECT_TYPES.map((type) => ({
@@ -61,20 +53,11 @@ const getLabActionSummary = (action: LectureAnimationAction): string => {
 
 /*
 함수 이름 : AnimationComposer
-기능 : 프리셋과 단계 추가로 타임라인을 만들고, 값을 고쳐 바로 재생하게 한다.
+기능 : 프리셋과 단계 추가로 타임라인을 만들고 단계마다 값을 고친다. 재생은 화면이 모드와 함께 다룬다.
 인자 : AnimationComposerProps
 반환값 : 애니메이션 조합 도구
 */
-export function AnimationComposer({
-  timeline,
-  isPlaying,
-  stage,
-  isLooping,
-  onChangeLooping,
-  onPlay,
-  onStop,
-  onReset,
-}: AnimationComposerProps) {
+export function AnimationComposer({ timeline }: AnimationComposerProps) {
   const [presetCategory, setPresetCategory] = useState<
     "전체" | LabPresetCategory
   >("전체");
@@ -96,58 +79,8 @@ export function AnimationComposer({
       ? LAB_PRESETS
       : LAB_PRESETS.filter((preset) => preset.category === presetCategory);
 
-  /*
-  빈 대상으로 재생하면 실패한 것처럼 보이므로 막는다. 연결선 경고는 일부라도 보이지만, 끊긴 경로는 고쳐야 할 입력이라 함께 막는다.
-  */
-  const isPlayDisabled =
-    steps.length === 0 ||
-    steps.some(
-      (step: LabStep) =>
-        validateLabAction(step.action, ANIMATION_LAB_TREE) !== null,
-    );
-
   return (
     <div className="flex flex-col gap-4">
-      <section aria-label="재생" className="flex flex-col gap-2">
-        <div className="flex gap-2">
-          <Button
-            variant="primary"
-            className="flex-1"
-            disabled={isPlayDisabled}
-            onClick={onPlay}
-          >
-            <Play className="size-4" aria-hidden="true" />
-            {isPlaying ? "처음부터" : "재생"}
-          </Button>
-          <Button className="flex-1" disabled={!isPlaying} onClick={onStop}>
-            <Square className="size-3.5" aria-hidden="true" />
-            중단
-          </Button>
-          <Button className="flex-1" onClick={onReset}>
-            <Undo2 className="size-3.5" aria-hidden="true" />
-            초기화
-          </Button>
-        </div>
-
-        <div className="flex items-center justify-between">
-          <label className="flex items-center gap-2 text-xs font-medium text-content-secondary">
-            <input
-              type="checkbox"
-              checked={isLooping}
-              onChange={(event) => onChangeLooping(event.target.checked)}
-            />
-            반복 재생
-          </label>
-          <p
-            role="status"
-            aria-live="polite"
-            className="text-xs font-medium text-accent"
-          >
-            {isPlaying ? `실행 중: ${stage ?? "준비"}` : "대기 중"}
-          </p>
-        </div>
-      </section>
-
       <section aria-label="프리셋">
         <div className="flex items-center justify-between gap-2">
           <h3 className="text-xs font-bold text-content-secondary">프리셋</h3>
