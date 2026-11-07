@@ -2,7 +2,7 @@
 
 외부 모델이 생성하는 `LectureScenario`의 모양과 규칙을 정리한다. 상위 작업은 [#131](https://github.com/Twig-Tree/twig-tree-web/issues/131)이다.
 
-플레이어가 재생하는 [`LectureScript`](./lecture-script-contract.md)와 다른 계약이다. 시나리오는 "무엇을 가르치려는지"만 담고, 컴파일러가 이를 "화면에서 무엇을 몇 ms 동안 할지"를 담은 `LectureScript`로 바꾼다.
+플레이어가 재생하는 [`LectureScript`](./lecture-script-contract.md)와 다른 계약이다. 시나리오는 "무엇을 가르치려는지"만 담고, [컴파일러](./lecture-compiler.md)가 이를 "화면에서 무엇을 몇 ms 동안 할지"를 담은 `LectureScript`로 바꾼다.
 
 ```text
 외부 모델 → LectureScenario → 컴파일러(레시피 + motion token) → LectureScript → 플레이어
@@ -20,7 +20,7 @@
 | intent를 실제 동작으로 바꾸는 방법(레시피)        |      | O ([recipe](./lecture-recipes.md))             |
 | 시간, easing, 색 같은 구체 값(motion token)       |      | O ([motion token](./lecture-motion-tokens.md)) |
 | 내레이션 재생 시간                                |      | O (글자 수로 계산)                             |
-| 노드가 실제 트리에 있는지, 경로가 이어지는지      |      | O (컴파일러, #139)                             |
+| 노드가 실제 트리에 있는지, 경로가 이어지는지      |      | O ([컴파일러](./lecture-compiler.md))          |
 | 접근성 대체(reduced-motion)                       |      | O                                              |
 
 그래서 시나리오에는 atomic 동작(`highlight`, `focus` 등)과 `durationMs`, `fallbackDurationMs`가 없다. 모든 객체가 정의하지 않은 필드를 거부하므로, 모델이 이런 값을 넣으면 시나리오 전체가 거부된다.
@@ -124,3 +124,5 @@ JSON Schema로 표현할 수 없는 규칙은 파일에 빠져 있다.
 - `invalid/`: `description`, 거부될 위치 `expectedIssuePaths`, `scenario`를 담는다. 위치까지 맞아야 통과하므로 다른 이유로 거부되어 우연히 통과하지 않는다.
 
 intent를 추가하면 유효 fixture 중 하나에 그 intent를 쓰는 cue를 넣는다. 넣지 않으면 fixture 테스트가 실패한다.
+
+`trees/`에는 유효 fixture마다 같은 이름으로 그 시나리오가 전제하는 트리를 둔다. 컴파일러 테스트가 이 트리로 fixture를 실제로 컴파일한다([컴파일러 fixture](./lecture-compiler.md#fixture)). 유효 fixture를 추가하면 트리도 함께 추가한다.
