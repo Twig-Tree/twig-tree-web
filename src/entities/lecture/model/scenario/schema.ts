@@ -11,18 +11,26 @@ import {
 atomic 동작과 시간은 서비스의 컴파일러가 정한다. 그래서 이 계약에는 durationMs가 없다.
 */
 
+/*
+시나리오 모양의 버전. 기존 시나리오를 거부하게 되는 변경(필드 삭제·이름 변경, 규칙 강화)에서만 올린다.
+intent나 delivery 값을 추가하는 것처럼 기존 시나리오가 그대로 통과하는 변경에서는 올리지 않는다.
+*/
 export const LECTURE_SCENARIO_SCHEMA_VERSION = 1;
+
+/*
+컴파일러가 해석할 수 있는 레시피 모음의 버전. 같은 시나리오와 같은 레시피 버전은 항상 같은 연출로 컴파일된다.
+연출 결과가 달라지는 레시피 변경마다 새 버전을 더하고, 기존 버전으로 만든 시나리오를 재현할 수 있는 동안 목록에 남긴다.
+*/
+export const SUPPORTED_RECIPE_REGISTRY_VERSIONS = [1] as const;
 
 /*
 서버 노드 ID 문자열. pattern은 JSON Schema로도 나가 모델에게 형식을 알려 주고,
 안전 정수 범위는 JSON Schema로 표현할 수 없어 isValidApiId로 한 번 더 검사한다.
 */
-const nodeIdSchema = z
-  .string()
-  .check(
-    z.regex(/^[1-9]\d*$/),
-    z.refine(isValidApiId, { message: "서버 노드 ID 형식이 아닙니다." }),
-  );
+export const nodeIdSchema = z.string().check(
+  z.regex(/^[1-9]\d*$/, { abort: true }), // 형식이 틀리면 범위 검사까지 같은 위치에 오류를 겹쳐 내지 않는다
+  z.refine(isValidApiId, { message: "서버 노드 ID 형식이 아닙니다." }),
+);
 
 /*
 delivery는 모두 선택값이다. 빠진 값의 기본값은 intent마다 다를 수 있어(tone 등) 스키마가 아니라 컴파일러가 채운다.
@@ -36,7 +44,7 @@ export const scenarioDeliverySchema = z.strictObject({
   continuity: z.optional(z.enum(["transient", "persist"])), // persist면 같은 장면의 다음 비트까지 효과를 남긴다
 });
 
-const nodeIdListSchema = z.array(nodeIdSchema).check(z.minLength(1));
+export const nodeIdListSchema = z.array(nodeIdSchema).check(z.minLength(1));
 
 /*
 role의 개수 규칙은 모양으로 표현한다.
@@ -134,7 +142,7 @@ export const scenarioSceneSchema = z.strictObject({
 export const lectureScenarioSchema = z
   .strictObject({
     scenarioSchemaVersion: z.literal(LECTURE_SCENARIO_SCHEMA_VERSION),
-    recipeRegistryVersion: z.int().check(z.positive()), // 지원 범위는 버전 정책 단계에서 정한다
+    recipeRegistryVersion: z.literal(SUPPORTED_RECIPE_REGISTRY_VERSIONS),
     title: z.string().check(z.minLength(1)),
     scenes: z.array(scenarioSceneSchema).check(z.minLength(1)),
   })
