@@ -56,7 +56,7 @@ type TimedAction = IndexedAction & {
 인자 : LectureAnimation animation -> 애니메이션
 반환값 : 걸리는 시간(ms). reset처럼 시간이 없는 동작은 0
 */
-const getAnimationDurationMs = (animation: LectureAnimation): number => {
+export const getAnimationDurationMs = (animation: LectureAnimation): number => {
   if (animation.type !== "group") {
     return "durationMs" in animation ? animation.durationMs : 0;
   }
@@ -112,7 +112,7 @@ const isVisualReset = (action: LectureAnimationAction): boolean =>
 const isPersistent = (action: LectureAnimationAction): boolean =>
   "persist" in action && action.persist === true;
 
-const isCameraAction = (action: LectureAnimationAction): boolean =>
+export const isCameraAction = (action: LectureAnimationAction): boolean =>
   action.type === "reset"
     ? action.scope !== "visual"
     : LECTURE_ATOMIC_EFFECTS[action.type].motion === "camera";

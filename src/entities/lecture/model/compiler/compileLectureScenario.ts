@@ -2,6 +2,11 @@ import { type LectureRecipeRegistryVersion } from "../recipes/registry";
 import { lectureScenarioSchema } from "../scenario/schema";
 import { type ScenarioBeat } from "../scenario/types";
 import { type LectureAnimation, type LectureBeat } from "../types";
+import {
+  getBeatTimingIssues,
+  getMissingRoleNodeIssues,
+  getSceneCompositionIssues,
+} from "./compileChecks";
 import { getCueRecipeAnimation } from "./intentRecipes";
 import { getLectureNarration } from "./narration";
 import {
@@ -63,6 +68,18 @@ const compileBeat = (
   const isSingleCue = beat.cues.length === 1;
 
   beat.cues.forEach((cue, cueIndex) => {
+    const cuePath = [...beatPath, "cues", cueIndex];
+
+    /*
+    없는 노드로 recipe를 실행하면 "자식이 없음"처럼 원인과 다른 실패가 나므로 노드 확인을 먼저 한다.
+    */
+    const missingNodeIssues = getMissingRoleNodeIssues(cue, cuePath, tree);
+
+    if (missingNodeIssues.length > 0) {
+      issues.push(...missingNodeIssues);
+      return;
+    }
+
     const result = getCueRecipeAnimation(cue, version, tree);
 
     if (!result.success) {
@@ -70,7 +87,7 @@ const compileBeat = (
         ...result.issues.map(({ path, message }) => ({
           severity: "error" as const,
           stage: "recipe" as const,
-          path: [...beatPath, "cues", cueIndex, ...path],
+          path: [...cuePath, ...path],
           message,
         })),
       );
@@ -133,23 +150,51 @@ export const compileLectureScenario = (
   const issues: LectureCompileIssue[] = [];
   const sourceMap: Record<string, LectureSourceMapEntry[]> = {};
 
-  const scenes = scenario.scenes.map((scene, sceneIndex) => ({
-    id: scene.id,
-    nodeId: scene.nodeId,
-    beats: scene.beats.map((beat, beatIndex) => {
-      const compiled = compileBeat(
+  const scenes = scenario.scenes.map((scene, sceneIndex) => {
+    const scenePath = ["scenes", sceneIndex];
+
+    if (!tree.hasNode(scene.nodeId)) {
+      issues.push({
+        severity: "error",
+        stage: "node",
+        path: [...scenePath, "nodeId"],
+        message: `트리에 없는 노드(${scene.nodeId})입니다.`,
+      });
+    }
+
+    const compiledBeats = scene.beats.map((beat, beatIndex) => ({
+      ...compileBeat(
         beat,
-        ["scenes", sceneIndex, "beats", beatIndex],
+        [...scenePath, "beats", beatIndex],
         scenario.recipeRegistryVersion,
         tree,
-      );
+      ),
+      beatPath: [...scenePath, "beats", beatIndex],
+    }));
 
+    for (const compiled of compiledBeats) {
       issues.push(...compiled.issues);
-      sourceMap[beat.id] = compiled.sourceMap;
+      sourceMap[compiled.beat.id] = compiled.sourceMap;
+    }
 
-      return compiled.beat;
-    }),
-  }));
+    /*
+    실패한 cue가 있으면 비트 애니메이션이 빠져 있어, 조합과 시간 검사가 엉뚱한 문제를 낼 수 있다. 장면 단위로 건너뛴다.
+    */
+    if (compiledBeats.every((compiled) => compiled.issues.length === 0)) {
+      issues.push(
+        ...getSceneCompositionIssues(compiledBeats),
+        ...compiledBeats.flatMap(({ beat, beatPath }) =>
+          getBeatTimingIssues(beat, beatPath),
+        ),
+      );
+    }
+
+    return {
+      id: scene.id,
+      nodeId: scene.nodeId,
+      beats: compiledBeats.map(({ beat }) => beat),
+    };
+  });
 
   if (issues.some(({ severity }) => severity === "error")) {
     return { success: false, issues };

@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { lectureScriptSchema } from "../scriptSchema";
 import { type LectureScenario, type ScenarioCue } from "../scenario/types";
+import { MAX_BEAT_CAMERA_MOVES, MAX_BEAT_DURATION_MS } from "./compileChecks";
 import { compileLectureScenario } from "./compileLectureScenario";
 import { getCueRecipeAnimation } from "./intentRecipes";
 import {
@@ -225,5 +226,163 @@ describe("getLectureNarration", () => {
     expect(getLectureNarration({ text }).fallbackDurationMs).toBe(
       20 * NARRATION_MS_PER_CHARACTER,
     );
+  });
+});
+
+describe("compileLectureScenario 검증", () => {
+  it("트리에 없는 노드는 node 단계 오류로 보고하고 그 cue의 recipe를 실행하지 않는다", () => {
+    const result = compileLectureScenario(
+      createScenario([
+        [{ intent: "decompose", roles: { parent: "99", children: ["5"] } }],
+      ]),
+      OPTIONS,
+    );
+
+    expect(!result.success && result.issues).toEqual([
+      {
+        severity: "error",
+        stage: "node",
+        path: ["scenes", 0, "beats", 0, "cues", 0, "roles", "parent"],
+        message: "트리에 없는 노드(99)입니다.",
+      },
+    ]);
+  });
+
+  it("목록 role의 없는 노드는 목록 안의 위치로 보고한다", () => {
+    const result = compileLectureScenario(
+      createScenario([
+        [{ intent: "emphasize", roles: { subject: ["5", "99"] } }],
+      ]),
+      OPTIONS,
+    );
+
+    expect(!result.success && result.issues.map(({ path }) => path)).toEqual([
+      ["scenes", 0, "beats", 0, "cues", 0, "roles", "subject", 1],
+    ]);
+  });
+
+  it("장면의 중심 노드가 트리에 없으면 오류다", () => {
+    const scenario = createScenario([[INTRODUCE_ROOT]]);
+    scenario.scenes[0].nodeId = "99";
+
+    const result = compileLectureScenario(scenario, OPTIONS);
+
+    expect(!result.success && result.issues.map(({ path }) => path)).toEqual([
+      ["scenes", 0, "nodeId"],
+    ]);
+  });
+
+  it("앞 비트에서 남긴 persist 흐림과 다른 노드를 남기는 흐림을 그 cue의 조합 오류로 보고한다", () => {
+    const result = compileLectureScenario(
+      createScenario([
+        [
+          {
+            intent: "emphasize",
+            roles: { subject: ["5"] },
+            delivery: { continuity: "persist" },
+          },
+        ],
+        [
+          INTRODUCE_ROOT,
+          {
+            intent: "emphasize",
+            roles: { subject: ["6"] },
+            delivery: { continuity: "persist" },
+          },
+        ],
+      ]),
+      OPTIONS,
+    );
+
+    expect(
+      !result.success &&
+        result.issues.map(({ severity, stage, path }) => ({
+          severity,
+          stage,
+          path,
+        })),
+    ).toEqual([
+      {
+        severity: "error",
+        stage: "composition",
+        path: ["scenes", 0, "beats", 1, "cues", 1],
+      },
+    ]);
+  });
+
+  it("장면 끝까지 남는 persist 효과는 플레이어가 지우므로 문제로 보지 않는다", () => {
+    const result = compileLectureScenario(
+      createScenario([
+        [
+          {
+            intent: "emphasize",
+            roles: { subject: ["5"] },
+            delivery: { continuity: "persist" },
+          },
+        ],
+      ]),
+      OPTIONS,
+    );
+
+    expect(result.success && result.warnings).toEqual([]);
+  });
+
+  it("비트가 너무 길면 경고하지만 대본은 만든다", () => {
+    const scenario = createScenario([[INTRODUCE_ROOT]]);
+    scenario.scenes[0].beats[0].narration.text = "가".repeat(
+      Math.ceil(MAX_BEAT_DURATION_MS / NARRATION_MS_PER_CHARACTER) + 1,
+    );
+
+    const result = compileLectureScenario(scenario, OPTIONS);
+
+    expect(result.success).toBe(true);
+    expect(
+      result.success &&
+        result.warnings.map(({ severity, stage, path }) => ({
+          severity,
+          stage,
+          path,
+        })),
+    ).toEqual([
+      {
+        severity: "warning",
+        stage: "duration",
+        path: ["scenes", 0, "beats", 0],
+      },
+    ]);
+  });
+
+  it("비트 하나에서 카메라가 너무 자주 움직이면 경고한다", () => {
+    const cues: ScenarioCue[] = ["2", "3", "4", "5"].map((nodeId) => ({
+      intent: "introduce",
+      roles: { subject: nodeId },
+    }));
+
+    const fewer = compileLectureScenario(
+      createScenario([cues.slice(0, MAX_BEAT_CAMERA_MOVES)]),
+      OPTIONS,
+    );
+    const more = compileLectureScenario(createScenario([cues]), OPTIONS);
+
+    expect(fewer.success && fewer.warnings).toEqual([]);
+    expect(more.success && more.warnings.map(({ message }) => message)).toEqual(
+      [
+        `비트 하나에서 카메라가 4번 움직입니다. ${MAX_BEAT_CAMERA_MOVES}번 이하로 나누는 편이 좋습니다.`,
+      ],
+    );
+  });
+
+  it("실패한 cue가 있는 장면은 조합과 시간 검사를 건너뛴다", () => {
+    const result = compileLectureScenario(
+      createScenario([
+        [{ intent: "summarize", roles: { subject: "12" } }],
+        [{ intent: "emphasize", roles: { subject: ["5"] } }],
+      ]),
+      OPTIONS,
+    );
+
+    expect(!result.success && result.issues.map(({ stage }) => stage)).toEqual([
+      "recipe",
+    ]);
   });
 });
