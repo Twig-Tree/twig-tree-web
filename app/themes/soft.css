@@ -68,6 +68,9 @@ hover, 비활성, 경고, 성공, 정보 색은 Lab에 없어 제품 사용처�
   --theme-edge: #cfc4da;
   --theme-edge-marker-fill: none;
   --theme-highlight: #ec4899;
+  --theme-lecture-current: #7c3aed;
+  /* 강조와 추적이 캔버스에서 구별되도록 대비 3:1을 맞춘다. */
+  --theme-lecture-animation: #0891b2;
   --theme-node: #fffafd;
   --theme-node-line: #e7dff0;
   --theme-node-content: #31233d;

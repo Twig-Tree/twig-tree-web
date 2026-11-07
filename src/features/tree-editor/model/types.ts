@@ -1,4 +1,11 @@
 import { type Node, type Edge } from "@xyflow/react";
+import {
+  type LectureAnimationAction,
+  type LectureAnimationGroup,
+  type LectureBeat,
+  type LectureScene,
+  type LectureScript,
+} from "@/src/entities/lecture";
 import { TreeNode } from "@/src/entities/tree/model/types";
 
 // 트리 정렬 방향
@@ -37,3 +44,66 @@ export type NodeResult = {
   label: string; // 목록에 보여 줄 노드 이름
   isMemoMatched: boolean; // 메모에서 일치했는지. 태그 결과는 false
 };
+
+type EditorLectureNodeAction =
+  | (Omit<
+      Extract<LectureAnimationAction, { type: "focus" }>,
+      "targetNodeIds"
+    > & {
+      targetClientIds: string[];
+    })
+  | (Omit<
+      Extract<LectureAnimationAction, { type: "highlight" }>,
+      "targetNodeIds"
+    > & {
+      targetClientIds: string[];
+    })
+  | (Omit<Extract<LectureAnimationAction, { type: "dim" }>, "exceptNodeIds"> & {
+      exceptClientIds: string[];
+    })
+  | (Omit<Extract<LectureAnimationAction, { type: "trace" }>, "nodeIds"> & {
+      clientIds: string[];
+    })
+  | (Omit<
+      Extract<LectureAnimationAction, { type: "collapse" }>,
+      "targetNodeIds"
+    > & {
+      targetClientIds: string[];
+    })
+  | (Omit<
+      Extract<LectureAnimationAction, { type: "expand" }>,
+      "targetNodeIds"
+    > & {
+      targetClientIds: string[];
+    });
+
+export type EditorLectureAnimationAction =
+  | EditorLectureNodeAction
+  | Extract<LectureAnimationAction, { type: "reset" }>;
+
+export interface EditorLectureAnimationGroup extends Omit<
+  LectureAnimationGroup,
+  "children"
+> {
+  children: EditorLectureAnimation[];
+}
+
+export type EditorLectureAnimation =
+  | EditorLectureAnimationAction
+  | EditorLectureAnimationGroup;
+
+export interface EditorLectureBeat extends Omit<LectureBeat, "animation"> {
+  animation: EditorLectureAnimation;
+}
+
+export interface EditorLectureScene extends Omit<
+  LectureScene,
+  "nodeId" | "beats"
+> {
+  clientId: string;
+  beats: EditorLectureBeat[];
+}
+
+export interface EditorLectureScript extends Omit<LectureScript, "scenes"> {
+  scenes: EditorLectureScene[];
+}

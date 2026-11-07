@@ -9,14 +9,17 @@ import {
 import {
   DropIndicatorOverlay,
   EditorToolbar,
+  LecturePlayer,
   MemoSidePanel,
   NodeContextMenu,
   edgeTypes,
   MIN_ZOOM,
   nodeTypes,
+  useDemoLectureScript,
   useEditorLayout,
   useFocusNode,
   useInitializeTree,
+  useIsLectureActive,
   useNodeContextMenu,
   useMoveNodeByDrag,
   useReactFlowStoreSetters,
@@ -130,7 +133,7 @@ function LayoutFlow({ workspaceId, treeId }: LayoutFlowProps) {
     onBeforeLevelChange: fitTreeViewAfterNextLayout,
   });
 
-  const { focusNode, fitNodes } = useFocusNode({
+  const { focusNode, fitNodes, revealNodes } = useFocusNode({
     visibleNodes,
     runAfterNextLayout,
     isLayoutRunning,
@@ -209,6 +212,13 @@ function LayoutFlow({ workspaceId, treeId }: LayoutFlowProps) {
     selectedNode !== undefined &&
     !edges.some((edge) => edge.target === selectedNode.id);
 
+  const lectureScript = useDemoLectureScript();
+
+  /*
+  강의 중에는 방향키가 강의 이동에 쓰이므로 React Flow의 방향키 노드 이동을 끈다. 켜 두면 선택한 노드가 함께 움직인다.
+  */
+  const isLectureActive = useIsLectureActive();
+
   if (isLoading) {
     return <div>Loading...</div>;
   }
@@ -249,7 +259,12 @@ function LayoutFlow({ workspaceId, treeId }: LayoutFlowProps) {
           onPaneClick={handlePaneClick}
           onNodeDrag={onNodeDrag}
           onNodeDragStop={onNodeDragStop}
-          disableKeyboardA11y={isMutating}
+          disableKeyboardA11y={isMutating || isLectureActive}
+          /*
+          disableKeyboardA11y는 선택 키를 끄지 않는다. Shift + 방향키로 장면을 옮기는 동안 영역 선택 모드가 켜지지 않게 한다.
+          */
+          selectionKeyCode={isLectureActive ? null : undefined}
+          multiSelectionKeyCode={isLectureActive ? null : undefined}
           nodesDraggable={!isMutating && !isTransitioning}
           /*
           부모와 순서는 노드를 끌어 바꾼다. 엣지를 잇거나 끝을 옮기는 편집은 서버에 저장할 수 없어 막는다.
@@ -292,6 +307,22 @@ function LayoutFlow({ workspaceId, treeId }: LayoutFlowProps) {
               isUndoDisabled={!canUndo || isMutating}
               isRedoDisabled={!canRedo || isMutating}
               isAddRootNodeDisabled={!isAddNodeEnabled || isMutating}
+            />
+          </Panel>
+
+          {/*
+          강의는 지금 트리에 맞는 데모 대본으로 재생한다. 서버가 강의를 내려주게 되면 조회 결과로 바꾼다.
+          */}
+          <Panel
+            position="bottom-center"
+            className="!pointer-events-none flex w-[calc(100%-2rem)] max-w-2xl justify-center"
+          >
+            <LecturePlayer
+              script={lectureScript}
+              onRevealNodes={revealNodes}
+              onResetCamera={fitTreeView}
+              onBeforeCollapseRestore={fitTreeViewAfterNextLayout}
+              panelLayoutKey={`${isPanelOpen}:${isPanelOverlay}:${isMemoPanelOpen}`}
             />
           </Panel>
         </ReactFlow>

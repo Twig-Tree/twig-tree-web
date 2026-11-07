@@ -54,6 +54,7 @@ describe("transformToFlowElements", () => {
       [clientIdByServerId.get("1"), clientIdByServerId.get("2")],
       [clientIdByServerId.get("1"), clientIdByServerId.get("3")],
     ]);
+    expect(edges.every((edge) => edge.type === "custom")).toBe(true);
   });
 
   /*

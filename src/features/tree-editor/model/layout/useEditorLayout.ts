@@ -5,7 +5,6 @@ import {
   Dispatch,
   SetStateAction,
 } from "react";
-import { type FitViewOptions, useReactFlow } from "@xyflow/react";
 import {
   CustomEditorNode,
   CustomEditorEdge,
@@ -20,16 +19,7 @@ import {
 /*
 노드가 한두 개뿐인 트리에 맞추면 기본 최대 배율(2)까지 확대되므로 100%보다 크게 확대하지 않는다.
 */
-/*
-도구 버튼이 캔버스 위쪽에 떠 있어, 위 여백을 버튼 높이보다 크게 두어 맨 위 노드를 가리지 않게 한다.
-*/
 const FIT_TREE_MAX_ZOOM = 1;
-const FIT_TREE_PADDING: FitViewOptions["padding"] = {
-  top: "72px",
-  right: "24px",
-  bottom: "24px",
-  left: "24px",
-};
 
 /*
 함수 이름 : useEditorLayout
@@ -45,7 +35,6 @@ export function useEditorLayout(
   edges: CustomEditorEdge[],
   setNodes: Dispatch<SetStateAction<CustomEditorNode[]>>,
 ) {
-  const { fitView } = useReactFlow();
   const { fitFinalNodes } = useCameraMove();
 
   /*
@@ -90,15 +79,15 @@ export function useEditorLayout(
   사용자가 누른 동작이 화면을 옮길 때는 어디서 어디로 갔는지 보이도록 부드럽게 옮긴다.
   */
   const fitTreeView = useCallback(() => {
-    fitFinalNodes({ maxZoom: FIT_TREE_MAX_ZOOM, padding: FIT_TREE_PADDING });
+    fitFinalNodes({ maxZoom: FIT_TREE_MAX_ZOOM });
   }, [fitFinalNodes]);
 
   /*
   처음 열 때는 움직임을 보여 주지 않고 맞춘 화면에서 시작한다.
   */
   const fitInitialTreeView = useCallback(() => {
-    void fitView({ maxZoom: FIT_TREE_MAX_ZOOM, padding: FIT_TREE_PADDING });
-  }, [fitView]);
+    fitFinalNodes({ maxZoom: FIT_TREE_MAX_ZOOM, duration: 0 });
+  }, [fitFinalNodes]);
 
   /*
   접힘이 바뀌면 레이아웃이 끝나야 새 좌표가 생기고, 막 나타난 노드는 그 뒤에 그려지므로 다음 프레임에 맞춘다.

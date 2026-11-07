@@ -128,5 +128,14 @@ describe("테마", () => {
 
       expect(ratio).toBeGreaterThanOrEqual(MIN_TEXT_CONTRAST);
     });
+
+    it("강의 강조가 캔버스에서 구별된다", () => {
+      expect(
+        getContrastRatio(
+          values["--theme-lecture-animation"],
+          values["--theme-canvas"],
+        ),
+      ).toBeGreaterThanOrEqual(3);
+    });
   });
 });

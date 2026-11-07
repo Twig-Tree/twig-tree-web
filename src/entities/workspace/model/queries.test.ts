@@ -108,6 +108,18 @@ describe("useGetWorkspaceQuery", () => {
     expect(result.current.data?.treeId).toBeNull();
   });
 
+  it("세계 지리 강의 목 워크스페이스를 URL로 직접 조회한다", async () => {
+    const { result } = renderWorkspaceQuery("3");
+
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+
+    expect(result.current.data).toMatchObject({
+      id: "3",
+      name: "세계 지리 강의 데모",
+      treeId: "30",
+    });
+  });
+
   /*
   테스트 wrapper는 retry: false지만 이 query는 retry를 직접 지정해 그 설정을 덮는다.
   4xx에서 재시도하면 기본 지연(1초) 뒤에야 오류가 되어 failureCount가 2로 남는다.

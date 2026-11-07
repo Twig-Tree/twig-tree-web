@@ -10,6 +10,8 @@ React Flow가 읽는 CSS 변수에 값을 넣어야 하므로 Tailwind 유틸리
   --xy-theme-hover: var(--theme-line-strong);
   --xy-theme-edge-hover: var(--theme-accent);
   --xy-theme-color-focus: var(--theme-selected-ring);
+  --xy-theme-lecture-current: var(--theme-lecture-current);
+  --xy-theme-lecture-animation: var(--theme-lecture-animation);
 
   /* Built-in Variables see https://reactflow.dev/learn/customization/theming */
   --xy-edge-stroke-default: var(--theme-edge);
@@ -86,6 +88,86 @@ React Flow가 읽는 CSS 변수에 값을 넣어야 하므로 Tailwind 유틸리
 .react-flow__node:has(> .custom-node[data-highlighted="true"]) {
   outline: 2px solid var(--xy-theme-highlighted);
   outline-offset: 2px;
+}
+
+/*
+강의가 지금 설명하는 노드를 표시한다. 선택(border)·강조(outline)와 겹쳐도 셋 다 보이도록 box-shadow로 그린다.
+선택 규칙이 box-shadow를 기본값으로 되돌리므로 같은 명시도의 그 규칙보다 뒤에 둔다.
+*/
+.react-flow__node:has(> .custom-node[data-lecture-current="true"]) {
+  box-shadow:
+    0 0 0 3px var(--xy-theme-lecture-current),
+    0 0 18px 2px
+      color-mix(in srgb, var(--xy-theme-lecture-current) 35%, transparent);
+  transition: box-shadow 200ms ease-out;
+}
+
+.react-flow__node:has(> .custom-node[data-lecture-highlighted="true"]) {
+  box-shadow:
+    0 0 0 3px var(--xy-theme-lecture-animation),
+    0 0 20px 3px
+      color-mix(in srgb, var(--xy-theme-lecture-animation) 40%, transparent);
+  transition:
+    box-shadow 180ms ease-out,
+    opacity 180ms ease-out;
+}
+
+.react-flow__node:has(> .custom-node[data-lecture-pulsing="true"]) {
+  animation: lecture-node-pulse 700ms ease-in-out infinite alternate;
+}
+
+.react-flow__node:has(> .custom-node[data-lecture-dimmed="true"]) {
+  opacity: 0.22;
+  transition: opacity 180ms ease-out;
+}
+
+.react-flow__edge-path.lecture-edge-traced {
+  stroke: var(--xy-theme-lecture-animation);
+  stroke-width: 4;
+  stroke-linecap: round;
+  stroke-dasharray: 12 8;
+  filter: drop-shadow(0 0 4px var(--xy-theme-lecture-animation));
+  animation: lecture-edge-trace 400ms linear infinite;
+}
+
+@keyframes lecture-node-pulse {
+  from {
+    box-shadow:
+      0 0 0 3px var(--xy-theme-lecture-animation),
+      0 0 14px 2px
+        color-mix(in srgb, var(--xy-theme-lecture-animation) 35%, transparent);
+  }
+
+  to {
+    box-shadow:
+      0 0 0 5px var(--xy-theme-lecture-animation),
+      0 0 32px 8px
+        color-mix(in srgb, var(--xy-theme-lecture-animation) 65%, transparent);
+  }
+}
+
+@keyframes lecture-edge-trace {
+  from {
+    stroke-dashoffset: 0;
+  }
+
+  to {
+    stroke-dashoffset: -20;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .react-flow__node:has(> .custom-node[data-lecture-pulsing="true"]),
+  .react-flow__edge-path.lecture-edge-traced {
+    animation: none;
+  }
+}
+
+/*
+추적 중인 연결선은 화살촉도 같은 색으로 그려 방향이 함께 보이게 한다.
+*/
+.react-flow__edge:has(.lecture-edge-traced) .custom-edge__marker {
+  color: var(--xy-theme-lecture-animation);
 }
 
 /*

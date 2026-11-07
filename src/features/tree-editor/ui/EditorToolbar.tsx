@@ -99,6 +99,7 @@ export function EditorToolbar({
     <div
       role="toolbar"
       aria-label="트리 편집 도구"
+      data-camera-inset="top"
       className="flex items-center rounded-card border border-line bg-surface p-1 shadow-control"
     >
       <ToolbarGroup>

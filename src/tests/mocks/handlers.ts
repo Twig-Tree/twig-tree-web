@@ -5,6 +5,8 @@ import {
   RAW_TREE_DATA_WITH_CYCLE,
   RAW_TREE_TAG_DATA,
   RAW_WORKSPACE_DATA,
+  RAW_WORLD_GEOGRAPHY_TREE_DATA,
+  RAW_WORLD_GEOGRAPHY_WORKSPACE_DATA,
 } from "@/src/tests/mocks/data";
 import { http, HttpResponse } from "msw";
 
@@ -182,9 +184,13 @@ export const handlers = [
   목록에 없는 ID는 백엔드처럼 404와 에러 응답 봉투를 돌려준다.
   */
   http.get("*/api/workspaces/:workspaceId", ({ params }) => {
-    const workspace = RAW_WORKSPACE_DATA.find(
-      ({ workspaceId }) => String(workspaceId) === params.workspaceId,
-    );
+    const workspace =
+      params.workspaceId ===
+      String(RAW_WORLD_GEOGRAPHY_WORKSPACE_DATA.workspaceId)
+        ? RAW_WORLD_GEOGRAPHY_WORKSPACE_DATA
+        : RAW_WORKSPACE_DATA.find(
+            ({ workspaceId }) => String(workspaceId) === params.workspaceId,
+          );
 
     if (!workspace) {
       return HttpResponse.json(
@@ -621,16 +627,31 @@ export const handlers = [
     );
   }),
 
-  // 트리 조회 GET 요청 핸들러
-  http.get("*/api/tree/:treeId", ({ params }) => {
+  // 트리 노드 목록 조회 GET 요청 핸들러
+  http.get("*/api/trees/:treeId/nodes", ({ params }) => {
     const { treeId } = params;
+    const nodes =
+      treeId === "30" ? RAW_WORLD_GEOGRAPHY_TREE_DATA : RAW_TREE_DATA;
 
+    return HttpResponse.json(
+      {
+        isSuccess: true,
+        code: "TREE_FETCHED",
+        message: "트리가 성공적으로 조회되었습니다.",
+        data: { nodes },
+      },
+      { status: 200 },
+    );
+  }),
+
+  /* 기존 cycle 검증 fixture가 직접 호출하는 레거시 목 엔드포인트다. */
+  http.get("*/api/tree/:treeId", ({ params }) => {
     return HttpResponse.json(
       {
         code: "TREE_FETCHED",
         message: "트리가 성공적으로 조회되었습니다.",
         data: {
-          tree_id: Number(treeId),
+          tree_id: Number(params.treeId),
           nodes: RAW_TREE_DATA,
         },
       },

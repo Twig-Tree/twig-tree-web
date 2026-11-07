@@ -1,6 +1,13 @@
 export { nodeTypes, edgeTypes, MIN_ZOOM } from "./constants/flowConfig";
 export { EditorToolbar } from "./ui/EditorToolbar";
 export { MemoSidePanel } from "./ui/MemoSidePanel";
+export { LecturePlayer } from "./ui/LecturePlayer";
+export { runLectureAnimation } from "./model/lecture/runLectureAnimation";
+export { useLectureAnimationStore } from "./model/lecture/lectureAnimationStore";
+export { getEditorLectureAnimation } from "./lib/lecture/getEditorLectureScript";
+export { createLectureNodeIdResolver } from "./lib/lecture/createLectureNodeIdResolver";
+export { useDemoLectureScript } from "./model/lecture/useDemoLectureScript";
+export { useIsLectureActive } from "./model/lecture/lectureStore";
 export { NodeContextMenu } from "./ui/NodeContextMenu";
 export { DropIndicatorOverlay } from "./ui/DropIndicatorOverlay";
 export { useTreeEditorActions } from "./model/actions/useTreeEditorActions";
@@ -25,5 +32,7 @@ export type {
   CustomEditorEdge,
   CustomEditorNode,
   Direction,
+  EditorLectureAnimation,
+  EditorLectureAnimationAction,
   NodeResult,
 } from "./model/types";

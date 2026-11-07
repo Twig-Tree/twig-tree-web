@@ -1,4 +1,8 @@
 import { CustomEditorEdge } from "@/src/features/tree-editor/model/types";
+import {
+  isLectureEdgeTraced,
+  useLectureAnimationStore,
+} from "@/src/features/tree-editor/model/lecture/lectureAnimationStore";
 import { useTheme, type ThemeId } from "@/src/shared/lib/theme";
 import { BaseEdge, getSmoothStepPath, type EdgeProps } from "@xyflow/react";
 
@@ -28,6 +32,8 @@ const EDGE_PATH_BY_THEME: Record<ThemeId, EdgePathConfig> = {
 */
 export function CustomEdge({
   id,
+  source,
+  target,
   sourceX,
   sourceY,
   targetX,
@@ -37,6 +43,9 @@ export function CustomEdge({
   style,
 }: EdgeProps<CustomEditorEdge>) {
   const { theme } = useTheme();
+  const isTraced = useLectureAnimationStore((state) =>
+    isLectureEdgeTraced(state, source, target),
+  );
 
   const [edgePath] = getSmoothStepPath({
     sourceX,
@@ -79,11 +88,19 @@ export function CustomEdge({
         id={id}
         path={edgePath}
         markerEnd={`url(#${markerId})`}
-        style={{
-          ...style,
-          strokeWidth: EDGE_STROKE_WIDTH,
-          strokeLinecap: "round",
-        }}
+        /*
+        인라인 굵기가 있으면 클래스의 추적 굵기가 적용되지 않으므로 추적 중에는 클래스에 맡긴다.
+        */
+        style={
+          isTraced
+            ? style
+            : {
+                ...style,
+                strokeWidth: EDGE_STROKE_WIDTH,
+                strokeLinecap: "round",
+              }
+        }
+        className={isTraced ? "lecture-edge-traced" : undefined}
       />
     </>
   );

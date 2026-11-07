@@ -23,13 +23,18 @@ type ExpandToDepthParams = {
 interface CollapseState {
   treeId: string | null; // 접힘 상태가 속한 트리 ID. 복원 전이거나 편집기를 벗어나면 null
   collapsedServerIds: ReadonlySet<string>; // 접힌 노드의 serverId 집합
+  savedCollapsedServerIds: ReadonlySet<string> | null; // 임시 접힘을 시작할 때의 접힘 집합. 임시 접힘 중이 아니면 null
 
   restoreCollapse: (params: RestoreCollapseParams) => void;
   toggleCollapse: (treeId: string, serverId: string) => void;
   expand: (treeId: string, serverId: string) => void;
   expandAll: (treeId: string, serverIds: string[]) => void;
+  collapseAll: (treeId: string, serverIds: string[]) => void;
   expandToDepth: (params: ExpandToDepthParams) => void;
   applyExternalCollapse: (serverIds: string[]) => void;
+  beginTemporaryCollapse: () => void;
+  endTemporaryCollapse: () => void;
+  replaceTemporaryCollapse: (serverIds: ReadonlySet<string>) => void;
   resetCollapse: () => void;
 }
 
@@ -59,12 +64,16 @@ export const useCollapseStore = create<CollapseState>()((set, get) => {
   */
   const saveCollapse = (treeId: string, collapsedServerIds: Set<string>) => {
     set({ treeId, collapsedServerIds });
-    writeCollapsedServerIds(treeId, collapsedServerIds);
+
+    if (get().savedCollapsedServerIds === null) {
+      writeCollapsedServerIds(treeId, collapsedServerIds);
+    }
   };
 
   return {
     treeId: null,
     collapsedServerIds: new Set(),
+    savedCollapsedServerIds: null,
 
     /*
     초기화로 editor store를 채운 직후 localStorage의 접힘 목록을 읽어 메모리에 채운다.
@@ -73,6 +82,8 @@ export const useCollapseStore = create<CollapseState>()((set, get) => {
     유지되어야 하므로, 이후 노드가 늘어도 기본값을 다시 계산하지 않는다.
     */
     restoreCollapse: ({ treeId, nodes, edges }) => {
+      set({ savedCollapsedServerIds: null }); // 다른 트리의 임시 접힘이 남아 있으면 저장이 막힌다.
+
       const savedServerIds = readCollapsedServerIds(treeId);
 
       if (savedServerIds === null) {
@@ -138,6 +149,20 @@ export const useCollapseStore = create<CollapseState>()((set, get) => {
     },
 
     /*
+    여러 노드를 한 번에 접는다. expandAll과 같은 이유로 한 번만 저장한다.
+    */
+    collapseAll: (treeId, serverIds) => {
+      const currentServerIds = getCollapsedServerIdsOf(treeId);
+      const collapsedServerIds = new Set(currentServerIds);
+
+      serverIds.forEach((serverId) => collapsedServerIds.add(serverId));
+
+      if (collapsedServerIds.size === currentServerIds.size) return; // 모두 이미 접혀 있으면 저장할 변화가 없다.
+
+      saveCollapse(treeId, collapsedServerIds);
+    },
+
+    /*
     접힘 집합을 정해진 깊이 기준으로 통째로 바꾼다. 노드별로 접어 둔 상태는 남기지 않아, 고른 깊이가 곧 화면의 모양이 된다.
     접힘은 undo 대상이 아니므로 바꾼 뒤에는 이전 상태로 돌아갈 수 없다.
     */
@@ -164,11 +189,56 @@ export const useCollapseStore = create<CollapseState>()((set, get) => {
     받은 값은 이미 localStorage에 있으므로 다시 저장하지 않는다. 다시 쓰면 다른 탭들에 이벤트를 또 일으킨다.
     */
     applyExternalCollapse: (serverIds) => {
+      /*
+      임시 접힘 중에는 화면을 바꾸지 않고, 끝날 때 돌아갈 집합을 바꾼다. 다른 탭의 변경을 끝날 때 덮어쓰지 않기 위해서다.
+      */
+      if (get().savedCollapsedServerIds !== null) {
+        set({ savedCollapsedServerIds: new Set(serverIds) });
+        return;
+      }
+
+      set({ collapsedServerIds: new Set(serverIds) });
+    },
+
+    /*
+    강의처럼 끝나면 사라져야 하는 접힘 변경을 시작한다. 그동안의 변경은 메모리에만 반영하고 localStorage에 쓰지 않으므로,
+    강의 중에 탭을 닫아도 사용자의 접힘 상태가 바뀌지 않는다. 사용자가 그동안 직접 접은 것도 함께 되돌아간다.
+    첫 트리를 만든 직후에는 초기화를 거치지 않아 treeId가 null일 수 있다. 그래도 임시 상태를 시작해야 강의의 접힘이 저장되지 않는다.
+    */
+    beginTemporaryCollapse: () => {
+      const { collapsedServerIds, savedCollapsedServerIds } = get();
+
+      if (savedCollapsedServerIds !== null) return;
+
+      set({ savedCollapsedServerIds: collapsedServerIds });
+    },
+
+    endTemporaryCollapse: () => {
+      const { savedCollapsedServerIds } = get();
+
+      if (savedCollapsedServerIds === null) return;
+
+      set({
+        collapsedServerIds: savedCollapsedServerIds,
+        savedCollapsedServerIds: null,
+      });
+    },
+
+    /*
+    강의를 앞뒤로 옮길 때 그 위치의 접힘으로 바꾼다. 임시 접힘 중이 아니면 사용자의 접힘을 덮어쓰게 되므로 무시한다.
+    */
+    replaceTemporaryCollapse: (serverIds) => {
+      if (get().savedCollapsedServerIds === null) return;
+
       set({ collapsedServerIds: new Set(serverIds) });
     },
 
     resetCollapse: () => {
-      set({ treeId: null, collapsedServerIds: new Set() });
+      set({
+        treeId: null,
+        collapsedServerIds: new Set(),
+        savedCollapsedServerIds: null,
+      });
     },
   };
 });

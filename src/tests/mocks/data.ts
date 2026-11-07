@@ -93,6 +93,54 @@ export const RAW_TREE_DATA: NodeDTO[] = [
   },
 ];
 
+export const WORLD_GEOGRAPHY_NODE_IDS = {
+  world: "201",
+  europe: "202",
+  asia: "203",
+  france: "204",
+  germany: "205",
+  euro: "206",
+  paris: "207",
+  berlin: "208",
+  korea: "209",
+  japan: "210",
+  seoul: "211",
+  won: "212",
+  tokyo: "213",
+  yen: "214",
+};
+
+/*
+동적 강의 목대본이 가리키는 세계 지리 트리. 대본과 같은 서버 노드 ID를 사용해
+개발용 MSW 환경에서도 이름 경로 없이 serverId 연결을 검증한다.
+*/
+export const RAW_WORLD_GEOGRAPHY_TREE_DATA: NodeDTO[] = (
+  [
+    ["world", null, "세계"],
+    ["europe", "world", "유럽"],
+    ["asia", "world", "아시아"],
+    ["france", "europe", "프랑스"],
+    ["germany", "europe", "독일"],
+    ["euro", "europe", "유로"],
+    ["paris", "france", "파리"],
+    ["berlin", "germany", "베를린"],
+    ["korea", "asia", "대한민국"],
+    ["japan", "asia", "일본"],
+    ["seoul", "korea", "서울"],
+    ["won", "korea", "원"],
+    ["tokyo", "japan", "도쿄"],
+    ["yen", "japan", "엔"],
+  ] as const
+).map(([key, parentKey, name], orderId) => ({
+  nodeId: Number(WORLD_GEOGRAPHY_NODE_IDS[key]),
+  name,
+  memo: null,
+  parentId:
+    parentKey === null ? null : Number(WORLD_GEOGRAPHY_NODE_IDS[parentKey]),
+  orderId,
+  tagIds: [],
+}));
+
 /*
 프롬프트로 만들어진 트리의 응답 데이터. 워크스페이스·트리·노드가 한 응답에 함께 온다.
 루트와 자식을 하나씩 두어 parentId가 null과 숫자 양쪽으로 변환되는지 확인할 수 있다.
@@ -177,3 +225,12 @@ export const RAW_WORKSPACE_DATA: WorkspaceDTO[] = [
     updatedAt: "2026-08-30T00:00:00.000000Z",
   },
 ];
+
+/* 목록·최근 항목 수를 바꾸지 않고 URL로 직접 진입하는 강의 전용 목 워크스페이스다. */
+export const RAW_WORLD_GEOGRAPHY_WORKSPACE_DATA: WorkspaceDTO = {
+  workspaceId: 3,
+  name: "세계 지리 강의 데모",
+  folderId: null,
+  treeId: 30,
+  updatedAt: "2026-09-01T00:00:00.000000Z",
+};
