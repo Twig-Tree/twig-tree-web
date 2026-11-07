@@ -75,3 +75,26 @@ export {
   getReducedMotionAction,
   getReducedMotionAnimation,
 } from "./model/reducedMotion";
+export { getLectureMotionFromDelivery } from "./model/lectureMotion";
+export type {
+  LectureRecipeContext,
+  LectureRecipeDefinition,
+  LectureRecipeIssue,
+  LectureRecipeResult,
+  LectureRecipeTree,
+} from "./model/recipes/types";
+export {
+  defineLectureRecipe,
+  getLectureRecipeAnimation,
+} from "./model/recipes/getLectureRecipeAnimation";
+export type {
+  LectureRecipeId,
+  LectureRecipeRegistryVersion,
+} from "./model/recipes/registry";
+export {
+  getLectureRecipe,
+  LECTURE_RECIPE_REGISTRIES,
+} from "./model/recipes/registry";
+export { getAnimationCompositionIssues } from "./model/recipes/getAnimationCompositionIssues";
+export { createRecipeFailure } from "./model/recipes/getLectureRecipeAnimation";
+export type { LectureRecipeFailure } from "./model/recipes/types";

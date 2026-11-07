@@ -152,7 +152,7 @@ const getBatchFromJson = (value: unknown): LectureAnimationAction[] | null => {
 
 /*
 함수 이름 : getLabStepsFromJson
-기능 : 직접 고친 JSON을 타임라인 단계로 읽는다. 대본 계약은 그룹을 얼마든지 중첩할 수 있지만 타임라인은 "순차 안의 병렬"까지만 표현한다.
+기능 : 직접 고친 JSON을 타임라인 단계로 읽는다.
 인자 : string text -> 애니메이션 JSON 문자열
 반환값 : 읽은 단계 목록, 또는 화면에 보여줄 안내 문구
 */
@@ -165,6 +165,16 @@ export const getLabStepsFromJson = (text: string): LabJsonResult => {
     return { error: "JSON 문법이 올바르지 않습니다." };
   }
 
+  return getLabStepsFromAnimation(parsed);
+};
+
+/*
+함수 이름 : getLabStepsFromAnimation
+기능 : 애니메이션 값을 타임라인 단계로 읽는다. 대본 계약은 그룹을 얼마든지 중첩할 수 있지만 타임라인은 "순차 안의 병렬"까지만 표현한다.
+인자 : unknown parsed -> 애니메이션 값. JSON에서 읽었거나 recipe가 만든 값
+반환값 : 읽은 단계 목록, 또는 화면에 보여줄 안내 문구
+*/
+export const getLabStepsFromAnimation = (parsed: unknown): LabJsonResult => {
   const isSequence =
     isRecord(parsed) &&
     parsed.type === "group" &&

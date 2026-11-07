@@ -24,7 +24,7 @@ import {
   ANIMATION_LAB_TREE_ID,
 } from "../model/fixtureTree";
 import { getLabAnimation } from "../model/labTimeline";
-import { LAB_PRESETS } from "../model/presets";
+import { createLabPresetSteps, LAB_PRESETS } from "../model/presets";
 import { useAnimationLabPlayback } from "../model/useAnimationLabPlayback";
 import { useLabTimeline } from "../model/useLabTimeline";
 import { AnimationComposer } from "./AnimationComposer";
@@ -76,7 +76,7 @@ function AnimationLabCanvas() {
     isLayoutRunning,
   });
 
-  const timeline = useLabTimeline(LAB_PRESETS[0].createSteps);
+  const timeline = useLabTimeline(() => createLabPresetSteps(LAB_PRESETS[0]));
   const [isLooping, setIsLooping] = useState(false);
   const { play, stop, isPlaying, stage } = useAnimationLabPlayback({
     revealNodes,

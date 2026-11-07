@@ -10,7 +10,9 @@
 
 타임라인은 단계 목록(`model/labTimeline.ts`)이고, 각 단계는 대본 계약의 단위 동작을 그대로 담는다. 노드는 고정 트리의 서버 ID로 가리킨다. `앞 단계와 동시에 시작`을 켠 단계끼리 병렬 그룹으로 묶이고, 그 묶음을 순서대로 이어 `beat.animation` 하나를 만든다. 재생은 제품과 같은 `runLectureAnimation`을 쓴다.
 
-단위 동작은 카메라(`focus`), 노드(`highlight`, `dim`), 연결선(`trace`), 구조(`collapse`, `expand`), 흐름 제어(`wait`, `reset`)로 나뉜다. `highlight`는 스타일과 의미 색상을, `trace`는 동시·순차 진행과 정·역방향 및 유지 여부를 고를 수 있다. 프리셋은 이 범용 동작들을 교육 상황에 맞게 조합한 예시다.
+단위 동작은 카메라(`focus`), 노드(`highlight`, `dim`), 연결선(`trace`), 구조(`collapse`, `expand`), 흐름 제어(`wait`, `reset`)로 나뉜다. `highlight`는 스타일과 의미 색상을, `trace`는 동시·순차 진행과 정·역방향 및 유지 여부를 고를 수 있다. 프리셋은 동작을 직접 갖지 않고 [recipe](../../../docs/specs/lecture-recipes.md) 호출 목록(`recipeId`, 입력, delivery)만 갖는다. 랩은 고정 트리로 recipe의 트리 창구(`createLabRecipeTree`)를 만들어 recipe를 차례로 실행하고, 그 결과를 타임라인 단계로 바꾼다. 시간은 motion token에서 오므로 프리셋에 숫자를 적지 않는다. 새 연출이 필요하면 프리셋에 동작을 적지 말고 recipe를 추가한다.
+
+프리셋을 불러온 뒤의 타임라인은 일반 단계라 자유롭게 고칠 수 있다. 고친 결과는 프리셋에 저장되지 않는다.
 
 대본 계약은 그룹을 얼마든지 중첩할 수 있지만 타임라인은 "순차 안의 병렬"까지만 표현한다. JSON 편집기에 더 깊은 중첩을 넣으면 적용하지 않고 안내한다.
 

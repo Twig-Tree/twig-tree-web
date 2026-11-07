@@ -17,7 +17,7 @@
 | 장면과 비트 나누기, 내레이션 문장                 | O    |                                                |
 | 비트에서 일어날 교육적 의도(intent)와 노드의 역할 | O    |                                                |
 | 빠르기·세기·분위기 같은 전달 방식(delivery)       | O    |                                                |
-| intent를 실제 동작으로 바꾸는 방법(레시피)        |      | O (#138)                                       |
+| intent를 실제 동작으로 바꾸는 방법(레시피)        |      | O ([recipe](./lecture-recipes.md))             |
 | 시간, easing, 색 같은 구체 값(motion token)       |      | O ([motion token](./lecture-motion-tokens.md)) |
 | 내레이션 재생 시간                                |      | O (글자 수로 계산)                             |
 | 노드가 실제 트리에 있는지, 경로가 이어지는지      |      | O (컴파일러, #139)                             |
@@ -92,7 +92,7 @@ role의 노드 개수는 값의 모양으로 정한다.
 
 **`recipeRegistryVersion`**은 컴파일러가 쓸 레시피 모음의 버전이다. 같은 시나리오와 같은 레시피 버전은 항상 같은 연출로 컴파일된다.
 
-- `SUPPORTED_RECIPE_REGISTRY_VERSIONS`에 있는 값만 받는다. 지금은 `1`이며, #138에서 만들 첫 레시피 모음을 가리킨다.
+- `SUPPORTED_RECIPE_REGISTRY_VERSIONS`에 있는 값만 받는다. 지금은 `1`이며, [recipe registry](./lecture-recipes.md#registry)의 첫 모음을 가리킨다.
 - 연출 결과가 달라지는 레시피 변경마다 버전을 더한다.
 - 기존 버전은 그 버전으로 만든 시나리오를 재현할 수 있는 동안 목록에 남긴다.
 
