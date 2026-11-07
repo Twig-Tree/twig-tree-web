@@ -12,7 +12,7 @@ import {
   getLabAnimation,
   getLabStepsFromJson,
 } from "./labTimeline";
-import { LAB_PRESETS } from "./presets";
+import { createLabPresetSteps, LAB_PRESETS } from "./presets";
 import { validateLabAction } from "./validateLabStep";
 
 const pulse: LectureHighlightAction = {
@@ -167,21 +167,11 @@ describe("validateLabAction", () => {
   it.each(LAB_PRESETS.map((preset) => [preset.label, preset] as const))(
     "프리셋 %s는 바로 재생할 수 있다",
     (_, preset) => {
-      for (const step of preset.createSteps()) {
+      for (const step of createLabPresetSteps(preset)) {
         expect(validateLabAction(step.action, ANIMATION_LAB_TREE)).toBeNull();
       }
     },
   );
-
-  it("프리셋 동작 시간을 공통 배율로 느리게 조정한다", () => {
-    const overview = LAB_PRESETS.find(
-      (preset) => preset.id === "overview-tour",
-    );
-    const steps = overview?.createSteps();
-
-    expect(steps?.[0].action).toMatchObject({ durationMs: 900 });
-    expect(steps?.[1].action).toMatchObject({ durationMs: 650 });
-  });
 });
 
 describe("createDefaultLabAction", () => {

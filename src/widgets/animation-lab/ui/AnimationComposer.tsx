@@ -12,6 +12,7 @@ import { LAB_ACTIONS } from "../model/labActions";
 import { getLabAnimation, type LabStep } from "../model/labTimeline";
 import {
   LAB_PRESET_CATEGORIES,
+  createLabPresetSteps,
   LAB_PRESETS,
   type LabPresetCategory,
 } from "../model/presets";
@@ -177,7 +178,7 @@ export function AnimationComposer({
               type="button"
               key={preset.id}
               className="rounded-control border border-line bg-surface p-2 text-left transition-colors hover:border-accent"
-              onClick={() => replaceSteps(preset.createSteps())}
+              onClick={() => replaceSteps(createLabPresetSteps(preset))}
             >
               <span className="block text-xs font-semibold text-content">
                 {preset.label}
