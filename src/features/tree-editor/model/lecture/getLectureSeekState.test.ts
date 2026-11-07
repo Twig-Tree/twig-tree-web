@@ -142,6 +142,22 @@ describe("getLectureSeekState", () => {
     });
   });
 
+  it("유지되는 dim은 레이어로 남기고, 유지되지 않는 dim은 뺀다", () => {
+    const script = createScript([
+      { type: "dim", exceptClientIds: ["c2"], durationMs: 500, persist: true },
+      { type: "dim", exceptClientIds: ["c3"], durationMs: 500 },
+      focus("c1"),
+    ]);
+
+    const { layers } = getState(script, 0, 2);
+
+    expect(layers).toHaveLength(1);
+    expect(layers[0]).toMatchObject({
+      type: "dim",
+      exceptClientIds: new Set(["c2"]),
+    });
+  });
+
   it("병렬 그룹 안의 순차 동작은 재생과 같은 순서로 적용한다", () => {
     const script = createScript([
       {

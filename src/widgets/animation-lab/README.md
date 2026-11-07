@@ -18,10 +18,11 @@
 
 ## 새 효과 추가
 
-새 효과는 타임라인 값만으로는 만들 수 없고, 렌더러와 계약에 코드를 더해야 한다.
+새 효과는 타임라인 값만으로는 만들 수 없고, 렌더러와 계약에 코드를 더해야 한다. 계약과 registry, 실행기에 추가하는 순서는 [강의 대본 계약](../../../docs/specs/lecture-script-contract.md#새-동작-추가)을 따르고, 화면에서는 다음을 더한다.
 
-1. `entities/lecture/model/types.ts`에 동작 타입을 추가한다.
-2. `features/tree-editor/model/types.ts`의 편집기 타입과 `lib/lecture/getEditorLectureScript.ts`의 변환을 맞춘다. 타입 검사가 빈 자리를 알려 준다.
-3. `lectureAnimationStore`에 레이어와 판단 함수를, `runLectureAnimation`에 실행을 추가한다.
-4. `CustomNode`나 `CustomEdge`가 판단 함수를 구독해 data 속성을 달고, `app/xy-theme.css`에서 모양을 정한다. 색은 테마 토큰을 쓴다.
-5. 이 화면의 `labTimeline.ts`, `validateLabStep.ts`, `LabStepEditor.tsx`에 새 동작을 넣어 재생해 본다.
+1. `lectureAnimationStore`에 레이어와 판단 함수를 추가한다.
+2. `CustomNode`나 `CustomEdge`가 판단 함수를 구독해 data 속성을 달고, `app/xy-theme.css`에서 모양을 정한다. 색은 테마 토큰을 쓴다.
+3. 이 화면의 `model/labActions.ts`에 이름과 기본값을 채운다. 빠뜨리면 타입 오류가 난다.
+4. 편집 필드가 필요하면 `LabStepEditor.tsx`에, 재생해도 변화가 없는 조건이 있으면 `validateLabStep.ts`에 추가하고 재생해 본다.
+
+JSON 편집기는 대본 스키마(`lectureAnimationActionSchema`)로 동작을 검사하므로 따로 고치지 않는다. 대상 노드를 읽고 바꾸는 일도 registry의 필드 이름으로 처리한다.

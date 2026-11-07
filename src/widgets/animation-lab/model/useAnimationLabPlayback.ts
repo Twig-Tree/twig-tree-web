@@ -9,6 +9,7 @@ import {
   type EditorLectureAnimation,
   type EditorLectureAnimationAction,
 } from "@/src/features/tree-editor";
+import { LAB_ACTIONS } from "./labActions";
 
 const SEQUENCE_GAP_MS = 250; // 순차 단계 사이의 전환 간격
 const LOOP_GAP_MS = 1000; // 반복 재생에서 다음 회차까지 쉬는 시간
@@ -46,26 +47,14 @@ type UseAnimationLabPlaybackParams = {
 };
 
 const getStageLabel = (action: EditorLectureAnimationAction): string => {
-  switch (action.type) {
-    case "focus":
-      return "Focus";
-    case "highlight":
-      return action.style === "steady"
-        ? "Highlight"
-        : `${action.style[0].toUpperCase()}${action.style.slice(1)}`;
-    case "dim":
-      return "Dim";
-    case "trace":
-      return action.mode === "progressive" ? "Progressive trace" : "Trace";
-    case "wait":
-      return "Wait";
-    case "collapse":
-      return "Collapse";
-    case "expand":
-      return "Expand";
-    case "reset":
-      return "Reset";
+  if (action.type === "highlight" && action.style !== "steady") {
+    return `${action.style[0].toUpperCase()}${action.style.slice(1)}`;
   }
+  if (action.type === "trace" && action.mode === "progressive") {
+    return "Progressive trace";
+  }
+
+  return LAB_ACTIONS[action.type].label;
 };
 
 /*

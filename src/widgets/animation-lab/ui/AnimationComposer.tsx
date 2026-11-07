@@ -2,14 +2,14 @@ import { useState } from "react";
 import { ArrowDown, ArrowUp, Play, Square, Undo2, X } from "lucide-react";
 import { Button } from "@/src/shared/ui/button";
 import { IconButton } from "@/src/shared/ui/icon-button";
-import { type LectureAnimationAction } from "@/src/entities/lecture";
-import { ANIMATION_LAB_TREE } from "../model/fixtureTree";
 import {
-  getLabActionNodeIds,
-  getLabAnimation,
-  type LabActionType,
-  type LabStep,
-} from "../model/labTimeline";
+  type LectureAnimationAction,
+  getLectureActionNodeIds,
+  LECTURE_EFFECT_TYPES,
+} from "@/src/entities/lecture";
+import { ANIMATION_LAB_TREE } from "../model/fixtureTree";
+import { LAB_ACTIONS } from "../model/labActions";
+import { getLabAnimation, type LabStep } from "../model/labTimeline";
 import {
   LAB_PRESET_CATEGORIES,
   LAB_PRESETS,
@@ -31,16 +31,10 @@ type AnimationComposerProps = {
   onReset: () => void; // 재생을 멈추고 카메라까지 되돌린다
 };
 
-const ACTION_BUTTONS: { type: LabActionType; label: string }[] = [
-  { type: "focus", label: "Focus" },
-  { type: "highlight", label: "Highlight" },
-  { type: "dim", label: "Dim" },
-  { type: "trace", label: "Trace" },
-  { type: "wait", label: "Wait" },
-  { type: "collapse", label: "Collapse" },
-  { type: "expand", label: "Expand" },
-  { type: "reset", label: "Reset" },
-];
+const ACTION_BUTTONS = LECTURE_EFFECT_TYPES.map((type) => ({
+  type,
+  label: LAB_ACTIONS[type].label,
+}));
 
 const labelByNodeId = new Map(
   ANIMATION_LAB_TREE.map((node) => [node.id, node.label]),
@@ -56,7 +50,7 @@ const getLabActionSummary = (action: LectureAnimationAction): string => {
   if (action.type === "reset") return action.scope;
   if (action.type === "wait") return `${action.durationMs}ms`;
 
-  const labels = (getLabActionNodeIds(action) ?? []).map(
+  const labels = (getLectureActionNodeIds(action) ?? []).map(
     (nodeId) => labelByNodeId.get(nodeId) ?? nodeId,
   );
   const separator = action.type === "trace" ? " → " : ", ";

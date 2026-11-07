@@ -33,3 +33,21 @@ export {
   LECTURE_SCENARIO_SCHEMA_VERSION,
   lectureScenarioSchema,
 } from "./model/scenario/schema";
+export {
+  lectureAnimationActionSchema,
+  lectureAnimationSchema,
+  lectureScriptSchema,
+} from "./model/scriptSchema";
+export type {
+  LectureEffectAction,
+  LectureEffectDefinition,
+  LectureEffectNodeIdsField,
+  LectureEffectType,
+} from "./model/atomicEffects";
+export {
+  getLectureActionNodeIds,
+  getLectureActionWithNodeIds,
+  getLectureEffectNodeIdsField,
+  LECTURE_ATOMIC_EFFECTS,
+  LECTURE_EFFECT_TYPES,
+} from "./model/atomicEffects";
