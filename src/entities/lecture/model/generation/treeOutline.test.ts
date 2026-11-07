@@ -36,14 +36,18 @@ describe("getLectureTreeOutline", () => {
     ).toBe(["- [1] 루트", "- [5] 떨어진 노드"].join("\n"));
   });
 
-  it("순환이 있어도 멈춘다", () => {
+  /*
+  컴파일러는 순환 안의 노드도 노드로 인정하므로, 모델도 그 노드를 볼 수 있어야 한다.
+  */
+  it("순환 안의 노드는 목록 순서대로 루트로 보이고 한 번씩만 나온다", () => {
     expect(
       getLectureTreeOutline([
         { id: "1", parentId: null, name: "루트" },
         { id: "2", parentId: "3", name: "가" },
         { id: "3", parentId: "2", name: "나" },
+        { id: "4", parentId: "3", name: "다" },
       ]),
-    ).toBe("- [1] 루트");
+    ).toBe(["- [1] 루트", "- [2] 가", "  - [3] 나", "    - [4] 다"].join("\n"));
   });
 
   it("fixture 트리의 모든 노드를 한 번씩 담는다", () => {

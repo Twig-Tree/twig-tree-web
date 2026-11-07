@@ -34,6 +34,7 @@ const REFERENCE_CASES: LectureEvaluationCase[] = LECTURE_EVALUATION_CASES.map(
       responses: [
         {
           model: "reference",
+          promptVersion: "fixture",
           recordedAt: "2026-11-08T00:00:00.000Z",
           responseText: JSON.stringify(fixture?.scenario),
           usage: null,
@@ -113,6 +114,7 @@ describe("getLectureEvaluationResponseScore", () => {
   it("빠진 intent와 노드, 범위 밖 노드를 찾는다", () => {
     const score = getLectureEvaluationResponseScore(GOGURYEO_CASE, {
       model: "test",
+      promptVersion: "test",
       recordedAt: "2026-11-08T00:00:00.000Z",
       responseText: JSON.stringify({
         scenarioSchemaVersion: 1,
@@ -150,6 +152,7 @@ describe("getLectureEvaluationResponseScore", () => {
     expect(
       getLectureEvaluationResponseScore(GOGURYEO_CASE, {
         model: "test",
+        promptVersion: "test",
         recordedAt: "2026-11-08T00:00:00.000Z",
         responseText: "{",
         usage: { inputTokens: 100, outputTokens: 0 },
@@ -163,18 +166,32 @@ describe("getLectureEvaluationResponseScore", () => {
 });
 
 describe("getLectureEvaluationSummaries", () => {
-  it("모델별로 단계 통과 수와 토큰을 모은다", () => {
+  it("모델과 프롬프트 버전의 조합별로 단계 통과 수와 토큰을 모은다", () => {
     const response = GOGURYEO_CASE.responses[0];
     const scores = [
       {
         ...response,
         model: "b",
+        promptVersion: "v1",
         usage: { inputTokens: 100, outputTokens: 40 },
       },
-      { ...response, model: "b", responseText: "{", usage: null },
+      {
+        ...response,
+        model: "b",
+        promptVersion: "v1",
+        responseText: "{",
+        usage: null,
+      },
+      {
+        ...response,
+        model: "b",
+        promptVersion: "v2",
+        usage: { inputTokens: 120, outputTokens: 50 },
+      },
       {
         ...response,
         model: "a",
+        promptVersion: "v1",
         responseText: response.responseText.replace(
           '"nodeId":"2"',
           '"nodeId":"99"',
@@ -186,6 +203,7 @@ describe("getLectureEvaluationSummaries", () => {
     expect(getLectureEvaluationSummaries(scores)).toEqual([
       {
         model: "a",
+        promptVersion: "v1",
         responseCount: 1,
         schemaPassCount: 1,
         compilePassCount: 0,
@@ -197,6 +215,7 @@ describe("getLectureEvaluationSummaries", () => {
       },
       {
         model: "b",
+        promptVersion: "v1",
         responseCount: 2,
         schemaPassCount: 1,
         compilePassCount: 1,
@@ -205,6 +224,18 @@ describe("getLectureEvaluationSummaries", () => {
         usageCount: 1,
         inputTokens: 100,
         outputTokens: 40,
+      },
+      {
+        model: "b",
+        promptVersion: "v2",
+        responseCount: 1,
+        schemaPassCount: 1,
+        compilePassCount: 1,
+        expectationPassCount: 1,
+        failedStepCounts: { json: 0, schema: 0, compile: 0 },
+        usageCount: 1,
+        inputTokens: 120,
+        outputTokens: 50,
       },
     ]);
   });
@@ -221,7 +252,7 @@ describe("getLectureEvaluationReportText", () => {
     ).toMatchFileSnapshot("./report.md");
   });
 
-  it("참고 답안으로 모델별 요약과 실패 목록을 쓴다", () => {
+  it("참고 답안으로 모델·프롬프트별 요약과 실패 목록을 쓴다", () => {
     const report = getLectureEvaluationReportText([
       ...REFERENCE_CASES,
       {
@@ -231,10 +262,10 @@ describe("getLectureEvaluationReportText", () => {
     ]);
 
     expect(report).toContain(
-      "| reference | 6 | 5/6 (83%) | 5/6 (83%) | 5/6 (83%) | - | - |",
+      "| reference | fixture | 6 | 5/6 (83%) | 5/6 (83%) | 5/6 (83%) | - | - |",
     );
     expect(report).toContain(
-      "- goguryeo-capital-misconception / reference: json 단계에서 멈춤 (json 1)",
+      "- goguryeo-capital-misconception / reference / fixture: json 단계에서 멈춤 (json 1)",
     );
   });
 });

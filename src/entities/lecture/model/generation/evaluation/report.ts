@@ -64,7 +64,7 @@ const getFailureText = ({
 함수 이름 : getLectureEvaluationReportText
 기능 : 모든 case의 저장한 응답을 채점해 마크다운 보고서로 쓴다. 모델 호출 없이 저장한 응답만 읽는다.
 인자 : LectureEvaluationCase[] cases -> 평가 case 목록
-반환값 : 모델별 요약, case별 결과, 기대에 못 미친 응답을 담은 마크다운
+반환값 : 모델·프롬프트별 요약, case별 결과, 기대에 못 미친 응답을 담은 마크다운
 */
 export const getLectureEvaluationReportText = (
   cases: LectureEvaluationCase[],
@@ -80,7 +80,7 @@ export const getLectureEvaluationReportText = (
     "",
     "`evaluation.test.ts`가 `cases/*.json`의 저장한 응답으로 만든 파일이다. 직접 고치지 않는다.",
     "",
-    "## 모델별",
+    "## 모델·프롬프트별",
     "",
   ];
 
@@ -88,12 +88,13 @@ export const getLectureEvaluationReportText = (
     lines.push("저장한 응답이 없다.");
   } else {
     lines.push(
-      "| 모델 | 응답 | 스키마 통과 | 컴파일 통과 | 기대 충족 | 평균 입력 토큰 | 평균 출력 토큰 |",
-      "| --- | --- | --- | --- | --- | --- | --- |",
+      "| 모델 | 프롬프트 | 응답 | 스키마 통과 | 컴파일 통과 | 기대 충족 | 평균 입력 토큰 | 평균 출력 토큰 |",
+      "| --- | --- | --- | --- | --- | --- | --- | --- |",
       ...summaries.map(
         (summary) =>
           `| ${[
             summary.model,
+            summary.promptVersion,
             summary.responseCount,
             getRateText(summary.schemaPassCount, summary.responseCount),
             getRateText(summary.compilePassCount, summary.responseCount),
@@ -139,7 +140,7 @@ export const getLectureEvaluationReportText = (
       "",
       ...failures.map(
         (score) =>
-          `- ${score.caseId} / ${score.model}: ${getFailureText(score)}`,
+          `- ${score.caseId} / ${score.model} / ${score.promptVersion}: ${getFailureText(score)}`,
       ),
     );
   }

@@ -24,14 +24,20 @@ export type LectureExpectationScore = {
 export type LectureEvaluationResponseScore = {
   caseId: string;
   model: string;
+  promptVersion: string;
   failedStep: LectureGenerationStep | null; // 성공하면 null
   expectation: LectureExpectationScore | null;
   meetsExpectations: boolean; // 컴파일에 성공하고 기대 속성을 모두 갖췄다
   metrics: LectureGenerationMetrics;
 };
 
+/*
+요약은 모델과 프롬프트 버전의 조합마다 하나다. 모델만으로 묶으면 같은 모델의 프롬프트 변경 전후 결과가 합쳐진다.
+같은 조합으로 여러 번 실행한 결과는 합쳐 통과율을 낸다.
+*/
 export type LectureEvaluationSummary = {
   model: string;
+  promptVersion: string;
   responseCount: number;
   schemaPassCount: number; // 스키마까지 통과한 응답 수
   compilePassCount: number; // 대본까지 만든 응답 수
@@ -149,6 +155,7 @@ export const getLectureEvaluationResponseScore = (
     return {
       caseId: evaluationCase.id,
       model: response.model,
+      promptVersion: response.promptVersion,
       failedStep: result.failedStep,
       expectation: null,
       meetsExpectations: false,
@@ -165,6 +172,7 @@ export const getLectureEvaluationResponseScore = (
   return {
     caseId: evaluationCase.id,
     model: response.model,
+    promptVersion: response.promptVersion,
     failedStep: null,
     expectation,
     meetsExpectations: Object.values(expectation).every(
@@ -176,9 +184,9 @@ export const getLectureEvaluationResponseScore = (
 
 /*
 함수 이름 : getLectureEvaluationSummaries
-기능 : 응답 점수를 모델별로 모은다. 모델을 바꾸거나 프롬프트를 고쳤을 때 같은 case로 비교하기 위해서다.
+기능 : 응답 점수를 모델과 프롬프트 버전의 조합별로 모은다. 모델을 바꾸거나 프롬프트를 고쳤을 때 같은 case로 비교하기 위해서다.
 인자 : LectureEvaluationResponseScore[] scores -> 응답별 점수
-반환값 : 모델 이름 순으로 정렬한 모델별 요약
+반환값 : 모델 이름, 프롬프트 버전 순으로 정렬한 조합별 요약
 */
 export const getLectureEvaluationSummaries = (
   scores: LectureEvaluationResponseScore[],
@@ -186,8 +194,10 @@ export const getLectureEvaluationSummaries = (
   const summaries = new Map<string, LectureEvaluationSummary>();
 
   for (const score of scores) {
-    const summary = summaries.get(score.model) ?? {
+    const key = JSON.stringify([score.model, score.promptVersion]);
+    const summary = summaries.get(key) ?? {
       model: score.model,
+      promptVersion: score.promptVersion,
       responseCount: 0,
       schemaPassCount: 0,
       compilePassCount: 0,
@@ -213,8 +223,12 @@ export const getLectureEvaluationSummaries = (
       summary.outputTokens += usage.outputTokens;
     }
 
-    summaries.set(score.model, summary);
+    summaries.set(key, summary);
   }
 
-  return [...summaries.values()].sort((a, b) => a.model.localeCompare(b.model));
+  return [...summaries.values()].sort(
+    (a, b) =>
+      a.model.localeCompare(b.model) ||
+      a.promptVersion.localeCompare(b.promptVersion),
+  );
 };

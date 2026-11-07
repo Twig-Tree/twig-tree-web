@@ -26,6 +26,7 @@ const evaluationCaseFileSchema = z.strictObject({
   responses: z.array(
     z.strictObject({
       model: z.string(), // 예: gpt-4o-mini-2024-07-18
+      promptVersion: z.string(), // 백엔드가 응답에 담아 준 프롬프트 버전. 같은 모델의 프롬프트 변경 전후를 나눈다
       recordedAt: z.string(), // 호출한 시각(ISO 8601)
       responseText: z.string(), // 모델 응답 본문 그대로
       usage: z.nullable(

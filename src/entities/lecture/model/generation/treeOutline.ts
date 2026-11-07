@@ -23,7 +23,7 @@ const getOutlineNodeName = (name: string): string =>
 함수 이름 : getLectureTreeOutline
 기능 : 트리를 외부 모델에 넘길 들여쓴 텍스트로 바꾼다. 한 줄에 노드 하나이고, 모델은 대괄호 안의 ID로 노드를 가리킨다.
 형제 순서는 목록 순서를 따른다. 컴파일러의 트리 창구(createLectureCompilerTree)와 같은 기준이다.
-목록에 없는 부모를 가리키는 노드는 루트로 보인다. 모델이 그 노드를 가리켜도 컴파일러가 노드로 인정하기 때문이다.
+목록에 없는 부모를 가리키는 노드와 순환 안의 노드도 루트로 보인다. 모델이 그 노드를 가리켜도 컴파일러가 노드로 인정하기 때문이다.
 인자 : LectureOutlineNode[] nodes -> 형제끼리 화면 순서대로 놓인 노드 목록
 반환값 : 깊이마다 두 칸씩 들여쓴 "- [ID] 제목" 줄들
 
@@ -66,6 +66,12 @@ export const getLectureTreeOutline = (nodes: LectureOutlineNode[]): string => {
   };
 
   for (const root of roots) appendNode(root, 0);
+
+  /*
+  부모를 따라가면 순환하는 노드는 루트에서 닿지 않는다. 컴파일러는 목록의 모든 노드를 인정하므로,
+  모델도 볼 수 있게 남은 노드를 목록 순서대로 루트로 둔다. visitedIds가 있어 한 노드는 한 번만 나온다.
+  */
+  for (const node of nodes) appendNode(node, 0);
 
   return lines.join("\n");
 };
