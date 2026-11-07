@@ -38,6 +38,24 @@ const SAMPLE_CUES: { [Intent in SemanticIntent]: ScenarioCue } = {
   summarize: { intent: "summarize", roles: { subject: "2", context: ["3"] } },
 };
 
+/*
+intent마다 필수 role만 채운 cue. 선택 role이 recipe에서 필수로 바뀌어 있으면 여기서 실패한다.
+*/
+const REQUIRED_ONLY_CUES: { [Intent in SemanticIntent]: ScenarioCue } = {
+  introduce: { intent: "introduce", roles: { subject: "1" } },
+  emphasize: { intent: "emphasize", roles: { subject: ["5"] } },
+  compare: { intent: "compare", roles: { left: ["5"], right: ["6"] } },
+  decompose: { intent: "decompose", roles: { parent: "2" } },
+  trace: { intent: "trace", roles: { source: "1", destination: "12" } },
+  reveal: { intent: "reveal", roles: { subject: ["11"] } },
+  warn: { intent: "warn", roles: { subject: ["9"] } },
+  correct: { intent: "correct", roles: { correctAnswer: ["5"] } },
+  incorrect: { intent: "incorrect", roles: { incorrectAnswer: ["6"] } },
+  transition: { intent: "transition", roles: { destination: "3" } },
+  recap: { intent: "recap", roles: { subject: ["2"] } },
+  summarize: { intent: "summarize", roles: { subject: "2" } },
+};
+
 describe("LECTURE_INTENT_RECIPES", () => {
   it("버전 1의 intent → recipe 연결", () => {
     expect(
@@ -55,7 +73,7 @@ describe("LECTURE_INTENT_RECIPES", () => {
         "incorrect": "verdict",
         "introduce": "introduce",
         "recap": "recap",
-        "reveal": "spotlight",
+        "reveal": "reveal-nodes",
         "summarize": "collapse-summary",
         "trace": "trace-path",
         "transition": "introduce",
@@ -76,6 +94,16 @@ describe("LECTURE_INTENT_RECIPES", () => {
 });
 
 describe("getCueRecipeAnimation", () => {
+  it.each(Object.entries(REQUIRED_ONLY_CUES))(
+    "%s cue는 필수 role만 있어도 recipe가 애니메이션을 만든다",
+    (_intent, cue) => {
+      expect(scenarioCueSchema.safeParse(cue).success).toBe(true);
+      expect(getCueRecipeAnimation(cue, 1, TEST_COMPILER_TREE).success).toBe(
+        true,
+      );
+    },
+  );
+
   it("delivery를 recipe 기본값이 아니라 intent 기본값으로 채운다", () => {
     const cue = SAMPLE_CUES.transition;
     const result = getCueRecipeAnimation(cue, 1, TEST_COMPILER_TREE);

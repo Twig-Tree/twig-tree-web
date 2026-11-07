@@ -148,7 +148,7 @@ export const compileLectureScenario = (
 
   const scenario = parsed.data;
   const issues: LectureCompileIssue[] = [];
-  const sourceMap: Record<string, LectureSourceMapEntry[]> = {};
+  const sourceMapEntries: [string, LectureSourceMapEntry[]][] = [];
 
   const scenes = scenario.scenes.map((scene, sceneIndex) => {
     const scenePath = ["scenes", sceneIndex];
@@ -174,7 +174,7 @@ export const compileLectureScenario = (
 
     for (const compiled of compiledBeats) {
       issues.push(...compiled.issues);
-      sourceMap[compiled.beat.id] = compiled.sourceMap;
+      sourceMapEntries.push([compiled.beat.id, compiled.sourceMap]);
     }
 
     /*
@@ -203,7 +203,11 @@ export const compileLectureScenario = (
   return {
     success: true,
     script: { id: scriptId, title: scenario.title, scenes },
-    sourceMap,
+    /*
+    beat ID는 모델이 정하므로 "__proto__"도 올 수 있다. 대입은 이 키를 자체 속성으로 만들지 않아,
+    자체 속성으로 정의하는 Object.fromEntries로 만든다.
+    */
+    sourceMap: Object.fromEntries(sourceMapEntries),
     warnings: issues,
   };
 };

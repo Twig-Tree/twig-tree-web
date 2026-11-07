@@ -133,6 +133,21 @@ describe("compileLectureScenario", () => {
     ]);
   });
 
+  it("beat ID가 __proto__여도 source map의 자체 속성으로 남긴다", () => {
+    const scenario = createScenario([[INTRODUCE_ROOT]]);
+    scenario.scenes[0].beats[0].id = "__proto__";
+
+    const result = compileLectureScenario(scenario, OPTIONS);
+
+    if (!result.success) throw new Error("컴파일하지 못했습니다.");
+
+    expect(Object.hasOwn(result.sourceMap, "__proto__")).toBe(true);
+    expect(Object.keys(result.sourceMap)).toEqual(["__proto__"]);
+    expect(JSON.stringify(result.sourceMap)).toContain(
+      '"__proto__":[{"animationPath":[]',
+    );
+  });
+
   it("cue가 없는 비트는 길이 0인 wait을 넣고 컴파일러 출처로 기록한다", () => {
     const result = compileLectureScenario(createScenario([[]]), OPTIONS);
 
@@ -350,6 +365,21 @@ describe("compileLectureScenario 검증", () => {
         path: ["scenes", 0, "beats", 0],
       },
     ]);
+  });
+
+  it("persist 효과는 기다리지 않으므로 비트 길이에 더하지 않는다", () => {
+    const persistEmphasis: ScenarioCue = {
+      intent: "emphasize",
+      roles: { subject: ["5"] },
+      delivery: { continuity: "persist" },
+    };
+
+    const result = compileLectureScenario(
+      createScenario([Array.from({ length: 20 }, () => persistEmphasis)]),
+      OPTIONS,
+    );
+
+    expect(result.success && result.warnings).toEqual([]);
   });
 
   it("비트 하나에서 카메라가 너무 자주 움직이면 경고한다", () => {

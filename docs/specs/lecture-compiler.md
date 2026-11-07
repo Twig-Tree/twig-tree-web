@@ -45,7 +45,7 @@ recipe의 [트리 창구](./lecture-recipes.md#트리-창구)에 노드 존재 �
 | `getChildIds(nodeId)`                              | 화면 순서의 자식 ID                       |
 | `getPathNodeIds(ancestorNodeId, descendantNodeId)` | 부모→자식 순서의 경로. 조상이 아니면 null |
 
-`createLectureCompilerTree`는 형제 순서를 목록 순서로 정한다. 편집기는 노드 목록 순서를 쓴다. 강의의 이름 경로 찾기(`createLectureNodePathResolver`)와 같은 기준이다.
+`createLectureCompilerTree`는 형제 순서를 목록 순서로 정한다. 목록에 없는 부모를 가리키는 노드는 그 부모의 자식이나 경로에 넣지 않는다. 편집기는 노드 목록 순서를 쓴다. 강의의 이름 경로 찾기(`createLectureNodePathResolver`)와 같은 기준이다.
 
 ## Intent → recipe
 
@@ -54,7 +54,8 @@ recipe의 [트리 창구](./lecture-recipes.md#트리-창구)에 노드 존재 �
 | intent                 | recipe             | role → 입력                                       |
 | ---------------------- | ------------------ | ------------------------------------------------- |
 | `introduce`            | `introduce`        | 그대로                                            |
-| `emphasize`, `reveal`  | `spotlight`        | 그대로                                            |
+| `emphasize`            | `spotlight`        | 그대로                                            |
+| `reveal`               | `reveal-nodes`     | 그대로                                            |
 | `compare`              | `compare`          | 그대로                                            |
 | `decompose`            | `reveal-branch`    | 그대로                                            |
 | `trace`                | `trace-path`       | 그대로                                            |
@@ -64,7 +65,8 @@ recipe의 [트리 창구](./lecture-recipes.md#트리-창구)에 노드 존재 �
 | `recap`                | `recap`            | 그대로                                            |
 | `summarize`            | `collapse-summary` | `subject`만. `context`는 쓰지 않는다              |
 
-- `reveal`에 맞는 recipe는 따로 없다. `spotlight`의 focus가 대상의 조상을 펼쳐 숨은 노드를 드러낸다.
+- `reveal`은 접혀 있을 수 있는 노드를 드러내는 의도라 카메라를 먼저 맞추는 `reveal-nodes`로 보낸다. 런타임 focus가 대상의 접힌 조상을 펼치므로 컴파일러가 접힘 상태를 몰라도 대상이 화면에 나온다. `emphasize`는 이미 보이는 노드에 시선을 모으는 의도라 카메라를 움직이지 않는 `spotlight`로 보낸다.
+- `correct`와 `incorrect`는 같은 `verdict`를 쓴다. `verdict`는 정답과 오답을 모두 선택으로 받고 하나 이상만 요구하므로, 정답 없이 오답만 짚는 `incorrect`도 컴파일된다.
 - `decompose`를 `reveal-branch`로 보내면 이미 펼쳐진 가지에도 쓸 수 있다.
 - `transition`은 장소를 옮기는 recipe가 없어 도착점을 소개한다.
 - delivery는 recipe 기본값이 아니라 [intent 기본값](./lecture-motion-tokens.md#intent-기본값)으로 채운다. `transition`은 `introduce` recipe를 쓰지만 transition의 quick·subtle·neutral로 움직인다.
@@ -116,7 +118,7 @@ persist 효과는 같은 장면의 다음 비트까지 남으므로, 장면의 �
 
 ### 시간과 카메라
 
-- **비트 길이**: 내레이션과 애니메이션 중 긴 쪽이다. 플레이어가 둘 다 끝나야 다음 비트로 넘어간다. 20초를 넘으면 내레이션과 화면이 어긋나 보이므로 경고한다.
+- **비트 길이**: 내레이션과 애니메이션 중 긴 쪽이다. 플레이어가 둘 다 끝나야 다음 비트로 넘어간다. 애니메이션 길이는 실행기의 완료 규칙을 따른다. persist 효과는 기다리지 않으므로 0으로 세고, progressive trace만 다 그릴 때까지 센다. 20초를 넘으면 내레이션과 화면이 어긋나 보이므로 경고한다.
 - **카메라 횟수**: 버전 1 recipe는 cue 하나에 카메라를 많아야 한 번 움직인다. 카메라를 옮기는 cue를 넷 이상 붙인 비트가 3번 기준에 걸린다.
 
 두 기준은 `compileChecks.ts`의 `MAX_BEAT_DURATION_MS`, `MAX_BEAT_CAMERA_MOVES`다. 재생은 할 수 있으므로 경고로만 보고한다.

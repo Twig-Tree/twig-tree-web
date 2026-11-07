@@ -31,4 +31,16 @@ describe("createLectureCompilerTree", () => {
 
     expect(cyclic.getPathNodeIds("3", "1")).toBeNull();
   });
+
+  it("목록에 없는 부모와는 이어지지 않는다", () => {
+    const orphan = createLectureCompilerTree([
+      { id: "1", parentId: null },
+      { id: "2", parentId: "99" },
+    ]);
+
+    expect(orphan.hasNode("2")).toBe(true);
+    expect(orphan.getChildIds("99")).toEqual([]);
+    expect(orphan.getPathNodeIds("99", "2")).toBeNull();
+    expect(orphan.getPathNodeIds("1", "2")).toBeNull();
+  });
 });

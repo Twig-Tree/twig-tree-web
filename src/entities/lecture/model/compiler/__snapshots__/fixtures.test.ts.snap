@@ -1061,27 +1061,43 @@ exports[`시나리오 fixture 컴파일 > world-geography.json를 경고 없이 
                 {
                   "children": [
                     {
-                      "durationMs": 1200,
-                      "exceptNodeIds": [
-                        "8",
-                        "9",
-                        "10",
-                      ],
-                      "type": "dim",
-                    },
-                    {
-                      "durationMs": 1200,
-                      "style": "pulse",
+                      "durationMs": 700,
+                      "maxZoom": 1.2,
                       "targetNodeIds": [
                         "8",
                         "9",
                         "10",
                       ],
-                      "tone": "accent",
-                      "type": "highlight",
+                      "type": "focus",
+                    },
+                    {
+                      "children": [
+                        {
+                          "durationMs": 1200,
+                          "exceptNodeIds": [
+                            "8",
+                            "9",
+                            "10",
+                          ],
+                          "type": "dim",
+                        },
+                        {
+                          "durationMs": 1200,
+                          "style": "pulse",
+                          "targetNodeIds": [
+                            "8",
+                            "9",
+                            "10",
+                          ],
+                          "tone": "accent",
+                          "type": "highlight",
+                        },
+                      ],
+                      "mode": "parallel",
+                      "type": "group",
                     },
                   ],
-                  "mode": "parallel",
+                  "mode": "sequence",
                   "type": "group",
                 },
               ],
@@ -1219,7 +1235,7 @@ exports[`시나리오 fixture 컴파일 > world-geography.json를 경고 없이 
         "source": {
           "cueIndex": 1,
           "intent": "reveal",
-          "recipeId": "spotlight",
+          "recipeId": "reveal-nodes",
           "type": "cue",
         },
       },

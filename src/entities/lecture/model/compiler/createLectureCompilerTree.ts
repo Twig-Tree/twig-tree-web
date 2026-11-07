@@ -20,8 +20,11 @@ export const createLectureCompilerTree = (
   const parentIdById = new Map(nodes.map(({ id, parentId }) => [id, parentId]));
   const childIdsByParent = new Map<string, string[]>();
 
+  /*
+  목록에 없는 부모를 가리키는 노드는 그 부모의 자식으로 넣지 않는다. hasNode가 false인 노드에 자식이나 경로가 생기지 않게 하기 위해서다.
+  */
   for (const { id, parentId } of nodes) {
-    if (parentId === null) continue;
+    if (parentId === null || !parentIdById.has(parentId)) continue;
     childIdsByParent.set(parentId, [
       ...(childIdsByParent.get(parentId) ?? []),
       id,
@@ -41,7 +44,13 @@ export const createLectureCompilerTree = (
       */
       while (path[0] !== ancestorNodeId) {
         const parentId = parentIdById.get(path[0]);
-        if (parentId === null || parentId === undefined) return null;
+        if (
+          parentId === null ||
+          parentId === undefined ||
+          !parentIdById.has(parentId)
+        ) {
+          return null;
+        }
         if (path.includes(parentId)) return null;
         path.unshift(parentId);
       }

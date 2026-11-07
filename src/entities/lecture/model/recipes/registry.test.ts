@@ -54,6 +54,7 @@ const SAMPLE_INPUTS: Record<LectureRecipeId<1>, unknown> = {
   verdict: { correctAnswer: ["5"], incorrectAnswer: ["6"] },
   "trace-path": { source: "1", destination: "12" },
   "reveal-branch": { parent: "2" },
+  "reveal-nodes": { subject: ["11", "12"] },
   "tour-children": { parent: "2" },
   "collapse-summary": { subject: "2" },
   recap: { subject: ["2", "7", "8", "9"] },
@@ -258,6 +259,19 @@ describe("recipe registry 1", () => {
     });
   });
 
+  describe("reveal-nodes", () => {
+    it("카메라를 대상에 먼저 맞춰 접힌 조상을 펼치게 한 뒤 강조한다", () => {
+      expect(getAnimation("reveal-nodes", undefined)).toMatchObject({
+        type: "group",
+        mode: "sequence",
+        children: [
+          { type: "focus", targetNodeIds: ["11", "12"] },
+          getAnimation("spotlight", undefined, { subject: ["11", "12"] }),
+        ],
+      });
+    });
+  });
+
   describe("verdict", () => {
     it("delivery tone과 관계없이 정답은 success, 오답은 danger다", () => {
       expect(getAnimation("verdict", { tone: "neutral" })).toMatchObject({
@@ -273,6 +287,30 @@ describe("recipe registry 1", () => {
       expect(
         getAnimation("verdict", undefined, { correctAnswer: ["5"] }),
       ).toMatchObject({ type: "highlight", targetNodeIds: ["5"] });
+    });
+
+    it("정답이 없으면 오답만 흔든다", () => {
+      expect(
+        getAnimation("verdict", undefined, { incorrectAnswer: ["6"] }),
+      ).toMatchObject({
+        type: "highlight",
+        targetNodeIds: ["6"],
+        style: "shake",
+        tone: "danger",
+      });
+    });
+
+    it("정답과 오답이 모두 없으면 거부한다", () => {
+      const result = getLectureRecipeAnimation(
+        getLectureRecipe(1, "verdict"),
+        {},
+        {
+          delivery: undefined,
+          tree,
+        },
+      );
+
+      expect(result.success).toBe(false);
     });
   });
 });

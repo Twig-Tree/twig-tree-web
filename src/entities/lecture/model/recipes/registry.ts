@@ -4,6 +4,7 @@ import { compareRecipe } from "./compare";
 import { introduceRecipe } from "./introduce";
 import { recapRecipe } from "./recap";
 import { revealBranchRecipe } from "./revealBranch";
+import { revealNodesRecipe } from "./revealNodes";
 import { type LectureRecipeDefinition } from "./types";
 import { spotlightRecipe } from "./spotlight";
 import { tourChildrenRecipe } from "./tourChildren";
@@ -32,6 +33,7 @@ export const LECTURE_RECIPE_REGISTRIES = {
     verdict: verdictRecipe,
     "trace-path": tracePathRecipe,
     "reveal-branch": revealBranchRecipe,
+    "reveal-nodes": revealNodesRecipe,
     "tour-children": tourChildrenRecipe,
     "collapse-summary": collapseSummaryRecipe,
     recap: recapRecipe,

@@ -42,7 +42,8 @@ recipe registry 버전별 intent → recipe 연결표. 연결을 바꾸면 같�
 배포된 버전의 표는 고치지 않고 recipe registry와 함께 새 버전을 더한다.
 intent를 추가하면 모든 버전에서 타입 오류가 나므로 빠뜨릴 수 없다.
 
-- emphasize, reveal → spotlight: reveal에 맞는 recipe가 따로 없다. spotlight의 focus가 대상의 조상을 펼쳐 숨은 노드를 드러낸다.
+- emphasize → spotlight: 카메라를 움직이지 않고 이미 보이는 노드에 시선을 모은다.
+- reveal → reveal-nodes: 대상에 카메라를 맞춰 런타임이 접힌 조상을 펼치게 한 뒤 spotlight와 같이 강조한다.
 - decompose → reveal-branch: 이미 펼쳐진 가지에도 쓸 수 있다.
 - correct, incorrect → verdict: 판정 색은 의미로 정하므로 두 intent가 같은 연출을 쓴다.
 - transition → introduce: 장소를 옮기는 recipe가 없어 도착점을 소개한다. source는 쓰지 않는다.
@@ -69,7 +70,7 @@ export const LECTURE_INTENT_RECIPES: {
       recipeId: "trace-path",
       inputRoles: { source: "source", destination: "destination" },
     },
-    reveal: { recipeId: "spotlight", inputRoles: { subject: "subject" } },
+    reveal: { recipeId: "reveal-nodes", inputRoles: { subject: "subject" } },
     warn: { recipeId: "warn", inputRoles: { subject: "subject" } },
     correct: {
       recipeId: "verdict",

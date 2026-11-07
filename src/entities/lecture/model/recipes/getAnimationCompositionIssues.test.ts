@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 import { type LectureAnimation } from "../types";
-import { getAnimationCompositionIssues } from "./getAnimationCompositionIssues";
+import {
+  getAnimationCompositionIssues,
+  getAnimationDurationMs,
+} from "./getAnimationCompositionIssues";
 
 const focus = (nodeId: string): LectureAnimation => ({
   type: "focus",
@@ -172,5 +175,46 @@ describe("getAnimationCompositionIssues의 persist 흐림 충돌", () => {
         true,
       ),
     ).toEqual([]);
+  });
+});
+
+describe("getAnimationDurationMs", () => {
+  const trace = (
+    mode: "simultaneous" | "progressive",
+    persist: boolean,
+  ): LectureAnimation => ({
+    type: "trace",
+    nodeIds: ["1", "2"],
+    durationMs: 900,
+    mode,
+    persist,
+  });
+
+  it("persist 효과는 기다리지 않으므로 0으로 센다", () => {
+    expect(getAnimationDurationMs(highlight("1", true))).toBe(0);
+    expect(getAnimationDurationMs(highlight("1"))).toBe(1200);
+    expect(getAnimationDurationMs(trace("simultaneous", true))).toBe(0);
+  });
+
+  it("progressive trace는 persist여도 경로를 다 그릴 때까지 기다린다", () => {
+    expect(getAnimationDurationMs(trace("progressive", true))).toBe(900);
+  });
+
+  it("순차 그룹은 더하고 병렬 그룹은 가장 긴 자식을 기다린다", () => {
+    expect(
+      getAnimationDurationMs({
+        type: "group",
+        mode: "sequence",
+        children: [
+          focus("1"),
+          highlight("1", true),
+          {
+            type: "group",
+            mode: "parallel",
+            children: [highlight("2"), focus("3")],
+          },
+        ],
+      }),
+    ).toBe(700 + 0 + 1200);
   });
 });
