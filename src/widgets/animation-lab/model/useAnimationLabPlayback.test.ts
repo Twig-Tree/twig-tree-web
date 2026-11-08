@@ -51,6 +51,7 @@ beforeEach(() => {
 
 afterEach(() => {
   vi.useRealTimers();
+  vi.unstubAllGlobals();
   useTreeStore.getState().resetTree();
 });
 
@@ -93,6 +94,33 @@ describe("useAnimationLabPlayback", () => {
     expect([...useLectureAnimationStore.getState().layers.values()]).toEqual([
       expect.objectContaining({ type: "highlight", style: "steady" }),
     ]);
+  });
+
+  it("미리보기를 꺼도 운영체제에서 동작 줄이기를 켰으면 줄인다", async () => {
+    vi.stubGlobal("matchMedia", (query: string) => ({
+      matches: query === "(prefers-reduced-motion: reduce)",
+    }));
+    const { result } = renderPlayback();
+
+    act(() => result.current.play(highlight));
+    await advance(900);
+
+    expect(result.current.stage).toBe("Highlight");
+  });
+
+  it("반복 재생 중 미리보기를 바꾸면 다음 회차부터 적용한다", async () => {
+    const { result, rerender } = renderPlayback(true);
+
+    act(() => result.current.play(highlight));
+    await advance(900);
+    expect(result.current.stage).toBe("Pulse");
+
+    rerender({ isLooping: true, isReducedMotionPreview: true });
+    await advance(100);
+    expect(result.current.stage).toBe("Pulse");
+
+    await advance(900 + 900 + 1000 + 900);
+    expect(result.current.stage).toBe("Highlight");
   });
 
   it("트리에 없는 노드를 가리키면 재생하지 않는다", () => {

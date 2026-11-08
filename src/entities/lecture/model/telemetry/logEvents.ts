@@ -123,6 +123,20 @@ export const createLectureCompileLogEvent = ({
   };
 };
 
+/*
+함수 이름 : getErrorMessage
+기능 : 던져진 값을 로그에 담을 문자열로 바꾼다. toString이 던지는 객체도 있어, 실패 처리 도중 다시 예외가 나면 비트가 끝나지 않으므로 막는다.
+인자 : unknown error -> 던져진 값
+반환값 : 예외 메시지. 문자열로 바꾸지 못하면 고정 문구
+*/
+const getErrorMessage = (error: unknown): string => {
+  try {
+    return error instanceof Error ? error.message : String(error);
+  } catch {
+    return "문자열로 바꿀 수 없는 예외";
+  }
+};
+
 type CreateLecturePlaybackFailureLogEventParams = {
   script: {
     id: string;
@@ -155,6 +169,6 @@ export const createLecturePlaybackFailureLogEvent = ({
     beatIndex,
     sceneId: scene.id,
     beatId: scene.beats[beatIndex].id,
-    message: error instanceof Error ? error.message : String(error),
+    message: getErrorMessage(error),
   };
 };

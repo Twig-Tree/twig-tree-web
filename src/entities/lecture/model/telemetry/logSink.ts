@@ -1,9 +1,9 @@
 import { type LectureLogEvent } from "./logEvents";
 
 /*
-로그를 보낼 곳. 수집 서비스를 붙일 때 setLectureLogSink로 넣는다.
+로그를 보낼 곳. 수집 서비스를 붙일 때 setLectureLogSink로 넣는다. 네트워크로 보내는 sink는 Promise를 돌려줄 수 있다.
 */
-export type LectureLogSink = (event: LectureLogEvent) => void;
+export type LectureLogSink = (event: LectureLogEvent) => void | Promise<void>;
 
 /*
 함수 이름 : writeLectureLogToConsole
@@ -46,14 +46,17 @@ export const setLectureLogSink = (sink: LectureLogSink | null) => {
 
 /*
 함수 이름 : logLectureEvent
-기능 : 로그 이벤트를 지금 sink로 보낸다. sink가 실패해도 강의 흐름은 멈추지 않는다.
+기능 : 로그 이벤트를 지금 sink로 보낸다. sink가 던지거나 Promise가 거부돼도 강의 흐름은 멈추지 않는다. 기다리지 않는다.
 인자 : LectureLogEvent event -> 로그 이벤트
 반환값 : 없음
 */
 export const logLectureEvent = (event: LectureLogEvent) => {
-  try {
-    lectureLogSink(event);
-  } catch (error) {
+  const reportFailure = (error: unknown) =>
     console.error("강의 로그를 보내지 못했습니다.", error);
+
+  try {
+    void Promise.resolve(lectureLogSink(event)).catch(reportFailure);
+  } catch (error) {
+    reportFailure(error);
   }
 };

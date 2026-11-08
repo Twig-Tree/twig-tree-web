@@ -213,6 +213,30 @@ const getAnimationMeaning = (animation: LectureAnimation): unknown => {
   return meaning;
 };
 
+/*
+함수 이름 : getPolicyViolations
+기능 : 줄인 애니메이션에 정책이 바꿨어야 할 값이 남아 있는지 찾는다. 의미 비교는 바꿔도 되는 필드를 빼고 보므로 이 값은 따로 본다.
+인자 : LectureAnimation animation -> 줄인 애니메이션
+반환값 : 남아 있는 값의 설명 목록
+*/
+const getPolicyViolations = (animation: LectureAnimation): string[] => {
+  if (animation.type === "group") {
+    return animation.children.flatMap(getPolicyViolations);
+  }
+
+  if (animation.type === "focus" && animation.durationMs !== 0) {
+    return [`focus ${animation.durationMs}ms`];
+  }
+  if (animation.type === "highlight" && animation.style !== "steady") {
+    return [`highlight ${animation.style}`];
+  }
+  if (animation.type === "trace" && animation.mode === "progressive") {
+    return ["progressive trace"];
+  }
+
+  return [];
+};
+
 describe("동작 줄이기 대본의 정보 의미", () => {
   const scripts = [...getFixtureScripts(), ...getDemoScripts()];
 
@@ -239,6 +263,11 @@ describe("동작 줄이기 대본의 정보 의미", () => {
           ),
         ),
       );
+      expect(
+        reducedScript.scenes.flatMap((scene) =>
+          scene.beats.flatMap((beat) => getPolicyViolations(beat.animation)),
+        ),
+      ).toEqual([]);
       expect(lectureScriptSchema.safeParse(reducedScript).success).toBe(true);
     },
   );

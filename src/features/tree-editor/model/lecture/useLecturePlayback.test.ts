@@ -131,6 +131,7 @@ beforeEach(() => {
 afterEach(() => {
   vi.useRealTimers();
   vi.unstubAllGlobals();
+  setLectureLogSink(null);
 });
 
 describe("useLecturePlayback", () => {
@@ -550,6 +551,20 @@ describe("useLecturePlayback", () => {
                     durationMs: 3000,
                   },
                   {
+                    type: "group",
+                    mode: "sequence",
+                    children: [
+                      { type: "wait", durationMs: 300 },
+                      {
+                        type: "highlight",
+                        targetClientIds: ["c3"],
+                        style: "steady",
+                        durationMs: 500,
+                        persist: true,
+                      },
+                    ],
+                  },
+                  {
                     type: "focus",
                     targetClientIds: ["c2"],
                     maxZoom: 1,
@@ -580,14 +595,18 @@ describe("useLecturePlayback", () => {
     act(() => result.current.refocusCamera());
     expect(revealNodes).toHaveBeenCalledOnce();
 
-    await advance(999);
+    /*
+    실패 뒤에 시작할 예정이던 동작도 멈춰야 한다. 지우기만 하면 기다리던 강조가 내레이션 중에 다시 나타난다.
+    */
+    await advance(400);
+    expect(useLectureAnimationStore.getState().layers.size).toBe(0);
+
+    await advance(599);
     expect(getPosition().beatIndex).toBe(0);
 
     await advance(1);
     expect(getPosition().beatIndex).toBe(1);
     expect(useLectureAnimationStore.getState().layers.size).toBe(0);
-
-    setLectureLogSink(null);
   });
 
   it("동작 줄이기 설정을 비트마다 읽어 그 비트의 애니메이션을 줄인다", async () => {

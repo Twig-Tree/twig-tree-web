@@ -29,7 +29,7 @@ LectureScript + source map + 경고
 
 ## 결정성
 
-같은 시나리오, 같은 트리, 같은 `recipeRegistryVersion`이면 항상 같은 대본을 만든다. 그래서 다음 값은 입력에 넣지 않는다.
+같은 시나리오, 같은 트리, 같은 `recipeRegistryVersion`, 같은 `scriptId`이면 항상 같은 대본을 만든다. `scriptId`는 대본 ID가 될 뿐 연출에는 영향이 없다. 그래서 다음 값은 입력에 넣지 않는다.
 
 - **접힘 상태**: 편집기 트리 창구는 접힘과 관계없이 store의 모든 노드를 넣는다. 사용자가 접어 둔 모양에 따라 연출이 달라지면 같은 강의를 재현할 수 없다.
 - **동작 줄이기 설정**: 사용자 설정이라 같은 시나리오에서 두 가지 대본이 필요하다. 컴파일 결과에 [`getReducedMotionAnimation`](./lecture-motion-tokens.md#동작-줄이기)을 부르는 쪽이 적용한다.

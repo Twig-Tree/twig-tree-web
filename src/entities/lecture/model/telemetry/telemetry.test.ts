@@ -224,6 +224,23 @@ describe("getLectureIssueLocation", () => {
 });
 
 describe("createLecturePlaybackFailureLogEvent", () => {
+  it("문자열로 바꿀 수 없는 예외도 고정 문구로 담는다", () => {
+    const unprintable = {
+      toString: () => {
+        throw new Error("변환 실패");
+      },
+    };
+
+    expect(
+      createLecturePlaybackFailureLogEvent({
+        script: { id: "s", scenes: [{ id: "scene", beats: [{ id: "beat" }] }] },
+        sceneIndex: 0,
+        beatIndex: 0,
+        error: unprintable,
+      }).message,
+    ).toBe("문자열로 바꿀 수 없는 예외");
+  });
+
   it("대본 위치와 예외 메시지를 담는다", () => {
     expect(
       createLecturePlaybackFailureLogEvent({
@@ -266,6 +283,22 @@ describe("logLectureEvent", () => {
     logLectureEvent(infoEvent);
 
     expect(sink).toHaveBeenCalledExactlyOnceWith(infoEvent);
+  });
+
+  it("async sink의 Promise가 거부돼도 처리되지 않은 거부를 남기지 않는다", async () => {
+    const consoleError = vi
+      .spyOn(console, "error")
+      .mockImplementation(() => undefined);
+    const failure = new Error("전송 실패");
+    setLectureLogSink(() => Promise.reject(failure));
+
+    expect(() => logLectureEvent(infoEvent)).not.toThrow();
+    await vi.waitFor(() =>
+      expect(consoleError).toHaveBeenCalledExactlyOnceWith(
+        "강의 로그를 보내지 못했습니다.",
+        failure,
+      ),
+    );
   });
 
   it("sink가 실패해도 예외를 던지지 않는다", () => {
