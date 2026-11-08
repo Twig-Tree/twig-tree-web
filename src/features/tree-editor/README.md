@@ -179,7 +179,7 @@ editor store 초기화는 트리당 한 번만 수행한다. `useInitializeTree`
 
 트리 위에서 강의를 재생한다. 장면마다 노드 하나를 설명하고, 비트마다 음성·자막·연출이 함께 진행된다. 플레이어는 `LectureScript` 한 가지 형식만 재생한다. 재생할 대본은 `useLectureScript`가 고른다. 지금 트리로 만든 강의가 있으면 그것을, 없으면 트리에 맞는 `entities/lecture`의 데모 강의를 쓴다.
 
-시작 전 플레이어 자리에서 강의를 만들 수 있다. `LectureGenerator`가 요청 문장을 받고, `useGenerateLecture`가 편집기 트리의 outline으로 요청해 응답을 대본으로 컴파일한다. 고칠 수 있는 문제가 있으면 repair를 한 번 보낸다. 만든 대본은 `generatedLectureStore`에 트리별로 하나씩 둔다. 백엔드가 아직 강의를 저장하지 않아 새로고침하면 사라진다.
+시작 전 플레이어 자리에서 강의를 만들 수 있다. `LectureGenerator`가 요청 문장을 받고, `useGenerateLecture`가 편집기 트리의 outline으로 요청해 응답을 대본으로 컴파일한다. 고칠 수 있는 문제가 있으면 repair를 한 번 보낸다. 만든 대본은 `generatedLectureStore`에 트리별로 하나씩 둔다. 같은 트리의 요청이 겹치면 마지막에 시작한 요청의 대본만 남긴다. 백엔드가 아직 강의를 저장하지 않아 새로고침하면 사라진다.
 
 ### 데모 강의와 노드 연결
 
@@ -187,7 +187,7 @@ editor store 초기화는 트리당 한 번만 수행한다. `useInitializeTree`
 
 이름 경로는 이 데모 경로 안에만 있다. 재생 쪽 코드는 서버 ID만 알고, `getEditorLectureScript`가 실행 전에 clientId로 바꾼다. 서버가 강의를 내려주게 되면 `useDemoLectureScript`를 강의 조회 query로 바꾸고 데모 경로를 지운다.
 
-고구려 트리는 개발용 화면(`/dev/demo-trees`)에서 버튼으로 DB에 만든다. 원본은 `DEMO_TREES`이고 대본의 이름 경로와 같은 상수를 쓴다. 나머지 데모를 보려면 새 워크스페이스에서 편집기로 아래 트리 중 하나를 직접 만든다. 데모 구조 밖의 노드가 더 있어도 되고, 형제 순서는 연결에 영향을 주지 않는다. 맞는 데모가 없는 트리에서는 플레이어를 그리지 않는다. 강의 중에 노드 이름을 바꿔 대본을 찾지 못하게 되어도 진행 중인 강의는 시작할 때 연결한 대본으로 계속된다.
+고구려 트리는 개발용 화면(`/dev/demo-trees`)에서 버튼으로 DB에 만든다. 원본은 `DEMO_TREES`이고 대본의 이름 경로와 같은 상수를 쓴다. 나머지 데모를 보려면 새 워크스페이스에서 편집기로 아래 트리 중 하나를 직접 만든다. 데모 구조 밖의 노드가 더 있어도 되고, 형제 순서는 연결에 영향을 주지 않는다. 만든 강의도 맞는 데모도 없는 트리에서는 플레이어 자리에 `강의 만들기` 버튼만 보여 준다. 강의 중에 노드 이름을 바꿔 대본을 찾지 못하게 되어도 진행 중인 강의는 시작할 때 연결한 대본으로 계속된다.
 
 ```text
 컴퓨터 사이언스
@@ -228,7 +228,7 @@ editor store 초기화는 트리당 한 번만 수행한다. `useInitializeTree`
 
 ### 연출은 제한된 동작을 조합한다
 
-`LectureScript`는 장면(`scene`) 아래에 음성·자막·연출의 동기화 경계인 `beat`를 두고, 각 비트가 `focus`·`highlight`·`dim`·`trace`·`collapse`·`expand`·`reset` 동작을 갖는다. `group`은 이 동작들을 `sequence` 또는 `parallel`로 재귀 조합한다. LLM은 이 데이터 계약만 생성하고 브라우저에서 실행할 코드를 만들지 않는다. 외부 JSON의 런타임 검증은 실제 강의 API를 연결할 때 추가하며 요구사항은 `docs/specs/lecture-script-contract.md`에 둔다.
+`LectureScript`는 장면(`scene`) 아래에 음성·자막·연출의 동기화 경계인 `beat`를 두고, 각 비트가 `focus`·`highlight`·`dim`·`trace`·`collapse`·`expand`·`reset` 동작을 갖는다. `group`은 이 동작들을 `sequence` 또는 `parallel`로 재귀 조합한다. LLM은 이 대본이나 브라우저에서 실행할 코드를 직접 만들지 않고 `LectureScenario`만 만든다. `getLectureGenerationResult`가 모델 응답을 JSON, 스키마, 컴파일 순서로 검사해 대본으로 바꾼다. 응답 처리는 `docs/specs/lecture-generation.md`, 대본 계약은 `docs/specs/lecture-script-contract.md`에 둔다.
 
 `getEditorLectureScript`는 실행 전에 대본 안의 모든 서버 노드 ID를 편집기 노드의 `data.serverId`와 비교해 React Flow clientId로 바꾼다. ID 하나라도 현재 트리에 없으면 대본 전체를 거부한다. 변환 뒤에는 `runLectureAnimation`이 조합을 해석하고, `lectureAnimationStore`가 강조·흐림·연결선 추적을 동작별 레이어로 관리한다. 병렬 동작이 각각 자기 레이어만 제거하므로 같은 종류의 효과를 서로 덮어쓰지 않는다.
 
