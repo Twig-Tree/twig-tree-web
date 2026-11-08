@@ -2,6 +2,10 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { act, renderHook } from "@testing-library/react";
 import { setLectureLogSink } from "@/src/entities/lecture";
 import {
+  DEFAULT_VOICE_SETTINGS,
+  updateVoiceSettings,
+} from "@/src/shared/lib/speech";
+import {
   type EditorLectureAnimation,
   type EditorLectureScript,
 } from "../types";
@@ -65,7 +69,9 @@ const getPosition = () => {
 /*
 음성 합성을 흉내 낸다. speak는 끝 이벤트를 내지 않으므로 끝나는 시점은 테스트가 정한다.
 */
-const stubSpeech = () => {
+const stubSpeech = (
+  voices = [{ name: "유나", lang: "ko-KR", voiceURI: "yuna" }],
+) => {
   const speak = vi.fn();
   const cancel = vi.fn();
 
@@ -77,7 +83,7 @@ const stubSpeech = () => {
     },
   );
   vi.stubGlobal("speechSynthesis", {
-    getVoices: () => [{ name: "유나", lang: "ko-KR", voiceURI: "yuna" }],
+    getVoices: () => voices,
     addEventListener: vi.fn(),
     removeEventListener: vi.fn(),
     cancel,
@@ -132,6 +138,8 @@ afterEach(() => {
   vi.useRealTimers();
   vi.unstubAllGlobals();
   setLectureLogSink(null);
+  updateVoiceSettings(DEFAULT_VOICE_SETTINGS);
+  window.localStorage.clear();
 });
 
 describe("useLecturePlayback", () => {
@@ -373,6 +381,98 @@ describe("useLecturePlayback", () => {
     act(() => result.current.toggleMute());
 
     expect(result.current.audioMode).toBe("silent");
+  });
+
+  it("저장된 음소거를 이어받는다", () => {
+    stubSpeech();
+    updateVoiceSettings({ isMuted: true });
+
+    const { result, unmount } = renderPlayback();
+
+    expect(result.current.audioMode).toBe("muted");
+
+    unmount();
+  });
+
+  it("음소거는 플레이어를 다시 열어도 유지된다", () => {
+    stubSpeech();
+
+    const first = renderPlayback();
+
+    act(() => first.result.current.toggleMute());
+    first.unmount();
+
+    const second = renderPlayback();
+
+    expect(second.result.current.audioMode).toBe("muted");
+
+    second.unmount();
+  });
+
+  describe("음성 설정", () => {
+    const yuna = { name: "Yuna", lang: "ko-KR", voiceURI: "yuna" };
+    const google = { name: "Google 한국의", lang: "ko-KR", voiceURI: "google" };
+
+    it("고른 음성과 음량, 속도로 읽는다", () => {
+      const { speak } = stubSpeech([google, yuna]);
+      updateVoiceSettings({ voiceUri: "yuna", volume: 0.4, rate: 1.25 });
+
+      const { unmount } = renderPlayback();
+
+      act(() => lecture().startLecture(script));
+
+      expect(speak.mock.calls[0][0]).toMatchObject({
+        voice: yuna,
+        volume: 0.4,
+        rate: 1.25,
+      });
+
+      unmount();
+    });
+
+    it("고른 음성이 이 기기에 없으면 자동으로 고른 음성으로 읽는다", () => {
+      const { speak } = stubSpeech([google, yuna]);
+      updateVoiceSettings({ voiceUri: "gone" });
+
+      const { result, unmount } = renderPlayback();
+
+      act(() => lecture().startLecture(script));
+
+      expect(result.current.audioMode).toBe("speech");
+      expect(speak.mock.calls[0][0]).toMatchObject({ voice: google });
+
+      unmount();
+    });
+
+    it("재생 중에 바꾸면 지금 문장은 그대로 읽고 다음 문장부터 적용한다", async () => {
+      const { speak } = stubSpeech([google, yuna]);
+      const { unmount } = renderPlayback();
+
+      act(() => lecture().startLecture(script));
+      act(() =>
+        updateVoiceSettings({ voiceUri: "yuna", volume: 0.4, rate: 1.5 }),
+      );
+
+      expect(speak).toHaveBeenCalledOnce();
+      expect(speak.mock.calls[0][0]).toMatchObject({
+        voice: google,
+        volume: 1,
+        rate: 1,
+      });
+
+      act(() => speak.mock.calls[0][0].onend?.());
+      await advance(0);
+
+      expect(getPosition().beatIndex).toBe(1);
+      expect(speak).toHaveBeenCalledTimes(2);
+      expect(speak.mock.calls[1][0]).toMatchObject({
+        voice: yuna,
+        volume: 0.4,
+        rate: 1.5,
+      });
+
+      unmount();
+    });
   });
 
   it("일시정지 중 옮긴 비트의 연출을 보여 주고, 재생하면 걷어 내고 다시 실행한다", async () => {

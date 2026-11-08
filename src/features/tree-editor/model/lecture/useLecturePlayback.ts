@@ -4,17 +4,26 @@ import {
   getReducedMotionAnimation,
   logLectureEvent,
 } from "@/src/entities/lecture";
+import {
+  playSentence,
+  useKoreanVoice,
+  useVoiceSettings,
+} from "@/src/shared/lib/speech";
 import { prefersReducedMotion } from "../../lib/motion";
 import { useCollapseStore } from "../collapse/collapseStore";
 import { useTreeStore } from "../treeStore";
 import { getLectureSeekState } from "./getLectureSeekState";
-import { playSentence, type LectureAudioMode } from "./lectureSpeech";
 import { useLectureAnimationStore } from "./lectureAnimationStore";
 import { runLectureAnimation } from "./runLectureAnimation";
-import { useKoreanVoice } from "./useKoreanVoice";
 import { useLectureCameraRefit } from "./useLectureCameraRefit";
 import { useLectureCollapseRestore } from "./useLectureCollapseRestore";
 import { useLectureStore } from "./lectureStore";
+
+/*
+speech: 브라우저 음성 합성으로 문장을 읽는다. muted: 읽을 수 있지만 사용자가 음성을 껐다. silent: 읽을 음성이 없다.
+muted와 silent는 자막 시각만큼 기다렸다 넘어간다.
+*/
+type LectureAudioMode = "speech" | "muted" | "silent";
 
 type UseLecturePlaybackParams = {
   revealNodes: (
@@ -49,10 +58,9 @@ export const useLecturePlayback = ({
   const beatIndex = useLectureStore((state) => state.beatIndex);
   const seekId = useLectureStore((state) => state.seekId);
   const completeBeat = useLectureStore((state) => state.completeBeat);
-  const koreanVoice = useKoreanVoice();
+  const { voiceSettings, updateVoiceSettings } = useVoiceSettings();
+  const koreanVoice = useKoreanVoice(voiceSettings.voiceUri);
   const [hasSpeechFailed, setHasSpeechFailed] = useState(false);
-
-  const [isMuted, setIsMuted] = useState(false);
 
   /*
   일시적인 합성 실패로 다음 강의까지 자막만 재생되지 않게, 강의가 끝나면 다시 시도할 수 있게 한다.
@@ -64,13 +72,15 @@ export const useLecturePlayback = ({
   const isVoiceAvailable = koreanVoice !== null && !hasSpeechFailed;
   const audioMode: LectureAudioMode = !isVoiceAvailable
     ? "silent"
-    : isMuted
+    : voiceSettings.isMuted
       ? "muted"
       : "speech";
   const voice = audioMode === "speech" ? koreanVoice : null;
 
   const toggleMute = () => {
-    if (isVoiceAvailable) setIsMuted((current) => !current);
+    if (isVoiceAvailable) {
+      updateVoiceSettings({ isMuted: !voiceSettings.isMuted });
+    }
   };
 
   /*
@@ -85,6 +95,7 @@ export const useLecturePlayback = ({
   );
   const resetBeatCamera = useEffectEvent(() => resetCamera());
   const getBeatVoice = useEffectEvent(() => voice);
+  const getBeatVoiceSettings = useEffectEvent(() => voiceSettings);
 
   const appliedSeekIdRef = useRef(seekId);
   const shouldWaitForSeekRef = useRef(false);
@@ -259,6 +270,8 @@ export const useLecturePlayback = ({
         text,
         durationMs,
         voice: narrationVoice,
+        volume: getBeatVoiceSettings().volume,
+        rate: getBeatVoiceSettings().rate,
         onEnd: () => {
           isNarrationFinished = true;
           finishNarration();
@@ -272,9 +285,12 @@ export const useLecturePlayback = ({
     /*
     음성이 바뀌어도 비트를 다시 시작하지 않는다. 음성을 끌 때마다 화면 연출이 처음으로 돌아가면 안 되기 때문이다.
     내레이션만 갈아 끼운다. 끄면 자막을 읽을 남은 시간만 기다리고, 켜면 지금 문장을 처음부터 읽는다.
+    켜고 끄는 것이 아니라 음성 종류만 바뀌었으면 지금 문장은 그대로 읽고 다음 문장부터 새 음성을 쓴다.
     */
     changeNarrationVoiceRef.current = (nextVoice) => {
-      if (nextVoice === narrationVoice || isNarrationFinished) return;
+      const isVoiceToggled = (nextVoice === null) !== (narrationVoice === null);
+
+      if (!isVoiceToggled || isNarrationFinished) return;
 
       narrationVoice = nextVoice;
       stopNarration();
