@@ -1,0 +1,17 @@
+[
+  {
+    "id": "1",
+    "parentId": null,
+    "name": "광합성"
+  },
+  {
+    "id": "2",
+    "parentId": "1",
+    "name": "빛 반응"
+  },
+  {
+    "id": "3",
+    "parentId": "2",
+    "name": "탄소 고정"
+  }
+]

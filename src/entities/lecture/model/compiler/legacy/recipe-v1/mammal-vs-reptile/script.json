@@ -1,0 +1,166 @@
+{
+  "id": "mammal-vs-reptile",
+  "title": "포유류와 파충류 비교",
+  "scenes": [
+    {
+      "id": "compare",
+      "nodeId": "1",
+      "beats": [
+        {
+          "id": "compare-1",
+          "narration": {
+            "text": "포유류와 파충류는 체온을 유지하는 방식이 다릅니다.",
+            "fallbackDurationMs": 3080
+          },
+          "animation": {
+            "type": "group",
+            "mode": "sequence",
+            "children": [
+              {
+                "type": "focus",
+                "targetNodeIds": [
+                  "2",
+                  "3"
+                ],
+                "maxZoom": 1.2,
+                "durationMs": 700
+              },
+              {
+                "type": "highlight",
+                "targetNodeIds": [
+                  "2"
+                ],
+                "style": "pulse",
+                "tone": "accent",
+                "durationMs": 1200
+              },
+              {
+                "type": "highlight",
+                "targetNodeIds": [
+                  "3"
+                ],
+                "style": "pulse",
+                "tone": "accent",
+                "durationMs": 1200
+              }
+            ]
+          }
+        },
+        {
+          "id": "compare-2",
+          "narration": {
+            "text": "특히 포유류의 털과 파충류의 비늘을 비교해 보세요.",
+            "fallbackDurationMs": 3080
+          },
+          "animation": {
+            "type": "group",
+            "mode": "sequence",
+            "children": [
+              {
+                "type": "focus",
+                "targetNodeIds": [
+                  "4",
+                  "6",
+                  "5",
+                  "7"
+                ],
+                "maxZoom": 1,
+                "durationMs": 900
+              },
+              {
+                "type": "highlight",
+                "targetNodeIds": [
+                  "4",
+                  "6"
+                ],
+                "style": "steady",
+                "tone": "accent",
+                "durationMs": 1800
+              },
+              {
+                "type": "highlight",
+                "targetNodeIds": [
+                  "5",
+                  "7"
+                ],
+                "style": "steady",
+                "tone": "accent",
+                "durationMs": 1800
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "quiz",
+      "nodeId": "1",
+      "beats": [
+        {
+          "id": "quiz-1",
+          "narration": {
+            "text": "문제입니다. 고래는 어느 쪽일까요?",
+            "fallbackDurationMs": 2090
+          },
+          "animation": {
+            "type": "group",
+            "mode": "parallel",
+            "children": [
+              {
+                "type": "dim",
+                "exceptNodeIds": [
+                  "8"
+                ],
+                "durationMs": 1200
+              },
+              {
+                "type": "highlight",
+                "targetNodeIds": [
+                  "8"
+                ],
+                "style": "pop",
+                "tone": "accent",
+                "durationMs": 1200
+              }
+            ]
+          }
+        },
+        {
+          "id": "quiz-2",
+          "narration": {
+            "text": "정답은 포유류입니다. 물고기처럼 보여도 폐로 숨을 쉽니다.",
+            "fallbackDurationMs": 3520
+          },
+          "animation": {
+            "type": "group",
+            "mode": "sequence",
+            "children": [
+              {
+                "type": "highlight",
+                "targetNodeIds": [
+                  "3"
+                ],
+                "style": "shake",
+                "tone": "danger",
+                "durationMs": 1200
+              },
+              {
+                "type": "wait",
+                "durationMs": 450
+              },
+              {
+                "type": "highlight",
+                "targetNodeIds": [
+                  "2"
+                ],
+                "style": "bounce",
+                "tone": "success",
+                "durationMs": 1200
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

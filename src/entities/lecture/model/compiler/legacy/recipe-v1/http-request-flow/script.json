@@ -1,0 +1,211 @@
+{
+  "id": "http-request-flow",
+  "title": "HTTP 요청이 서버에 도착하기까지",
+  "scenes": [
+    {
+      "id": "overview",
+      "nodeId": "1",
+      "beats": [
+        {
+          "id": "overview-1",
+          "narration": {
+            "text": "브라우저에서 시작한 요청은 여러 단계를 거칩니다.",
+            "fallbackDurationMs": 2970
+          },
+          "animation": {
+            "type": "group",
+            "mode": "sequence",
+            "children": [
+              {
+                "type": "focus",
+                "targetNodeIds": [
+                  "1"
+                ],
+                "maxZoom": 1.2,
+                "durationMs": 700
+              },
+              {
+                "type": "highlight",
+                "targetNodeIds": [
+                  "1"
+                ],
+                "style": "pulse",
+                "tone": "accent",
+                "durationMs": 1200
+              }
+            ]
+          }
+        },
+        {
+          "id": "overview-2",
+          "narration": {
+            "text": "주소를 입력한 순간부터 서버가 응답하기까지 따라가 보겠습니다.",
+            "fallbackDurationMs": 3740
+          },
+          "animation": {
+            "type": "group",
+            "mode": "sequence",
+            "children": [
+              {
+                "type": "focus",
+                "targetNodeIds": [
+                  "2",
+                  "3",
+                  "4",
+                  "5",
+                  "6"
+                ],
+                "maxZoom": 1.2,
+                "durationMs": 900
+              },
+              {
+                "type": "trace",
+                "nodeIds": [
+                  "2",
+                  "3",
+                  "4",
+                  "5",
+                  "6"
+                ],
+                "durationMs": 3600,
+                "mode": "progressive",
+                "direction": "forward",
+                "persist": true
+              },
+              {
+                "type": "highlight",
+                "targetNodeIds": [
+                  "6"
+                ],
+                "style": "pulse",
+                "tone": "accent",
+                "durationMs": 1800,
+                "persist": true
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "dns",
+      "nodeId": "3",
+      "beats": [
+        {
+          "id": "dns-1",
+          "narration": {
+            "text": "가장 먼저 DNS가 도메인을 IP 주소로 바꿉니다.",
+            "fallbackDurationMs": 3080
+          },
+          "animation": {
+            "type": "group",
+            "mode": "sequence",
+            "children": [
+              {
+                "type": "group",
+                "mode": "sequence",
+                "children": [
+                  {
+                    "type": "focus",
+                    "targetNodeIds": [
+                      "3"
+                    ],
+                    "maxZoom": 1,
+                    "durationMs": 600
+                  },
+                  {
+                    "type": "dim",
+                    "exceptNodeIds": [
+                      "3"
+                    ],
+                    "durationMs": 800
+                  }
+                ]
+              },
+              {
+                "type": "group",
+                "mode": "sequence",
+                "children": [
+                  {
+                    "type": "expand",
+                    "targetNodeIds": [
+                      "3"
+                    ],
+                    "durationMs": 850
+                  },
+                  {
+                    "type": "focus",
+                    "targetNodeIds": [
+                      "3",
+                      "7",
+                      "8"
+                    ],
+                    "maxZoom": 1.2,
+                    "durationMs": 700
+                  },
+                  {
+                    "type": "highlight",
+                    "targetNodeIds": [
+                      "7",
+                      "8"
+                    ],
+                    "style": "pulse",
+                    "tone": "accent",
+                    "durationMs": 1200
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "id": "dns-2",
+          "narration": {
+            "text": "응답은 같은 길을 거꾸로 돌아옵니다.",
+            "fallbackDurationMs": 2200
+          },
+          "animation": {
+            "type": "group",
+            "mode": "sequence",
+            "children": [
+              {
+                "type": "focus",
+                "targetNodeIds": [
+                  "2",
+                  "3",
+                  "4",
+                  "5",
+                  "6"
+                ],
+                "maxZoom": 1.2,
+                "durationMs": 600
+              },
+              {
+                "type": "trace",
+                "nodeIds": [
+                  "2",
+                  "3",
+                  "4",
+                  "5",
+                  "6"
+                ],
+                "durationMs": 1800,
+                "mode": "progressive",
+                "direction": "reverse"
+              },
+              {
+                "type": "highlight",
+                "targetNodeIds": [
+                  "2"
+                ],
+                "style": "pulse",
+                "tone": "accent",
+                "durationMs": 800
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

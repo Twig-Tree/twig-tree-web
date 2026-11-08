@@ -145,3 +145,5 @@ beat ID별로 `{ animationPath, source }` 목록을 둔다. beat ID는 시나리
 trace를 쓰는 fixture는 위 제약 때문에 흐름을 사슬로 둔다(고구려 수도 졸본 → 국내성 → 평양, HTTP 브라우저 → … → 서버, 광합성 빛 반응 → 탄소 고정).
 
 recipe, motion token, 연결표가 바뀌면 스냅샷이 실패한다. 의도한 변경이면 [registry 버전 규칙](./lecture-recipes.md#registry)을 확인한 뒤 `-u`로 갱신한다.
+
+같은 시나리오를 고치지 않고 동결한 [동결 fixture](./lecture-versioning.md#동결-fixture)도 함께 실패한다. 배포된 recipe 버전이면 그쪽은 갱신하지 않고 변경을 새 버전으로 옮긴다.
