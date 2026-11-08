@@ -1,6 +1,9 @@
 # 생성 파일은 포맷 대상이 아니다.
 pnpm-lock.yaml
 docs/specs/lecture-scenario.schema.json
+docs/specs/lecture-generation-vocabulary.json
+docs/specs/lecture-scenario.strict.schema.json
+src/entities/lecture/model/generation/evaluation/report.md
 
 # 빌드 산출물 (.gitignore와 같은 범위)
 /.next/

@@ -7,6 +7,7 @@ export { useLectureAnimationStore } from "./model/lecture/lectureAnimationStore"
 export { getEditorLectureAnimation } from "./lib/lecture/getEditorLectureScript";
 export { compileEditorLectureScenario } from "./lib/lecture/compileEditorLectureScenario";
 export type { EditorLectureCompileResult } from "./lib/lecture/compileEditorLectureScenario";
+export { getEditorLectureTreeOutline } from "./lib/lecture/getEditorLectureTreeNodes";
 export { createLectureNodeIdResolver } from "./lib/lecture/createLectureNodeIdResolver";
 export { useDemoLectureScript } from "./model/lecture/useDemoLectureScript";
 export { useIsLectureActive } from "./model/lecture/lectureStore";
