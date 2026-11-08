@@ -73,7 +73,7 @@ export default function DirectoryRootPage() {
       <div className="mx-auto flex w-full max-w-7xl flex-col gap-8">
         <DirectoryHeader
           title="내 폴더"
-          breadcrumbs={[{ label: "내 폴더" }]}
+          breadcrumbs={[]}
           onCreateFolder={() => void handleCreateFolder()}
           isCreateFolderDisabled={isCreateFolderDisabled}
           onCreateWorkspace={() => void handleCreateWorkspace()}
