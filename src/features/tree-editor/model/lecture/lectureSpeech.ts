@@ -18,6 +18,7 @@ const SPEECH_RESTART_DELAY_MS = 150;
 
 /*
 끝 이벤트가 오지 않아도 강의가 멈추지 않게 하는 상한. 실제 낭독은 자막 시간보다 길 수 있어 넉넉히 곱한다.
+낭독 시간은 속도에 반비례하므로 상한도 속도로 나눈다. 그러지 않으면 느린 속도의 정상 낭독이 상한에 걸려 끊긴다.
 */
 const SPEECH_STALL_DURATION_RATIO = 3;
 
@@ -27,6 +28,8 @@ type PlaySentenceParams = {
   text: string; // 읽을 문장
   durationMs: number; // 음성 없이 넘어갈 때 기다릴 시간
   voice: SpeechSynthesisVoice | null; // 읽을 음성. null이면 음성 없이 시간만 흘린다
+  volume: number; // 0부터 1까지의 음량
+  rate: number; // 낭독 속도. 음성 없이 넘어가는 시간에는 적용하지 않는다
   onEnd: () => void; // 문장을 다 읽었을 때 부른다
   onSpeechError: () => void; // 음성 합성이 실패했을 때 부른다. 끊어서 난 오류에는 부르지 않는다
 };
@@ -48,6 +51,8 @@ export const playSentence = ({
   text,
   durationMs,
   voice,
+  volume,
+  rate,
   onEnd,
   onSpeechError,
 }: PlaySentenceParams): (() => void) => {
@@ -67,6 +72,8 @@ export const playSentence = ({
   const utterance = new SpeechSynthesisUtterance(text);
   utterance.voice = voice;
   utterance.lang = voice.lang;
+  utterance.volume = volume;
+  utterance.rate = rate;
 
   let isSpeechFinished = false;
   let timeoutId: number | undefined;
@@ -93,10 +100,13 @@ export const playSentence = ({
     window.speechSynthesis.cancel();
     window.speechSynthesis.speak(utterance);
 
-    timeoutId = window.setTimeout(() => {
-      stopSpeaking();
-      onEnd();
-    }, durationMs * SPEECH_STALL_DURATION_RATIO);
+    timeoutId = window.setTimeout(
+      () => {
+        stopSpeaking();
+        onEnd();
+      },
+      (durationMs * SPEECH_STALL_DURATION_RATIO) / rate,
+    );
   };
 
   /*

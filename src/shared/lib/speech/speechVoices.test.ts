@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { findKoreanVoice } from "./speechVoices";
+import { findKoreanVoice, findPreferredKoreanVoice } from "./speechVoices";
 
 const createVoice = (lang: string, voiceURI = lang, name = voiceURI) =>
   ({ lang, voiceURI, name }) as SpeechSynthesisVoice;
@@ -71,5 +71,31 @@ describe("findKoreanVoice", () => {
   it("한국어 음성이 없으면 null을 돌려준다", () => {
     expect(findKoreanVoice([createVoice("en-US")])).toBeNull();
     expect(findKoreanVoice([])).toBeNull();
+  });
+});
+
+describe("findPreferredKoreanVoice", () => {
+  const yuna = createVoice("ko-KR", "yuna", "Yuna");
+  const google = createVoice("ko-KR", "google", "Google 한국의");
+  const samantha = createVoice("en-US", "samantha", "Samantha");
+
+  it("고른 음성이 있으면 자동 순위보다 먼저 쓴다", () => {
+    expect(findPreferredKoreanVoice([google, yuna], "yuna")).toBe(yuna);
+  });
+
+  it("고른 음성이 없으면 자동 선택으로 돌아간다", () => {
+    expect(findPreferredKoreanVoice([google, yuna], "gone")).toBe(google);
+  });
+
+  it("고르지 않았으면 자동으로 고른다", () => {
+    expect(findPreferredKoreanVoice([yuna, google], null)).toBe(google);
+  });
+
+  it("고른 값이 한국어 음성이 아니면 쓰지 않는다", () => {
+    expect(findPreferredKoreanVoice([samantha, yuna], "samantha")).toBe(yuna);
+  });
+
+  it("한국어 음성이 없으면 null을 돌려준다", () => {
+    expect(findPreferredKoreanVoice([samantha], "samantha")).toBeNull();
   });
 });

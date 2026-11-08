@@ -45,6 +45,8 @@ describe("playSentence: 음성 없이", () => {
       text: "문장",
       durationMs: 1000,
       voice: null,
+      volume: 1,
+      rate: 1,
       onEnd,
       onSpeechError: vi.fn(),
     });
@@ -63,6 +65,8 @@ describe("playSentence: 음성 없이", () => {
       text: "문장",
       durationMs: 1000,
       voice: null,
+      volume: 1,
+      rate: 1,
       onEnd,
       onSpeechError: vi.fn(),
     });
@@ -96,6 +100,8 @@ describe("playSentence: 음성으로", () => {
       text: "문장",
       durationMs: 1000,
       voice,
+      volume: 1,
+      rate: 1,
       onEnd: vi.fn(),
       onSpeechError: vi.fn(),
     });
@@ -110,6 +116,20 @@ describe("playSentence: 음성으로", () => {
     });
   });
 
+  it("음량과 속도를 발화에 적용한다", () => {
+    playSentence({
+      text: "문장",
+      durationMs: 1000,
+      voice,
+      volume: 0.4,
+      rate: 1.25,
+      onEnd: vi.fn(),
+      onSpeechError: vi.fn(),
+    });
+
+    expect(getLastUtterance()).toMatchObject({ volume: 0.4, rate: 1.25 });
+  });
+
   it("발화가 끝나면 끝을 알린다", () => {
     const onEnd = vi.fn();
 
@@ -117,6 +137,8 @@ describe("playSentence: 음성으로", () => {
       text: "문장",
       durationMs: 1000,
       voice,
+      volume: 1,
+      rate: 1,
       onEnd,
       onSpeechError: vi.fn(),
     });
@@ -133,6 +155,8 @@ describe("playSentence: 음성으로", () => {
       text: "문장",
       durationMs: 1000,
       voice,
+      volume: 1,
+      rate: 1,
       onEnd,
       onSpeechError,
     });
@@ -154,6 +178,8 @@ describe("playSentence: 음성으로", () => {
       text: "문장",
       durationMs: 1000,
       voice,
+      volume: 1,
+      rate: 1,
       onEnd: vi.fn(),
       onSpeechError,
     });
@@ -170,6 +196,8 @@ describe("playSentence: 음성으로", () => {
       text: "문장",
       durationMs: 1000,
       voice,
+      volume: 1,
+      rate: 1,
       onEnd: vi.fn(),
       onSpeechError,
     });
@@ -186,6 +214,8 @@ describe("playSentence: 음성으로", () => {
       text: "앞 문장",
       durationMs: 1000,
       voice,
+      volume: 1,
+      rate: 1,
       onEnd: vi.fn(),
       onSpeechError: vi.fn(),
     });
@@ -195,6 +225,8 @@ describe("playSentence: 음성으로", () => {
       text: "다음 문장",
       durationMs: 1000,
       voice,
+      volume: 1,
+      rate: 1,
       onEnd: vi.fn(),
       onSpeechError: vi.fn(),
     });
@@ -209,6 +241,8 @@ describe("playSentence: 음성으로", () => {
       text: "앞 문장",
       durationMs: 1000,
       voice,
+      volume: 1,
+      rate: 1,
       onEnd: vi.fn(),
       onSpeechError: vi.fn(),
     });
@@ -219,6 +253,8 @@ describe("playSentence: 음성으로", () => {
       text: "다음 문장",
       durationMs: 1000,
       voice,
+      volume: 1,
+      rate: 1,
       onEnd: vi.fn(),
       onSpeechError: vi.fn(),
     });
@@ -231,6 +267,8 @@ describe("playSentence: 음성으로", () => {
       text: "앞 문장",
       durationMs: 1000,
       voice,
+      volume: 1,
+      rate: 1,
       onEnd: vi.fn(),
       onSpeechError: vi.fn(),
     });
@@ -240,6 +278,8 @@ describe("playSentence: 음성으로", () => {
       text: "다음 문장",
       durationMs: 1000,
       voice,
+      volume: 1,
+      rate: 1,
       onEnd: vi.fn(),
       onSpeechError: vi.fn(),
     });
@@ -256,6 +296,8 @@ describe("playSentence: 음성으로", () => {
       text: "문장",
       durationMs: 1000,
       voice,
+      volume: 1,
+      rate: 1,
       onEnd,
       onSpeechError: vi.fn(),
     });
@@ -269,6 +311,49 @@ describe("playSentence: 음성으로", () => {
     expect(onEnd).toHaveBeenCalledOnce();
   });
 
+  it.each([
+    [0.75, 4000],
+    [1.5, 2000],
+  ])("시간 상한을 속도 %s에 맞춰 %sms로 보정한다", (rate, stallMs) => {
+    const onEnd = vi.fn();
+
+    playSentence({
+      text: "문장",
+      durationMs: 1000,
+      voice,
+      volume: 1,
+      rate,
+      onEnd,
+      onSpeechError: vi.fn(),
+    });
+
+    vi.advanceTimersByTime(stallMs - 1);
+    expect(onEnd).not.toHaveBeenCalled();
+
+    vi.advanceTimersByTime(1);
+    expect(onEnd).toHaveBeenCalledOnce();
+  });
+
+  it("음성 없이 넘어가는 시간에는 속도를 적용하지 않는다", () => {
+    const onEnd = vi.fn();
+
+    playSentence({
+      text: "문장",
+      durationMs: 1000,
+      voice: null,
+      volume: 1,
+      rate: 1.5,
+      onEnd,
+      onSpeechError: vi.fn(),
+    });
+
+    vi.advanceTimersByTime(999);
+    expect(onEnd).not.toHaveBeenCalled();
+
+    vi.advanceTimersByTime(1);
+    expect(onEnd).toHaveBeenCalledOnce();
+  });
+
   it("끝 이벤트가 오면 나중에 다시 끝을 알리지 않는다", () => {
     const onEnd = vi.fn();
 
@@ -276,6 +361,8 @@ describe("playSentence: 음성으로", () => {
       text: "문장",
       durationMs: 1000,
       voice,
+      volume: 1,
+      rate: 1,
       onEnd,
       onSpeechError: vi.fn(),
     });

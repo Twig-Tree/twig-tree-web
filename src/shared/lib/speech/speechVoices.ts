@@ -36,6 +36,11 @@ const getVoiceNaturalnessRank = (voice: SpeechSynthesisVoice): number => {
   return rank === -1 ? NATURAL_VOICE_NAME_PATTERNS.length : rank;
 };
 
+const getKoreanVoices = (
+  voices: SpeechSynthesisVoice[],
+): SpeechSynthesisVoice[] =>
+  voices.filter((voice) => voice.lang.toLowerCase().startsWith("ko"));
+
 /*
 함수 이름 : findKoreanVoice
 기능 : 음성 목록에서 가장 자연스럽게 들리는 한국어 음성을 찾는다. 브라우저마다 언어 표기가 "ko-KR", "ko_KR"처럼 달라 앞의 언어 코드만 비교한다.
@@ -51,11 +56,7 @@ const getVoiceNaturalnessRank = (voice: SpeechSynthesisVoice): number => {
 export const findKoreanVoice = (
   voices: SpeechSynthesisVoice[],
 ): SpeechSynthesisVoice | null => {
-  const koreanVoices = voices.filter((voice) =>
-    voice.lang.toLowerCase().startsWith("ko"),
-  );
-
-  return koreanVoices.reduce<SpeechSynthesisVoice | null>(
+  return getKoreanVoices(voices).reduce<SpeechSynthesisVoice | null>(
     (best, voice) =>
       best === null ||
       getVoiceNaturalnessRank(voice) < getVoiceNaturalnessRank(best)
@@ -64,3 +65,20 @@ export const findKoreanVoice = (
     null,
   );
 };
+
+/*
+함수 이름 : findPreferredKoreanVoice
+기능 : 사용자가 고른 한국어 음성을 찾고, 없으면 가장 자연스러운 한국어 음성을 찾는다.
+인자 : SpeechSynthesisVoice[] voices -> 브라우저가 제공하는 음성 목록
+string | null preferredVoiceUri -> 사용자가 고른 음성. null이면 자동으로 고른다
+반환값 : 한국어 음성. 없으면 null
+
+쓸 수 있는 음성은 기기와 브라우저마다 다르므로, 다른 기기에서 고른 값이거나 사라진 음성이면 자동 선택으로 돌아간다.
+*/
+export const findPreferredKoreanVoice = (
+  voices: SpeechSynthesisVoice[],
+  preferredVoiceUri: string | null,
+): SpeechSynthesisVoice | null =>
+  getKoreanVoices(voices).find(
+    (voice) => voice.voiceURI === preferredVoiceUri,
+  ) ?? findKoreanVoice(voices);
