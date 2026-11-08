@@ -11,6 +11,9 @@ export { getEditorLectureTreeOutline } from "./lib/lecture/getEditorLectureTreeN
 export { createLectureNodeIdResolver } from "./lib/lecture/createLectureNodeIdResolver";
 export { prefersReducedMotion } from "./lib/motion";
 export { useDemoLectureScript } from "./model/lecture/useDemoLectureScript";
+export { useGenerateLecture } from "./model/lecture/useGenerateLecture";
+export type { GenerateLectureResult } from "./model/lecture/useGenerateLecture";
+export { validateLectureRequest } from "./lib/lecture/validateLectureGeneration";
 export { useIsLectureActive } from "./model/lecture/lectureStore";
 export { NodeContextMenu } from "./ui/NodeContextMenu";
 export { DropIndicatorOverlay } from "./ui/DropIndicatorOverlay";

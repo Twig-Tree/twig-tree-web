@@ -156,12 +156,15 @@ export type { LectureIssueLocation } from "./model/telemetry/issueLocation";
 export type {
   LectureCompileLogEvent,
   LectureCompileLogIssue,
+  LectureGenerationLogEvent,
+  LectureGenerationLogIssue,
   LectureLogEvent,
   LectureLogLevel,
   LecturePlaybackFailureLogEvent,
 } from "./model/telemetry/logEvents";
 export {
   createLectureCompileLogEvent,
+  createLectureGenerationLogEvent,
   createLecturePlaybackFailureLogEvent,
 } from "./model/telemetry/logEvents";
 export type { LectureLogSink } from "./model/telemetry/logSink";

@@ -54,9 +54,11 @@ beat ID는 시나리오 전체에서 고유하고 대본도 같은 값을 쓰므
 | `type`                     | `level`                                    | 남기는 곳                                                                            |
 | -------------------------- | ------------------------------------------ | ------------------------------------------------------------------------------------ |
 | `lecture-compile`          | 실패 `error`, warning `warn`, 그 밖 `info` | `compileEditorLectureScenario`                                                       |
+| `lecture-generation`       | 실패 `error`, warning `warn`, 그 밖 `info` | `useGenerateLecture`가 모델 응답을 처리할 때마다                                     |
 | `lecture-playback-failure` | `error`                                    | `useLecturePlayback`의 [비트 실패 처리](./lecture-player.md#강의-플레이어-운영-규칙) |
 
 - `lecture-compile`은 대본 ID, 두 버전, 성공 여부, [측정값](#지표), 문제 목록을 담는다. 문제마다 위의 위치 값을 풀어 둔다. 스키마를 통과하지 못해도 버전은 시나리오에서 그대로 읽어 남긴다. 어느 버전에서 실패가 잦은지 보기 위해서다.
+- `lecture-generation`은 모델 응답 하나마다 남는다. 대본 ID, 모델, 프롬프트 버전, 백엔드의 모델 호출 횟수, repair 순번(첫 요청은 0), 두 버전, 멈춘 단계, [생성 측정값](./lecture-generation.md#측정값), 컴파일 측정값, 문제 목록을 담는다. 문제 위치는 `lecture-compile`과 같은 방식으로 푼다. 첫 요청과 repair는 같은 대본 ID를 써서 한 생성으로 묶인다. 컴파일을 생성 처리 안에서 하므로 `lecture-compile`은 따로 남기지 않는다. 이때 `compileMs`는 JSON 읽기와 스키마 검사를 포함한 응답 처리 시간이고, JSON으로 읽지 못한 응답은 컴파일 측정값이 `null`이다.
 - `lecture-playback-failure`는 대본 ID, 장면·비트 순번과 ID, 예외 메시지를 담는다.
 - 애니메이션 랩의 컴파일은 입력할 때마다 돌아 로그를 남기지 않는다.
 
