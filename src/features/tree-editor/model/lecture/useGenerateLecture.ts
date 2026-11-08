@@ -24,6 +24,7 @@ import { useTreeStore } from "../treeStore";
 export type GenerateLectureResult =
   | {
       status: "success";
+      treeId: string; // 강의를 만든 트리. 생성 중에 다른 트리로 옮겨도 원래 트리에 보관한다
       script: LectureScript; // 서버 노드 ID로 가리키는 대본. LecturePlayer가 재생할 때 clientId로 바꾼다
       scenario: LectureScenario; // 강의의 원본. 저장할 때 대본 대신 이것을 남긴다
       sourceMap: LectureCompileSourceMap;
@@ -103,6 +104,7 @@ export const useGenerateLecture = () => {
       if (result.success) {
         return {
           status: "success",
+          treeId,
           script: result.script,
           scenario: result.scenario,
           sourceMap: result.sourceMap,

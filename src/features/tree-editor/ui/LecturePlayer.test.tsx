@@ -65,6 +65,7 @@ const renderPlayer = () =>
   render(
     <LecturePlayer
       script={script}
+      isGeneratedScript={false}
       onRevealNodes={onRevealNodes}
       onResetCamera={onResetCamera}
       onBeforeCollapseRestore={onBeforeCollapseRestore}
@@ -121,10 +122,11 @@ describe("LecturePlayer", () => {
     );
   });
 
-  it("재생할 대본이 없으면 아무것도 그리지 않는다", () => {
-    const { container } = render(
+  it("재생할 대본이 없으면 강의 만들기 버튼만 그린다", () => {
+    render(
       <LecturePlayer
         script={null}
+        isGeneratedScript={false}
         onRevealNodes={onRevealNodes}
         onResetCamera={onResetCamera}
         onBeforeCollapseRestore={onBeforeCollapseRestore}
@@ -132,7 +134,10 @@ describe("LecturePlayer", () => {
       />,
     );
 
-    expect(container).toBeEmptyDOMElement();
+    expect(screen.getByRole("button", { name: "강의 만들기" })).toBeVisible();
+    expect(
+      screen.queryByRole("region", { name: "강의 플레이어" }),
+    ).not.toBeInTheDocument();
   });
 
   it("강의 중 노드 이름이 바뀌어 대본이 없어져도 진행 중인 강의를 유지한다", async () => {
@@ -143,6 +148,7 @@ describe("LecturePlayer", () => {
     rerender(
       <LecturePlayer
         script={null}
+        isGeneratedScript={false}
         onRevealNodes={onRevealNodes}
         onResetCamera={onResetCamera}
         onBeforeCollapseRestore={onBeforeCollapseRestore}
@@ -266,6 +272,7 @@ describe("LecturePlayer", () => {
     rerender(
       <LecturePlayer
         script={script}
+        isGeneratedScript={false}
         onRevealNodes={nextRevealNodes}
         onResetCamera={nextResetCamera}
         onBeforeCollapseRestore={onBeforeCollapseRestore}
@@ -286,6 +293,7 @@ describe("LecturePlayer", () => {
     rerender(
       <LecturePlayer
         script={script}
+        isGeneratedScript={false}
         onRevealNodes={nextRevealNodes}
         onResetCamera={onResetCamera}
         onBeforeCollapseRestore={onBeforeCollapseRestore}

@@ -10,8 +10,8 @@ export type { EditorLectureCompileResult } from "./lib/lecture/compileEditorLect
 export { getEditorLectureTreeOutline } from "./lib/lecture/getEditorLectureTreeNodes";
 export { createLectureNodeIdResolver } from "./lib/lecture/createLectureNodeIdResolver";
 export { prefersReducedMotion } from "./lib/motion";
-export { useDemoLectureScript } from "./model/lecture/useDemoLectureScript";
 export { useGenerateLecture } from "./model/lecture/useGenerateLecture";
+export { useLectureScript } from "./model/lecture/useLectureScript";
 export type { GenerateLectureResult } from "./model/lecture/useGenerateLecture";
 export { validateLectureRequest } from "./lib/lecture/validateLectureGeneration";
 export { useIsLectureActive } from "./model/lecture/lectureStore";

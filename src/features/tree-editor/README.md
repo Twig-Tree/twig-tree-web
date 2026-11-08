@@ -177,7 +177,9 @@ editor store 초기화는 트리당 한 번만 수행한다. `useInitializeTree`
 
 ## 강의 데모
 
-트리 위에서 강의를 재생한다. 장면마다 노드 하나를 설명하고, 비트마다 음성·자막·연출이 함께 진행된다. 플레이어는 `LectureScript` 한 가지 형식만 재생한다. 지금은 서버 없이 `entities/lecture`의 데모 강의로만 재생한다.
+트리 위에서 강의를 재생한다. 장면마다 노드 하나를 설명하고, 비트마다 음성·자막·연출이 함께 진행된다. 플레이어는 `LectureScript` 한 가지 형식만 재생한다. 재생할 대본은 `useLectureScript`가 고른다. 지금 트리로 만든 강의가 있으면 그것을, 없으면 트리에 맞는 `entities/lecture`의 데모 강의를 쓴다.
+
+시작 전 플레이어 자리에서 강의를 만들 수 있다. `LectureGenerator`가 요청 문장을 받고, `useGenerateLecture`가 편집기 트리의 outline으로 요청해 응답을 대본으로 컴파일한다. 고칠 수 있는 문제가 있으면 repair를 한 번 보낸다. 만든 대본은 `generatedLectureStore`에 트리별로 하나씩 둔다. 백엔드가 아직 강의를 저장하지 않아 새로고침하면 사라진다.
 
 ### 데모 강의와 노드 연결
 
