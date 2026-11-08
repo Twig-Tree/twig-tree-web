@@ -77,6 +77,7 @@ describe("useAddRootNode", () => {
           label: "새 트리",
           orderIndex: 1,
           memo: null,
+          version: 0,
           tagIds: [],
         },
       ]);

@@ -102,6 +102,9 @@ export const useUndoRedo = ({ treeId }: UseUndoRedoParams) => {
   const removeTagFromNodeInStore = useTreeStore(
     (state) => state.removeTagFromNodeInStore,
   );
+  const updateNodeVersionInStore = useTreeStore(
+    (state) => state.updateNodeVersionInStore,
+  );
   const expand = useCollapseStore((state) => state.expand);
 
   const { mutateAsync: addNodeOnServer, isPending: isAddingNode } =
@@ -320,12 +323,18 @@ export const useUndoRedo = ({ treeId }: UseUndoRedoParams) => {
           }
         }
 
+        /*
+        되살린 노드는 새로 만들어져 지우기 전의 version을 쓸 수 없다. 생성 응답의 version으로 보내고, 올라간 값을 store에 남긴다.
+        */
         if (node.data.memo !== null) {
-          await updateMemoOnServer({
+          const restoredMemo = await updateMemoOnServer({
             treeId,
             nodeId: createdNode.id,
             content: node.data.memo,
+            version: createdNode.version,
           });
+
+          updateNodeVersionInStore(node.id, restoredMemo.version);
         }
 
         for (const tagId of node.data.tagIds) {

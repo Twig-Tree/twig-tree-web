@@ -5,6 +5,7 @@ type CreateEditorNodeParams = {
   serverId: string | null; // 서버가 확정한 노드 ID, 저장 전이면 null
   label: string;
   orderIndex: number;
+  version?: number; // 서버가 확정한 version. 저장 전 노드는 요청에 쓰이지 않고 생성 응답이 덮으므로 생략한다
   x: number;
   y: number;
 };
@@ -21,6 +22,7 @@ export const createEditorNode = ({
   serverId,
   label,
   orderIndex,
+  version = 0,
   x,
   y,
 }: CreateEditorNodeParams): CustomEditorNode => {
@@ -32,6 +34,7 @@ export const createEditorNode = ({
       label,
       orderIndex,
       memo: null, // 새 노드는 메모 없이 만들어진다.
+      version,
       tagIds: [], // 새 노드는 태그 없이 만들어진다.
     },
     position: {

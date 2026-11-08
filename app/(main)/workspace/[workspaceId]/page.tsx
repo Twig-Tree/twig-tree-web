@@ -24,6 +24,7 @@ import {
   useMoveNodeByDrag,
   useReactFlowStoreSetters,
   useSyncCollapseAcrossTabs,
+  useSyncExternalTreeChange,
   useTreeEditorActions,
   useTreeLevelControl,
   useTreeStore,
@@ -60,10 +61,13 @@ function LayoutFlow({ workspaceId, treeId }: LayoutFlowProps) {
   const closeMemoPanel = useCallback(() => setIsMemoPanelOpen(false), []); // 렌더마다 새 함수가 되면 useVisibleElements의 effect가 매번 다시 돈다.
   const isMemoPanelOverlay = useIsNarrowScreen();
   // todo: React Server Component 사용
+  /*
+  오류 화면은 보여 줄 트리가 없을 때만 띄운다. isError는 재조회 실패에도 켜지므로, 쓰면 다른 곳의 변경을 확인하다 조회가 실패했을 때 편집기와 입력 중인 초안이 사라진다.
+  */
   const {
     data: treeData,
     isLoading,
-    isError: isGetTreeError,
+    isLoadingError: isTreeLoadFailed,
   } = useGetTreeQuery(treeId);
 
   // Zustand 스토어에서 상태(State) 구독
@@ -220,11 +224,28 @@ function LayoutFlow({ workspaceId, treeId }: LayoutFlowProps) {
   */
   const isLectureActive = useIsLectureActive();
 
+  /*
+  선택했던 노드가 다른 곳에서 지워지면 그 노드를 가리키던 메모 패널과 우클릭 메뉴가 갈 곳을 잃으므로 닫는다.
+  */
+  const handleSelectedNodeRemoved = useCallback(() => {
+    closeMemoPanel();
+    closeContextMenu();
+  }, [closeMemoPanel, closeContextMenu]);
+
+  /*
+  강의는 재생 순서가 지금 트리의 노드에 맞춰져 있어, 재생 중에는 다른 곳의 변경을 반영하지 않는다.
+  */
+  useSyncExternalTreeChange({
+    treeId,
+    isStructureEditing: isMutating || isLectureActive,
+    onSelectedNodeRemoved: handleSelectedNodeRemoved,
+  });
+
   if (isLoading) {
     return <div>불러오는 중입니다.</div>;
   }
 
-  if (isGetTreeError) {
+  if (isTreeLoadFailed) {
     return <div>트리를 불러오지 못했습니다.</div>;
   }
 

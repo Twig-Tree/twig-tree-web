@@ -60,6 +60,7 @@ describe("useAddNode", () => {
       label: "새 노드 2",
       orderIndex: 2,
       memo: null,
+      version: 0,
       tagIds: [],
     });
     const { result } = renderAddNode();

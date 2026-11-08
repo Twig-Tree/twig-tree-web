@@ -38,6 +38,7 @@ export const LAB_SCENARIO_FIXTURES: LabScenarioFixture[] =
       label: name,
       orderIndex,
       memo: null,
+      version: 0,
       tagIds: [],
     })),
     compilerTree: createLectureCompilerTree(fixture.tree),

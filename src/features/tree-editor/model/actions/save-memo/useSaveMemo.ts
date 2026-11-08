@@ -1,8 +1,14 @@
+import { useCallback, useRef, useState } from "react";
 import {
+  NODE_ERROR_CODE,
   useUpdateMemoMutation,
   useDeleteMemoMutation,
 } from "@/src/entities/tree";
+import { getApiErrorCode } from "@/src/shared/api/authErrorCodes";
 import { validateMemoContent } from "@/src/features/tree-editor/lib/save-memo/validateMemoContent";
+import { runNodeSaveInOrder } from "@/src/features/tree-editor/lib/runNodeSaveInOrder";
+import { useReloadConflictedNode } from "../reload-conflicted-node/useReloadConflictedNode";
+import { useExternalChangeCheckStore } from "../../sync/externalChangeCheckStore";
 import { useTreeStore } from "../../treeStore";
 
 type UseSaveMemoParams = {
@@ -14,9 +20,9 @@ type UseSaveMemoParams = {
 
 /*
 함수 이름 : useSaveMemo
-기능 : 메모 편집 화면의 저장 동작을 처리한다. 내용이 있으면 생성/수정 API를 호출하고, 내용이 비어 있는데 저장된 메모가 있었다면 삭제 API를 호출한다. 저장된 메모가 없는데 빈 값으로 저장을 시도하면 API를 호출하지 않고, 노드가 아직 서버에 저장되지 않았다면 요청을 보내지 않고 사용자에게 알린다. 서버 저장이 끝나면 editor store의 노드 메모도 함께 갱신하고, 요청이 실패하면 사용자에게 알린다.
+기능 : 메모 편집 화면의 저장 동작을 처리한다. 내용이 있으면 생성/수정 API를 호출하고, 내용이 비어 있는데 저장된 메모가 있었다면 삭제 API를 호출한다. 저장된 메모가 없는데 빈 값으로 저장을 시도하면 API를 호출하지 않고, 노드가 아직 서버에 저장되지 않았다면 요청을 보내지 않고 사용자에게 알린다. 서버 저장이 끝나면 editor store의 노드 메모도 함께 갱신하고, 요청이 실패하면 사용자에게 알린다. 다른 곳의 수정과 충돌하면 최신 값을 store에 반영하고 충돌 여부를 돌려준다. 입력 중인 내용은 MemoEditor에 남는다.
 인자 : UseSaveMemoParams
-반환값 : 메모 저장 핸들러와 저장 중 여부
+반환값 : 메모 저장 핸들러, 저장 중 여부, 지금 노드의 저장이 충돌했는지 여부, 충돌 안내를 지우는 함수
 */
 export const useSaveMemo = ({
   treeId,
@@ -32,11 +38,30 @@ export const useSaveMemo = ({
   const updateNodeMemoInStore = useTreeStore(
     (state) => state.updateNodeMemoInStore,
   );
+  const updateNodeVersionInStore = useTreeStore(
+    (state) => state.updateNodeVersionInStore,
+  );
+
+  const reloadConflictedNode = useReloadConflictedNode();
+
+  /*
+  이 hook은 메모 패널과 함께 살아 있어 노드를 바꿔도 값이 남는다. 다른 노드에 안내가 뜨지 않도록 충돌한 노드를 기억한다.
+  */
+  const [conflictClientId, setConflictClientId] = useState<string | null>(null);
+  const hasMemoConflict =
+    conflictClientId !== null && conflictClientId === clientId;
+  const clearMemoConflict = useCallback(() => setConflictClientId(null), []);
+
+  /*
+  충돌 뒤 최신 값을 읽는 동안에는 mutation이 pending이 아니라 isSaving으로 막지 못한다.
+  이때 들어온 다음 클릭은 최신 version으로 나가 충돌 안내 없이 덮어쓰므로 동기 가드로 막는다.
+  */
+  const isSubmittingRef = useRef(false);
 
   const isSaving = isUpdating || isDeleting;
 
   const handleSaveMemo = async (content: string) => {
-    if (!clientId || isSaving) return;
+    if (!clientId || isSaving || isSubmittingRef.current) return;
 
     /*
     길이를 넘긴 내용은 서버가 거부하므로 요청을 보내지 않는다.
@@ -65,27 +90,83 @@ export const useSaveMemo = ({
       return;
     }
 
+    isSubmittingRef.current = true;
+    setConflictClientId(null);
+
     try {
-      if (shouldDeleteMemo) {
-        await deleteMemo({ treeId, nodeId: serverId });
-        updateNodeMemoInStore(clientId, null);
-        return;
-      }
+      /*
+      version은 차례가 되었을 때 읽는다. 먼저 읽으면 앞서 맡긴 같은 노드의 저장이 올린 값을 놓친다.
+      */
+      await runNodeSaveInOrder(clientId, async () => {
+        const node = useTreeStore
+          .getState()
+          .nodes.find(({ id }) => id === clientId);
 
-      const updatedMemo = await updateMemo({
-        treeId,
-        nodeId: serverId,
-        content: trimmedContent,
+        if (!node) return;
+
+        const { version, memo } = node.data;
+
+        try {
+          if (shouldDeleteMemo) {
+            /*
+            기다리는 사이 앞선 저장이 메모를 이미 지웠으면 서버의 version이 오르지 않으므로 요청하지 않는다.
+            */
+            if (memo === null) return;
+
+            const nextVersion = await deleteMemo({
+              treeId,
+              nodeId: serverId,
+              version,
+            });
+
+            updateNodeMemoInStore(clientId, null);
+            updateNodeVersionInStore(clientId, nextVersion);
+            return;
+          }
+
+          const updatedMemo = await updateMemo({
+            treeId,
+            nodeId: serverId,
+            content: trimmedContent,
+            version,
+          });
+
+          updateNodeMemoInStore(clientId, updatedMemo.content); // 서버가 보정한 값을 화면에도 반영한다.
+          updateNodeVersionInStore(clientId, updatedMemo.version);
+        } catch (error) {
+          if (getApiErrorCode(error) !== NODE_ERROR_CODE.VERSION_CONFLICT) {
+            throw error;
+          }
+
+          /*
+          같은 노드의 다음 저장이 최신 version을 읽도록 이 차례 안에서 다시 읽는다.
+          */
+          await reloadConflictedNode({ treeId, clientId, serverId });
+          setConflictClientId(clientId);
+        }
       });
+    } catch (error) {
+      const isNodeRemoved =
+        getApiErrorCode(error) === NODE_ERROR_CODE.NODE_NOT_FOUND;
 
-      updateNodeMemoInStore(clientId, updatedMemo.content); // 서버가 보정한 값을 화면에도 반영한다.
-    } catch {
-      alert("메모 저장에 실패했습니다. 다시 시도해주세요.");
+      alert(
+        isNodeRemoved
+          ? "다른 곳에서 삭제된 노드입니다."
+          : "메모 저장에 실패했습니다. 다시 시도해주세요.",
+      );
+
+      if (isNodeRemoved) {
+        useExternalChangeCheckStore.getState().requestExternalChangeCheck(); // 노드가 사라졌으니 화면도 맞춘다.
+      }
+    } finally {
+      isSubmittingRef.current = false;
     }
   };
 
   return {
     handleSaveMemo,
     isSaving,
+    hasMemoConflict,
+    clearMemoConflict,
   };
 };

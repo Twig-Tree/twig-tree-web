@@ -20,6 +20,7 @@ export const useMoveNodeMutation = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
+    mutationKey: treeQueryKeys.mutations(),
     mutationFn: ({ treeId, nodeId, parentId, position }: MoveNodeVariables) =>
       treeApi.moveNode(Number(treeId), Number(nodeId), {
         parentId: Number(parentId),

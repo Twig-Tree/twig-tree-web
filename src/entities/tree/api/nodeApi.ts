@@ -1,9 +1,20 @@
 import { axiosInstance } from "@/src/shared/api/axiosInstance";
-import { EditNodeNameRequest, EditNodeNameResponse } from "./types";
+import {
+  EditNodeNameRequest,
+  EditNodeNameResponse,
+  GetNodeResponse,
+} from "./types";
 import { TreeNode } from "../model/types";
 import { mapNodeDtoToDomain } from "../lib/mappers";
 
 export const nodeApi = {
+  getNode: async (treeId: number, nodeId: number): Promise<TreeNode> => {
+    const res = await axiosInstance.get<GetNodeResponse>(
+      `/trees/${treeId}/nodes/${nodeId}`,
+    );
+    return mapNodeDtoToDomain(res.data.data);
+  },
+
   /*
   URL에 treeId가 포함되지만 이 요청이 바꾸는 것은 노드의 속성이므로 treeApi가 아니라 nodeApi에 둔다.
   */

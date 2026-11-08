@@ -23,6 +23,7 @@ export const useAddNodeMutation = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
+    mutationKey: treeQueryKeys.mutations(),
     mutationFn: ({ treeId, node }: AddNodeVariables) => {
       /*
       Number(null)은 0이므로 null 확인이 숫자 변환보다 먼저다. 순서가 뒤집히면 루트 생성이 parentId=0으로 나간다.

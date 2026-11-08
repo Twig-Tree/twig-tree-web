@@ -41,6 +41,7 @@ describe("useCreateDemoTree", () => {
         label: body.name,
         orderIndex: body.orderId,
         memo: null,
+        version: 0,
         tagIds: [],
       }));
 

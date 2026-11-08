@@ -12,6 +12,7 @@ const createTreeNode = (
   label: `node ${id}`,
   orderIndex,
   memo: null,
+  version: 0,
   tagIds: [],
 });
 

@@ -131,6 +131,7 @@ export const useAddRootNode = ({
               serverId: createdNode.id,
               label: createdNode.label,
               orderIndex: createdNode.orderIndex,
+              version: createdNode.version,
               x: 0,
               y: 0,
             }),

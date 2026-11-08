@@ -34,6 +34,7 @@ export const ANIMATION_LAB_TREE: TreeNode[] = FIXTURE_ROWS.map(
     label,
     orderIndex,
     memo: null,
+    version: 0,
     tagIds: [],
   }),
 );

@@ -36,7 +36,9 @@ ONE_ROOT_PER_TREE는 서비스 코드가 아니라 DB 유니크 인덱스 uk_nod
 NODE400 계열은 노드 이동의 거절 사유다.
 */
 export const NODE_ERROR_CODE = {
+  NODE_NOT_FOUND: "NODE404-1",
   ONE_ROOT_PER_TREE: "NODE409-2",
+  VERSION_CONFLICT: "NODE409-3", // 요청의 version이 서버 값과 달라 다른 곳의 수정을 덮어쓰지 않고 거절함
   ROOT_NODE_NOT_MOVABLE: "NODE400-1",
   INVALID_MOVE_TARGET: "NODE400-2", // 자기 자신이나 하위 노드 밑으로 이동
   INVALID_POSITION: "NODE400-3", // 같은 부모면 1..n, 다른 부모면 1..n+1을 벗어난 순번

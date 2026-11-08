@@ -7,6 +7,7 @@ interface EditNodeNameVariables {
   treeId: string; // 노드가 속한 트리 ID
   nodeId: string; // 제목을 수정할 노드 ID
   name: string; // 새로 저장할 노드 제목
+  version: number; // 화면이 알고 있는 노드 version
 }
 
 /*
@@ -19,8 +20,9 @@ export const useEditNodeNameMutation = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ treeId, nodeId, name }: EditNodeNameVariables) =>
-      nodeApi.editNodeName(Number(treeId), Number(nodeId), { name }),
+    mutationKey: treeQueryKeys.mutations(),
+    mutationFn: ({ treeId, nodeId, name, version }: EditNodeNameVariables) =>
+      nodeApi.editNodeName(Number(treeId), Number(nodeId), { name, version }),
 
     /*
     서버가 제목을 보정할 수 있으므로 입력값이 아니라 응답으로 받은 노드를 캐시에 반영한다.
