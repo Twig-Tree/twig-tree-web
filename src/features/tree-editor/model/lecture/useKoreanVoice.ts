@@ -1,5 +1,8 @@
 import { useMemo, useSyncExternalStore } from "react";
-import { findKoreanVoice, isSpeechSynthesisSupported } from "./lectureSpeech";
+import {
+  findKoreanVoice,
+  isSpeechSynthesisSupported,
+} from "@/src/shared/lib/speech";
 
 const subscribeVoices = (onChange: () => void) => {
   if (!isSpeechSynthesisSupported()) return () => {};
