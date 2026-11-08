@@ -30,6 +30,7 @@ const getAllSchemas = (schema: JsonSchema): JsonSchema[] => [
 /*
 함수 이름 : getStrictValue
 기능 : 시나리오를 strict 모드 응답 모양으로 옮긴다. 빠진 필드를 null로 채우며, 스키마에 맞지 않는 값을 만나면 실패한다.
+타입, enum, pattern, minItems, 정의하지 않은 필드를 검사한다. strict 스키마가 쓰는 제약 키워드가 이것뿐이다.
 모델이 strict 스키마대로 답했을 때의 응답을 흉내 낸다.
 인자 : unknown value -> 시나리오의 한 부분
 JsonSchema schema -> 그 부분의 strict 스키마
@@ -67,6 +68,9 @@ const getStrictValue = (value: unknown, schema: JsonSchema): unknown => {
 
   if (types.includes("array")) {
     if (!Array.isArray(value)) throw new Error("배열이 아닙니다");
+    if (typeof schema.minItems === "number" && value.length < schema.minItems) {
+      throw new Error(`항목이 ${schema.minItems}개보다 적습니다`);
+    }
     return value.map((item) =>
       getStrictValue(item, schema.items as JsonSchema),
     );
@@ -95,6 +99,13 @@ const getStrictValue = (value: unknown, schema: JsonSchema): unknown => {
 
   if (!types.includes(typeof value)) {
     throw new Error(`${types.join("|")}가 아닙니다: ${String(value)}`);
+  }
+
+  if (
+    typeof schema.pattern === "string" &&
+    !new RegExp(schema.pattern, "u").test(String(value))
+  ) {
+    throw new Error(`pattern에 맞지 않습니다: ${String(value)}`);
   }
 
   return value;
@@ -141,6 +152,23 @@ describe("getLectureScenarioStrictJsonSchema", () => {
   /*
   모델이 strict 스키마대로 답한 응답을 흉내 내고, null을 뺀 결과가 원래 시나리오로 돌아오는지 본다.
   */
+  it("왕복 테스트의 검사 함수가 pattern과 minItems 위반을 거부한다", () => {
+    const [{ scenario }] = LECTURE_SCENARIO_FIXTURES.filter(
+      ({ kind }) => kind === "valid",
+    );
+    const valid = scenario as { scenes: { nodeId: string }[] };
+
+    expect(() =>
+      getStrictValue(
+        { ...valid, scenes: [{ ...valid.scenes[0], nodeId: "012" }] },
+        strictSchema,
+      ),
+    ).toThrow("pattern");
+    expect(() =>
+      getStrictValue({ ...valid, scenes: [] }, strictSchema),
+    ).toThrow("항목이");
+  });
+
   it("모든 valid fixture가 strict 모양으로 갔다가 그대로 돌아온다", () => {
     const validFixtures = LECTURE_SCENARIO_FIXTURES.filter(
       ({ kind }) => kind === "valid",

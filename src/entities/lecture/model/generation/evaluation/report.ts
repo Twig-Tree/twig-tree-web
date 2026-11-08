@@ -6,6 +6,15 @@ import {
 } from "./score";
 
 /*
+함수 이름 : getTableCellText
+기능 : 문자열을 마크다운 표 셀에 넣을 수 있게 바꾼다. |는 열을, 줄바꿈은 행을 나누므로 이스케이프하고 공백으로 합친다.
+인자 : string text -> 셀에 넣을 문자열
+반환값 : 표 셀용 문자열
+*/
+const getTableCellText = (text: string): string =>
+  text.replace(/\s+/g, " ").trim().replace(/\|/g, "\\|");
+
+/*
 함수 이름 : getRateText
 기능 : 통과 수를 "통과/전체 (비율)"로 쓴다.
 인자 : number count -> 통과 수
@@ -69,11 +78,15 @@ const getFailureText = ({
 export const getLectureEvaluationReportText = (
   cases: LectureEvaluationCase[],
 ): string => {
-  const scores = cases.flatMap((evaluationCase) =>
+  /*
+  case 항목마다 점수를 따로 둔다. ID로 다시 찾으면 같은 ID의 항목이 둘일 때 두 항목의 점수가 각 행에 합쳐진다.
+  */
+  const caseScores = cases.map((evaluationCase) =>
     evaluationCase.responses.map((response) =>
       getLectureEvaluationResponseScore(evaluationCase, response),
     ),
   );
+  const scores = caseScores.flat();
   const summaries = getLectureEvaluationSummaries(scores);
   const lines = [
     "# 강의 생성 평가 결과",
@@ -93,8 +106,8 @@ export const getLectureEvaluationReportText = (
       ...summaries.map(
         (summary) =>
           `| ${[
-            summary.model,
-            summary.promptVersion,
+            getTableCellText(summary.model),
+            getTableCellText(summary.promptVersion),
             summary.responseCount,
             getRateText(summary.schemaPassCount, summary.responseCount),
             getRateText(summary.compilePassCount, summary.responseCount),
@@ -112,21 +125,19 @@ export const getLectureEvaluationReportText = (
     "",
     "| case | 요청 | 응답 | 기대 충족 |",
     "| --- | --- | --- | --- |",
-    ...cases.map((evaluationCase) => {
-      const caseScores = scores.filter(
-        ({ caseId }) => caseId === evaluationCase.id,
-      );
-      const passCount = caseScores.filter(
+    ...cases.map((evaluationCase, caseIndex) => {
+      const responseScores = caseScores[caseIndex];
+      const passCount = responseScores.filter(
         ({ meetsExpectations }) => meetsExpectations,
       ).length;
 
       return `| ${[
-        evaluationCase.id,
-        evaluationCase.request,
-        caseScores.length,
-        caseScores.length === 0
+        getTableCellText(evaluationCase.id),
+        getTableCellText(evaluationCase.request),
+        responseScores.length,
+        responseScores.length === 0
           ? "-"
-          : getRateText(passCount, caseScores.length),
+          : getRateText(passCount, responseScores.length),
       ].join(" | ")} |`;
     }),
   );

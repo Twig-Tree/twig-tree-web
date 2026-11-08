@@ -190,6 +190,16 @@ describe("getLectureEvaluationSummaries", () => {
       },
       {
         ...response,
+        model: "b",
+        promptVersion: "v2",
+        responseText: JSON.stringify({
+          ...JSON.parse(response.responseText),
+          title: "",
+        }),
+        usage: null,
+      },
+      {
+        ...response,
         model: "a",
         promptVersion: "v1",
         responseText: response.responseText.replace(
@@ -228,11 +238,11 @@ describe("getLectureEvaluationSummaries", () => {
       {
         model: "b",
         promptVersion: "v2",
-        responseCount: 1,
+        responseCount: 2,
         schemaPassCount: 1,
         compilePassCount: 1,
         expectationPassCount: 1,
-        failedStepCounts: { json: 0, schema: 0, compile: 0 },
+        failedStepCounts: { json: 0, schema: 1, compile: 0 },
         usageCount: 1,
         inputTokens: 120,
         outputTokens: 50,
@@ -266,6 +276,31 @@ describe("getLectureEvaluationReportText", () => {
     );
     expect(report).toContain(
       "- goguryeo-capital-misconception / reference / fixture: json 단계에서 멈춤 (json 1)",
+    );
+
+    /*
+    같은 ID의 case를 두 번 넣어도 각 행은 자기 응답만 센다.
+    */
+    expect(report).toContain(
+      `| goguryeo-capital-misconception | ${GOGURYEO_CASE.request} | 1 | 1/1 (100%) |`,
+    );
+    expect(report).toContain(
+      `| goguryeo-capital-misconception | ${GOGURYEO_CASE.request} | 1 | 0/1 (0%) |`,
+    );
+  });
+
+  it("표 셀의 |와 줄바꿈이 표를 깨지 않는다", () => {
+    const report = getLectureEvaluationReportText([
+      {
+        ...GOGURYEO_CASE,
+        request: "수도 | 오해를\n바로잡아 줘",
+        responses: [{ ...GOGURYEO_CASE.responses[0], model: "a|b" }],
+      },
+    ]);
+
+    expect(report).toContain("| a\\|b | fixture | 1 |");
+    expect(report).toContain(
+      "| goguryeo-capital-misconception | 수도 \\| 오해를 바로잡아 줘 | 1 | 1/1 (100%) |",
     );
   });
 });

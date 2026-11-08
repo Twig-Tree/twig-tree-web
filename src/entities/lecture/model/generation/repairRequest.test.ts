@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 import { TEST_COMPILER_TREE } from "../compiler/testTree";
-import { getLectureGenerationResult } from "./generationResult";
+import {
+  getLectureGenerationResult,
+  type LectureGenerationIssue,
+} from "./generationResult";
 import {
   MAX_LECTURE_REPAIR_ATTEMPTS,
   MAX_LECTURE_REPAIR_ISSUES,
@@ -121,6 +124,59 @@ describe("getLectureRepairRequest", () => {
     });
 
     expect(request?.issues).toHaveLength(MAX_LECTURE_REPAIR_ISSUES);
+    expect(request?.omittedIssueCount).toBe(3);
+  });
+
+  /*
+  warning을 거르기 전에 상한을 적용하면 warning이 자리를 차지해 error가 빠진다.
+  */
+  it("warning은 담지도 세지도 않고 error에만 상한을 적용한다", () => {
+    const warning: LectureGenerationIssue = {
+      severity: "warning",
+      stage: "duration",
+      path: ["scenes", 0, "beats", 0],
+      message: "비트가 깁니다.",
+    };
+    const errors: LectureGenerationIssue[] = Array.from(
+      { length: MAX_LECTURE_REPAIR_ISSUES + 3 },
+      (_, index) => ({
+        severity: "error",
+        stage: "node",
+        path: ["scenes", 1, "beats", index, "cues", 0, "roles", "subject"],
+        message: "트리에 없는 노드(999)입니다.",
+      }),
+    );
+    const issues = [warning, warning, ...errors];
+
+    const request = getLectureRepairRequest({
+      result: {
+        success: false,
+        failedStep: "compile",
+        issues,
+        metrics: {
+          issueCountByStage: {
+            json: 0,
+            schema: 0,
+            node: errors.length,
+            recipe: 0,
+            composition: 0,
+            duration: 2,
+          },
+          sceneCount: 2,
+          beatCount: errors.length + 1,
+          cueCount: errors.length + 1,
+          usage: null,
+        },
+      },
+      responseText: "{}",
+      repairCount: 0,
+    });
+
+    expect(request?.issues).toHaveLength(MAX_LECTURE_REPAIR_ISSUES);
+    expect(request?.issues.every(({ stage }) => stage === "node")).toBe(true);
+    expect(request?.issues[0].path).toBe(
+      "$.scenes[1].beats[0].cues[0].roles.subject",
+    );
     expect(request?.omittedIssueCount).toBe(3);
   });
 });

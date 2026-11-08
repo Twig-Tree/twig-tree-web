@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { createLectureCompilerTree } from "../compiler/createLectureCompilerTree";
+import { MAX_BEAT_DURATION_MS } from "../compiler/compileChecks";
+import { NARRATION_MS_PER_CHARACTER } from "../compiler/narration";
 import { TEST_COMPILER_TREE } from "../compiler/testTree";
 import { LECTURE_SCENARIO_FIXTURES } from "../scenario/fixtures";
 import { type LectureScenario } from "../scenario/types";
@@ -160,6 +162,39 @@ describe("getLectureGenerationResult", () => {
         cueCount: 1,
       },
     });
+  });
+
+  it("컴파일에 성공해도 warning을 돌려주고 단계별로 센다", () => {
+    const longText = "가".repeat(
+      Math.ceil(MAX_BEAT_DURATION_MS / NARRATION_MS_PER_CHARACTER) + 1,
+    );
+    const responseText = JSON.stringify({
+      ...SCENARIO,
+      scenes: [
+        {
+          ...SCENARIO.scenes[0],
+          beats: [
+            {
+              ...SCENARIO.scenes[0].beats[0],
+              narration: { text: longText },
+            },
+          ],
+        },
+      ],
+    });
+
+    const result = getLectureGenerationResult(responseText, OPTIONS);
+
+    expect(result.success).toBe(true);
+    if (!result.success) return;
+    expect(result.warnings).toMatchObject([
+      {
+        severity: "warning",
+        stage: "duration",
+        path: ["scenes", 0, "beats", 0],
+      },
+    ]);
+    expect(result.metrics.issueCountByStage.duration).toBe(1);
   });
 
   it("fixture마다 기대한 단계에서 성공하거나 멈춘다", () => {
