@@ -1,5 +1,8 @@
-import { describe, expect, it } from "vitest";
-import { type LectureScenario } from "@/src/entities/lecture";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import {
+  setLectureLogSink,
+  type LectureScenario,
+} from "@/src/entities/lecture";
 import { createEditorNode } from "../add-node/createEditorNode";
 import {
   compileEditorLectureScenario,
@@ -74,6 +77,15 @@ describe("createEditorLectureCompilerTree", () => {
 });
 
 describe("compileEditorLectureScenario", () => {
+  const logSink = vi.fn();
+
+  beforeEach(() => {
+    logSink.mockReset();
+    setLectureLogSink(logSink);
+  });
+
+  afterEach(() => setLectureLogSink(null));
+
   it("컴파일한 대본의 노드를 편집기 clientId로 옮긴다", () => {
     const result = compileEditorLectureScenario(scenario, {
       scriptId: "editor-lecture",
@@ -102,5 +114,28 @@ describe("compileEditorLectureScenario", () => {
     expect(!result.success && result.issues.map(({ path }) => path)).toEqual([
       ["scenes", 0, "nodeId"],
     ]);
+  });
+
+  it("컴파일할 때마다 결과와 측정값을 운영 로그로 남긴다", () => {
+    compileEditorLectureScenario(scenario, {
+      scriptId: "editor-lecture",
+      nodes,
+      edges,
+    });
+
+    expect(logSink).toHaveBeenCalledExactlyOnceWith(
+      expect.objectContaining({
+        type: "lecture-compile",
+        level: "info",
+        scriptId: "editor-lecture",
+        success: true,
+        metrics: expect.objectContaining({
+          compileMs: expect.any(Number),
+          cueCount: 1,
+          fallbackRate: 1,
+          invalidRoleRate: 0,
+        }),
+      }),
+    );
   });
 });

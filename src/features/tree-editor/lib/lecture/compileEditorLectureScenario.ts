@@ -1,6 +1,8 @@
 import {
   compileLectureScenario,
+  createLectureCompileLogEvent,
   createLectureCompilerTree,
+  logLectureEvent,
   type LectureCompileIssue,
   type LectureCompilerTree,
   type LectureCompileSourceMap,
@@ -43,7 +45,7 @@ export type EditorLectureCompileResult =
 
 /*
 함수 이름 : compileEditorLectureScenario
-기능 : 시나리오를 지금 편집기 트리로 컴파일하고, 대본의 서버 노드 ID를 편집기 clientId로 옮긴다.
+기능 : 시나리오를 지금 편집기 트리로 컴파일하고, 대본의 서버 노드 ID를 편집기 clientId로 옮긴다. 컴파일 결과와 측정값을 운영 로그로 남긴다.
 인자 : unknown scenario -> 모델 출력처럼 아직 검사하지 않은 시나리오
 CompileEditorLectureScenarioOptions options -> 대본 ID와 editor store의 노드·엣지
 반환값 : 편집기에서 실행할 대본과 source map, 또는 시나리오 위치별 문제
@@ -52,10 +54,20 @@ export const compileEditorLectureScenario = (
   scenario: unknown,
   { scriptId, nodes, edges }: CompileEditorLectureScenarioOptions,
 ): EditorLectureCompileResult => {
+  const startedAt = performance.now();
   const result = compileLectureScenario(scenario, {
     scriptId,
     tree: createEditorLectureCompilerTree(nodes, edges),
   });
+
+  logLectureEvent(
+    createLectureCompileLogEvent({
+      scenario,
+      scriptId,
+      result,
+      compileMs: performance.now() - startedAt,
+    }),
+  );
 
   if (!result.success) return result;
 

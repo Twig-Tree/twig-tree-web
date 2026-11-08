@@ -1,5 +1,9 @@
 import { useEffect, useEffectEvent, useRef, useState } from "react";
-import { getReducedMotionAnimation } from "@/src/entities/lecture";
+import {
+  createLecturePlaybackFailureLogEvent,
+  getReducedMotionAnimation,
+  logLectureEvent,
+} from "@/src/entities/lecture";
 import { prefersReducedMotion } from "../../lib/motion";
 import { useCollapseStore } from "../collapse/collapseStore";
 import { useTreeStore } from "../treeStore";
@@ -195,9 +199,13 @@ export const useLecturePlayback = ({
       animationController.abort();
       useLectureAnimationStore.getState().resetVisual();
       forgetLastCameraMove();
-      console.error(
-        `강의 비트 애니메이션이 실패했습니다(장면 ${sceneIndex}, 비트 ${beatIndex}, ${beat.id}).`,
-        error,
+      logLectureEvent(
+        createLecturePlaybackFailureLogEvent({
+          script,
+          sceneIndex,
+          beatIndex,
+          error,
+        }),
       );
     };
 

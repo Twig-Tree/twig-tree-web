@@ -147,3 +147,22 @@ export {
   getLectureIssuePathText,
   getLectureRepairRequest,
 } from "./model/generation/repairRequest";
+export type {
+  LectureCompileMetrics,
+  LectureDeliveryField,
+} from "./model/telemetry/compileMetrics";
+export { getLectureCompileMetrics } from "./model/telemetry/compileMetrics";
+export type { LectureIssueLocation } from "./model/telemetry/issueLocation";
+export type {
+  LectureCompileLogEvent,
+  LectureCompileLogIssue,
+  LectureLogEvent,
+  LectureLogLevel,
+  LecturePlaybackFailureLogEvent,
+} from "./model/telemetry/logEvents";
+export {
+  createLectureCompileLogEvent,
+  createLecturePlaybackFailureLogEvent,
+} from "./model/telemetry/logEvents";
+export type { LectureLogSink } from "./model/telemetry/logSink";
+export { logLectureEvent, setLectureLogSink } from "./model/telemetry/logSink";

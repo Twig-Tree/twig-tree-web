@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { act, renderHook } from "@testing-library/react";
+import { setLectureLogSink } from "@/src/entities/lecture";
 import {
   type EditorLectureAnimation,
   type EditorLectureScript,
@@ -523,9 +524,8 @@ describe("useLecturePlayback", () => {
   병렬 그룹의 한 동작이 실패해도 다른 동작의 강조가 화면에 남지 않아야 하고, 강의는 멈추지 않아야 한다.
   */
   it("비트 애니메이션이 실패하면 화면을 정리하고 내레이션 뒤 다음 비트로 넘어간다", async () => {
-    const consoleError = vi
-      .spyOn(console, "error")
-      .mockImplementation(() => undefined);
+    const logSink = vi.fn();
+    setLectureLogSink(logSink);
     revealNodes.mockImplementationOnce(() => {
       throw new Error("카메라 실패");
     });
@@ -566,7 +566,16 @@ describe("useLecturePlayback", () => {
     await advance(0);
 
     expect(useLectureAnimationStore.getState().layers.size).toBe(0);
-    expect(consoleError).toHaveBeenCalledOnce();
+    expect(logSink).toHaveBeenCalledExactlyOnceWith({
+      type: "lecture-playback-failure",
+      level: "error",
+      scriptId: "test-script",
+      sceneIndex: 0,
+      beatIndex: 0,
+      sceneId: "scene-1",
+      beatId: "broken",
+      message: "카메라 실패",
+    });
 
     act(() => result.current.refocusCamera());
     expect(revealNodes).toHaveBeenCalledOnce();
@@ -578,7 +587,7 @@ describe("useLecturePlayback", () => {
     expect(getPosition().beatIndex).toBe(1);
     expect(useLectureAnimationStore.getState().layers.size).toBe(0);
 
-    consoleError.mockRestore();
+    setLectureLogSink(null);
   });
 
   it("동작 줄이기 설정을 비트마다 읽어 그 비트의 애니메이션을 줄인다", async () => {
