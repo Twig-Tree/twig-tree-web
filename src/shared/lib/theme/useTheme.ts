@@ -3,16 +3,18 @@
 import { useSyncExternalStore } from "react";
 import {
   getCurrentTheme,
+  getCurrentThemePreference,
   getServerTheme,
+  getServerThemePreference,
   setTheme,
   subscribeTheme,
 } from "./themeStore";
 
 /*
 함수 이름 : useTheme
-기능 : 현재 테마를 구독하고 테마를 바꾸는 함수를 함께 돌려준다.
+기능 : 적용된 테마와 사용자가 고른 값을 구독하고, 고른 값을 바꾸는 함수를 함께 돌려준다.
 인자 : 없음
-반환값 : 현재 테마와 테마 변경 함수
+반환값 : 적용된 테마, 사용자가 고른 값, 변경 함수
 */
 export const useTheme = () => {
   const theme = useSyncExternalStore(
@@ -21,5 +23,11 @@ export const useTheme = () => {
     getServerTheme,
   );
 
-  return { theme, setTheme };
+  const preference = useSyncExternalStore(
+    subscribeTheme,
+    getCurrentThemePreference,
+    getServerThemePreference,
+  );
+
+  return { theme, preference, setTheme };
 };

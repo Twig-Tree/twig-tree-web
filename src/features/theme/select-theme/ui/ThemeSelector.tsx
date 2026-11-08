@@ -1,8 +1,13 @@
 "use client";
 
-import { THEME_IDS, useTheme, type ThemeId } from "@/src/shared/lib/theme";
+import {
+  THEME_PREFERENCES,
+  useTheme,
+  type ThemePreference,
+} from "@/src/shared/lib/theme";
 
-const THEME_LABELS: Record<ThemeId, string> = {
+const THEME_LABELS: Record<ThemePreference, string> = {
+  system: "시스템 설정 따르기",
   neutral: "Neutral",
   soft: "Soft",
   dark: "Dark",
@@ -15,26 +20,26 @@ const THEME_LABELS: Record<ThemeId, string> = {
 반환값 : 테마 선택 요소
 */
 export function ThemeSelector() {
-  const { theme, setTheme } = useTheme();
+  const { preference, setTheme } = useTheme();
 
   return (
     <fieldset className="flex flex-col gap-2">
       <legend className="mb-2 text-sm font-medium text-content">테마</legend>
 
-      {THEME_IDS.map((themeId) => (
+      {THEME_PREFERENCES.map((option) => (
         <label
-          key={themeId}
+          key={option}
           className="flex cursor-pointer items-center gap-3 rounded-control border border-line px-3 py-2.5 text-sm text-content transition-colors hover:bg-surface-hover has-[:checked]:border-accent has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-focus"
         >
           <input
             type="radio"
             name="theme"
-            value={themeId}
-            checked={themeId === theme}
-            onChange={() => setTheme(themeId)}
+            value={option}
+            checked={option === preference}
+            onChange={() => setTheme(option)}
             className="accent-accent outline-none"
           />
-          {THEME_LABELS[themeId]}
+          {THEME_LABELS[option]}
         </label>
       ))}
     </fieldset>
