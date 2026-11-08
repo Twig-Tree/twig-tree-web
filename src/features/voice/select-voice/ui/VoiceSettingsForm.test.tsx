@@ -184,12 +184,13 @@ describe("VoiceSettingsForm", () => {
 
     it("음소거 상태여도 소리를 낸다", async () => {
       const { speak } = stubSpeech();
-      updateVoiceSettings({ isMuted: true });
+      updateVoiceSettings({ isMuted: true, volume: 0.5 });
       render(<VoiceSettingsForm />);
 
       await startPreview(speak);
 
       expect(speak).toHaveBeenCalledOnce();
+      expect(speak.mock.calls[0][0].volume).toBe(0.5);
     });
 
     it("읽는 중에 누르면 멈춘다", async () => {

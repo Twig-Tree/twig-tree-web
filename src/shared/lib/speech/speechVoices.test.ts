@@ -73,6 +73,14 @@ describe("findKoreanVoice", () => {
     expect(findKoreanVoice(voices)?.voiceURI).toBe("yuna");
   });
 
+  it.each(["ko", "KO-kr", "ko_KR"])("%s는 한국어로 본다", (lang) => {
+    expect(findKoreanVoice([createVoice(lang)])?.lang).toBe(lang);
+  });
+
+  it("언어 코드가 ko로 시작하는 다른 언어는 고르지 않는다", () => {
+    expect(findKoreanVoice([createVoice("kok-IN")])).toBeNull();
+  });
+
   it("다른 언어의 자연스러운 음성은 고르지 않는다", () => {
     const voices = [
       createVoice("en-US", "google-en", "Google US English"),

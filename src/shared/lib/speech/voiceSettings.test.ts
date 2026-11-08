@@ -181,6 +181,54 @@ describe("useVoiceSettings", () => {
     expect(result.current.voiceSettings).toEqual(SAVED_SETTINGS);
   });
 
+  describe("저장에 실패한 뒤", () => {
+    const failNextSave = (rate: 0.75 | 1.5) => {
+      const setItem = vi
+        .spyOn(Storage.prototype, "setItem")
+        .mockImplementation(() => {
+          throw new DOMException("full", "QuotaExceededError");
+        });
+
+      updateVoiceSettings({ rate });
+      setItem.mockRestore();
+    };
+
+    it("다시 구독해도 고른 값을 유지한다", () => {
+      saveSettings(SAVED_SETTINGS);
+      const first = renderHook(() => useVoiceSettings());
+
+      failNextSave(0.75);
+      first.unmount();
+
+      const second = renderHook(() => useVoiceSettings());
+
+      expect(second.result.current.voiceSettings.rate).toBe(0.75);
+    });
+
+    it("다른 탭이 저장한 값은 따른다", () => {
+      const { result } = renderHook(() => useVoiceSettings());
+
+      failNextSave(0.75);
+      saveSettings(SAVED_SETTINGS);
+      act(() => dispatchStorageEvent(VOICE_SETTINGS_STORAGE_KEY));
+
+      expect(result.current.voiceSettings).toEqual(SAVED_SETTINGS);
+    });
+
+    it("다음 저장이 성공하면 다시 구독할 때 저장값을 읽는다", () => {
+      const first = renderHook(() => useVoiceSettings());
+
+      failNextSave(0.75);
+      act(() => updateVoiceSettings({ rate: 1.25 }));
+      first.unmount();
+      saveSettings(SAVED_SETTINGS);
+
+      const second = renderHook(() => useVoiceSettings());
+
+      expect(second.result.current.voiceSettings).toEqual(SAVED_SETTINGS);
+    });
+  });
+
   it("구독을 모두 해제하면 저장소 이벤트를 받지 않는다", () => {
     const { unmount } = renderHook(() => useVoiceSettings());
     const before = getVoiceSettings();

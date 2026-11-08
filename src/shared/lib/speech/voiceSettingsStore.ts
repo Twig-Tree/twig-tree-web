@@ -11,6 +11,8 @@ import {
 */
 let currentVoiceSettings: VoiceSettings | null = null;
 
+let hasUnsavedVoiceSettings = false; // 저장에 실패해 메모리에만 있는 설정이 있는지 여부
+
 const listeners = new Set<() => void>();
 
 const notifyListeners = () => listeners.forEach((listener) => listener());
@@ -59,8 +61,9 @@ export const updateVoiceSettings = (changes: Partial<VoiceSettings>): void => {
       VOICE_SETTINGS_STORAGE_KEY,
       JSON.stringify(currentVoiceSettings),
     );
+    hasUnsavedVoiceSettings = false;
   } catch {
-    // 저장에 실패해도 이번 방문 동안은 고른 값을 쓴다.
+    hasUnsavedVoiceSettings = true; // 저장에 실패해도 이번 방문 동안은 고른 값을 쓴다.
   }
 };
 
@@ -78,6 +81,8 @@ export const syncVoiceSettingsFromStorage = (): void => {
   } catch {
     return;
   }
+
+  hasUnsavedVoiceSettings = false;
 
   const nextVoiceSettings = getVoiceSettingsFromStoredValue(storedValue);
 
@@ -103,13 +108,15 @@ const handleStorageEvent = (event: StorageEvent): void => {
 /*
 함수 이름 : subscribeVoiceSettings
 기능 : 음성 설정 변경을 구독한다. 첫 구독자가 생길 때 저장값을 다시 읽어, 구독자가 없던 동안 다른 탭에서 바꾼 값을 놓치지 않는다.
+저장에 실패한 값이 메모리에 있으면 읽지 않는다. 저장소의 옛 값이 방금 고른 값을 덮어쓰기 때문이다. 다른 탭이 저장하면 그 이벤트는 그대로 따른다.
 인자 : () => void listener -> 값이 바뀌면 부를 함수
 반환값 : 구독을 해제하는 함수
 */
 export const subscribeVoiceSettings = (listener: () => void): (() => void) => {
   if (listeners.size === 0) {
     window.addEventListener("storage", handleStorageEvent);
-    syncVoiceSettingsFromStorage();
+
+    if (!hasUnsavedVoiceSettings) syncVoiceSettingsFromStorage();
   }
 
   listeners.add(listener);

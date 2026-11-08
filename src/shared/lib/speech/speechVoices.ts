@@ -41,7 +41,7 @@ const getVoiceNaturalnessRank = (voice: SpeechSynthesisVoice): number => {
 const getKoreanVoices = (
   voices: SpeechSynthesisVoice[],
 ): SpeechSynthesisVoice[] =>
-  voices.filter((voice) => voice.lang.toLowerCase().startsWith("ko"));
+  voices.filter((voice) => /^ko(?:[-_]|$)/i.test(voice.lang));
 
 /*
 함수 이름 : findKoreanVoice
