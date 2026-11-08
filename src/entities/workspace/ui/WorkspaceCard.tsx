@@ -6,6 +6,7 @@ import type { WorkspaceItem } from "../model/types";
 
 interface WorkspaceCardProps {
   headingLevel?: 2 | 3; // 카드가 놓인 위치의 제목 깊이. 섹션 제목 아래에 놓이면 3을 지정한다
+  heightClassName?: string; // 카드 최소 높이. 세로 공간이 부족한 화면에서 낮춘다
   isDeleteDisabled?: boolean; // 삭제 항목을 잠시 막을지 여부. 다른 삭제 요청이 진행 중일 때 넘긴다
   onDelete?: () => void; // 워크스페이스 삭제를 시작하는 callback. 넘긴 화면에만 삭제 항목이 생긴다
   onRename?: () => void; // 이름 수정을 시작하는 callback. 넘긴 화면에만 수정 항목이 생긴다
@@ -28,6 +29,7 @@ callback은 동작을 연결했는지만 뜻하고, 요청 중이라 잠시 막�
 */
 export function WorkspaceCard({
   headingLevel = 2,
+  heightClassName = "min-h-36",
   isDeleteDisabled = false,
   onDelete,
   onRename,
@@ -59,7 +61,9 @@ export function WorkspaceCard({
   const hasMenu = menuItems.length > 0;
 
   return (
-    <article className="group relative flex min-h-36 flex-col justify-between rounded-card border border-line-subtle bg-surface p-5 shadow-card transition-shadow hover:shadow-card-hover">
+    <article
+      className={`group relative flex ${heightClassName} flex-col justify-between rounded-card border border-line-subtle bg-surface p-5 shadow-card transition-shadow hover:shadow-card-hover`}
+    >
       <Link
         href={routes.workspace(workspace.id)}
         aria-label={`${workspace.name} 워크스페이스 열기`}
@@ -82,7 +86,7 @@ export function WorkspaceCard({
       </Heading>
       {formattedUpdatedAt ? (
         <p className="pointer-events-none relative text-xs text-content-muted">
-          Modified {formattedUpdatedAt}
+          {formattedUpdatedAt} 수정
         </p>
       ) : null}
     </article>

@@ -57,7 +57,7 @@ describe("useAddNode", () => {
     vi.spyOn(treeApi, "createNode").mockResolvedValue({
       id: "77",
       parentId: "1",
-      label: "Added node 2",
+      label: "새 노드 2",
       orderIndex: 2,
       memo: null,
       tagIds: [],
@@ -75,7 +75,7 @@ describe("useAddNode", () => {
           type: "add",
           clientId: addedNode.id,
           parentClientId: "c1",
-          label: "Added node 2",
+          label: "새 노드 2",
           memo: null,
           tagIds: [],
         },

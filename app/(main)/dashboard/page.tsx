@@ -19,8 +19,9 @@ export default function DashboardPage() {
     useCreateWorkspaceFromPrompt();
 
   return (
-    <div className="mx-auto flex h-full max-w-3xl flex-col gap-12 overflow-y-auto px-8 py-12">
-      <div className="flex flex-1 flex-col justify-center gap-12">
+    // 창 높이가 낮으면 여백부터 줄어 입력창까지 스크롤 없이 보이게 한다. 그래도 넘치면 세로로 스크롤한다.
+    <div className="mx-auto flex h-full max-w-3xl flex-col gap-[clamp(1.25rem,5vh,3rem)] overflow-y-auto px-8 py-[clamp(1.5rem,6vh,3rem)]">
+      <div className="flex flex-1 flex-col justify-center gap-[clamp(1.25rem,5vh,3rem)]">
         <DashboardHero />
 
         <RecentWorkspaceSection
@@ -40,7 +41,7 @@ export default function DashboardPage() {
         요청에 실리는 것은 파일 하나다.
         */}
         <PromptComposer
-          placeholder="Research on renewable energy"
+          placeholder="예: 재생 에너지 연구"
           isSubmitting={isCreatingWorkspaceFromPrompt}
           onSubmit={(draft) =>
             createWorkspaceFromPrompt(draft.text, draft.attachments[0]?.file)
@@ -48,8 +49,7 @@ export default function DashboardPage() {
         />
 
         <p className="text-center text-xs text-content-muted">
-          The Architect may produce inaccurate information about people, places,
-          or facts.
+          AI가 사람, 장소, 사실에 대해 부정확한 정보를 제공할 수 있습니다.
         </p>
       </div>
     </div>

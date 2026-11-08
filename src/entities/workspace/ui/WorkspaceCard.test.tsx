@@ -34,7 +34,7 @@ describe("WorkspaceCard", () => {
   it("수정 시각을 사용자 시간대로 표시한다", () => {
     render(<WorkspaceCard workspace={WORKSPACE} />);
 
-    expect(screen.getByText("Modified 2026-08-31 21:00")).toBeInTheDocument();
+    expect(screen.getByText("2026-08-31 21:00 수정")).toBeInTheDocument();
   });
 
   /*

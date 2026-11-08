@@ -6,11 +6,11 @@ import type { AttachmentItem, FileKind } from "../model/types";
 import { FileTypeIcon } from "./FileTypeIcon";
 
 const KIND_LABELS: Record<FileKind, string> = {
-  hwp: "HWP DOCUMENT",
-  pdf: "PDF DOCUMENT",
-  text: "TEXT DOCUMENT",
-  unknown: "FILE",
-  word: "WORD DOCUMENT",
+  hwp: "한글 문서",
+  pdf: "PDF 문서",
+  text: "텍스트 문서",
+  unknown: "파일",
+  word: "Word 문서",
 };
 
 interface AttachmentChipProps {

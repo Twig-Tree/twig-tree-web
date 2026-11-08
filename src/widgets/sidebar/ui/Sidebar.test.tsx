@@ -18,15 +18,15 @@ describe("Sidebar", () => {
   it("아이콘만 보이는 링크도 라벨을 이름으로 갖는다", () => {
     render(<Sidebar />);
 
-    expect(screen.getByRole("link", { name: "Dashboard" })).toHaveAttribute(
+    expect(screen.getByRole("link", { name: "대시보드" })).toHaveAttribute(
       "href",
       "/dashboard",
     );
-    expect(screen.getByRole("link", { name: "Directory" })).toHaveAttribute(
+    expect(screen.getByRole("link", { name: "폴더" })).toHaveAttribute(
       "href",
       "/directory",
     );
-    expect(screen.getByRole("link", { name: "Recent" })).toHaveAttribute(
+    expect(screen.getByRole("link", { name: "최근 항목" })).toHaveAttribute(
       "href",
       "/recent",
     );
@@ -36,11 +36,11 @@ describe("Sidebar", () => {
   it("현재 경로의 링크만 현재 페이지로 표시한다", () => {
     render(<Sidebar />);
 
-    expect(screen.getByRole("link", { name: "Dashboard" })).toHaveAttribute(
+    expect(screen.getByRole("link", { name: "대시보드" })).toHaveAttribute(
       "aria-current",
       "page",
     );
-    expect(screen.getByRole("link", { name: "Recent" })).not.toHaveAttribute(
+    expect(screen.getByRole("link", { name: "최근 항목" })).not.toHaveAttribute(
       "aria-current",
     );
   });
@@ -50,11 +50,11 @@ describe("Sidebar", () => {
 
     render(<Sidebar />);
 
-    expect(screen.getByRole("link", { name: "Directory" })).toHaveAttribute(
+    expect(screen.getByRole("link", { name: "폴더" })).toHaveAttribute(
       "aria-current",
       "page",
     );
-    expect(screen.getByRole("link", { name: "Dashboard" })).not.toHaveAttribute(
+    expect(screen.getByRole("link", { name: "대시보드" })).not.toHaveAttribute(
       "aria-current",
     );
   });

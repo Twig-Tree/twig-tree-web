@@ -221,11 +221,11 @@ function LayoutFlow({ workspaceId, treeId }: LayoutFlowProps) {
   const isLectureActive = useIsLectureActive();
 
   if (isLoading) {
-    return <div>Loading...</div>;
+    return <div>불러오는 중입니다.</div>;
   }
 
   if (isGetTreeError) {
-    return <div>Error loading tree data.</div>;
+    return <div>트리를 불러오지 못했습니다.</div>;
   }
 
   return (
@@ -424,7 +424,7 @@ function WorkspacePageContent({ workspaceId }: WorkspacePageContentProps) {
 
       <div className="min-h-0 flex-1">
         {isPending ? (
-          <div>Loading...</div>
+          <div>불러오는 중입니다.</div>
         ) : (
           <ReactFlowProvider>
             {/*

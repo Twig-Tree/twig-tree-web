@@ -9,7 +9,7 @@ import {
 import { getAvailableName } from "@/src/shared/lib/naming/getAvailableName";
 
 // 이름을 묻지 않고 만들 때 붙이는 이름. 겹치면 뒤에 번호가 붙는다.
-const DEFAULT_FOLDER_NAME = "Folder";
+const DEFAULT_FOLDER_NAME = "새 폴더";
 
 interface UseCreateFolderParams {
   folders: FolderItem[] | undefined;

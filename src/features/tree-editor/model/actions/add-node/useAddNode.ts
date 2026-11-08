@@ -69,7 +69,7 @@ export const useAddNode = ({
     */
     const nextOrderIndex = getNextOrderIndex(selectedNode.id, nodes, edges);
     const newClientId = createClientNodeId(); // 이 신원은 서버 응답과 무관하게 세션 동안 유지된다.
-    const label = `Added node ${nextOrderIndex}`;
+    const label = `새 노드 ${nextOrderIndex}`;
 
     /*
     React Flow editor store에 먼저 반영할 노드와 엣지를 생성한다.

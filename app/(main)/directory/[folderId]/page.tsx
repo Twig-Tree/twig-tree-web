@@ -18,7 +18,7 @@ import {
 } from "@/src/widgets/directory";
 
 // 경로 조회에 실패해 폴더 이름을 알 수 없을 때 제목 자리에 표시할 이름
-const FALLBACK_FOLDER_NAME = "Folder";
+const FALLBACK_FOLDER_NAME = "폴더";
 
 interface DirectoryPageProps {
   params: Promise<{ folderId: string }>;
@@ -71,7 +71,7 @@ function DirectoryPageContent({ folderParentId }: DirectoryPageContentProps) {
   const currentFolderName = folderPath.at(-1)?.name ?? FALLBACK_FOLDER_NAME;
 
   const breadcrumbs: BreadcrumbItem[] = [
-    { label: "Root", href: routes.directoryRoot },
+    { label: "내 폴더", href: routes.directoryRoot },
     ...folderPath.map(({ id, name }, index) => ({
       label: name,
       href: index === folderPath.length - 1 ? undefined : routes.directory(id),

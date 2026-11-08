@@ -11,7 +11,7 @@ import {
 import { getAvailableName } from "@/src/shared/lib/naming/getAvailableName";
 
 // 이름을 묻지 않고 만들 때 붙이는 이름. 겹치면 뒤에 번호가 붙는다.
-const DEFAULT_WORKSPACE_NAME = "Workspace";
+const DEFAULT_WORKSPACE_NAME = "새 워크스페이스";
 
 // 생성을 진행할 수 없을 때 알리는 문구. 위치를 모르거나 유효하지 않을 때, 형제 목록을 모를 때, API 요청이 실패했을 때 모두 같은 결과(아무것도 만들어지지 않음)이므로 문구를 하나로 둔다.
 const CREATE_WORKSPACE_FAILURE_MESSAGE =

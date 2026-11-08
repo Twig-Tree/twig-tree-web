@@ -6,8 +6,7 @@ export type NewFolderButtonProps = Omit<ButtonProps, "children" | "variant">;
 export function NewFolderButton(props: NewFolderButtonProps) {
   return (
     <Button {...props} variant="secondary">
-      <FolderPlus className="h-4 w-4" aria-hidden="true" />
-      New Folder
+      <FolderPlus className="h-4 w-4" aria-hidden="true" />새 폴더
     </Button>
   );
 }

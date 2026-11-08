@@ -71,7 +71,7 @@ describe("RecentWorkspaceSection", () => {
   it("조회에 실패해도 전체 보기 링크를 남긴다", () => {
     renderSection({ isError: true });
 
-    expect(screen.getByRole("link", { name: "View All" })).toHaveAttribute(
+    expect(screen.getByRole("link", { name: "전체 보기" })).toHaveAttribute(
       "href",
       "/recent",
     );

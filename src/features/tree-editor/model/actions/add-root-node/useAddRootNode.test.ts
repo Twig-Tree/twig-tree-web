@@ -74,7 +74,7 @@ describe("useAddRootNode", () => {
       expect(nodes.map((node) => node.data)).toEqual([
         {
           serverId: "500",
-          label: "Root Node",
+          label: "새 트리",
           orderIndex: 1,
           memo: null,
           tagIds: [],
@@ -110,7 +110,7 @@ describe("useAddRootNode", () => {
           createEditorNode({
             clientId: "client-1",
             serverId: "1",
-            label: "Root Node",
+            label: "새 트리",
             orderIndex: 1,
             x: 0,
             y: 0,

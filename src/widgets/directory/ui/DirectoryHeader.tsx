@@ -4,7 +4,7 @@ import { Breadcrumb, type BreadcrumbItem } from "@/src/shared/ui/breadcrumb";
 
 export interface DirectoryHeaderProps {
   title: string;
-  breadcrumbs: BreadcrumbItem[];
+  breadcrumbs: BreadcrumbItem[]; // 비어 있으면 경로를 그리지 않는다. 루트는 제목이 곧 현재 위치다
   isTitleLoading?: boolean; // 제목을 처음 불러오는 중이라 자리표시자를 보여줄지 여부
   isPathError?: boolean; // 상위 경로를 불러오지 못해 제목과 breadcrumb을 믿을 수 없는 상태인지 여부
   onCreateFolder: () => void;
@@ -26,8 +26,12 @@ export function DirectoryHeader({
   return (
     <header className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
       <div>
-        <Breadcrumb items={breadcrumbs} />
-        <h1 className="mt-2 text-3xl font-bold tracking-tight text-content">
+        {breadcrumbs.length > 0 ? (
+          <div className="mb-2">
+            <Breadcrumb items={breadcrumbs} />
+          </div>
+        ) : null}
+        <h1 className="text-3xl font-bold tracking-tight text-content">
           {isTitleLoading ? (
             <>
               <span className="sr-only">폴더 이름을 불러오는 중입니다.</span>
