@@ -26,6 +26,10 @@ interface TreeState {
 
   resetTree: () => void;
 
+  applyServerTreeInStore: (
+    elements: Pick<TreeState, "nodes" | "edges">,
+  ) => void;
+
   onNodesChange: OnNodesChange<CustomEditorNode>;
   onEdgesChange: OnEdgesChange;
 
@@ -72,6 +76,13 @@ export const useTreeStore = create<TreeState>()((set, get) => ({
       nodes: [],
       edges: [],
     });
+  },
+
+  /*
+  열려 있는 트리의 노드·엣지를 다른 곳의 변경이 반영된 값으로 바꾼다. treeId는 그대로 두므로 useInitializeTree의 트리당 한 번 가드를 건드리지 않는다.
+  */
+  applyServerTreeInStore: ({ nodes, edges }) => {
+    set({ nodes, edges });
   },
 
   /*

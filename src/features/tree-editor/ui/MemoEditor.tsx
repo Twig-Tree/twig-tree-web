@@ -20,6 +20,17 @@ export const MemoEditor = ({
   children,
 }: MemoEditorProps) => {
   const [memo, setMemo] = useState(initialMemo);
+  const [previousInitialMemo, setPreviousInitialMemo] = useState(initialMemo);
+
+  /*
+  다른 곳의 변경으로 저장된 메모가 바뀌면, 입력을 고치지 않은 경우에만 새 값을 보여 준다. 고친 입력은 사용자의 초안이므로 덮지 않는다.
+  같은 노드면 key가 그대로라 다시 마운트되지 않으므로 렌더 중에 맞춘다. effect로 맞추면 옛 메모가 한 번 그려진다.
+  */
+  if (previousInitialMemo !== initialMemo) {
+    setPreviousInitialMemo(initialMemo);
+
+    if (memo === previousInitialMemo) setMemo(initialMemo);
+  }
 
   /*
   저장되는 값이 앞뒤 공백을 제거한 내용이므로 글자 수와 오류 판정도 같은 값을 기준으로 한다.
