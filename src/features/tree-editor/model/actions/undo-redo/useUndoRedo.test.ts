@@ -398,13 +398,11 @@ describe("useUndoRedo", () => {
         ],
         previousSiblings: [],
       });
-      const updateMemoSpy = vi
-        .spyOn(memoApi, "updateMemo")
-        .mockResolvedValue({
-          title: "node 3",
-          content: "지운 메모",
-          version: 1,
-        });
+      const updateMemoSpy = vi.spyOn(memoApi, "updateMemo").mockResolvedValue({
+        title: "node 3",
+        content: "지운 메모",
+        version: 1,
+      });
       const addNodeTagSpy = vi
         .spyOn(tagApi, "addNodeTag")
         .mockResolvedValue(TREE_TAGS[0]);
