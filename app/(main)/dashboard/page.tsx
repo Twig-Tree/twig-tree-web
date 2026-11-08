@@ -19,8 +19,9 @@ export default function DashboardPage() {
     useCreateWorkspaceFromPrompt();
 
   return (
-    <div className="mx-auto flex h-full max-w-3xl flex-col gap-12 overflow-y-auto px-8 py-12">
-      <div className="flex flex-1 flex-col justify-center gap-12">
+    // 창 높이가 낮으면 여백부터 줄어 입력창까지 스크롤 없이 보이게 한다. 그래도 넘치면 세로로 스크롤한다.
+    <div className="mx-auto flex h-full max-w-3xl flex-col gap-[clamp(1.25rem,5vh,3rem)] overflow-y-auto px-8 py-[clamp(1.5rem,6vh,3rem)]">
+      <div className="flex flex-1 flex-col justify-center gap-[clamp(1.25rem,5vh,3rem)]">
         <DashboardHero />
 
         <RecentWorkspaceSection

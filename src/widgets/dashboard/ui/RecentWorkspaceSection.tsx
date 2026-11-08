@@ -8,8 +8,16 @@ import { CardGridSkeleton } from "@/src/shared/ui/card-grid-skeleton";
 */
 export const RECENT_WORKSPACE_DISPLAY_COUNT = 3;
 
+/*
+입력창까지 스크롤 없이 보이도록 어떤 너비에서도 한 줄만 그린다. 열 수를 넘는 카드는 숨기고 전체 보기에 맡긴다.
+가로 스크롤로 두지 않는다. 스크롤 영역은 세로로도 잘려 카드 그림자가 사라진다.
+*/
 const RECENT_WORKSPACE_GRID_CLASS_NAME =
-  "grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3";
+  "grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 max-lg:[&>*:nth-child(n+3)]:hidden max-sm:[&>*:nth-child(n+2)]:hidden";
+
+// 창 높이가 낮으면 카드도 함께 낮아진다. 최솟값은 제목과 수정 시각이 들어가는 높이다.
+const RECENT_WORKSPACE_CARD_HEIGHT_CLASS_NAME =
+  "min-h-[clamp(5.5rem,16vh,9rem)]";
 
 interface RecentWorkspaceSectionProps {
   isError: boolean; // 최신순 목록 조회에 실패했는지 여부
@@ -53,14 +61,14 @@ export function RecentWorkspaceSection({
     }
 
     /*
-    자리표시자는 표시할 최대 개수만큼 둔다. 실제로 더 적게 오면 좁은 화면에서 아래 입력창이 올라오지만,
-    대부분은 최대 개수를 채우므로 그쪽에 맞춘다.
+    자리표시자는 표시할 최대 개수만큼 둔다. 넘치는 카드는 그리드가 숨기므로 한 줄을 넘지 않는다.
     */
     if (isLoading) {
       return (
         <div className="mt-4">
           <CardGridSkeleton
             cardCount={RECENT_WORKSPACE_DISPLAY_COUNT}
+            cardHeightClassName={RECENT_WORKSPACE_CARD_HEIGHT_CLASS_NAME}
             gridClassName={RECENT_WORKSPACE_GRID_CLASS_NAME}
           />
         </div>
@@ -83,7 +91,11 @@ export function RecentWorkspaceSection({
       <ul className={`mt-4 ${RECENT_WORKSPACE_GRID_CLASS_NAME}`}>
         {workspaces.map((workspace) => (
           <li key={workspace.id}>
-            <WorkspaceCard workspace={workspace} headingLevel={3} />
+            <WorkspaceCard
+              workspace={workspace}
+              headingLevel={3}
+              heightClassName={RECENT_WORKSPACE_CARD_HEIGHT_CLASS_NAME}
+            />
           </li>
         ))}
       </ul>

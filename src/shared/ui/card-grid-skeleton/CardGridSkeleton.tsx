@@ -11,6 +11,7 @@ interface CardGridSkeletonProps {
   */
   ariaLabel?: string;
   cardCount?: number; // 자리표시자 카드 개수. 목록이 채울 것으로 예상되는 개수에 맞춘다
+  cardHeightClassName?: string; // 카드 최소 높이. 실제 카드의 높이를 바꾼 화면에서 같은 값을 넘긴다
   gridClassName?: string; // 실제 목록과 같은 그리드 설정. 다르면 목록이 도착할 때 레이아웃이 흔들린다
 }
 
@@ -26,6 +27,7 @@ interface CardGridSkeletonProps {
 export function CardGridSkeleton({
   ariaLabel,
   cardCount = DEFAULT_CARD_COUNT,
+  cardHeightClassName = "min-h-36",
   gridClassName = DEFAULT_GRID_CLASS_NAME,
 }: CardGridSkeletonProps) {
   const Container = ariaLabel ? "section" : "div";
@@ -37,7 +39,7 @@ export function CardGridSkeleton({
         {Array.from({ length: cardCount }, (_, index) => (
           <div
             key={index}
-            className="flex min-h-36 flex-col justify-between rounded-card border border-line-subtle bg-surface p-5 shadow-card"
+            className={`flex ${cardHeightClassName} flex-col justify-between rounded-card border border-line-subtle bg-surface p-5 shadow-card`}
           >
             <span className="block h-5 w-2/3 animate-pulse rounded-control bg-surface-strong" />
             <span className="block h-3 w-1/3 animate-pulse rounded-control bg-surface-strong" />
