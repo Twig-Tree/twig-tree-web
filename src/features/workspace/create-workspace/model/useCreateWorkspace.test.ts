@@ -6,7 +6,7 @@ import { useCreateWorkspace } from "./useCreateWorkspace";
 
 const ROOT_WORKSPACE = {
   id: "1",
-  name: "Workspace",
+  name: "새 워크스페이스",
   folderId: null,
   updatedAt: "2026-08-31T12:00:00.000000Z",
 };
@@ -23,7 +23,7 @@ describe("useCreateWorkspace", () => {
 
       const created = await result.current.createWorkspace();
 
-      expect(created.name).toBe("Workspace 2");
+      expect(created.name).toBe("새 워크스페이스 2");
     });
 
     /*
@@ -40,7 +40,7 @@ describe("useCreateWorkspace", () => {
 
       const created = await result.current.createWorkspace("5");
 
-      expect(created.name).toBe("Workspace 2");
+      expect(created.name).toBe("새 워크스페이스 2");
     });
 
     it("위치를 모르면 만들지 않는다", async () => {
