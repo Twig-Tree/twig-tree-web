@@ -20,6 +20,11 @@ type GenerateLectureScenarioVariables = {
 */
 export const useGenerateLectureScenarioMutation = () =>
   useMutation({
+    /*
+    기본값 online은 오프라인이면 요청 전에 멈추고, 멈춘 동안은 HTTP 타임아웃도 돌지 않는다.
+    생성 중에는 입력 카드를 닫을 수 없으므로 멈추지 않고 네트워크 오류로 끝낸다.
+    */
+    networkMode: "always",
     mutationFn: ({
       treeId,
       request,

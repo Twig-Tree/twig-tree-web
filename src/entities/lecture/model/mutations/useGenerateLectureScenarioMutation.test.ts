@@ -1,6 +1,7 @@
 import { http, HttpResponse } from "msw";
+import { onlineManager } from "@tanstack/react-query";
 import { renderHook, waitFor } from "@testing-library/react";
-import { describe, it, expect } from "vitest";
+import { afterEach, describe, it, expect } from "vitest";
 import { isAxiosError } from "axios";
 import { server } from "@/src/tests/mocks/server";
 import { createQueryWrapper } from "@/src/tests/helpers/createQueryWrapper";
@@ -51,6 +52,30 @@ const renderMutation = () => {
 };
 
 describe("useGenerateLectureScenarioMutation", () => {
+  afterEach(() => {
+    onlineManager.setOnline(true);
+  });
+
+  /*
+  오프라인에서 멈춘 채로 있으면 생성 중 상태가 끝나지 않아 입력 카드를 닫을 수 없다.
+  */
+  it("오프라인이면 멈추지 않고 실패로 끝난다", async () => {
+    server.use(http.post("*/api/lecture-request", () => HttpResponse.error()));
+    onlineManager.setOnline(false);
+    const result = renderMutation();
+
+    result.current.mutate({
+      treeId: "12",
+      request: "포유류와 파충류를 비교해 줘",
+      treeOutline: TREE_OUTLINE,
+      repair: null,
+    });
+
+    await waitFor(() => expect(result.current.isError).toBe(true));
+
+    expect(result.current.isPaused).toBe(false);
+  });
+
   it("트리 ID를 숫자로 바꾸고 프론트의 시나리오 스키마 버전을 싣는다", async () => {
     const captured = captureRequest();
     const result = renderMutation();
