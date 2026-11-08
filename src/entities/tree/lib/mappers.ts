@@ -1,8 +1,8 @@
 import {
+  CreatedTreeDTO,
   MoveNodeResultDTO,
   NodeDTO,
   TagDTO,
-  TreeDTO,
 } from "@/src/entities/tree/api/types";
 import { CreatedTree, MovedNodes, TreeNode, TreeTag } from "../model/types";
 
@@ -31,10 +31,11 @@ export const mapNodesDtoToDomain = (dtos: NodeDTO[]): TreeNode[] =>
  * 프롬프트 트리 생성 응답을 도메인 모델로 변환합니다.
  * 워크스페이스 ID까지 문자열로 바꾸는 이유는 라우트와 query key가 프론트 ID 타입을 쓰기 때문입니다.
  */
-export const mapCreatedTreeDtoToDomain = (dto: TreeDTO): CreatedTree => ({
+export const mapCreatedTreeDtoToDomain = (
+  dto: CreatedTreeDTO,
+): CreatedTree => ({
   workspaceId: String(dto.workspaceId),
   treeId: String(dto.treeId),
-  nodes: mapNodesDtoToDomain(dto.nodes),
 });
 
 /*

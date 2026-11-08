@@ -157,6 +157,9 @@ export const RAW_WORLD_GEOGRAPHY_TREE_DATA: NodeDTO[] = (
 프롬프트로 만들어진 트리의 응답 데이터. 워크스페이스·트리·노드가 한 응답에 함께 온다.
 루트와 자식을 하나씩 두어 parentId가 null과 숫자 양쪽으로 변환되는지 확인할 수 있다.
 */
+/*
+백엔드 TreeGenResDTO와 같은 모양이다. 트리 조회 응답과 달리 노드에 tagIds와 version이 없다.
+*/
 export const RAW_CREATED_TREE_DATA = {
   treeId: 30,
   workspaceId: 31,
@@ -165,21 +168,17 @@ export const RAW_CREATED_TREE_DATA = {
       nodeId: 40,
       name: "컴퓨터 사이언스",
       memo: "전공 기초",
-      version: 0,
       parentId: null,
       orderId: 1,
-      tagIds: [],
     },
     {
       nodeId: 41,
       name: "자료구조",
       memo: null,
-      version: 0,
       parentId: 40,
       orderId: 1,
-      tagIds: [],
     },
-  ] satisfies NodeDTO[],
+  ],
 };
 
 export const RAW_TREE_DATA_WITH_CYCLE: NodeDTO[] = [

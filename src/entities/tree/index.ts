@@ -1,6 +1,6 @@
 export type {
   NodeDTO,
-  TreeDTO,
+  CreatedTreeDTO,
   CreateNodeRequest,
   CreateNodeResponse,
   CreateTreeFromPromptRequest,

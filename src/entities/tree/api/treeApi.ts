@@ -37,7 +37,7 @@ export const treeApi = {
   함수 이름 : createTreeFromPrompt
   기능 : 프롬프트를 보내 워크스페이스·트리·노드를 한 번에 만든다. 첨부 파일이 있으면 multipart로 보낸다.
   인자 : CreateTreeFromPromptParams
-  반환값 : 서버가 확정한 워크스페이스 ID, 트리 ID, 노드 목록
+  반환값 : 서버가 확정한 워크스페이스 ID, 트리 ID
 
   빈 트리를 만드는 workspaceApi.createWorkspaceTree와 다른 요청이다.
   이쪽은 LLM이 채운 트리를 워크스페이스째로 만들어 돌려준다.
