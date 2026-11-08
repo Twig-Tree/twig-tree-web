@@ -3,6 +3,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { getThemeInitScript } from "./themeInitScript";
 import {
   getCurrentTheme,
+  getCurrentThemePreference,
   setTheme,
   syncThemeFromStorageEvent,
 } from "./themeStore";
@@ -11,10 +12,15 @@ import { useTheme } from "./useTheme";
 
 const runInitScript = () => new Function(getThemeInitScript())();
 
+const stubColorScheme = (isDark: boolean) =>
+  vi.stubGlobal("matchMedia", () => ({ matches: isDark }));
+
 afterEach(() => {
   window.localStorage.clear();
   delete document.documentElement.dataset.theme;
+  delete document.documentElement.dataset.themePreference;
   vi.restoreAllMocks();
+  vi.unstubAllGlobals();
 });
 
 describe("isThemeId", () => {
@@ -35,6 +41,32 @@ describe("초기 스크립트", () => {
     runInitScript();
 
     expect(document.documentElement.dataset.theme).toBe("soft");
+  });
+
+  it.each([
+    [true, "dark"],
+    [false, "neutral"],
+  ])(
+    "시스템 설정이면 OS 색상 모드에 맞는 테마를 적용한다 (다크: %s)",
+    (isDark, theme) => {
+      stubColorScheme(isDark);
+      document.documentElement.dataset.theme = DEFAULT_THEME;
+      window.localStorage.setItem(THEME_STORAGE_KEY, "system");
+
+      runInitScript();
+
+      expect(document.documentElement.dataset.theme).toBe(theme);
+      expect(document.documentElement.dataset.themePreference).toBe("system");
+    },
+  );
+
+  it("OS 색상 모드를 읽을 수 없으면 서버가 그린 테마를 유지한다", () => {
+    vi.stubGlobal("matchMedia", undefined);
+    document.documentElement.dataset.theme = DEFAULT_THEME;
+    window.localStorage.setItem(THEME_STORAGE_KEY, "system");
+
+    expect(runInitScript).not.toThrow();
+    expect(document.documentElement.dataset.theme).toBe(DEFAULT_THEME);
   });
 
   it("저장값이 제품에 없는 테마면 서버가 그린 테마를 유지한다", () => {
@@ -69,6 +101,26 @@ describe("setTheme", () => {
 
     expect(document.documentElement.dataset.theme).toBe("soft");
     expect(window.localStorage.getItem(THEME_STORAGE_KEY)).toBe("soft");
+  });
+
+  it("시스템 설정을 고르면 저장값은 system이고 문서에는 실제 테마가 적용된다", () => {
+    stubColorScheme(true);
+
+    setTheme("system");
+
+    expect(document.documentElement.dataset.theme).toBe("dark");
+    expect(window.localStorage.getItem(THEME_STORAGE_KEY)).toBe("system");
+    expect(getCurrentThemePreference()).toBe("system");
+  });
+
+  it("시스템 설정에서 특정 테마로 바꾸면 선택값도 그 테마가 된다", () => {
+    stubColorScheme(true);
+    setTheme("system");
+
+    setTheme("soft");
+
+    expect(document.documentElement.dataset.themePreference).toBeUndefined();
+    expect(getCurrentThemePreference()).toBe("soft");
   });
 
   it("저장에 실패해도 문서에는 적용한다", () => {
@@ -120,6 +172,16 @@ describe("syncThemeFromStorageEvent", () => {
     expect(document.documentElement.dataset.theme).toBe("soft");
   });
 
+  it("다른 탭이 시스템 설정을 고르면 OS 색상 모드를 따른다", () => {
+    stubColorScheme(true);
+    window.localStorage.setItem(THEME_STORAGE_KEY, "system");
+
+    syncThemeFromStorageEvent(createStorageEvent(THEME_STORAGE_KEY, "system"));
+
+    expect(document.documentElement.dataset.theme).toBe("dark");
+    expect(getCurrentThemePreference()).toBe("system");
+  });
+
   it("다른 키의 변경은 무시한다", () => {
     document.documentElement.dataset.theme = "soft";
 
@@ -156,5 +218,16 @@ describe("useTheme", () => {
     act(() => result.current.setTheme("soft"));
 
     expect(result.current.theme).toBe("soft");
+  });
+
+  it("시스템 설정이면 적용된 테마와 고른 값을 따로 돌려준다", () => {
+    stubColorScheme(true);
+
+    const { result } = renderHook(() => useTheme());
+
+    act(() => result.current.setTheme("system"));
+
+    expect(result.current.theme).toBe("dark");
+    expect(result.current.preference).toBe("system");
   });
 });

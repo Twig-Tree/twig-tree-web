@@ -10,7 +10,7 @@ app/themes/tokens.css   역할 이름을 --theme-* 에 잇는다
 app/themes/<이름>.css   :root[data-theme="<이름>"] 에서 --theme-* 값을 정한다
 ```
 
-지금 테마는 Neutral과 Soft이고 기본값은 Neutral이다.
+지금 테마는 Neutral, Soft, Dark이고 기본값은 Neutral이다.
 
 ## 테마 선택
 
@@ -26,9 +26,11 @@ app/themes/<이름>.css   :root[data-theme="<이름>"] 에서 --theme-* 값을 �
 
 `shared/lib/theme`에 두는 이유는 선택 UI와 `features/tree-editor`의 연결선이 함께 쓰기 때문이다. feature에 두면 같은 계층끼리 의존하게 된다.
 
+`시스템 설정 따르기`를 고르면 저장값은 `system`이고, `data-theme`에는 OS 색상 모드에 맞는 실제 테마가 들어간다. 다크면 Dark, 라이트면 Neutral이다. CSS는 `data-theme`만 읽으므로 `system`을 몰라도 된다. `system`을 골랐다는 사실은 `<html data-theme-preference>`에 남겨, OS 색상 모드가 바뀔 때 따라갈지 판단한다.
+
 서버는 저장값을 모르므로 `app/layout.tsx`가 기본 테마로 HTML을 그린다. `<head>`의 인라인 스크립트가 첫 페인트 전에 저장값을 적용해, 다른 테마를 고른 사용자에게 기본 테마가 잠깐 보이지 않게 한다. `next/script`의 `beforeInteractive`는 실행이 hydration을 막지 않으므로 쓰지 않는다. 스크립트가 서버 HTML의 속성을 바꾸므로 `<html>`에 `suppressHydrationWarning`이 필요하다.
 
-JS에서 현재 테마가 필요하면 `useTheme`을 쓴다. CSS 토큰으로 정할 수 있는 값은 토큰으로 정한다.
+JS에서 현재 테마가 필요하면 `useTheme`의 `theme`을 쓴다. `preference`는 사용자가 고른 값이라 `system`일 수 있어 선택 UI에서만 쓴다. CSS 토큰으로 정할 수 있는 값은 토큰으로 정한다.
 
 ## 컴포넌트에서
 
