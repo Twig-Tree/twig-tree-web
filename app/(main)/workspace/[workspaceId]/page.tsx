@@ -24,6 +24,7 @@ import {
   useMoveNodeByDrag,
   useReactFlowStoreSetters,
   useSyncCollapseAcrossTabs,
+  useSyncExternalTreeChange,
   useTreeEditorActions,
   useTreeLevelControl,
   useTreeStore,
@@ -219,6 +220,23 @@ function LayoutFlow({ workspaceId, treeId }: LayoutFlowProps) {
   강의 중에는 방향키가 강의 이동에 쓰이므로 React Flow의 방향키 노드 이동을 끈다. 켜 두면 선택한 노드가 함께 움직인다.
   */
   const isLectureActive = useIsLectureActive();
+
+  /*
+  선택했던 노드가 다른 곳에서 지워지면 그 노드를 가리키던 메모 패널과 우클릭 메뉴가 갈 곳을 잃으므로 닫는다.
+  */
+  const handleSelectedNodeRemoved = useCallback(() => {
+    closeMemoPanel();
+    closeContextMenu();
+  }, [closeMemoPanel, closeContextMenu]);
+
+  /*
+  강의는 재생 순서가 지금 트리의 노드에 맞춰져 있어, 재생 중에는 다른 곳의 변경을 반영하지 않는다.
+  */
+  useSyncExternalTreeChange({
+    treeId,
+    isStructureEditing: isMutating || isLectureActive,
+    onSelectedNodeRemoved: handleSelectedNodeRemoved,
+  });
 
   if (isLoading) {
     return <div>불러오는 중입니다.</div>;

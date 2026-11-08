@@ -21,6 +21,7 @@ export { useTreeEditorActions } from "./model/actions/useTreeEditorActions";
 export { useDeleteTreeTag } from "./model/actions/delete-tree-tag/useDeleteTreeTag";
 export { useInitializeTree } from "./model/initialization/useInitializeTree";
 export { useSyncCollapseAcrossTabs } from "./model/collapse/useSyncCollapseAcrossTabs";
+export { useSyncExternalTreeChange } from "./model/sync/useSyncExternalTreeChange";
 export { useVisibleElements } from "./model/collapse/useVisibleElements";
 export { useTreeLevelControl } from "./model/collapse/useTreeLevelControl";
 export { useNodeTransition } from "./model/collapse/useNodeTransition";

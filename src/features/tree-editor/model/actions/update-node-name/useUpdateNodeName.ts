@@ -5,6 +5,7 @@ import { useTreeStore } from "@/src/features/tree-editor/model/treeStore";
 import { validateNodeName } from "@/src/features/tree-editor/lib/update-node-name/validateNodeName";
 import { runNodeSaveInOrder } from "@/src/features/tree-editor/lib/runNodeSaveInOrder";
 import { useReloadConflictedNode } from "../reload-conflicted-node/useReloadConflictedNode";
+import { useExternalChangeCheckStore } from "../../sync/externalChangeCheckStore";
 
 interface UseUpdateNodeNameParams {
   treeId: string; // 노드가 속한 트리 ID
@@ -128,9 +129,13 @@ export const useUpdateNodeName = ({
         */
         updateNodeLabelInStore(clientId, previousLabel);
 
-        return getApiErrorCode(error) === NODE_ERROR_CODE.NODE_NOT_FOUND
-          ? "notFound"
-          : "failed";
+        if (getApiErrorCode(error) !== NODE_ERROR_CODE.NODE_NOT_FOUND) {
+          return "failed";
+        }
+
+        useExternalChangeCheckStore.getState().requestExternalChangeCheck(); // 노드가 사라졌으니 화면도 맞춘다.
+
+        return "notFound";
       }
     },
     [

@@ -1,6 +1,7 @@
 import { useCallback } from "react";
 import { NODE_ERROR_CODE, useFetchLatestNode } from "@/src/entities/tree";
 import { getApiErrorCode } from "@/src/shared/api/authErrorCodes";
+import { useExternalChangeCheckStore } from "../../sync/externalChangeCheckStore";
 import { useTreeStore } from "../../treeStore";
 
 type ReloadConflictedNodeParams = {
@@ -26,6 +27,8 @@ export const useReloadConflictedNode = () => {
 
   return useCallback(
     async ({ treeId, clientId, serverId }: ReloadConflictedNodeParams) => {
+      useExternalChangeCheckStore.getState().requestExternalChangeCheck(); // 이 노드 말고도 바뀐 것이 있을 수 있어 트리 전체를 확인한다.
+
       try {
         const latestNode = await fetchLatestNode({ treeId, nodeId: serverId });
 

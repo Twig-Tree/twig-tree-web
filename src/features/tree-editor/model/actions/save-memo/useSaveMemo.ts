@@ -8,6 +8,7 @@ import { getApiErrorCode } from "@/src/shared/api/authErrorCodes";
 import { validateMemoContent } from "@/src/features/tree-editor/lib/save-memo/validateMemoContent";
 import { runNodeSaveInOrder } from "@/src/features/tree-editor/lib/runNodeSaveInOrder";
 import { useReloadConflictedNode } from "../reload-conflicted-node/useReloadConflictedNode";
+import { useExternalChangeCheckStore } from "../../sync/externalChangeCheckStore";
 import { useTreeStore } from "../../treeStore";
 
 type UseSaveMemoParams = {
@@ -145,11 +146,18 @@ export const useSaveMemo = ({
         }
       });
     } catch (error) {
+      const isNodeRemoved =
+        getApiErrorCode(error) === NODE_ERROR_CODE.NODE_NOT_FOUND;
+
       alert(
-        getApiErrorCode(error) === NODE_ERROR_CODE.NODE_NOT_FOUND
+        isNodeRemoved
           ? "다른 곳에서 삭제된 노드입니다."
           : "메모 저장에 실패했습니다. 다시 시도해주세요.",
       );
+
+      if (isNodeRemoved) {
+        useExternalChangeCheckStore.getState().requestExternalChangeCheck(); // 노드가 사라졌으니 화면도 맞춘다.
+      }
     } finally {
       isSubmittingRef.current = false;
     }

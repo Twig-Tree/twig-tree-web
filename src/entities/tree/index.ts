@@ -45,6 +45,7 @@ export {
   mapTagDtoToDomain,
 } from "./lib/mappers";
 export { treeQueryKeys } from "./model/queryKeys";
+export { useTreeRequestTracker } from "./model/useTreeRequestTracker";
 export {
   useFetchLatestNode,
   useGetTreeQuery,
