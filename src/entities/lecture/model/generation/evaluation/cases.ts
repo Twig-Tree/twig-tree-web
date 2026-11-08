@@ -12,6 +12,17 @@ import photosynthesisSummary from "./cases/photosynthesis-summary.json";
 트리는 시나리오 fixture의 trees/<이름>.json을 함께 쓴다.
 기대 속성은 정답 시나리오가 아니라 "적어도 이것은 있어야 한다"는 최소 조건이다. 같은 요청에도 좋은 시나리오가 여럿이기 때문이다.
 */
+/*
+모델 이름과 프롬프트 버전은 보고서의 표와 실패 목록에 그대로 나온다. 공백이나 마크다운 문자가 있으면
+공백만 다른 두 값이 표에서 같아 보이거나 목록이 깨지므로, 불러올 때 쓸 수 있는 문자를 제한한다.
+예: gpt-4o-mini-2024-07-18, llama3.1:8b, lecture-v1
+*/
+const evaluationIdentifierSchema = z.string().check(
+  z.regex(/^[A-Za-z0-9._:-]+$/, {
+    message: "영문자, 숫자, ., _, :, -만 쓸 수 있습니다.",
+  }),
+);
+
 const evaluationCaseFileSchema = z.strictObject({
   request: z.string(), // 사용자가 입력한 요청 문장
   treeName: z.string(), // 시나리오 fixture의 트리 이름
@@ -25,8 +36,8 @@ const evaluationCaseFileSchema = z.strictObject({
   */
   responses: z.array(
     z.strictObject({
-      model: z.string(), // 예: gpt-4o-mini-2024-07-18
-      promptVersion: z.string(), // 백엔드가 응답에 담아 준 프롬프트 버전. 같은 모델의 프롬프트 변경 전후를 나눈다
+      model: evaluationIdentifierSchema, // 예: gpt-4o-mini-2024-07-18
+      promptVersion: evaluationIdentifierSchema, // 백엔드가 응답에 담아 준 프롬프트 버전. 같은 모델의 프롬프트 변경 전후를 나눈다
       recordedAt: z.string(), // 호출한 시각(ISO 8601)
       responseText: z.string(), // 모델 응답 본문 그대로
       usage: z.nullable(

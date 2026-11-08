@@ -94,6 +94,48 @@ describe("LECTURE_EVALUATION_CASES", () => {
       }),
     ).toThrow("시나리오 fixture에 없습니다");
   });
+
+  /*
+  모델 이름과 프롬프트 버전은 보고서에 그대로 나오므로 공백과 마크다운 문자를 막는다.
+  */
+  it("모델 이름과 프롬프트 버전에 공백이나 특수 문자가 있으면 바로 실패한다", () => {
+    const createFile = (model: string, promptVersion: string) => ({
+      request: "요청",
+      treeName: GOGURYEO_CASE.treeName,
+      expectations: GOGURYEO_CASE.expectations,
+      responses: [
+        {
+          model,
+          promptVersion,
+          recordedAt: "2026-11-08T00:00:00.000Z",
+          responseText: "{}",
+          usage: null,
+        },
+      ],
+    });
+
+    expect(() =>
+      createLectureEvaluationCase(
+        "ok",
+        createFile("llama3.1:8b", "lecture-v1"),
+      ),
+    ).not.toThrow();
+    for (const [model, promptVersion] of [
+      ["gpt 4o", "v1"],
+      ["gpt-4o", "v1\n- 가짜 항목"],
+      ["gpt-4o", "a|b"],
+      ["**gpt**", "v1"],
+    ]) {
+      expect(
+        () =>
+          createLectureEvaluationCase(
+            "bad-identifier",
+            createFile(model, promptVersion),
+          ),
+        `${model} / ${promptVersion}`,
+      ).toThrow("평가 case bad-identifier의 형식이 틀렸습니다");
+    }
+  });
 });
 
 describe("getLectureEvaluationResponseScore", () => {
