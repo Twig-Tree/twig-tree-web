@@ -72,6 +72,31 @@ pnpm exec vitest run src/entities/lecture/model/generation/vocabulary.test.ts -u
 - outline, 어휘, 사용자 요청을 프롬프트에 싣는다. 어휘 파일은 이 저장소의 파일을 그대로 읽거나 복사한다.
 - 모델 응답을 그대로 프론트엔드에 넘긴다. 시나리오 검사와 컴파일은 프론트엔드가 한다.
 
+## 생성 요청
+
+백엔드의 `POST /lecture-request`가 이 계약을 받는다([Twig-Tree/BE-twig-tree#125](https://github.com/Twig-Tree/BE-twig-tree/pull/125)). 백엔드는 아무것도 저장하지 않는다.
+
+| 요청                    | 내용                                                                |
+| ----------------------- | ------------------------------------------------------------------- |
+| `treeId`                | 강의를 만들 트리                                                    |
+| `request`               | 사용자 요청 문장. 최대 500자                                        |
+| `treeOutline`           | [트리 outline](#트리-outline). 최대 20,000자                        |
+| `scenarioSchemaVersion` | 프론트가 쓰는 시나리오 스키마 버전. 서버와 다르면 400(LECTURE400-2) |
+| `repair`                | [repair](#repair) 요청. 처음 요청이면 `null`                        |
+
+응답은 `responseText`(파싱하지 않은 모델 응답), `model`, `promptVersion`, `usage`, `attemptCount`(백엔드가 모델을 부른 횟수)다. 백엔드는 모델 호출을 65초에서 끊고 잘리거나 빈 응답이면 한 번 더 부르므로, 프론트는 150초까지 기다린다. 오류 코드는 `LECTURE_ERROR_CODE`에 있다.
+
+```text
+entities/lecture   lectureApi.generateLectureScenario, useGenerateLectureScenarioMutation
+features/tree-editor
+  useGenerateLecture   편집기 트리 → outline → 요청 → 응답 처리 → repair 1회 → 대본
+  LectureGenerator     요청 문장 입력, 생성 중 안내, 실패 안내
+```
+
+`useGenerateLecture`는 요청을 보내기 전에 편집기 트리를 한 번 읽어, 같은 트리로 outline과 컴파일러 트리를 만든다. repair도 같은 트리를 쓰므로 생성 중에 트리를 고쳐도 모델이 본 노드와 컴파일 기준이 어긋나지 않는다. 응답마다 [`lecture-generation` 로그](./lecture-operations.md#로그-이벤트)를 남긴다.
+
+만든 대본은 트리별로 메모리에 둔다. 저장은 [Twig-Tree/BE-twig-tree#124](https://github.com/Twig-Tree/BE-twig-tree/issues/124)가 맡고, 그 전까지는 새로고침하면 사라진다.
+
 ## 출력 스키마
 
 모델 출력은 OpenAI structured output의 strict 모드(`response_format: { type: "json_schema", json_schema: { strict: true, ... } }`)로 받는다. strict 모드는 JSON Schema의 일부만 받으므로, 이 모드에 넘길 스키마는 [lecture-scenario.strict.schema.json](./lecture-scenario.strict.schema.json)으로 따로 둔다. `getLectureScenarioStrictJsonSchema`가 [시나리오 JSON Schema](./lecture-scenario.schema.json)를 옮겨 만든 파일이므로 직접 고치지 않는다.
@@ -212,8 +237,9 @@ case 파일은 요청 하나와 그 요청에 대한 응답을 담는다. 트리
 pnpm exec vitest run src/entities/lecture/model/generation/evaluation/evaluation.test.ts -u
 ```
 
-지금은 실제 모델 응답이 없다. 백엔드 엔드포인트가 생기면 case마다 응답을 쌓는다. 테스트는 같은 트리의 valid 시나리오 fixture를 참고 답안으로 붙여, 모든 case의 기대 속성이 도달할 수 있는 조건인지 확인한다.
+실제 호출로 OpenAI가 strict 스키마를 거절하지 않는 것은 확인했다(2026-11-08). 응답은 아직 case에 저장하지 않았다. 테스트는 같은 트리의 valid 시나리오 fixture를 참고 답안으로 붙여, 모든 case의 기대 속성이 도달할 수 있는 조건인지 확인한다.
 
 ## 다음 단계
 
-- 백엔드 엔드포인트 요청·응답 형식, strict 스키마 전달 방식, `usage` 반환, 재시도·repair 정책을 백엔드 저장소 이슈로 정리한다.
+- case마다 실제 모델 응답을 저장하고 `report.md`를 다시 만든다.
+- 생성 강의 저장을 [Twig-Tree/BE-twig-tree#124](https://github.com/Twig-Tree/BE-twig-tree/issues/124)와 맞춰 연결한다. 저장되면 `generatedLectureStore`를 강의 조회 query로 바꾼다.
