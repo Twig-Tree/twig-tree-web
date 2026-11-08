@@ -8,11 +8,10 @@ export function DashboardHero() {
   return (
     <header className="text-center">
       <h1 className="text-4xl font-semibold tracking-tight text-content">
-        What shall we build?
+        무엇을 만들어 볼까요?
       </h1>
       <p className="mx-auto mt-3 max-w-md text-base leading-relaxed text-content-muted">
-        Combine your research files with synthesis to create something
-        remarkable.
+        가지고 있는 자료를 엮어 나만의 지식 트리를 만들어 보세요.
       </p>
     </header>
   );

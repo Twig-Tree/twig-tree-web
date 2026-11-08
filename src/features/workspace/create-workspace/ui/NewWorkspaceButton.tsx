@@ -6,8 +6,7 @@ export type NewWorkspaceButtonProps = Omit<ButtonProps, "children" | "variant">;
 export function NewWorkspaceButton(props: NewWorkspaceButtonProps) {
   return (
     <Button {...props} variant="primary">
-      <Plus className="h-4 w-4" aria-hidden="true" />
-      New Workspace
+      <Plus className="h-4 w-4" aria-hidden="true" />새 워크스페이스
     </Button>
   );
 }
