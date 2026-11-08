@@ -14,7 +14,9 @@ export const memoApi = {
     return res.data.data;
   },
 
-  deleteMemo: async (nodeId: number): Promise<void> => {
-    await axiosInstance.delete<ApiResponse<void>>(`/nodes/${nodeId}/memos`);
+  deleteMemo: async (nodeId: number, version: number): Promise<void> => {
+    await axiosInstance.delete<ApiResponse<void>>(`/nodes/${nodeId}/memos`, {
+      params: { version },
+    });
   },
 };

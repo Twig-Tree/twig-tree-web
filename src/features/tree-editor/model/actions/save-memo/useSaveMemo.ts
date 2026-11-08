@@ -3,6 +3,7 @@ import {
   useDeleteMemoMutation,
 } from "@/src/entities/tree";
 import { validateMemoContent } from "@/src/features/tree-editor/lib/save-memo/validateMemoContent";
+import { runNodeSaveInOrder } from "@/src/features/tree-editor/lib/runNodeSaveInOrder";
 import { useTreeStore } from "../../treeStore";
 
 type UseSaveMemoParams = {
@@ -31,6 +32,9 @@ export const useSaveMemo = ({
 
   const updateNodeMemoInStore = useTreeStore(
     (state) => state.updateNodeMemoInStore,
+  );
+  const updateNodeVersionInStore = useTreeStore(
+    (state) => state.updateNodeVersionInStore,
   );
 
   const isSaving = isUpdating || isDeleting;
@@ -66,19 +70,45 @@ export const useSaveMemo = ({
     }
 
     try {
-      if (shouldDeleteMemo) {
-        await deleteMemo({ treeId, nodeId: serverId });
-        updateNodeMemoInStore(clientId, null);
-        return;
-      }
+      /*
+      version은 차례가 되었을 때 읽는다. 먼저 읽으면 앞서 맡긴 같은 노드의 저장이 올린 값을 놓친다.
+      */
+      await runNodeSaveInOrder(clientId, async () => {
+        const node = useTreeStore
+          .getState()
+          .nodes.find(({ id }) => id === clientId);
 
-      const updatedMemo = await updateMemo({
-        treeId,
-        nodeId: serverId,
-        content: trimmedContent,
+        if (!node) return;
+
+        const { version, memo } = node.data;
+
+        if (shouldDeleteMemo) {
+          /*
+          기다리는 사이 앞선 저장이 메모를 이미 지웠으면 서버의 version이 오르지 않으므로 요청하지 않는다.
+          */
+          if (memo === null) return;
+
+          const nextVersion = await deleteMemo({
+            treeId,
+            nodeId: serverId,
+            version,
+          });
+
+          updateNodeMemoInStore(clientId, null);
+          updateNodeVersionInStore(clientId, nextVersion);
+          return;
+        }
+
+        const updatedMemo = await updateMemo({
+          treeId,
+          nodeId: serverId,
+          content: trimmedContent,
+          version,
+        });
+
+        updateNodeMemoInStore(clientId, updatedMemo.content); // 서버가 보정한 값을 화면에도 반영한다.
+        updateNodeVersionInStore(clientId, updatedMemo.version);
       });
-
-      updateNodeMemoInStore(clientId, updatedMemo.content); // 서버가 보정한 값을 화면에도 반영한다.
     } catch {
       alert("메모 저장에 실패했습니다. 다시 시도해주세요.");
     }

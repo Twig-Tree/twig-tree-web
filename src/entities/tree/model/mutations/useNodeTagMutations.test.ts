@@ -16,6 +16,7 @@ const createTreeNode = (id: string, tagIds: string[]): TreeNode => ({
   label: `node ${id}`,
   orderIndex: 0,
   memo: null,
+  version: 0,
   tagIds,
 });
 

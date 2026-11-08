@@ -23,6 +23,7 @@ const createServerNode = (
   label: clientId,
   orderIndex,
   memo: null,
+  version: 0,
   tagIds: [],
 });
 

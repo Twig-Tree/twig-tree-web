@@ -11,6 +11,7 @@ export interface TreeNode {
   label: string;
   orderIndex: number;
   memo: string | null; // 백엔드는 빈 문자열을 주고받지 않으므로 메모 없음은 null로만 표현한다.
+  version: number; // 이름·메모 수정 요청에 함께 보내 다른 곳의 수정을 덮어쓰지 않게 한다. ID가 아니라 비교만 하는 값이라 숫자로 둔다
   tagIds: string[]; // 노드에 붙은 트리 태그 ID 목록. 붙인 순서대로 둔다
 }
 

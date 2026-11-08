@@ -173,6 +173,7 @@ describe("노드 이동 store action", () => {
           label: "b",
           orderIndex: 1,
           memo: null,
+          version: 0,
           tagIds: [],
         },
         {
@@ -181,6 +182,7 @@ describe("노드 이동 store action", () => {
           label: "a",
           orderIndex: 2,
           memo: null,
+          version: 0,
           tagIds: [],
         },
       ],

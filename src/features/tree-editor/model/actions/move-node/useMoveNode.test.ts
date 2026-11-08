@@ -33,6 +33,7 @@ const createServerNode = (id: string, orderIndex: number): TreeNode => ({
   label: `node ${id}`,
   orderIndex,
   memo: null,
+  version: 0,
   tagIds: [],
 });
 

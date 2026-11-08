@@ -157,6 +157,7 @@ describe("useMoveNodeMutation", () => {
       label: "새 이름",
       orderIndex: 1,
       memo: "새 메모",
+      version: 0,
       tagIds: ["1"],
     });
   });

@@ -136,6 +136,7 @@ const createServerNode = (
   label: `node ${id}`,
   orderIndex,
   memo: null,
+  version: 0,
   tagIds: [],
 });
 
@@ -193,6 +194,7 @@ describe("useUndoRedo", () => {
       label: "node 3",
       orderIndex: 2,
       memo: null,
+      version: 0,
       tagIds: [],
     });
     const { result } = renderUndoRedo();
@@ -248,7 +250,7 @@ describe("useUndoRedo", () => {
     );
     const updateMemoSpy = vi
       .spyOn(memoApi, "updateMemo")
-      .mockResolvedValue({ title: "node 3", content: "쓴 메모" });
+      .mockResolvedValue({ title: "node 3", content: "쓴 메모", version: 1 });
     const addNodeTagSpy = vi
       .spyOn(tagApi, "addNodeTag")
       .mockResolvedValue(TREE_TAGS[0]);
@@ -261,6 +263,7 @@ describe("useUndoRedo", () => {
     );
     expect(updateMemoSpy).toHaveBeenCalledExactlyOnceWith(99, {
       content: "쓴 메모",
+      version: 0,
     });
     expect(addNodeTagSpy).toHaveBeenCalledExactlyOnceWith(99, 7);
     expect(getNodeById("c3")?.data).toMatchObject({
@@ -397,7 +400,11 @@ describe("useUndoRedo", () => {
       });
       const updateMemoSpy = vi
         .spyOn(memoApi, "updateMemo")
-        .mockResolvedValue({ title: "node 3", content: "지운 메모" });
+        .mockResolvedValue({
+          title: "node 3",
+          content: "지운 메모",
+          version: 1,
+        });
       const addNodeTagSpy = vi
         .spyOn(tagApi, "addNodeTag")
         .mockResolvedValue(TREE_TAGS[0]);
@@ -419,11 +426,13 @@ describe("useUndoRedo", () => {
       });
       expect(updateMemoSpy).toHaveBeenCalledExactlyOnceWith(30, {
         content: "지운 메모",
+        version: 0,
       });
       expect(addNodeTagSpy).toHaveBeenCalledExactlyOnceWith(30, 7);
       expect(getNodeById("c3")?.data).toMatchObject({
         serverId: "30",
         memo: "지운 메모",
+        version: 1,
         tagIds: ["7"],
       });
       expect(getNodeById("c21")?.data.serverId).toBe("210");
@@ -451,6 +460,7 @@ describe("useUndoRedo", () => {
       vi.spyOn(memoApi, "updateMemo").mockResolvedValue({
         title: "node 3",
         content: "지운 메모",
+        version: 1,
       });
       vi.spyOn(tagApi, "addNodeTag").mockRejectedValue(
         createApiError(404, "TAG404-1"),
@@ -490,6 +500,7 @@ describe("useUndoRedo", () => {
       vi.spyOn(memoApi, "updateMemo").mockResolvedValue({
         title: "node 3",
         content: "지운 메모",
+        version: 1,
       });
       vi.spyOn(tagApi, "addNodeTag").mockResolvedValue(TREE_TAGS[0]);
       const deleteNodeSpy = vi
@@ -531,6 +542,7 @@ describe("useUndoRedo", () => {
       vi.spyOn(memoApi, "updateMemo").mockResolvedValue({
         title: "node 3",
         content: "지운 메모",
+        version: 1,
       });
       vi.spyOn(tagApi, "addNodeTag").mockResolvedValue(TREE_TAGS[0]);
       const deleteNodeSpy = vi

@@ -35,6 +35,7 @@ export const mapToVisualNodes = (
       label: node.label,
       orderIndex: node.orderIndex,
       memo: node.memo,
+      version: node.version,
       tagIds: node.tagIds,
     },
     position: { x: 0, y: 0 }, // 초기 위치는 레이아웃 계산이 정한다

@@ -2,6 +2,7 @@ import { useCallback } from "react";
 import { useEditNodeNameMutation } from "@/src/entities/tree";
 import { useTreeStore } from "@/src/features/tree-editor/model/treeStore";
 import { validateNodeName } from "@/src/features/tree-editor/lib/update-node-name/validateNodeName";
+import { runNodeSaveInOrder } from "@/src/features/tree-editor/lib/runNodeSaveInOrder";
 
 interface UseUpdateNodeNameParams {
   treeId: string; // 노드가 속한 트리 ID
@@ -22,6 +23,9 @@ export const useUpdateNodeName = ({
 }: UseUpdateNodeNameParams) => {
   const updateNodeLabelInStore = useTreeStore(
     (state) => state.updateNodeLabelInStore,
+  );
+  const updateNodeVersionInStore = useTreeStore(
+    (state) => state.updateNodeVersionInStore,
   );
 
   const { mutateAsync: editNodeNameOnServer, isPending: isUpdatingNodeName } =
@@ -66,10 +70,22 @@ export const useUpdateNodeName = ({
       updateNodeLabelInStore(clientId, trimmedName);
 
       try {
-        const updatedNode = await editNodeNameOnServer({
-          treeId,
-          nodeId: serverId,
-          name: trimmedName,
+        /*
+        version은 차례가 되었을 때 읽는다. 먼저 읽으면 앞서 맡긴 같은 노드의 저장이 올린 값을 놓친다.
+        */
+        const updatedNode = await runNodeSaveInOrder(clientId, () => {
+          const node = useTreeStore
+            .getState()
+            .nodes.find(({ id }) => id === clientId);
+
+          if (!node) throw new Error("저장할 노드가 편집기에 없습니다.");
+
+          return editNodeNameOnServer({
+            treeId,
+            nodeId: serverId,
+            name: trimmedName,
+            version: node.data.version,
+          });
         });
 
         /*
@@ -77,6 +93,7 @@ export const useUpdateNodeName = ({
         보내지 않으면 cache는 서버 값, 화면은 입력값으로 갈린다.
         */
         updateNodeLabelInStore(clientId, updatedNode.label);
+        updateNodeVersionInStore(clientId, updatedNode.version);
 
         return true;
       } catch {
@@ -94,6 +111,7 @@ export const useUpdateNodeName = ({
       serverId,
       treeId,
       updateNodeLabelInStore,
+      updateNodeVersionInStore,
     ],
   );
 

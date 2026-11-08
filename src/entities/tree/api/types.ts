@@ -9,6 +9,7 @@ export interface NodeDTO {
   parentId: number | null;
   orderId: number;
   memo: string | null;
+  version: number; // 이름·메모를 수정할 때마다 서버가 1씩 올리는 값. 이동과 태그 변경으로는 오르지 않는다
   tagIds: number[]; // 노드에 붙은 트리 태그 ID 목록
 }
 
@@ -71,6 +72,7 @@ export type CreateNodeResponse = ApiResponse<NodeDTO>;
 */
 export interface EditNodeNameRequest {
   name: string;
+  version: number; // 화면이 알고 있는 노드 version. 서버 값과 다르면 409로 거절된다
 }
 
 /*
@@ -111,6 +113,7 @@ export type MoveNodeResponse = ApiResponse<MoveNodeResultDTO>;
 export interface MemoDTO {
   title: string;
   content: string | null;
+  version: number; // 저장 후 노드의 version
 }
 
 /*
@@ -118,6 +121,7 @@ export interface MemoDTO {
 */
 export interface UpdateMemoRequest {
   content: string;
+  version: number; // 화면이 알고 있는 노드 version. 서버 값과 다르면 409로 거절된다
 }
 
 /*

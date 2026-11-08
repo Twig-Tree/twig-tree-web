@@ -7,6 +7,7 @@ interface UpdateMemoVariables {
   treeId: string; // 노드가 속한 트리 ID, 트리 조회 캐시를 갱신할 때 사용한다
   nodeId: string; // 메모를 저장할 노드 ID
   content: string; // 저장할 메모 내용
+  version: number; // 화면이 알고 있는 노드 version
 }
 
 /*
@@ -19,8 +20,8 @@ export const useUpdateMemoMutation = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ nodeId, content }: UpdateMemoVariables) =>
-      memoApi.updateMemo(Number(nodeId), { content }),
+    mutationFn: ({ nodeId, content, version }: UpdateMemoVariables) =>
+      memoApi.updateMemo(Number(nodeId), { content, version }),
 
     /*
     서버가 내용을 보정할 수 있으므로 요청 값이 아니라 응답의 content를 캐시에 반영한다.
@@ -31,7 +32,13 @@ export const useUpdateMemoMutation = () => {
         treeQueryKeys.detail(treeId),
         (oldNodes) =>
           oldNodes?.map((node) =>
-            node.id === nodeId ? { ...node, memo: savedMemo.content } : node,
+            node.id === nodeId
+              ? {
+                  ...node,
+                  memo: savedMemo.content,
+                  version: savedMemo.version,
+                }
+              : node,
           ),
       );
     },

@@ -41,6 +41,7 @@ interface TreeState {
   deleteNodeFromStore: (clientIdsToDelete: string[]) => void;
   updateNodeMemoInStore: (clientId: string, memo: string | null) => void;
   updateNodeLabelInStore: (clientId: string, label: string) => void;
+  updateNodeVersionInStore: (clientId: string, version: number) => void;
   selectOnlyNodeInStore: (clientId: string) => void;
   addTagToNodeInStore: (clientId: string, tagId: string) => void;
   removeTagFromNodeInStore: (clientId: string, tagId: string) => void;
@@ -121,7 +122,7 @@ export const useTreeStore = create<TreeState>()((set, get) => ({
   /*
   서버가 확정한 노드 ID를 먼저 추가한 노드에 채운다. 노드의 신원은 클라이언트가 정한 값이라
   교체하지 않으므로 엣지도 손대지 않고, 레이아웃 입력이 되는 구조도 달라지지 않는다.
-  서버가 label이나 orderIndex를 보정할 수 있으므로 그 값은 응답으로 덮는다.
+  서버가 label이나 orderIndex를 보정할 수 있으므로 그 값은 응답으로 덮는다. version은 이후 수정 요청이 보낼 값이라 함께 덮는다.
   memo와 tagIds는 덮지 않는다. 막 만든 노드는 서버에 메모·태그가 없고, 삭제를 되돌릴 때는 이어서 보내는 요청이 채운다.
   position은 화면 전용 값이라 그대로 둔다.
   */
@@ -138,6 +139,7 @@ export const useTreeStore = create<TreeState>()((set, get) => ({
                 serverId: createdNode.id, // 도메인 모델의 ID는 이미 문자열이다.
                 label: createdNode.label,
                 orderIndex: createdNode.orderIndex,
+                version: createdNode.version,
               },
             }
           : node,
@@ -178,6 +180,21 @@ export const useTreeStore = create<TreeState>()((set, get) => ({
       nodes: nodes.map((node) =>
         node.id === clientId
           ? { ...node, data: { ...node.data, label } }
+          : node,
+      ),
+    });
+  },
+
+  /*
+  label·memo의 낙관적 반영과 달리 서버가 확정한 값만 넣는다. 요청 전이나 실패 시 바꾸면 다음 저장이 잘못 충돌한다.
+  */
+  updateNodeVersionInStore: (clientId: string, version: number) => {
+    const { nodes } = get();
+
+    set({
+      nodes: nodes.map((node) =>
+        node.id === clientId
+          ? { ...node, data: { ...node.data, version } }
           : node,
       ),
     });

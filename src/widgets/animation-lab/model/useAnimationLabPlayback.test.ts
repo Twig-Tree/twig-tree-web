@@ -12,7 +12,14 @@ const node = {
   id: "client-1",
   type: "custom",
   position: { x: 0, y: 0 },
-  data: { serverId: "1", label: "노드", orderIndex: 0, memo: null, tagIds: [] },
+  data: {
+    serverId: "1",
+    label: "노드",
+    orderIndex: 0,
+    memo: null,
+    version: 0,
+    tagIds: [],
+  },
 } as CustomEditorNode;
 
 const highlight: LectureAnimation = {
