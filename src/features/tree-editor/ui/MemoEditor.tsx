@@ -22,16 +22,26 @@ export const MemoEditor = ({
 }: MemoEditorProps) => {
   const [memo, setMemo] = useState(initialMemo);
   const [previousInitialMemo, setPreviousInitialMemo] = useState(initialMemo);
+  const [hasExternalMemoChange, setHasExternalMemoChange] = useState(false); // 초안을 쓰는 동안 저장된 메모가 다른 곳에서 바뀌었는지
 
   /*
   다른 곳의 변경으로 저장된 메모가 바뀌면, 입력을 고치지 않은 경우에만 새 값을 보여 준다. 고친 입력은 사용자의 초안이므로 덮지 않는다.
   같은 노드면 key가 그대로라 다시 마운트되지 않으므로 렌더 중에 맞춘다. effect로 맞추면 옛 메모가 한 번 그려진다.
   고쳤는지는 저장되는 값인 앞뒤 공백을 제거한 내용으로 판단한다. 공백만 다른 입력을 초안으로 남기면 저장할 때 새 메모를 옛 내용으로 덮어쓴다.
+
+  초안을 남긴 채 메모가 바뀌면 알려야 한다. 이름 저장의 충돌로 메모와 version이 함께 최신이 되면, 다음 메모 저장은 서버가 거절하지 않아 안내 없이 덮어쓴다.
+  직접 저장한 경우에는 입력과 새 메모가 같으므로 알리지 않는다.
   */
   if (previousInitialMemo !== initialMemo) {
     setPreviousInitialMemo(initialMemo);
 
-    if (memo.trim() === previousInitialMemo.trim()) setMemo(initialMemo);
+    const isMemoUntouched = memo.trim() === previousInitialMemo.trim();
+
+    if (isMemoUntouched) setMemo(initialMemo);
+
+    setHasExternalMemoChange(
+      !isMemoUntouched && memo.trim() !== initialMemo.trim(),
+    );
   }
 
   /*
@@ -54,6 +64,16 @@ export const MemoEditor = ({
     return () => setMemoDirty(false);
   }, [isDirty, setMemoDirty]);
 
+  let conflictMessage: string | null = null;
+
+  if (hasConflict) {
+    conflictMessage =
+      "다른 곳에서 먼저 수정되어 저장하지 않았습니다. 되돌리기를 누르면 최신 메모를 볼 수 있고, 저장을 다시 누르면 지금 내용으로 덮어씁니다.";
+  } else if (hasExternalMemoChange && isDirty) {
+    conflictMessage =
+      "다른 곳에서 메모가 수정되었습니다. 되돌리기를 누르면 최신 메모를 볼 수 있고, 저장을 누르면 지금 내용으로 덮어씁니다.";
+  }
+
   return (
     <>
       <div className="flex min-h-0 flex-1 flex-col gap-2 p-panel">
@@ -66,13 +86,12 @@ export const MemoEditor = ({
           aria-describedby="memo-length"
         />
 
-        {hasConflict ? (
+        {conflictMessage ? (
           <p
             role="alert"
             className="rounded-control border border-warning-line bg-warning-subtle px-3 py-2 text-xs text-warning-strong"
           >
-            다른 곳에서 먼저 수정되어 저장하지 않았습니다. 되돌리기를 누르면
-            최신 메모를 볼 수 있고, 저장을 다시 누르면 지금 내용으로 덮어씁니다.
+            {conflictMessage}
           </p>
         ) : null}
 
@@ -112,6 +131,7 @@ export const MemoEditor = ({
           className="rounded-control border border-line px-4 py-2 text-sm font-medium text-content-secondary hover:bg-surface-hover disabled:opacity-50"
           onClick={() => {
             setMemo(initialMemo);
+            setHasExternalMemoChange(false);
             onRevert();
           }}
           disabled={isSaving}
