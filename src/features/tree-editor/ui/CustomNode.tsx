@@ -11,6 +11,7 @@ import { CustomEditorNode } from "@/src/features/tree-editor/model/types";
 import { useUpdateNodeName } from "@/src/features/tree-editor/model/actions/update-node-name/useUpdateNodeName";
 import { useTreeStore } from "@/src/features/tree-editor/model/treeStore";
 import { useHighlightStore } from "@/src/features/tree-editor/model/highlight/highlightStore";
+import { useEditingStore } from "@/src/features/tree-editor/model/sync/editingStore";
 import { getLectureHighlightMotionStyle } from "@/src/features/tree-editor/lib/lecture/getLectureHighlightMotionStyle";
 import {
   getCurrentLectureScene,
@@ -37,6 +38,9 @@ export function CustomNode({
   isConnectable,
 }: NodeProps<CustomEditorNode>) {
   const treeId = useTreeStore((state) => state.treeId);
+  const setNodeNameEditing = useEditingStore(
+    (state) => state.setNodeNameEditing,
+  );
 
   /*
   트리 구조는 React Flow의 parentId가 아니라 엣지로 표현하므로, 들어오는 엣지가 없는 노드가 루트다.
@@ -98,6 +102,17 @@ export function CustomNode({
     inputRef.current?.focus();
     inputRef.current?.select();
   }, [isEditing]);
+
+  /*
+  입력 중에 다른 곳의 변경을 반영하지 않도록 알린다. 입력 중인 노드가 접혀서 사라져도 cleanup이 해제한다.
+  */
+  useEffect(() => {
+    if (!isEditing) return;
+
+    setNodeNameEditing(id, true);
+
+    return () => setNodeNameEditing(id, false);
+  }, [id, isEditing, setNodeNameEditing]);
 
   const focusInput = useCallback(() => {
     requestAnimationFrame(() => {

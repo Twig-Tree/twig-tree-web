@@ -1,5 +1,6 @@
-import { fireEvent, render, screen } from "@testing-library/react";
-import { describe, expect, it, vi } from "vitest";
+import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { afterEach, describe, expect, it, vi } from "vitest";
+import { useEditingStore } from "../model/sync/editingStore";
 import { MemoEditor } from "./MemoEditor";
 
 const createEditor = (initialMemo: string) => (
@@ -40,5 +41,34 @@ describe("MemoEditor", () => {
     fireEvent.click(screen.getByRole("button", { name: "되돌리기" }));
 
     expect(getMemoInput().value).toBe("다른 곳의 메모");
+  });
+});
+
+describe("MemoEditor의 미저장 입력 알림", () => {
+  afterEach(() => {
+    cleanup();
+    useEditingStore.setState({ isMemoDirty: false });
+  });
+
+  const isMemoDirty = () => useEditingStore.getState().isMemoDirty;
+
+  it("입력을 고치면 알리고, 원래 내용으로 돌아오면 해제한다", () => {
+    render(createEditor("이전 메모"));
+    expect(isMemoDirty()).toBe(false);
+
+    fireEvent.change(getMemoInput(), { target: { value: "내 초안" } });
+    expect(isMemoDirty()).toBe(true);
+
+    fireEvent.change(getMemoInput(), { target: { value: "이전 메모 " } });
+    expect(isMemoDirty()).toBe(false);
+  });
+
+  it("입력이 남은 채 사라지면 해제한다", () => {
+    const { unmount } = render(createEditor("이전 메모"));
+
+    fireEvent.change(getMemoInput(), { target: { value: "내 초안" } });
+    unmount();
+
+    expect(isMemoDirty()).toBe(false);
   });
 });

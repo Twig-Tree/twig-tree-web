@@ -1,6 +1,7 @@
-import { type ReactNode, useState } from "react";
+import { type ReactNode, useEffect, useState } from "react";
 import { MAX_MEMO_LENGTH } from "@/src/entities/tree";
 import { validateMemoContent } from "../lib/save-memo/validateMemoContent";
+import { useEditingStore } from "../model/sync/editingStore";
 
 type MemoEditorProps = {
   initialMemo: string;
@@ -37,6 +38,20 @@ export const MemoEditor = ({
   */
   const memoLength = memo.trim().length;
   const errorMessage = validateMemoContent(memo);
+
+  /*
+  저장하지 않은 입력이 있는 동안에는 다른 곳의 변경을 반영하지 않도록 알린다. 패널을 닫거나 노드를 바꿔 입력이 버려지면 cleanup이 해제한다.
+  */
+  const isDirty = memo.trim() !== initialMemo.trim();
+  const setMemoDirty = useEditingStore((state) => state.setMemoDirty);
+
+  useEffect(() => {
+    if (!isDirty) return;
+
+    setMemoDirty(true);
+
+    return () => setMemoDirty(false);
+  }, [isDirty, setMemoDirty]);
 
   return (
     <>
