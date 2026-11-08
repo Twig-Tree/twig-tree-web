@@ -74,13 +74,18 @@ const getState = (
   script: EditorLectureScript,
   sceneIndex: number,
   beatIndex: number,
-  { isTargetBeatIncluded = false, base = [] as string[] } = {},
+  {
+    isTargetBeatIncluded = false,
+    isReducedMotion = false,
+    base = [] as string[],
+  } = {},
 ) =>
   getLectureSeekState({
     script,
     sceneIndex,
     beatIndex,
     isTargetBeatIncluded,
+    isReducedMotion,
     nodes,
     edges,
     baseCollapsedServerIds: new Set(base),
@@ -140,6 +145,26 @@ describe("getLectureSeekState", () => {
       type: "highlight",
       clientIds: new Set(["c2"]),
     });
+  });
+
+  it("동작 줄이기를 켜면 재생과 같이 줄인 대본으로 되감는다", () => {
+    const script = createScript([
+      {
+        type: "highlight",
+        targetClientIds: ["c2"],
+        style: "pulse",
+        durationMs: 500,
+        persist: true,
+      },
+      focus("c1"),
+    ]);
+
+    expect(getState(script, 0, 1).layers[0]).toMatchObject({
+      style: "pulse",
+    });
+    expect(
+      getState(script, 0, 1, { isReducedMotion: true }).layers[0],
+    ).toMatchObject({ style: "steady" });
   });
 
   it("유지되는 dim은 레이어로 남기고, 유지되지 않는 dim은 뺀다", () => {
@@ -226,6 +251,7 @@ describe("getLectureSeekState", () => {
       sceneIndex: 0,
       beatIndex: 1,
       isTargetBeatIncluded: true,
+      isReducedMotion: false,
       nodes,
       edges,
       baseCollapsedServerIds: new Set(),

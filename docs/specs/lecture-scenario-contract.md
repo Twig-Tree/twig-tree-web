@@ -96,6 +96,8 @@ role의 노드 개수는 값의 모양으로 정한다.
 - 연출 결과가 달라지는 레시피 변경마다 버전을 더한다.
 - 기존 버전은 그 버전으로 만든 시나리오를 재현할 수 있는 동안 목록에 남긴다.
 
+스키마를 올릴 때의 migration, recipe 버전 보존 기간, 대본을 다시 만드는 원칙은 [버전 호환](./lecture-versioning.md)에 있다.
+
 ## JSON Schema
 
 백엔드와 외부 모델에 넘기는 JSON Schema(draft 2020-12)는 [lecture-scenario.schema.json](./lecture-scenario.schema.json)이다. zod 스키마에서 생성한 파일이므로 직접 고치지 않는다.

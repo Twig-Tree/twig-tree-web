@@ -29,7 +29,7 @@ LectureScript + source map + 경고
 
 ## 결정성
 
-같은 시나리오, 같은 트리, 같은 `recipeRegistryVersion`이면 항상 같은 대본을 만든다. 그래서 다음 값은 입력에 넣지 않는다.
+같은 시나리오, 같은 트리, 같은 `recipeRegistryVersion`, 같은 `scriptId`이면 항상 같은 대본을 만든다. `scriptId`는 대본 ID가 될 뿐 연출에는 영향이 없다. 그래서 다음 값은 입력에 넣지 않는다.
 
 - **접힘 상태**: 편집기 트리 창구는 접힘과 관계없이 store의 모든 노드를 넣는다. 사용자가 접어 둔 모양에 따라 연출이 달라지면 같은 강의를 재현할 수 없다.
 - **동작 줄이기 설정**: 사용자 설정이라 같은 시나리오에서 두 가지 대본이 필요하다. 컴파일 결과에 [`getReducedMotionAnimation`](./lecture-motion-tokens.md#동작-줄이기)을 부르는 쪽이 적용한다.
@@ -130,7 +130,7 @@ beat ID별로 `{ animationPath, source }` 목록을 둔다. beat ID는 시나리
 - `animationPath`: 비트 animation 안의 위치. 이 위치 아래의 모든 동작이 같은 출처다.
 - `source`: cue가 만든 동작이면 `{ type: "cue", cueIndex, intent, recipeId }`, 컴파일러가 넣은 동작이면 `{ type: "compiler", reason }`이다. 지금 `reason`은 cue 없는 비트의 `empty-beat`뿐이다.
 
-[애니메이션 랩](../../src/widgets/animation-lab/README.md#컴파일-결과)이 cue → recipe → 동작을 보여 주고, 운영 로그(#133)가 생성 동작에서 원래 cue를 거슬러 찾을 때 쓴다.
+[애니메이션 랩](../../src/widgets/animation-lab/README.md#컴파일-결과)이 cue → recipe → 동작을 보여 주고, [운영 로그](./lecture-operations.md#거슬러-찾기)가 생성 동작에서 원래 cue를 거슬러 찾을 때 쓴다.
 
 ## Fixture
 
@@ -145,3 +145,5 @@ beat ID별로 `{ animationPath, source }` 목록을 둔다. beat ID는 시나리
 trace를 쓰는 fixture는 위 제약 때문에 흐름을 사슬로 둔다(고구려 수도 졸본 → 국내성 → 평양, HTTP 브라우저 → … → 서버, 광합성 빛 반응 → 탄소 고정).
 
 recipe, motion token, 연결표가 바뀌면 스냅샷이 실패한다. 의도한 변경이면 [registry 버전 규칙](./lecture-recipes.md#registry)을 확인한 뒤 `-u`로 갱신한다.
+
+같은 시나리오를 고치지 않고 동결한 [동결 fixture](./lecture-versioning.md#동결-fixture)도 함께 실패한다. 배포된 recipe 버전이면 그쪽은 갱신하지 않고 변경을 새 버전으로 옮긴다.

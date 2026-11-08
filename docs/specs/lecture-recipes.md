@@ -91,7 +91,8 @@ getLectureRecipe(1, "trace-path");
 - **버전**: 시나리오의 [`recipeRegistryVersion`](./lecture-scenario-contract.md#버전)과 같은 값이다. 같은 입력과 같은 버전은 항상 같은 애니메이션을 만든다.
   - 배포된 버전의 결과가 바뀌는 변경은 새 버전에서 한다. recipe 코드뿐 아니라 motion token 값과 recipe 기본 delivery도 결과를 바꾼다.
   - 바뀌지 않는 recipe는 새 버전에서 같은 정의를 다시 가리킨다.
-  - 버전 1은 아직 배포 전이라 고칠 수 있다. 첫 배포 시점을 이 문서에 적는다.
+  - 버전 1은 아직 배포 전이라 고칠 수 있다. 첫 배포 시점은 [버전 호환](./lecture-versioning.md#첫-배포-전)에 적는다.
+  - 버전을 지우는 조건과 동결 fixture는 [버전 호환](./lecture-versioning.md#recipe-registry)에 있다.
 - `SUPPORTED_RECIPE_REGISTRY_VERSIONS`의 버전마다 항목이 있어야 하며, 빠뜨리면 타입 오류가 난다.
 - recipe마다 입력 타입이 달라 ID로 찾으면 TS가 하나로 좁히지 못한다. `getLectureRecipe`는 입력을 `unknown`으로 받는 정의를 돌려주고, 실행 함수가 스키마로 먼저 검사한다.
 

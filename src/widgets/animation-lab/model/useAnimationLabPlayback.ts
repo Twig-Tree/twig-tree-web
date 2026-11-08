@@ -1,8 +1,12 @@
 import { useEffect, useEffectEvent, useState } from "react";
-import { type LectureAnimation } from "@/src/entities/lecture";
+import {
+  getReducedMotionAnimation,
+  type LectureAnimation,
+} from "@/src/entities/lecture";
 import {
   createLectureNodeIdResolver,
   getEditorLectureAnimation,
+  prefersReducedMotion,
   runLectureAnimation,
   useLectureAnimationStore,
   useTreeStore,
@@ -44,6 +48,7 @@ type UseAnimationLabPlaybackParams = {
   ) => void; // focus 동작이 대상 노드를 화면에 모으는 함수
   resetCamera: () => void; // reset 동작이 전체 트리 화면으로 돌아가는 함수
   isLooping: boolean; // 끝나면 처음부터 다시 재생할지 여부
+  isReducedMotionPreview: boolean; // 운영체제 설정과 관계없이 동작 줄이기를 적용해 볼지 여부
 };
 
 const getStageLabel = (action: EditorLectureAnimationAction): string => {
@@ -67,6 +72,7 @@ export const useAnimationLabPlayback = ({
   revealNodes,
   resetCamera,
   isLooping,
+  isReducedMotionPreview,
 }: UseAnimationLabPlaybackParams) => {
   const [running, setRunning] = useState<{
     animation: EditorLectureAnimation;
@@ -83,6 +89,12 @@ export const useAnimationLabPlayback = ({
   );
   const resetStepCamera = useEffectEvent(() => resetCamera());
   const getIsLooping = useEffectEvent(() => isLooping);
+  /*
+  제품 재생기처럼 회차를 시작할 때마다 읽는다. 운영체제에서 동작 줄이기를 켰으면 미리보기를 꺼도 줄인다.
+  */
+  const getIsReducedMotion = useEffectEvent(
+    () => isReducedMotionPreview || prefersReducedMotion(),
+  );
 
   useEffect(() => {
     if (running === null) return;
@@ -102,14 +114,19 @@ export const useAnimationLabPlayback = ({
 
       if (!(await resetPlaybackCamera())) return;
 
-      await runLectureAnimation(running.animation, {
-        revealNodes: (clientIds, options) =>
-          revealStepNodes(clientIds, options),
-        resetCamera: () => resetStepCamera(),
-        signal,
-        sequenceGapMs: SEQUENCE_GAP_MS,
-        onActionStart: (action) => setStage(getStageLabel(action)),
-      });
+      await runLectureAnimation(
+        getIsReducedMotion()
+          ? getReducedMotionAnimation(running.animation)
+          : running.animation,
+        {
+          revealNodes: (clientIds, options) =>
+            revealStepNodes(clientIds, options),
+          resetCamera: () => resetStepCamera(),
+          signal,
+          sequenceGapMs: SEQUENCE_GAP_MS,
+          onActionStart: (action) => setStage(getStageLabel(action)),
+        },
+      );
 
       if (!signal.aborted) await resetPlaybackCamera();
     };

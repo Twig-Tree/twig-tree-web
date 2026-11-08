@@ -1,0 +1,142 @@
+{
+  "id": "goguryeo-misconceptions",
+  "title": "고구려에 대한 흔한 오해",
+  "scenes": [
+    {
+      "id": "capital",
+      "nodeId": "2",
+      "beats": [
+        {
+          "id": "capital-1",
+          "narration": {
+            "text": "고구려의 수도는 한 번에 정해진 것이 아닙니다.",
+            "fallbackDurationMs": 2860
+          },
+          "animation": {
+            "type": "group",
+            "mode": "sequence",
+            "children": [
+              {
+                "type": "highlight",
+                "targetNodeIds": [
+                  "2"
+                ],
+                "style": "shake",
+                "tone": "warning",
+                "durationMs": 1200
+              },
+              {
+                "type": "wait",
+                "durationMs": 450
+              },
+              {
+                "type": "highlight",
+                "targetNodeIds": [
+                  "2"
+                ],
+                "style": "steady",
+                "tone": "warning",
+                "durationMs": 1200
+              }
+            ]
+          }
+        },
+        {
+          "id": "capital-2",
+          "narration": {
+            "text": "처음부터 평양이 수도였다고 생각하기 쉽지만 사실이 아닙니다.",
+            "fallbackDurationMs": 3630
+          },
+          "animation": {
+            "type": "group",
+            "mode": "sequence",
+            "children": [
+              {
+                "type": "highlight",
+                "targetNodeIds": [
+                  "5"
+                ],
+                "style": "shake",
+                "tone": "danger",
+                "durationMs": 1200
+              },
+              {
+                "type": "wait",
+                "durationMs": 450
+              },
+              {
+                "type": "highlight",
+                "targetNodeIds": [
+                  "3"
+                ],
+                "style": "bounce",
+                "tone": "success",
+                "durationMs": 1200
+              }
+            ]
+          }
+        },
+        {
+          "id": "capital-3",
+          "narration": {
+            "text": "졸본에서 국내성, 그리고 평양으로 옮겼습니다.",
+            "fallbackDurationMs": 2750
+          },
+          "animation": {
+            "type": "group",
+            "mode": "sequence",
+            "children": [
+              {
+                "type": "group",
+                "mode": "sequence",
+                "children": [
+                  {
+                    "type": "focus",
+                    "targetNodeIds": [
+                      "3",
+                      "4",
+                      "5"
+                    ],
+                    "maxZoom": 1.2,
+                    "durationMs": 700
+                  },
+                  {
+                    "type": "trace",
+                    "nodeIds": [
+                      "3",
+                      "4",
+                      "5"
+                    ],
+                    "durationMs": 1300,
+                    "mode": "progressive",
+                    "direction": "forward"
+                  },
+                  {
+                    "type": "highlight",
+                    "targetNodeIds": [
+                      "5"
+                    ],
+                    "style": "pulse",
+                    "tone": "accent",
+                    "durationMs": 1200
+                  }
+                ]
+              },
+              {
+                "type": "highlight",
+                "targetNodeIds": [
+                  "3",
+                  "4",
+                  "5"
+                ],
+                "style": "bounce",
+                "tone": "success",
+                "durationMs": 1200
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

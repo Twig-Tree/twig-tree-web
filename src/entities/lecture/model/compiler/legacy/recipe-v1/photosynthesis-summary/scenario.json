@@ -1,0 +1,91 @@
+{
+  "scenarioSchemaVersion": 1,
+  "recipeRegistryVersion": 1,
+  "title": "광합성 정리",
+  "scenes": [
+    {
+      "id": "intro",
+      "nodeId": "1",
+      "beats": [
+        {
+          "id": "intro-1",
+          "narration": {
+            "text": "오늘은 광합성을 정리해 보겠습니다."
+          },
+          "cues": []
+        },
+        {
+          "id": "intro-2",
+          "narration": {
+            "text": "광합성은 빛 반응과 탄소 고정으로 이루어집니다."
+          },
+          "cues": [
+            {
+              "intent": "introduce",
+              "roles": {
+                "subject": "1",
+                "context": ["2", "3"]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "wrap-up",
+      "nodeId": "1",
+      "beats": [
+        {
+          "id": "wrap-up-1",
+          "narration": {
+            "text": "빛 반응에서 만든 에너지가 탄소 고정에 쓰입니다."
+          },
+          "cues": [
+            {
+              "intent": "trace",
+              "roles": {
+                "source": "2",
+                "destination": "3"
+              }
+            }
+          ]
+        },
+        {
+          "id": "wrap-up-2",
+          "narration": {
+            "text": "배운 내용을 다시 한번 짚어 보겠습니다."
+          },
+          "cues": [
+            {
+              "intent": "recap",
+              "roles": {
+                "subject": ["2", "3"]
+              },
+              "delivery": {
+                "pace": "quick"
+              }
+            }
+          ]
+        },
+        {
+          "id": "wrap-up-3",
+          "narration": {
+            "text": "광합성은 빛 에너지를 화학 에너지로 바꾸는 과정입니다."
+          },
+          "cues": [
+            {
+              "intent": "summarize",
+              "roles": {
+                "subject": "1",
+                "context": ["2", "3"]
+              },
+              "delivery": {
+                "continuity": "persist"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

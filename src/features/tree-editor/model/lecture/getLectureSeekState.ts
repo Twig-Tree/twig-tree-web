@@ -1,3 +1,4 @@
+import { getReducedMotionAnimation } from "@/src/entities/lecture";
 import { getAncestorClientIds } from "../../lib/getAncestorClientIds";
 import {
   type CustomEditorEdge,
@@ -17,6 +18,7 @@ type GetLectureSeekStateParams = {
   sceneIndex: number; // 옮길 장면
   beatIndex: number; // 옮길 비트
   isTargetBeatIncluded: boolean; // 옮길 비트의 연출까지 적용할지. 비트를 곧바로 재생하면 그 재생이 적용하므로 빼고, 일시정지 중이면 넣는다
+  isReducedMotion: boolean; // 동작 줄이기를 켰는지. 재생기가 실행할 대본과 같은 대본으로 되감는다
   nodes: CustomEditorNode[]; // 트리의 노드 목록
   edges: CustomEditorEdge[]; // 트리의 엣지 목록
   baseCollapsedServerIds: ReadonlySet<string>; // 강의를 시작할 때의 접힘 집합
@@ -119,10 +121,19 @@ export const getLectureSeekState = ({
   sceneIndex,
   beatIndex,
   isTargetBeatIncluded,
+  isReducedMotion,
   nodes,
   edges,
   baseCollapsedServerIds,
 }: GetLectureSeekStateParams): LectureSeekState => {
+  /*
+  동작 줄이기는 꾸밈의 모양과 순차 추적의 유지 시점을 바꾼다. 재생과 다른 대본으로 되감으면 옮긴 화면과 재생 화면이 어긋난다.
+  */
+  const getBeatActions = (animation: EditorLectureAnimation) =>
+    getOrderedActions(
+      isReducedMotion ? getReducedMotionAnimation(animation) : animation,
+    );
+
   const collapsedServerIds = new Set(baseCollapsedServerIds);
   let layers: LectureVisualLayer[] = [];
   const previewLayerIds: string[] = [];
@@ -210,14 +221,14 @@ export const getLectureSeekState = ({
 
       const isPreviewBeat = isTargetScene && currentBeatIndex === beatIndex;
 
-      getOrderedActions(beat.animation).forEach((action) =>
+      getBeatActions(beat.animation).forEach((action) =>
         applyAction(action, isPreviewBeat),
       );
     });
   });
 
   const targetBeat = script.scenes[sceneIndex]?.beats[beatIndex];
-  const firstAction = targetBeat && getOrderedActions(targetBeat.animation)[0];
+  const firstAction = targetBeat && getBeatActions(targetBeat.animation)[0];
   const startsWithCamera =
     !isTargetBeatIncluded &&
     (firstAction?.type === "focus" ||

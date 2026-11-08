@@ -9,6 +9,7 @@ export { compileEditorLectureScenario } from "./lib/lecture/compileEditorLecture
 export type { EditorLectureCompileResult } from "./lib/lecture/compileEditorLectureScenario";
 export { getEditorLectureTreeOutline } from "./lib/lecture/getEditorLectureTreeNodes";
 export { createLectureNodeIdResolver } from "./lib/lecture/createLectureNodeIdResolver";
+export { prefersReducedMotion } from "./lib/motion";
 export { useDemoLectureScript } from "./model/lecture/useDemoLectureScript";
 export { useIsLectureActive } from "./model/lecture/lectureStore";
 export { NodeContextMenu } from "./ui/NodeContextMenu";

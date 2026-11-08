@@ -1,0 +1,191 @@
+{
+  "id": "photosynthesis-summary",
+  "title": "광합성 정리",
+  "scenes": [
+    {
+      "id": "intro",
+      "nodeId": "1",
+      "beats": [
+        {
+          "id": "intro-1",
+          "narration": {
+            "text": "오늘은 광합성을 정리해 보겠습니다.",
+            "fallbackDurationMs": 2090
+          },
+          "animation": {
+            "type": "wait",
+            "durationMs": 0
+          }
+        },
+        {
+          "id": "intro-2",
+          "narration": {
+            "text": "광합성은 빛 반응과 탄소 고정으로 이루어집니다.",
+            "fallbackDurationMs": 2860
+          },
+          "animation": {
+            "type": "group",
+            "mode": "sequence",
+            "children": [
+              {
+                "type": "focus",
+                "targetNodeIds": [
+                  "1",
+                  "2",
+                  "3"
+                ],
+                "maxZoom": 1.2,
+                "durationMs": 700
+              },
+              {
+                "type": "highlight",
+                "targetNodeIds": [
+                  "1"
+                ],
+                "style": "pulse",
+                "tone": "accent",
+                "durationMs": 1200
+              },
+              {
+                "type": "highlight",
+                "targetNodeIds": [
+                  "2",
+                  "3"
+                ],
+                "style": "steady",
+                "tone": "accent",
+                "durationMs": 1200
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "wrap-up",
+      "nodeId": "1",
+      "beats": [
+        {
+          "id": "wrap-up-1",
+          "narration": {
+            "text": "빛 반응에서 만든 에너지가 탄소 고정에 쓰입니다.",
+            "fallbackDurationMs": 2970
+          },
+          "animation": {
+            "type": "group",
+            "mode": "sequence",
+            "children": [
+              {
+                "type": "focus",
+                "targetNodeIds": [
+                  "2",
+                  "3"
+                ],
+                "maxZoom": 1.2,
+                "durationMs": 700
+              },
+              {
+                "type": "trace",
+                "nodeIds": [
+                  "2",
+                  "3"
+                ],
+                "durationMs": 650,
+                "mode": "progressive",
+                "direction": "forward"
+              },
+              {
+                "type": "highlight",
+                "targetNodeIds": [
+                  "3"
+                ],
+                "style": "pulse",
+                "tone": "accent",
+                "durationMs": 1200
+              }
+            ]
+          }
+        },
+        {
+          "id": "wrap-up-2",
+          "narration": {
+            "text": "배운 내용을 다시 한번 짚어 보겠습니다.",
+            "fallbackDurationMs": 2420
+          },
+          "animation": {
+            "type": "group",
+            "mode": "sequence",
+            "children": [
+              {
+                "type": "focus",
+                "targetNodeIds": [
+                  "2",
+                  "3"
+                ],
+                "maxZoom": 1,
+                "durationMs": 600
+              },
+              {
+                "type": "highlight",
+                "targetNodeIds": [
+                  "2"
+                ],
+                "style": "steady",
+                "tone": "accent",
+                "durationMs": 800
+              },
+              {
+                "type": "highlight",
+                "targetNodeIds": [
+                  "3"
+                ],
+                "style": "steady",
+                "tone": "accent",
+                "durationMs": 800
+              }
+            ]
+          }
+        },
+        {
+          "id": "wrap-up-3",
+          "narration": {
+            "text": "광합성은 빛 에너지를 화학 에너지로 바꾸는 과정입니다.",
+            "fallbackDurationMs": 3300
+          },
+          "animation": {
+            "type": "group",
+            "mode": "sequence",
+            "children": [
+              {
+                "type": "focus",
+                "targetNodeIds": [
+                  "1",
+                  "2"
+                ],
+                "maxZoom": 1.2,
+                "durationMs": 900
+              },
+              {
+                "type": "collapse",
+                "targetNodeIds": [
+                  "1"
+                ],
+                "durationMs": 1050
+              },
+              {
+                "type": "highlight",
+                "targetNodeIds": [
+                  "1"
+                ],
+                "style": "pulse",
+                "tone": "accent",
+                "durationMs": 1800,
+                "persist": true
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

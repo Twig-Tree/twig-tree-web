@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { act, renderHook } from "@testing-library/react";
+import { setLectureLogSink } from "@/src/entities/lecture";
 import {
   type EditorLectureAnimation,
   type EditorLectureScript,
@@ -130,6 +131,7 @@ beforeEach(() => {
 afterEach(() => {
   vi.useRealTimers();
   vi.unstubAllGlobals();
+  setLectureLogSink(null);
 });
 
 describe("useLecturePlayback", () => {
@@ -517,6 +519,135 @@ describe("useLecturePlayback", () => {
     act(() => result.current.refocusCamera());
 
     expect(revealNodes).toHaveBeenCalledOnce();
+  });
+
+  /*
+  병렬 그룹의 한 동작이 실패해도 다른 동작의 강조가 화면에 남지 않아야 하고, 강의는 멈추지 않아야 한다.
+  */
+  it("비트 애니메이션이 실패하면 화면을 정리하고 내레이션 뒤 다음 비트로 넘어간다", async () => {
+    const logSink = vi.fn();
+    setLectureLogSink(logSink);
+    revealNodes.mockImplementationOnce(() => {
+      throw new Error("카메라 실패");
+    });
+    const { result } = renderPlayback();
+
+    act(() =>
+      lecture().startLecture({
+        ...script,
+        scenes: [
+          {
+            id: "scene-1",
+            clientId: "c1",
+            beats: [
+              createBeat("broken", {
+                type: "group",
+                mode: "parallel",
+                children: [
+                  {
+                    type: "highlight",
+                    targetClientIds: ["c1"],
+                    style: "steady",
+                    durationMs: 3000,
+                  },
+                  {
+                    type: "group",
+                    mode: "sequence",
+                    children: [
+                      { type: "wait", durationMs: 300 },
+                      {
+                        type: "highlight",
+                        targetClientIds: ["c3"],
+                        style: "steady",
+                        durationMs: 500,
+                        persist: true,
+                      },
+                    ],
+                  },
+                  {
+                    type: "focus",
+                    targetClientIds: ["c2"],
+                    maxZoom: 1,
+                    durationMs: 500,
+                  },
+                ],
+              }),
+              createBeat("next"),
+            ],
+          },
+        ],
+      }),
+    );
+    await advance(0);
+
+    expect(useLectureAnimationStore.getState().layers.size).toBe(0);
+    expect(logSink).toHaveBeenCalledExactlyOnceWith({
+      type: "lecture-playback-failure",
+      level: "error",
+      scriptId: "test-script",
+      sceneIndex: 0,
+      beatIndex: 0,
+      sceneId: "scene-1",
+      beatId: "broken",
+      message: "카메라 실패",
+    });
+
+    act(() => result.current.refocusCamera());
+    expect(revealNodes).toHaveBeenCalledOnce();
+
+    /*
+    실패 뒤에 시작할 예정이던 동작도 멈춰야 한다. 지우기만 하면 기다리던 강조가 내레이션 중에 다시 나타난다.
+    */
+    await advance(400);
+    expect(useLectureAnimationStore.getState().layers.size).toBe(0);
+
+    await advance(599);
+    expect(getPosition().beatIndex).toBe(0);
+
+    await advance(1);
+    expect(getPosition().beatIndex).toBe(1);
+    expect(useLectureAnimationStore.getState().layers.size).toBe(0);
+  });
+
+  it("동작 줄이기 설정을 비트마다 읽어 그 비트의 애니메이션을 줄인다", async () => {
+    let isReducedMotion = false;
+    vi.stubGlobal("matchMedia", (query: string) => ({
+      matches: query === "(prefers-reduced-motion: reduce)" && isReducedMotion,
+    }));
+    const pulse = (id: string): EditorLectureAnimation => ({
+      type: "highlight",
+      targetClientIds: [id],
+      style: "pulse",
+      durationMs: 500,
+      persist: true,
+    });
+    const getHighlightStyles = () =>
+      [...useLectureAnimationStore.getState().layers.values()].map((layer) =>
+        layer.type === "highlight" ? layer.style : null,
+      );
+    renderPlayback();
+
+    act(() =>
+      lecture().startLecture({
+        ...script,
+        scenes: [
+          {
+            id: "scene-1",
+            clientId: "c1",
+            beats: [
+              createBeat("first", pulse("c1")),
+              createBeat("second", pulse("c2")),
+            ],
+          },
+        ],
+      }),
+    );
+    await advance(0);
+    expect(getHighlightStyles()).toEqual(["pulse"]);
+
+    isReducedMotion = true;
+    await advance(1000);
+    expect(getHighlightStyles()).toEqual(["pulse", "steady"]);
   });
 
   it("끝난 강의를 다시 시작하면 처음부터 진행한다", async () => {

@@ -20,7 +20,7 @@ export type LectureRecipeRegistryVersion =
 
 - ID는 kebab-case이고, 가르치는 의도가 아니라 연출을 나타낸다(trace-path, spotlight). intent와 recipe를 잇는 일은 컴파일러가 한다.
 - 배포된 버전의 recipe 결과를 바꾸는 변경은 새 버전에서 한다. 바뀌지 않는 recipe는 새 버전에서 같은 정의를 다시 가리킨다.
-- 버전 1은 아직 배포 전이라 #138 작업 동안 고친다.
+- 버전 1은 아직 배포 전이라 고칠 수 있다. 첫 배포 뒤의 규칙은 docs/specs/lecture-versioning.md에 있다.
 
 SUPPORTED_RECIPE_REGISTRY_VERSIONS의 버전마다 항목이 있어야 하며, 빠뜨리면 타입 오류가 난다.
 */

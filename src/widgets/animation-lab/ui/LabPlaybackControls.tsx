@@ -7,6 +7,8 @@ type LabPlaybackControlsProps = {
   stage: string | null; // 지금 실행 중인 동작 이름
   isLooping: boolean; // 반복 재생 여부
   onChangeLooping: (isLooping: boolean) => void; // 반복 재생을 켜고 끈다
+  isReducedMotionPreview: boolean; // 동작 줄이기 미리보기 여부
+  onChangeReducedMotionPreview: (isReducedMotionPreview: boolean) => void; // 동작 줄이기 미리보기를 켜고 끈다
   onPlay: () => void; // 지금 모드의 애니메이션을 재생한다
   onStop: () => void; // 재생을 멈추고 시각 효과를 지운다
   onReset: () => void; // 재생을 멈추고 카메라까지 되돌린다
@@ -14,7 +16,7 @@ type LabPlaybackControlsProps = {
 
 /*
 함수 이름 : LabPlaybackControls
-기능 : 모든 모드가 함께 쓰는 재생, 중단, 초기화 버튼과 반복 재생 설정을 그린다.
+기능 : 모든 모드가 함께 쓰는 재생, 중단, 초기화 버튼과 반복 재생, 동작 줄이기 미리보기 설정을 그린다.
 인자 : LabPlaybackControlsProps
 반환값 : 재생 조작 영역
 */
@@ -24,6 +26,8 @@ export function LabPlaybackControls({
   stage,
   isLooping,
   onChangeLooping,
+  isReducedMotionPreview,
+  onChangeReducedMotionPreview,
   onPlay,
   onStop,
   onReset,
@@ -51,14 +55,29 @@ export function LabPlaybackControls({
       </div>
 
       <div className="flex items-center justify-between">
-        <label className="flex items-center gap-2 text-xs font-medium text-content-secondary">
-          <input
-            type="checkbox"
-            checked={isLooping}
-            onChange={(event) => onChangeLooping(event.target.checked)}
-          />
-          반복 재생
-        </label>
+        <div className="flex items-center gap-3">
+          <label className="flex items-center gap-2 text-xs font-medium text-content-secondary">
+            <input
+              type="checkbox"
+              checked={isLooping}
+              onChange={(event) => onChangeLooping(event.target.checked)}
+            />
+            반복 재생
+          </label>
+          <label
+            className="flex items-center gap-2 text-xs font-medium text-content-secondary"
+            title="다음 회차부터 적용한다. 노드 전환 시간은 운영체제 설정을 따른다."
+          >
+            <input
+              type="checkbox"
+              checked={isReducedMotionPreview}
+              onChange={(event) =>
+                onChangeReducedMotionPreview(event.target.checked)
+              }
+            />
+            동작 줄이기
+          </label>
+        </div>
         <p
           role="status"
           aria-live="polite"

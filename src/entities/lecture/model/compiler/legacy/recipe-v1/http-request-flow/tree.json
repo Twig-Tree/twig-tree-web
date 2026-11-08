@@ -1,0 +1,42 @@
+[
+  {
+    "id": "1",
+    "parentId": null,
+    "name": "HTTP 요청 흐름"
+  },
+  {
+    "id": "2",
+    "parentId": "1",
+    "name": "브라우저"
+  },
+  {
+    "id": "3",
+    "parentId": "2",
+    "name": "DNS 조회"
+  },
+  {
+    "id": "4",
+    "parentId": "3",
+    "name": "TCP 연결"
+  },
+  {
+    "id": "5",
+    "parentId": "4",
+    "name": "TLS 핸드셰이크"
+  },
+  {
+    "id": "6",
+    "parentId": "5",
+    "name": "서버 응답"
+  },
+  {
+    "id": "7",
+    "parentId": "3",
+    "name": "캐시 확인"
+  },
+  {
+    "id": "8",
+    "parentId": "3",
+    "name": "네임서버 질의"
+  }
+]

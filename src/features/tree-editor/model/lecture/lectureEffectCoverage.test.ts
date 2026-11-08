@@ -154,6 +154,7 @@ describe("등록된 모든 동작", () => {
         sceneIndex: 0,
         beatIndex: LECTURE_EFFECT_TYPES.length,
         isTargetBeatIncluded: false,
+        isReducedMotion: false,
         nodes,
         edges,
         baseCollapsedServerIds: new Set(),
