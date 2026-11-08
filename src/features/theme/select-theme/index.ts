@@ -1,1 +1,1 @@
-export { useThemeMenuItems } from "./model/useThemeMenuItems";
+export { ThemeSelector } from "./ui/ThemeSelector";
