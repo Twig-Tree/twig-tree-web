@@ -282,12 +282,15 @@ export function CustomNode({
           ) : null}
         </div>
       ) : (
+        /*
+        React Flow는 끌 수 있는 노드에만 nopan을 붙인다. 끌 수 없는 루트는 이 클래스가 없으면 더블클릭을 캔버스 확대가 먼저 가져가 편집이 열리지 않는다.
+        */
         <button
           type="button"
           aria-label={`노드 제목 ${data.label} 편집`}
           onDoubleClick={startEditing}
           onKeyDown={handleTitleKeyDown}
-          className="custom-node__content nodrag cursor-text"
+          className="custom-node__content nodrag nopan cursor-text"
         >
           {data.label}
         </button>
