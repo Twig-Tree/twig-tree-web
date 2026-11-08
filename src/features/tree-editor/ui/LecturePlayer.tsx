@@ -1,10 +1,11 @@
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   GraduationCap,
   Pause,
   Play,
   RotateCcw,
   SkipForward,
+  Sparkles,
   Square,
   Volume2,
   VolumeX,
@@ -19,9 +20,11 @@ import { useLectureStore } from "../model/lecture/lectureStore";
 import { useLecturePlayback } from "../model/lecture/useLecturePlayback";
 import { useLectureKeyboard } from "../model/lecture/useLectureKeyboard";
 import { useTreeStore } from "../model/treeStore";
+import { LectureGenerator } from "./LectureGenerator";
 
 type LecturePlayerProps = {
-  script: LectureScript | null; // 지금 트리에서 재생할 수 있는 대본. 없으면 시작 화면을 그리지 않는다
+  script: LectureScript | null; // 지금 트리에서 재생할 수 있는 대본. 없으면 시작 화면 대신 강의 만들기 버튼을 그린다
+  isGeneratedScript: boolean; // 생성한 강의인지. 데모 강의면 "새로 만들기" 대신 "강의 만들기"로 부른다
   onRevealNodes: (
     clientIds: string[],
     options: { maxZoom: number; duration: number; keepCollapse?: boolean },
@@ -33,12 +36,13 @@ type LecturePlayerProps = {
 
 /*
 함수 이름 : LecturePlayer
-기능 : 대본을 현재 트리에 연결하고 장면·비트 단위 음성, 자막, 애니메이션을 함께 재생한다.
+기능 : 대본을 현재 트리에 연결하고 장면·비트 단위 음성, 자막, 애니메이션을 함께 재생한다. 시작 전에는 지금 트리로 강의를 새로 만들 수 있다.
 인자 : LecturePlayerProps
 반환값 : 강의 재생 컨트롤과 현재 내레이션
 */
 export function LecturePlayer({
   script,
+  isGeneratedScript,
   onRevealNodes,
   onResetCamera,
   onBeforeCollapseRestore,
@@ -55,6 +59,7 @@ export function LecturePlayer({
   const resetLecture = useLectureStore((state) => state.resetLecture);
   const resetVisual = useLectureAnimationStore((state) => state.resetVisual);
   const nodes = useTreeStore((state) => state.nodes);
+  const [isGeneratorOpen, setIsGeneratorOpen] = useState(false);
 
   const editorScript = useMemo(
     () => (script === null ? null : getEditorLectureScript(script, nodes)),
@@ -95,7 +100,22 @@ export function LecturePlayer({
   });
 
   if (status === "idle") {
-    if (script === null) return null;
+    if (isGeneratorOpen) {
+      return <LectureGenerator onClose={() => setIsGeneratorOpen(false)} />;
+    }
+
+    if (script === null) {
+      return (
+        <Button
+          className="pointer-events-auto shadow-control"
+          data-camera-inset="bottom"
+          onClick={() => setIsGeneratorOpen(true)}
+        >
+          <Sparkles className="size-4 text-accent" aria-hidden="true" />
+          강의 만들기
+        </Button>
+      );
+    }
 
     const beatCount = editorScript?.scenes.reduce(
       (count, scene) => count + scene.beats.length,
@@ -136,6 +156,12 @@ export function LecturePlayer({
           <Play className="size-4" aria-hidden="true" />
           강의 시작
         </Button>
+        <IconButton
+          aria-label={isGeneratedScript ? "강의 새로 만들기" : "강의 만들기"}
+          onClick={() => setIsGeneratorOpen(true)}
+        >
+          <Sparkles />
+        </IconButton>
       </section>
     );
   }

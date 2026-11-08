@@ -1,11 +1,13 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { compileLectureScenario } from "../compiler/compileLectureScenario";
+import { getLectureGenerationResult } from "../generation/generationResult";
 import { TEST_COMPILER_TREE } from "../compiler/testTree";
 import { type LectureScenario, type ScenarioCue } from "../scenario/types";
 import { getLectureCompileMetrics } from "./compileMetrics";
 import { getLectureIssueLocation } from "./issueLocation";
 import {
   createLectureCompileLogEvent,
+  createLectureGenerationLogEvent,
   createLecturePlaybackFailureLogEvent,
   type LectureLogEvent,
 } from "./logEvents";
@@ -177,6 +179,106 @@ describe("createLectureCompileLogEvent", () => {
       metrics: { cueCount: null, fallbackRate: null, invalidRoleRate: null },
     });
     expect(event.issues.every(({ stage }) => stage === "schema")).toBe(true);
+  });
+});
+
+describe("createLectureGenerationLogEvent", () => {
+  const generate = (responseText: string, repairAttempt = 0) => {
+    const response = {
+      responseText,
+      model: "gpt-4o-mini-2024-07-18",
+      promptVersion: "lecture-v1",
+      usage: { inputTokens: 1200, outputTokens: 340 },
+      attemptCount: 1,
+    };
+
+    return createLectureGenerationLogEvent({
+      response,
+      scriptId: "script-1",
+      repairAttempt,
+      result: getLectureGenerationResult(responseText, {
+        scriptId: "script-1",
+        tree: TEST_COMPILER_TREE,
+        usage: response.usage,
+      }),
+      processMs: 12,
+    });
+  };
+
+  it("성공하면 모델, 프롬프트 버전, 생성·컴파일 측정값을 담는다", () => {
+    const event = generate(
+      JSON.stringify(
+        createScenario([[{ intent: "introduce", roles: { subject: "1" } }]]),
+      ),
+    );
+
+    expect(event).toMatchObject({
+      type: "lecture-generation",
+      level: "info",
+      scriptId: "script-1",
+      model: "gpt-4o-mini-2024-07-18",
+      promptVersion: "lecture-v1",
+      attemptCount: 1,
+      repairAttempt: 0,
+      scenarioSchemaVersion: 1,
+      recipeRegistryVersion: 1,
+      success: true,
+      failedStep: null,
+      metrics: {
+        cueCount: 1,
+        usage: { inputTokens: 1200, outputTokens: 340 },
+      },
+      compileMetrics: { compileMs: 12, cueCount: 1 },
+      issues: [],
+    });
+  });
+
+  /*
+  실패한 결과에는 시나리오가 없으므로, 응답을 다시 읽어 위치를 풀었는지 본다.
+  */
+  it("컴파일에 실패하면 응답의 시나리오로 문제 위치를 풀어 쓴다", () => {
+    const event = generate(
+      JSON.stringify(
+        createScenario([
+          [{ intent: "compare", roles: { left: ["2"], right: ["999"] } }],
+        ]),
+      ),
+      1,
+    );
+
+    expect(event).toMatchObject({
+      level: "error",
+      repairAttempt: 1,
+      success: false,
+      failedStep: "compile",
+      compileMetrics: { cueCount: 1, invalidRoleCueCount: 1 },
+    });
+    expect(event.issues).toEqual([
+      expect.objectContaining({
+        stage: "node",
+        sceneId: "scene-1",
+        beatId: "beat-1",
+        cueIndex: 0,
+        intent: "compare",
+        recipeId: "compare",
+      }),
+    ]);
+  });
+
+  it("JSON으로 읽지 못하면 버전과 컴파일 측정값을 비운다", () => {
+    const event = generate('{"scenarioSchemaVersion":1,');
+
+    expect(event).toMatchObject({
+      level: "error",
+      scenarioSchemaVersion: null,
+      recipeRegistryVersion: null,
+      success: false,
+      failedStep: "json",
+      compileMetrics: null,
+    });
+    expect(event.issues).toEqual([
+      expect.objectContaining({ stage: "json", path: "$" }),
+    ]);
   });
 });
 

@@ -15,11 +15,11 @@ import {
   edgeTypes,
   MIN_ZOOM,
   nodeTypes,
-  useDemoLectureScript,
   useEditorLayout,
   useFocusNode,
   useInitializeTree,
   useIsLectureActive,
+  useLectureScript,
   useNodeContextMenu,
   useMoveNodeByDrag,
   useReactFlowStoreSetters,
@@ -212,7 +212,8 @@ function LayoutFlow({ workspaceId, treeId }: LayoutFlowProps) {
     selectedNode !== undefined &&
     !edges.some((edge) => edge.target === selectedNode.id);
 
-  const lectureScript = useDemoLectureScript();
+  const { script: lectureScript, isGenerated: isGeneratedLecture } =
+    useLectureScript();
 
   /*
   강의 중에는 방향키가 강의 이동에 쓰이므로 React Flow의 방향키 노드 이동을 끈다. 켜 두면 선택한 노드가 함께 움직인다.
@@ -311,7 +312,7 @@ function LayoutFlow({ workspaceId, treeId }: LayoutFlowProps) {
           </Panel>
 
           {/*
-          강의는 지금 트리에 맞는 데모 대본으로 재생한다. 서버가 강의를 내려주게 되면 조회 결과로 바꾼다.
+          지금 트리에서 만든 강의를, 없으면 트리에 맞는 데모 대본을 재생한다. 서버가 강의를 저장하게 되면 조회 결과로 바꾼다.
           */}
           <Panel
             position="bottom-center"
@@ -319,6 +320,7 @@ function LayoutFlow({ workspaceId, treeId }: LayoutFlowProps) {
           >
             <LecturePlayer
               script={lectureScript}
+              isGeneratedScript={isGeneratedLecture}
               onRevealNodes={revealNodes}
               onResetCamera={fitTreeView}
               onBeforeCollapseRestore={fitTreeViewAfterNextLayout}
