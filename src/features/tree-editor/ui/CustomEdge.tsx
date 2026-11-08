@@ -21,6 +21,7 @@ type EdgePathConfig = {
 const EDGE_PATH_BY_THEME: Record<ThemeId, EdgePathConfig> = {
   neutral: { borderRadius: 16, offset: 20 },
   soft: { borderRadius: 16, offset: 20 },
+  dark: { borderRadius: 16, offset: 20 },
 };
 
 /*

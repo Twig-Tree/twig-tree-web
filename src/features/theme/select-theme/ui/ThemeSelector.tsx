@@ -5,6 +5,7 @@ import { THEME_IDS, useTheme, type ThemeId } from "@/src/shared/lib/theme";
 const THEME_LABELS: Record<ThemeId, string> = {
   neutral: "Neutral",
   soft: "Soft",
+  dark: "Dark",
 };
 
 /*

@@ -1,0 +1,108 @@
+/*
+어두운 화면에서 눈부심을 줄이는 테마다. 움직임과 형태는 Neutral과 같고 색만 다르다.
+강조색은 어두운 바탕에서 읽히도록 밝게 잡았으므로, 그 위의 글자(on-accent)는 어둡다.
+어두운 바탕에서는 그림자가 잘 보이지 않아 그림자 잉크를 검정으로 두고 농도를 높였다.
+*/
+:root[data-theme="dark"] {
+  color-scheme: dark; /* 스크롤바와 라디오 같은 브라우저 기본 요소도 어둡게 그린다. */
+
+  --theme-shadow-ink: #000000;
+
+  /* 표면 */
+  --theme-surface: #1b1f27;
+  --theme-surface-muted: #14171d;
+  --theme-surface-hover: #262b35;
+  --theme-surface-strong: #2f3542;
+  --theme-inverse: #e5e7eb;
+  --theme-on-inverse: #14171d;
+  --theme-overlay: rgb(0 0 0 / 60%);
+
+  /* 글자 */
+  --theme-content: #e7eaf0;
+  --theme-content-secondary: #b4bccb;
+  --theme-content-muted: #a3adbd;
+  --theme-content-disabled: #5f6878;
+
+  /* 경계 */
+  --theme-line: #323846;
+  --theme-line-subtle: #262b35;
+  --theme-line-strong: #4a5263;
+
+  /* 강조 */
+  --theme-accent: #a5b4fc;
+  --theme-accent-hover: #c7d2fe;
+  --theme-accent-disabled: #3f4674;
+  --theme-accent-subtle: #262a4a;
+  --theme-accent-line: #434a7a;
+  --theme-on-accent: #14171d;
+  --theme-focus: #818cf8;
+
+  /* 상태 */
+  --theme-danger: #f87171;
+  --theme-danger-subtle: #3a1d22;
+  --theme-danger-line: #6b2b33;
+  --theme-warning: #fbbf24;
+  --theme-warning-strong: #fcd34d;
+  --theme-warning-subtle: #38290f;
+  --theme-warning-line: #6b4f12;
+  --theme-success: #34d399;
+  --theme-success-subtle: #10302a;
+  --theme-info: #60a5fa;
+  --theme-info-subtle: #172a45;
+
+  /* 트리 편집기 */
+  --theme-canvas: #12151a;
+  --theme-canvas-image: none;
+  --theme-canvas-image-size: auto;
+  --theme-canvas-dots: color-mix(in srgb, var(--theme-edge) 30%, transparent);
+  /* 연결선이 부모와 자식의 유일한 표시라 캔버스와 대비 3:1을 맞춘다. */
+  --theme-edge: #7c8596;
+  --theme-edge-marker-fill: currentColor;
+  --theme-highlight: #fbbf24;
+  --theme-lecture-current: #a5b4fc;
+  /* 강조와 추적이 캔버스에서 구별되도록 대비 3:1을 맞춘다. */
+  --theme-lecture-animation: #22d3ee;
+  --theme-node: #1f242e;
+  --theme-node-line: #3a4150;
+  --theme-node-content: #e7eaf0;
+  --theme-node-content-muted: #a3adbd;
+  --theme-root: #23263a;
+  --theme-root-line: #5a5a9c;
+  --theme-root-content: #e7eaf0;
+  --theme-root-content-muted: #a3adbd;
+  --theme-selected-ring: rgb(165 180 252 / 28%);
+  --theme-node-padding-x: 16px;
+  --theme-node-padding-y: 13px;
+  --theme-node-font-size: 13px;
+  --theme-node-font-weight: 600;
+  --theme-handle-size: 7px;
+  --theme-handle-border-width: 1px;
+  --theme-handle-line: var(--theme-edge);
+  --theme-handle-fill: var(--theme-surface);
+  --theme-collapse-right: -8px;
+  --theme-collapse-width: 20px;
+  --theme-collapse-radius: 999px;
+  --theme-collapse-offset-x: 0;
+
+  /* 형태 */
+  --theme-radius-control: 8px;
+  --theme-radius-card: 14px;
+  --theme-radius-node: 14px;
+  --theme-shadow-control: 0 1px 3px
+    color-mix(in srgb, var(--theme-shadow-ink) 40%, transparent);
+  --theme-shadow-card: 0 8px 24px
+    color-mix(in srgb, var(--theme-shadow-ink) 35%, transparent);
+  --theme-shadow-card-hover: 0 10px 24px
+    color-mix(in srgb, var(--theme-shadow-ink) 45%, transparent);
+  --theme-shadow-overlay: 0 18px 48px
+    color-mix(in srgb, var(--theme-shadow-ink) 55%, transparent);
+  --theme-shadow-node: 0 8px 24px
+    color-mix(in srgb, var(--theme-shadow-ink) 35%, transparent);
+  --theme-shadow-node-selected: 0 8px 24px
+    color-mix(in srgb, var(--theme-shadow-ink) 35%, transparent);
+  --theme-shadow-panel: 0 0 0 1px var(--theme-line);
+
+  /* 패널 밀도 */
+  --theme-panel-padding: 12px;
+  --theme-panel-item-padding: 6px;
+}

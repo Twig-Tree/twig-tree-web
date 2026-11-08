@@ -40,34 +40,40 @@ export const GoogleLoginButton = () => {
         </p>
       )}
 
-      <GoogleLogin
-        onSuccess={(credentialResponse) => {
-          const idToken = credentialResponse.credential;
+      {/*
+      Google 버튼은 투명 배경의 iframe이다. iframe의 color-scheme이 안쪽 문서와 다르면 브라우저가 불투명한 배경을 깔아,
+      어두운 테마에서 버튼보다 큰 흰 사각형이 겹쳐 보인다.
+      */}
+      <div className="[color-scheme:light]">
+        <GoogleLogin
+          onSuccess={(credentialResponse) => {
+            const idToken = credentialResponse.credential;
 
-          if (!idToken) {
+            if (!idToken) {
+              setGoogleLoginError(true);
+              googleLoginMutation.reset();
+              return;
+            }
+
+            setGoogleLoginError(false);
+            googleLoginMutation.mutate(idToken, {
+              onSuccess: ({ accessToken }) => {
+                authSession.setTokens({ accessToken });
+                router.replace(routes.dashboard);
+              },
+            });
+          }}
+          onError={() => {
             setGoogleLoginError(true);
             googleLoginMutation.reset();
-            return;
-          }
-
-          setGoogleLoginError(false);
-          googleLoginMutation.mutate(idToken, {
-            onSuccess: ({ accessToken }) => {
-              authSession.setTokens({ accessToken });
-              router.replace(routes.dashboard);
-            },
-          });
-        }}
-        onError={() => {
-          setGoogleLoginError(true);
-          googleLoginMutation.reset();
-        }}
-        shape="rectangular"
-        size="large"
-        text="signin_with"
-        theme="outline"
-        width="320"
-      />
+          }}
+          shape="rectangular"
+          size="large"
+          text="signin_with"
+          theme="outline"
+          width="320"
+        />
+      </div>
 
       {googleLoginMutation.isPending && (
         <p className="text-sm text-content-secondary" role="status">

@@ -10,7 +10,7 @@ app/themes/tokens.css   역할 이름을 --theme-* 에 잇는다
 app/themes/<이름>.css   :root[data-theme="<이름>"] 에서 --theme-* 값을 정한다
 ```
 
-지금 테마는 Neutral과 Soft이고 기본값은 Neutral이다.
+지금 테마는 Neutral, Soft, Dark이고 기본값은 Neutral이다.
 
 ## 테마 선택
 

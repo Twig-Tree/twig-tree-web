@@ -1,4 +1,4 @@
-export const THEME_IDS = ["neutral", "soft"] as const;
+export const THEME_IDS = ["neutral", "soft", "dark"] as const;
 
 export type ThemeId = (typeof THEME_IDS)[number];
 
