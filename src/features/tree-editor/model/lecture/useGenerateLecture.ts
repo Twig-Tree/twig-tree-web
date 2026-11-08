@@ -20,6 +20,7 @@ import {
   validateLectureTreeOutline,
 } from "../../lib/lecture/validateLectureGeneration";
 import { useTreeStore } from "../treeStore";
+import { useGeneratedLectureStore } from "./generatedLectureStore";
 
 export type GenerateLectureResult =
   | {
@@ -72,6 +73,10 @@ export const useGenerateLecture = () => {
     tree: LectureCompilerTree,
   ): Promise<GenerateLectureResult> => {
     const scriptId = `generated-${crypto.randomUUID()}`;
+    useGeneratedLectureStore
+      .getState()
+      .markLatestLectureRequest(treeId, scriptId);
+
     let repair: LectureRepairRequest | null = null;
     let repairCount = 0;
 

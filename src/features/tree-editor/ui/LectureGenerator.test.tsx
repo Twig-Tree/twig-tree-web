@@ -1,5 +1,5 @@
 import { http, HttpResponse } from "msw";
-import { render, screen, waitFor } from "@testing-library/react";
+import { act, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { setLectureLogSink } from "@/src/entities/lecture";
@@ -89,7 +89,10 @@ beforeEach(() => {
     nodes: [createNode("c1", "1"), createNode("c2", "2")],
     edges: [{ id: "c1-c2", source: "c1", target: "c2" }],
   });
-  useGeneratedLectureStore.setState({ scriptByTreeId: {} });
+  useGeneratedLectureStore.setState({
+    scriptByTreeId: {},
+    latestScriptIdByTreeId: {},
+  });
   setLectureLogSink(() => {});
 });
 
@@ -144,6 +147,61 @@ describe("LectureGenerator", () => {
 
     respond();
     expect(await screen.findByText("만든 강의")).toBeVisible();
+  });
+
+  /*
+  화면을 떠나면 입력 카드의 중복 요청 방지도 함께 사라져, 같은 트리의 요청이 동시에 진행될 수 있다.
+  */
+  it("화면에 돌아와 다시 만들면 늦게 끝난 이전 요청이 새 강의를 덮지 않는다", async () => {
+    const responders: Array<(title: string) => void> = [];
+    let logCount = 0;
+    setLectureLogSink(() => {
+      logCount += 1;
+    });
+    server.use(
+      http.post(
+        "*/api/lecture-request",
+        () =>
+          new Promise<Response>((resolve) => {
+            responders.push((title) =>
+              resolve(
+                createSuccessResponse(
+                  VALID_RESPONSE.replace("만든 강의", title),
+                ),
+              ),
+            );
+          }),
+      ),
+    );
+    const submitLectureRequest = async (requestCount: number) => {
+      await userEvent.click(
+        screen.getByRole("button", { name: "강의 만들기" }),
+      );
+      await userEvent.type(screen.getByRole("textbox"), "소개해 줘");
+      await userEvent.click(
+        screen.getByRole("button", { name: "강의 만들기" }),
+      );
+      await waitFor(() => expect(responders).toHaveLength(requestCount));
+    };
+
+    const firstPlayer = renderPlayer();
+    await submitLectureRequest(1);
+    firstPlayer.unmount();
+
+    renderPlayer();
+    await submitLectureRequest(2);
+
+    responders[1]("새 강의");
+    expect(await screen.findByText("새 강의")).toBeVisible();
+
+    responders[0]("이전 강의");
+    await waitFor(() => expect(logCount).toBe(2));
+    await act(() => new Promise((resolve) => setTimeout(resolve, 0)));
+
+    expect(useGeneratedLectureStore.getState().scriptByTreeId["12"].title).toBe(
+      "새 강의",
+    );
+    expect(screen.getByText("새 강의")).toBeVisible();
   });
 
   it("백엔드 오류 코드에 맞는 안내를 보여 주고 입력을 유지한다", async () => {
