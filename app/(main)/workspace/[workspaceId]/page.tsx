@@ -61,10 +61,13 @@ function LayoutFlow({ workspaceId, treeId }: LayoutFlowProps) {
   const closeMemoPanel = useCallback(() => setIsMemoPanelOpen(false), []); // 렌더마다 새 함수가 되면 useVisibleElements의 effect가 매번 다시 돈다.
   const isMemoPanelOverlay = useIsNarrowScreen();
   // todo: React Server Component 사용
+  /*
+  오류 화면은 보여 줄 트리가 없을 때만 띄운다. isError는 재조회 실패에도 켜지므로, 쓰면 다른 곳의 변경을 확인하다 조회가 실패했을 때 편집기와 입력 중인 초안이 사라진다.
+  */
   const {
     data: treeData,
     isLoading,
-    isError: isGetTreeError,
+    isLoadingError: isTreeLoadFailed,
   } = useGetTreeQuery(treeId);
 
   // Zustand 스토어에서 상태(State) 구독
@@ -242,7 +245,7 @@ function LayoutFlow({ workspaceId, treeId }: LayoutFlowProps) {
     return <div>불러오는 중입니다.</div>;
   }
 
-  if (isGetTreeError) {
+  if (isTreeLoadFailed) {
     return <div>트리를 불러오지 못했습니다.</div>;
   }
 
