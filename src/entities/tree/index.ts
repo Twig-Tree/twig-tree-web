@@ -45,7 +45,11 @@ export {
   mapTagDtoToDomain,
 } from "./lib/mappers";
 export { treeQueryKeys } from "./model/queryKeys";
-export { useGetTreeQuery, useGetTreeTagsQuery } from "./model/queries";
+export {
+  useFetchLatestNode,
+  useGetTreeQuery,
+  useGetTreeTagsQuery,
+} from "./model/queries";
 export { useAddNodeMutation } from "./model/mutations/useAddNodeMutation";
 export { useCreateTreeFromPromptMutation } from "./model/mutations/useCreateTreeFromPromptMutation";
 export { useDeleteNodeMutation } from "./model/mutations/useDeleteNodeMutation";

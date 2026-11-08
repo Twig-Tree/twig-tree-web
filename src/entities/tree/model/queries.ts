@@ -1,8 +1,38 @@
+import { useCallback } from "react";
+import { nodeApi } from "@/src/entities/tree/api/nodeApi";
 import { tagApi } from "@/src/entities/tree/api/tagApi";
 import { treeApi } from "@/src/entities/tree/api/treeApi";
 import { TreeNode, TreeTag } from "@/src/entities/tree/model/types";
 import { treeQueryKeys } from "@/src/entities/tree/model/queryKeys";
-import { skipToken, useQuery } from "@tanstack/react-query";
+import { skipToken, useQuery, useQueryClient } from "@tanstack/react-query";
+
+type FetchLatestNodeParams = {
+  treeId: string; // 노드가 속한 트리 ID
+  nodeId: string; // 조회할 노드 ID
+};
+
+/*
+함수 이름 : useFetchLatestNode
+기능 : 서버에서 단일 노드의 최신 값을 읽는 함수를 만든다. 저장이 version 충돌로 거절됐을 때만 쓰므로 렌더에 묶지 않고 필요한 순간에 호출한다.
+인자 : 없음
+반환값 : FetchLatestNodeParams를 받아 최신 노드를 돌려주는 함수
+
+충돌 직후의 값이 필요하므로 항상 요청을 보내고 결과를 캐시에 남기지 않는다.
+*/
+export const useFetchLatestNode = () => {
+  const queryClient = useQueryClient();
+
+  return useCallback(
+    ({ treeId, nodeId }: FetchLatestNodeParams) =>
+      queryClient.fetchQuery<TreeNode>({
+        queryKey: treeQueryKeys.node(treeId, nodeId),
+        queryFn: () => nodeApi.getNode(Number(treeId), Number(nodeId)),
+        staleTime: 0,
+        gcTime: 0,
+      }),
+    [queryClient],
+  );
+};
 
 /*
 함수 이름 : useGetTreeQuery

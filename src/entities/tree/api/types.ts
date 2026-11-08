@@ -54,6 +54,11 @@ export type CreateTreeFromPromptResponse = ApiResponse<TreeDTO>;
 export type GetTreeResponse = ApiResponse<{ nodes: NodeDTO[] }>;
 
 /*
+단일 노드 조회 응답 type
+*/
+export type GetNodeResponse = ApiResponse<NodeDTO>;
+
+/*
 트리 노드 추가 요청 body type
 */
 export interface CreateNodeRequest {

@@ -26,6 +26,9 @@ import {
 } from "@/src/features/tree-editor/model/lecture/lectureAnimationStore";
 import { CollapseToggleButton } from "./CollapseToggleButton";
 
+const NAME_CONFLICT_MESSAGE =
+  "다른 곳에서 수정되었습니다. Enter로 덮어쓰거나 Esc로 취소하세요.";
+
 export function CustomNode({
   id,
   data,
@@ -74,6 +77,7 @@ export function CustomNode({
   const [isEditing, setIsEditing] = useState(false);
   const [name, setName] = useState(data.label);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [hasConflict, setHasConflict] = useState(false); // 다른 곳의 수정과 충돌해 사용자의 결정을 기다리는 중인지
   const inputRef = useRef<HTMLInputElement>(null);
   const isCommittingRef = useRef(false);
   const isCancellingRef = useRef(false);
@@ -106,12 +110,14 @@ export function CustomNode({
 
     setName(data.label);
     setErrorMessage(null);
+    setHasConflict(false);
     setIsEditing(true);
   }, [data.label, treeId]);
 
   const endEditing = useCallback(() => {
     setIsEditing(false);
     setErrorMessage(null);
+    setHasConflict(false);
     isCancellingRef.current = false;
   }, []);
 
@@ -132,13 +138,27 @@ export function CustomNode({
 
     isCommittingRef.current = true; // Enter와 blur가 연속으로 발생해도 요청은 한 번만 보낸다.
     setErrorMessage(null);
+    setHasConflict(false);
 
-    const isUpdated = await updateNodeName(name);
+    const result = await updateNodeName(name);
 
     isCommittingRef.current = false;
 
-    if (isUpdated) {
+    if (result === "saved") {
       endEditing();
+      return;
+    }
+
+    if (result === "notFound") {
+      alert("다른 곳에서 삭제된 노드입니다.");
+      endEditing();
+      return;
+    }
+
+    if (result === "conflict") {
+      setHasConflict(true);
+      setErrorMessage(NAME_CONFLICT_MESSAGE);
+      focusInput();
       return;
     }
 
@@ -146,14 +166,25 @@ export function CustomNode({
     focusInput();
   }, [endEditing, focusInput, getNodeNameError, name, updateNodeName]);
 
-  const handleChange = useCallback((event: ChangeEvent<HTMLInputElement>) => {
-    setName(event.target.value);
-    setErrorMessage(null);
-  }, []);
+  /*
+  충돌 안내는 입력을 고쳐도 남긴다. 사용자가 Enter나 Esc로 정할 때까지 알아야 하는 내용이다.
+  */
+  const handleChange = useCallback(
+    (event: ChangeEvent<HTMLInputElement>) => {
+      setName(event.target.value);
+      if (!hasConflict) setErrorMessage(null);
+    },
+    [hasConflict],
+  );
 
+  /*
+  충돌 뒤에는 version이 최신으로 맞춰져 있어, 다른 곳을 누른 것만으로 저장하면 사용자의 결정 없이 덮어쓴다.
+  */
   const handleBlur = useCallback(() => {
+    if (hasConflict) return;
+
     void commitName();
-  }, [commitName]);
+  }, [commitName, hasConflict]);
 
   /*
   Escape는 서버 요청 없이 원래 제목으로 되돌리고, Enter는 한글 조합이 끝난 경우에만 저장한다.

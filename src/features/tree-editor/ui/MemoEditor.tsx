@@ -6,6 +6,8 @@ type MemoEditorProps = {
   initialMemo: string;
   onSave: (content: string) => void; // 저장 버튼 클릭 시 현재 편집 중인 내용을 전달한다
   isSaving: boolean; // 저장 요청이 진행 중인 동안 편집/저장 UI를 잠글지 여부
+  hasConflict: boolean; // 다른 곳에서 먼저 수정되어 저장하지 못했는지 여부
+  onRevert: () => void; // 되돌리기를 눌렀을 때 호출한다. 입력을 최신 메모로 바꾸면 충돌 안내도 필요 없어진다
   children?: ReactNode; // 메모 본문과 되돌리기·저장 버튼 사이에 놓을 내용. 노드 태그 영역이 들어온다
 };
 
@@ -13,6 +15,8 @@ export const MemoEditor = ({
   initialMemo,
   onSave,
   isSaving,
+  hasConflict,
+  onRevert,
   children,
 }: MemoEditorProps) => {
   const [memo, setMemo] = useState(initialMemo);
@@ -34,6 +38,16 @@ export const MemoEditor = ({
           aria-invalid={errorMessage !== null}
           aria-describedby="memo-length"
         />
+
+        {hasConflict ? (
+          <p
+            role="alert"
+            className="rounded-control border border-warning-line bg-warning-subtle px-3 py-2 text-xs text-warning-strong"
+          >
+            다른 곳에서 먼저 수정되어 저장하지 않았습니다. 되돌리기를 누르면
+            최신 메모를 볼 수 있고, 저장을 다시 누르면 지금 내용으로 덮어씁니다.
+          </p>
+        ) : null}
 
         {/*
         글자 수는 항상 보여 주고, 초과했을 때만 안내 문구를 덧붙인다.
@@ -69,7 +83,10 @@ export const MemoEditor = ({
         <button
           type="button"
           className="rounded-control border border-line px-4 py-2 text-sm font-medium text-content-secondary hover:bg-surface-hover disabled:opacity-50"
-          onClick={() => setMemo(initialMemo)}
+          onClick={() => {
+            setMemo(initialMemo);
+            onRevert();
+          }}
           disabled={isSaving}
         >
           되돌리기

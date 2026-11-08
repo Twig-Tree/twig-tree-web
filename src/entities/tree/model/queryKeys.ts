@@ -10,4 +10,8 @@ export const treeQueryKeys = {
   // 트리 태그 목록. detail과 같은 이유로 트리가 없으면 null
   tags: (treeId: string | null) =>
     [...treeQueryKeys.all, "tags", treeId] as const,
+
+  // 저장이 충돌했을 때 읽는 단일 노드. 트리 조회 캐시와 섞이지 않게 detail 아래에 두지 않는다
+  node: (treeId: string, nodeId: string) =>
+    [...treeQueryKeys.all, "node", treeId, nodeId] as const,
 };

@@ -25,12 +25,13 @@ export const MemoSidePanel = ({
 }: MemoSidePanelProps) => {
   const savedMemo = selectedNode?.data.memo ?? null; // 저장된 메모가 없으면 null이다.
 
-  const { handleSaveMemo, isSaving } = useSaveMemo({
-    treeId,
-    clientId: selectedNode?.id,
-    serverId: selectedNode?.data.serverId ?? null,
-    savedMemo,
-  });
+  const { handleSaveMemo, isSaving, hasMemoConflict, clearMemoConflict } =
+    useSaveMemo({
+      treeId,
+      clientId: selectedNode?.id,
+      serverId: selectedNode?.data.serverId ?? null,
+      savedMemo,
+    });
 
   const { tags } = useTreeTags();
   const attachedTagIds = selectedNode?.data.tagIds ?? [];
@@ -81,6 +82,8 @@ export const MemoSidePanel = ({
           initialMemo={savedMemo ?? ""}
           onSave={(content) => void handleSaveMemo(content)}
           isSaving={isSaving}
+          hasConflict={hasMemoConflict}
+          onRevert={clearMemoConflict}
         >
           <TagChipList
             nodeTags={getTagsByIds(tags, attachedTagIds)}

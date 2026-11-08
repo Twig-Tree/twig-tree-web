@@ -42,6 +42,7 @@ interface TreeState {
   updateNodeMemoInStore: (clientId: string, memo: string | null) => void;
   updateNodeLabelInStore: (clientId: string, label: string) => void;
   updateNodeVersionInStore: (clientId: string, version: number) => void;
+  applyLatestNodeInStore: (clientId: string, latestNode: TreeNode) => void;
   selectOnlyNodeInStore: (clientId: string) => void;
   addTagToNodeInStore: (clientId: string, tagId: string) => void;
   removeTagFromNodeInStore: (clientId: string, tagId: string) => void;
@@ -195,6 +196,31 @@ export const useTreeStore = create<TreeState>()((set, get) => ({
       nodes: nodes.map((node) =>
         node.id === clientId
           ? { ...node, data: { ...node.data, version } }
+          : node,
+      ),
+    });
+  },
+
+  /*
+  저장이 충돌한 노드의 제목·메모·version을 서버의 최신 값으로 맞춘다. version은 제목과 메모가 함께 쓰므로 셋을 함께 바꾼다.
+  version만 올리면 화면에 없는 다른 곳의 제목이나 메모를 다음 저장이 충돌 없이 덮어쓴다.
+  구조와 태그는 충돌과 무관하므로 건드리지 않는다.
+  */
+  applyLatestNodeInStore: (clientId: string, latestNode: TreeNode) => {
+    const { nodes } = get();
+
+    set({
+      nodes: nodes.map((node) =>
+        node.id === clientId
+          ? {
+              ...node,
+              data: {
+                ...node.data,
+                label: latestNode.label,
+                memo: latestNode.memo,
+                version: latestNode.version,
+              },
+            }
           : node,
       ),
     });

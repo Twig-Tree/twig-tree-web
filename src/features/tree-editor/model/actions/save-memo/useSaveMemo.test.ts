@@ -2,10 +2,12 @@ import { act, renderHook } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   memoApi,
+  NODE_ERROR_CODE,
   nodeApi,
   treeQueryKeys,
   type TreeNode,
 } from "@/src/entities/tree";
+import { createNodeApiError } from "@/src/tests/helpers/createNodeApiError";
 import { createQueryWrapper } from "@/src/tests/helpers/createQueryWrapper";
 import { createEditorNode } from "../../../lib/add-node/createEditorNode";
 import { useUpdateNodeName } from "../update-node-name/useUpdateNodeName";
@@ -163,5 +165,111 @@ describe("useSaveMemo", () => {
 
     expect(getNodeData()).toMatchObject({ memo: "저장된 메모", version: 3 });
     expect(alertSpy).toHaveBeenCalledOnce();
+  });
+
+  describe("다른 곳의 수정과 충돌하면", () => {
+    const LATEST_NODE: TreeNode = {
+      ...CACHED_NODE,
+      label: "다른 곳의 제목",
+      memo: "다른 곳의 메모",
+      version: 9,
+    };
+
+    it("최신 값을 store에 반영하고 알림 없이 충돌을 표시한다", async () => {
+      vi.spyOn(memoApi, "updateMemo").mockRejectedValue(
+        createNodeApiError(409, NODE_ERROR_CODE.VERSION_CONFLICT),
+      );
+      vi.spyOn(nodeApi, "getNode").mockResolvedValue(LATEST_NODE);
+      const alertSpy = vi.spyOn(window, "alert").mockImplementation(() => {});
+      const { result } = renderSaveMemo();
+
+      await act(async () => {
+        await result.current.saveMemo.handleSaveMemo("새 메모");
+      });
+
+      expect(getNodeData()).toMatchObject({
+        label: "다른 곳의 제목",
+        memo: "다른 곳의 메모",
+        version: 9,
+      });
+      expect(result.current.saveMemo.hasMemoConflict).toBe(true);
+      expect(alertSpy).not.toHaveBeenCalled();
+    });
+
+    it("다시 저장하면 최신 version으로 보내고 충돌 표시를 지운다", async () => {
+      const updateMemoSpy = vi
+        .spyOn(memoApi, "updateMemo")
+        .mockRejectedValueOnce(
+          createNodeApiError(409, NODE_ERROR_CODE.VERSION_CONFLICT),
+        )
+        .mockResolvedValueOnce({
+          title: "다른 곳의 제목",
+          content: "새 메모",
+          version: 10,
+        });
+      vi.spyOn(nodeApi, "getNode").mockResolvedValue(LATEST_NODE);
+      const { result } = renderSaveMemo();
+
+      await act(async () => {
+        await result.current.saveMemo.handleSaveMemo("새 메모");
+      });
+      await act(async () => {
+        await result.current.saveMemo.handleSaveMemo("새 메모");
+      });
+
+      expect(updateMemoSpy).toHaveBeenLastCalledWith(11, {
+        content: "새 메모",
+        version: 9,
+      });
+      expect(result.current.saveMemo.hasMemoConflict).toBe(false);
+      expect(getNodeData()).toMatchObject({ memo: "새 메모", version: 10 });
+    });
+
+    /*
+    최신 값을 읽는 동안에는 mutation이 pending이 아니다. 이때의 클릭이 통과하면 최신 version으로 나가 안내 없이 덮어쓴다.
+    */
+    it("최신 값을 읽는 동안 들어온 저장은 보내지 않는다", async () => {
+      const updateMemoSpy = vi
+        .spyOn(memoApi, "updateMemo")
+        .mockRejectedValue(
+          createNodeApiError(409, NODE_ERROR_CODE.VERSION_CONFLICT),
+        );
+      let finishFetch!: (node: TreeNode) => void;
+
+      vi.spyOn(nodeApi, "getNode").mockReturnValue(
+        new Promise<TreeNode>((resolve) => {
+          finishFetch = resolve;
+        }),
+      );
+      const { result } = renderSaveMemo();
+
+      await act(async () => {
+        const firstSave = result.current.saveMemo.handleSaveMemo("새 메모");
+
+        await new Promise((resolve) => setTimeout(resolve));
+        await result.current.saveMemo.handleSaveMemo("새 메모");
+
+        finishFetch(LATEST_NODE);
+        await firstSave;
+      });
+
+      expect(updateMemoSpy).toHaveBeenCalledOnce();
+    });
+  });
+
+  it("노드가 다른 곳에서 지워졌으면 삭제되었다고 알린다", async () => {
+    vi.spyOn(memoApi, "updateMemo").mockRejectedValue(
+      createNodeApiError(404, NODE_ERROR_CODE.NODE_NOT_FOUND),
+    );
+    const alertSpy = vi.spyOn(window, "alert").mockImplementation(() => {});
+    const { result } = renderSaveMemo();
+
+    await act(async () => {
+      await result.current.saveMemo.handleSaveMemo("새 메모");
+    });
+
+    expect(alertSpy).toHaveBeenCalledExactlyOnceWith(
+      "다른 곳에서 삭제된 노드입니다.",
+    );
   });
 });
