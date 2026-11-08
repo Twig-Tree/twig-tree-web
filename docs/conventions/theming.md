@@ -14,10 +14,10 @@ app/themes/<이름>.css   :root[data-theme="<이름>"] 에서 --theme-* 값을 �
 
 ## 테마 선택
 
-사용자는 프로필 메뉴에서 테마를 고른다. 고른 값은 `localStorage`에 기기별로 저장한다.
+사용자는 설정 페이지에서 테마를 고른다. 고른 값은 `localStorage`에 기기별로 저장한다.
 
 ```text
-프로필 메뉴        features/theme/select-theme
+설정 페이지        features/theme/select-theme
     ↓
 현재 테마와 저장   shared/lib/theme
     ↓
@@ -68,8 +68,8 @@ React Flow는 자기 CSS 변수를 읽으므로 `app/xy-theme.css`가 그 변수
 1. 기존 테마 파일을 복사해 `app/themes/<이름>.css`를 만들고, 선택자를 `:root[data-theme="<이름>"]`로 바꿔 값을 정한다.
 2. `app/globals.css`에 import를 추가한다.
 3. `pnpm exec vitest run app/themes`를 실행한다. `themes.test.ts`가 `app/themes`의 CSS를 모두 찾아, 빠진 값과 글자 대비(4.5:1 미만)를 알려 준다. 대비를 계산하는 색은 `#rrggbb`로 적는다.
-4. `shared/lib/theme/themes.ts`의 `THEME_IDS`에 추가한다. 타입 검사가 메뉴 이름(`useThemeMenuItems`)과 연결선 경로(`CustomEdge`)의 빈자리를 알려 준다.
-5. 프로필 메뉴에서 테마를 골라 화면을 확인한다. 트리 캔버스는 끌어서 옮기기, undo/redo, 제목 편집, 접기, 검색 강조까지 본다.
+4. `shared/lib/theme/themes.ts`의 `THEME_IDS`에 추가한다. 타입 검사가 선택지 이름(`ThemeSelector`)과 연결선 경로(`CustomEdge`)의 빈자리를 알려 준다.
+5. 설정 페이지에서 테마를 골라 화면을 확인한다. 트리 캔버스는 끌어서 옮기기, undo/redo, 제목 편집, 접기, 검색 강조까지 본다.
 
 테스트의 글자 대비 목록(`textPairs`)은 화면에서 실제로 겹치는 조합만 담는다. 새로운 조합이 생기면 목록에 추가한다.
 
