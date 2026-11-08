@@ -20,6 +20,7 @@ export const useEditNodeNameMutation = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
+    mutationKey: treeQueryKeys.mutations(),
     mutationFn: ({ treeId, nodeId, name, version }: EditNodeNameVariables) =>
       nodeApi.editNodeName(Number(treeId), Number(nodeId), { name, version }),
 

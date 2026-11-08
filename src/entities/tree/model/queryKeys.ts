@@ -14,4 +14,7 @@ export const treeQueryKeys = {
   // 저장이 충돌했을 때 읽는 단일 노드. 트리 조회 캐시와 섞이지 않게 detail 아래에 두지 않는다
   node: (treeId: string, nodeId: string) =>
     [...treeQueryKeys.all, "node", treeId, nodeId] as const,
+
+  // 열려 있는 트리를 바꾸는 mutation의 공통 키. 이 탭의 저장이 진행 중인지 한곳에서 세기 위해 붙인다
+  mutations: () => [...treeQueryKeys.all, "mutation"] as const,
 };

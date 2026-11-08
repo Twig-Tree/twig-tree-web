@@ -20,6 +20,7 @@ export const useUpdateMemoMutation = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
+    mutationKey: treeQueryKeys.mutations(),
     mutationFn: ({ nodeId, content, version }: UpdateMemoVariables) =>
       memoApi.updateMemo(Number(nodeId), { content, version }),
 

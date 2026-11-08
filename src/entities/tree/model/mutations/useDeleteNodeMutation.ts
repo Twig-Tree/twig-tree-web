@@ -17,6 +17,7 @@ export const useDeleteNodeMutation = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
+    mutationKey: treeQueryKeys.mutations(),
     mutationFn: ({ treeId, nodeId }: DeleteNodeVariables) =>
       treeApi.deleteNode(Number(treeId), Number(nodeId)),
 

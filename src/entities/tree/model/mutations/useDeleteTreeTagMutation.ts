@@ -18,6 +18,7 @@ export const useDeleteTreeTagMutation = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
+    mutationKey: treeQueryKeys.mutations(),
     mutationFn: ({ treeId, tagId }: DeleteTreeTagVariables) =>
       tagApi.deleteTreeTag(Number(treeId), Number(tagId)),
 

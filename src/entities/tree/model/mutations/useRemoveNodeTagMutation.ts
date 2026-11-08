@@ -47,6 +47,7 @@ export const useRemoveNodeTagMutation = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
+    mutationKey: treeQueryKeys.mutations(),
     mutationFn: ({ nodeId, tagId }: RemoveNodeTagVariables) =>
       tagApi.removeNodeTag(Number(nodeId), Number(tagId)),
 

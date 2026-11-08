@@ -48,6 +48,7 @@ export const useAddNodeTagMutation = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
+    mutationKey: treeQueryKeys.mutations(),
     mutationFn: ({ nodeId, tagId }: AddNodeTagVariables) =>
       tagApi.addNodeTag(Number(nodeId), Number(tagId)),
 

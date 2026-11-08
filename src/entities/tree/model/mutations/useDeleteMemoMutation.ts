@@ -19,6 +19,7 @@ export const useDeleteMemoMutation = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
+    mutationKey: treeQueryKeys.mutations(),
     /*
     삭제 응답에는 본문이 없어 version을 직접 계산한다. 메모가 있을 때만 삭제를 보내므로
     성공했다면 memo 컬럼이 바뀌었고, 서버의 version은 정확히 1 올랐다.

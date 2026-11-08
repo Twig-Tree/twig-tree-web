@@ -18,6 +18,7 @@ export const useCreateTreeTagMutation = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
+    mutationKey: treeQueryKeys.mutations(),
     mutationFn: ({ treeId, name }: CreateTreeTagVariables) =>
       tagApi.createTreeTag(Number(treeId), { name }),
 
