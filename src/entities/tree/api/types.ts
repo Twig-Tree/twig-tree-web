@@ -14,13 +14,13 @@ export interface NodeDTO {
 }
 
 /*
-트리 DTO type
-백엔드가 프롬프트 한 번으로 워크스페이스·트리·노드를 만들고 셋을 함께 돌려주므로 workspaceId도 담긴다.
+프롬프트 트리 생성 응답 DTO type
+서버 응답에는 노드 목록도 있지만 tagIds와 version이 없어 트리 조회 응답(NodeDTO)과 모양이 다르다.
+쓰지 않으므로 타입에 두지 않고, 노드는 이동한 화면의 트리 조회로 받는다.
 */
-export interface TreeDTO {
+export interface CreatedTreeDTO {
   treeId: number;
   workspaceId: number;
-  nodes: NodeDTO[];
 }
 
 /*
@@ -46,7 +46,7 @@ export type TreeMockScenario = "empty" | "small" | "large" | "max";
 /*
 프롬프트 트리 생성 응답 type
 */
-export type CreateTreeFromPromptResponse = ApiResponse<TreeDTO>;
+export type CreateTreeFromPromptResponse = ApiResponse<CreatedTreeDTO>;
 
 /*
 트리 조회 응답 type

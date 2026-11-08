@@ -57,33 +57,15 @@ const captureRequest = () => {
 };
 
 describe("treeApi.createTreeFromPrompt", () => {
-  it("서버가 확정한 ID를 문자열 도메인 모델로 돌려준다", async () => {
+  /*
+  응답의 노드에는 tagIds와 version이 없다. 노드까지 변환하면 생성에 성공하고도 실패로 처리된다.
+  */
+  it("응답 노드의 모양과 무관하게 서버가 확정한 ID를 돌려준다", async () => {
     const created = await treeApi.createTreeFromPrompt({
       message: "자료구조 트리 만들어줘",
     });
 
-    expect(created.workspaceId).toBe("31");
-    expect(created.treeId).toBe("30");
-    expect(created.nodes).toEqual([
-      {
-        id: "40",
-        parentId: null,
-        label: "컴퓨터 사이언스",
-        orderIndex: 1,
-        memo: "전공 기초",
-        version: 0,
-        tagIds: [],
-      },
-      {
-        id: "41",
-        parentId: "40",
-        label: "자료구조",
-        orderIndex: 1,
-        memo: null,
-        version: 0,
-        tagIds: [],
-      },
-    ]);
+    expect(created).toEqual({ workspaceId: "31", treeId: "30" });
   });
 
   it("첨부가 없으면 JSON 본문에 지시문과 제공자를 담아 보낸다", async () => {
