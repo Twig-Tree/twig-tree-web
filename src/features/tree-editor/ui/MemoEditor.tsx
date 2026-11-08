@@ -26,11 +26,12 @@ export const MemoEditor = ({
   /*
   다른 곳의 변경으로 저장된 메모가 바뀌면, 입력을 고치지 않은 경우에만 새 값을 보여 준다. 고친 입력은 사용자의 초안이므로 덮지 않는다.
   같은 노드면 key가 그대로라 다시 마운트되지 않으므로 렌더 중에 맞춘다. effect로 맞추면 옛 메모가 한 번 그려진다.
+  고쳤는지는 저장되는 값인 앞뒤 공백을 제거한 내용으로 판단한다. 공백만 다른 입력을 초안으로 남기면 저장할 때 새 메모를 옛 내용으로 덮어쓴다.
   */
   if (previousInitialMemo !== initialMemo) {
     setPreviousInitialMemo(initialMemo);
 
-    if (memo === previousInitialMemo) setMemo(initialMemo);
+    if (memo.trim() === previousInitialMemo.trim()) setMemo(initialMemo);
   }
 
   /*

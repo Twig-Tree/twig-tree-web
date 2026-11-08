@@ -24,6 +24,18 @@ describe("MemoEditor", () => {
     expect(getMemoInput().value).toBe("다른 곳의 메모");
   });
 
+  /*
+  저장은 앞뒤 공백을 제거한 값을 보내므로, 공백만 다른 입력이 남으면 저장 시 새 메모를 옛 내용으로 덮어쓴다.
+  */
+  it("입력이 공백만 다르면 저장된 메모가 바뀔 때 새 값을 보여 준다", () => {
+    const { rerender } = render(createEditor("이전 메모"));
+
+    fireEvent.change(getMemoInput(), { target: { value: "이전 메모 " } });
+    rerender(createEditor("다른 곳의 메모"));
+
+    expect(getMemoInput().value).toBe("다른 곳의 메모");
+  });
+
   it("입력을 고쳤으면 저장된 메모가 바뀌어도 초안을 유지한다", () => {
     const { rerender } = render(createEditor("이전 메모"));
 
