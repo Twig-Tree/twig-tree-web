@@ -24,7 +24,7 @@ href는 페이지 이동에, onClick은 팝업 안에서처럼 화면 이동 없
 */
 export function Breadcrumb({ items }: BreadcrumbProps) {
   return (
-    <nav aria-label="Breadcrumb">
+    <nav aria-label="현재 위치">
       <ol className="flex flex-wrap items-center gap-2 text-xs font-medium uppercase text-content-muted">
         {items.map((item, index) => (
           <li

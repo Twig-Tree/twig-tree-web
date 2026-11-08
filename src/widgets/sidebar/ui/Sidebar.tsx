@@ -9,7 +9,7 @@ export function Sidebar() {
 
   return (
     <aside className="w-16 shrink-0 border-r border-line bg-surface-muted px-3 py-5">
-      <nav className="flex flex-col items-center gap-1" aria-label="Primary">
+      <nav className="flex flex-col items-center gap-1" aria-label="주 메뉴">
         {sidebarItems.map((item) => {
           /*
           activePrefix가 있을 시, activePrefix와 정확히 일치하거나 그것으로 시작하는 경로이면 버튼을 활성화한다.

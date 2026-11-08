@@ -46,7 +46,7 @@ export function DirectoryContentsGrid({
   */
   if (isError) {
     return (
-      <section aria-label="Directory contents">
+      <section aria-label="폴더 내용">
         <p role="alert" className="text-sm font-medium text-danger">
           목록을 불러오지 못했습니다.
         </p>
@@ -61,7 +61,7 @@ export function DirectoryContentsGrid({
   isLoaded만 보면 조회를 시작하지도 않은 화면에 자리표시자가 계속 남는다.
   */
   if (isLoading) {
-    return <CardGridSkeleton ariaLabel="Directory contents" />;
+    return <CardGridSkeleton ariaLabel="폴더 내용" />;
   }
 
   /*
@@ -73,7 +73,7 @@ export function DirectoryContentsGrid({
   */
   if (isLoaded && folders.length === 0 && workspaces.length === 0) {
     return (
-      <section aria-label="Directory contents">
+      <section aria-label="폴더 내용">
         <p className="text-sm text-content-muted">
           아직 폴더나 워크스페이스가 없습니다.
         </p>
@@ -84,7 +84,7 @@ export function DirectoryContentsGrid({
   return (
     <section
       className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4"
-      aria-label="Directory contents"
+      aria-label="폴더 내용"
     >
       {folders.map((folder) =>
         folder.id === editingFolderId ? (

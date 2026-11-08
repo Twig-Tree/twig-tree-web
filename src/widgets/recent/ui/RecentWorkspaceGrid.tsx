@@ -62,7 +62,7 @@ export function RecentWorkspaceGrid({
   */
   if (isError) {
     return (
-      <section aria-label="Recent workspaces">
+      <section aria-label="최근 워크스페이스">
         <p role="alert" className="text-sm font-medium text-danger">
           목록을 불러오지 못했습니다.
         </p>
@@ -73,7 +73,7 @@ export function RecentWorkspaceGrid({
   if (isLoading) {
     return (
       <CardGridSkeleton
-        ariaLabel="Recent workspaces"
+        ariaLabel="최근 워크스페이스"
         gridClassName={RECENT_WORKSPACE_GRID_CLASS_NAME}
       />
     );
@@ -85,7 +85,7 @@ export function RecentWorkspaceGrid({
   */
   if (isLoaded && workspaces.length === 0) {
     return (
-      <section aria-label="Recent workspaces">
+      <section aria-label="최근 워크스페이스">
         <p className="text-sm text-content-muted">
           아직 워크스페이스가 없습니다.
         </p>
@@ -94,7 +94,7 @@ export function RecentWorkspaceGrid({
   }
 
   return (
-    <section className="flex flex-col gap-5" aria-label="Recent workspaces">
+    <section className="flex flex-col gap-5" aria-label="최근 워크스페이스">
       <div className={RECENT_WORKSPACE_GRID_CLASS_NAME}>
         {workspaces.map((workspace) =>
           workspace.id === editingWorkspaceId ? (
