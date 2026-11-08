@@ -49,8 +49,7 @@ export default function DashboardPage() {
         />
 
         <p className="text-center text-xs text-content-muted">
-          The Architect may produce inaccurate information about people, places,
-          or facts.
+          AI가 사람, 장소, 사실에 대해 부정확한 정보를 제공할 수 있습니다.
         </p>
       </div>
     </div>

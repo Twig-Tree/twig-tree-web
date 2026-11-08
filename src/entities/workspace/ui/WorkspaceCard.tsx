@@ -86,7 +86,7 @@ export function WorkspaceCard({
       </Heading>
       {formattedUpdatedAt ? (
         <p className="pointer-events-none relative text-xs text-content-muted">
-          Modified {formattedUpdatedAt}
+          {formattedUpdatedAt} 수정
         </p>
       ) : null}
     </article>
