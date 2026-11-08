@@ -4,7 +4,7 @@ import { useState } from "react";
 import type { FolderItem } from "@/src/entities/folder";
 import type { BreadcrumbItem } from "@/src/shared/ui/breadcrumb";
 
-const ROOT_LABEL = "Root";
+const ROOT_LABEL = "내 폴더";
 
 export interface FolderPathEntry {
   id: string; // 폴더 ID

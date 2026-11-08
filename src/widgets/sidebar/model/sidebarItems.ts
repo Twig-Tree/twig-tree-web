@@ -3,12 +3,12 @@ import { routes } from "@/src/shared/config/routes";
 import type { SidebarItem } from "./types";
 
 export const sidebarItems: SidebarItem[] = [
-  { icon: CircleStar, label: "Dashboard", href: routes.dashboard },
+  { icon: CircleStar, label: "대시보드", href: routes.dashboard },
   {
     icon: Copy,
-    label: "Directory",
+    label: "폴더",
     href: routes.directoryRoot,
     activePrefix: routes.directoryRoot,
   },
-  { icon: Clock, label: "Recent", href: routes.recent },
+  { icon: Clock, label: "최근 항목", href: routes.recent },
 ];

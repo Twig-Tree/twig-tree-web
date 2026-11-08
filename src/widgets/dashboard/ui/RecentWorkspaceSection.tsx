@@ -97,14 +97,14 @@ export function RecentWorkspaceSection({
           id="recent-workspaces-heading"
           className="text-xs font-semibold tracking-wider text-content-muted uppercase"
         >
-          Recent Workspaces
+          최근 워크스페이스
         </h2>
 
         <Link
           href={viewAllHref}
           className="text-xs font-medium text-accent transition-colors hover:text-accent-hover"
         >
-          View All
+          전체 보기
         </Link>
       </div>
 

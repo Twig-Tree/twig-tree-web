@@ -28,7 +28,7 @@ export function RecentHeader({
     <>
       <header className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
         <h1 className="text-3xl font-bold tracking-tight text-content">
-          Recent
+          최근 항목
         </h1>
 
         <NewWorkspaceButton
