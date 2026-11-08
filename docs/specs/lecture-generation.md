@@ -95,7 +95,7 @@ features/tree-editor
 
 `useGenerateLecture`는 요청을 보내기 전에 편집기 트리를 한 번 읽어, 같은 트리로 outline과 컴파일러 트리를 만든다. repair도 같은 트리를 쓰므로 생성 중에 트리를 고쳐도 모델이 본 노드와 컴파일 기준이 어긋나지 않는다. 응답마다 [`lecture-generation` 로그](./lecture-operations.md#로그-이벤트)를 남긴다.
 
-만든 대본은 트리별로 메모리에 둔다. 백엔드에 강의 저장 API가 아직 없어 새로고침하면 사라진다.
+만든 대본은 트리별로 메모리에 둔다. 백엔드에 강의 저장 API가 아직 없어([Twig-Tree/BE-twig-tree#126](https://github.com/Twig-Tree/BE-twig-tree/issues/126)) 새로고침하면 사라진다.
 
 ## 출력 스키마
 
@@ -242,4 +242,4 @@ pnpm exec vitest run src/entities/lecture/model/generation/evaluation/evaluation
 ## 다음 단계
 
 - case마다 실제 모델 응답을 저장하고 `report.md`를 다시 만든다.
-- 생성 강의 저장 API를 백엔드 저장소 이슈로 정리해 연결한다. 저장되면 `generatedLectureStore`를 강의 조회 query로 바꾼다.
+- 생성 강의 저장 API([Twig-Tree/BE-twig-tree#126](https://github.com/Twig-Tree/BE-twig-tree/issues/126))를 연결한다. 저장되면 `generatedLectureStore`를 강의 조회 query로 바꾼다.
