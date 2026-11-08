@@ -166,6 +166,7 @@ function AnimationLabCanvas() {
     scenarioFixture.compilerTree,
   );
   const [isLooping, setIsLooping] = useState(false);
+  const [isReducedMotionPreview, setIsReducedMotionPreview] = useState(false);
   const {
     play: startPlayback,
     stop: stopPlayback,
@@ -175,6 +176,7 @@ function AnimationLabCanvas() {
     revealNodes,
     resetCamera: fitTreeView,
     isLooping,
+    isReducedMotionPreview,
   });
 
   /*
@@ -267,6 +269,8 @@ function AnimationLabCanvas() {
             stage={stage}
             isLooping={isLooping}
             onChangeLooping={setIsLooping}
+            isReducedMotionPreview={isReducedMotionPreview}
+            onChangeReducedMotionPreview={setIsReducedMotionPreview}
             onPlay={() => {
               if (playableAnimation) play(playableAnimation);
             }}

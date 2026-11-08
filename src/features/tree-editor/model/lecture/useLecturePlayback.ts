@@ -1,4 +1,6 @@
 import { useEffect, useEffectEvent, useRef, useState } from "react";
+import { getReducedMotionAnimation } from "@/src/entities/lecture";
+import { prefersReducedMotion } from "../../lib/motion";
 import { useCollapseStore } from "../collapse/collapseStore";
 import { useTreeStore } from "../treeStore";
 import { getLectureSeekState } from "./getLectureSeekState";
@@ -114,6 +116,7 @@ export const useLecturePlayback = ({
       sceneIndex: lecture.sceneIndex,
       beatIndex: lecture.beatIndex,
       isTargetBeatIncluded: lecture.status === "paused",
+      isReducedMotion: prefersReducedMotion(),
       nodes,
       edges,
       baseCollapsedServerIds:
@@ -198,8 +201,15 @@ export const useLecturePlayback = ({
       );
     };
 
+    /*
+    동작 줄이기 설정은 강의 도중에도 바뀔 수 있어 비트를 시작할 때마다 읽는다.
+    */
+    const beatAnimation = prefersReducedMotion()
+      ? getReducedMotionAnimation(beat.animation)
+      : beat.animation;
+
     const runBeatAnimation = () =>
-      runLectureAnimation(beat.animation, {
+      runLectureAnimation(beatAnimation, {
         revealNodes: (clientIds, options) =>
           runCameraMove(
             () => revealBeatNodes(clientIds, options),

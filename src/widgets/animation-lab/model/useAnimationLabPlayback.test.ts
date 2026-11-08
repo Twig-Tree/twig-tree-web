@@ -25,11 +25,11 @@ const highlight: LectureAnimation = {
 const revealNodes = vi.fn();
 const resetCamera = vi.fn();
 
-const renderPlayback = (isLooping = false) =>
+const renderPlayback = (isLooping = false, isReducedMotionPreview = false) =>
   renderHook(
-    (props: { isLooping: boolean }) =>
+    (props: { isLooping: boolean; isReducedMotionPreview: boolean }) =>
       useAnimationLabPlayback({ revealNodes, resetCamera, ...props }),
-    { initialProps: { isLooping } },
+    { initialProps: { isLooping, isReducedMotionPreview } },
   );
 
 const getLayerCount = () => useLectureAnimationStore.getState().layers.size;
@@ -83,6 +83,18 @@ describe("useAnimationLabPlayback", () => {
     expect(result.current.isPlaying).toBe(false);
   });
 
+  it("동작 줄이기 미리보기를 켜면 줄인 애니메이션으로 재생한다", async () => {
+    const { result } = renderPlayback(false, true);
+
+    act(() => result.current.play(highlight));
+    await advance(900);
+
+    expect(result.current.stage).toBe("Highlight");
+    expect([...useLectureAnimationStore.getState().layers.values()]).toEqual([
+      expect.objectContaining({ type: "highlight", style: "steady" }),
+    ]);
+  });
+
   it("트리에 없는 노드를 가리키면 재생하지 않는다", () => {
     const { result } = renderPlayback();
 
@@ -123,7 +135,7 @@ describe("useAnimationLabPlayback", () => {
     await advance(900);
     expect(getLayerCount()).toBe(1);
 
-    rerender({ isLooping: false });
+    rerender({ isLooping: false, isReducedMotionPreview: false });
     await advance(1000);
     await advance(900);
     expect(result.current.isPlaying).toBe(false);
@@ -135,7 +147,7 @@ describe("useAnimationLabPlayback", () => {
     act(() => result.current.play(highlight));
     await advance(2800);
     await advance(500);
-    rerender({ isLooping: false });
+    rerender({ isLooping: false, isReducedMotionPreview: false });
     await advance(500);
 
     expect(result.current.isPlaying).toBe(false);
@@ -147,7 +159,12 @@ describe("useAnimationLabPlayback", () => {
     const nextRevealNodes = vi.fn();
     const { result, rerender } = renderHook(
       (props: { revealNodes: typeof revealNodes }) =>
-        useAnimationLabPlayback({ resetCamera, isLooping: false, ...props }),
+        useAnimationLabPlayback({
+          resetCamera,
+          isLooping: false,
+          isReducedMotionPreview: false,
+          ...props,
+        }),
       { initialProps: { revealNodes } },
     );
 

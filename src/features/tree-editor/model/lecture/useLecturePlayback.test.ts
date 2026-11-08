@@ -581,6 +581,47 @@ describe("useLecturePlayback", () => {
     consoleError.mockRestore();
   });
 
+  it("동작 줄이기 설정을 비트마다 읽어 그 비트의 애니메이션을 줄인다", async () => {
+    let isReducedMotion = false;
+    vi.stubGlobal("matchMedia", (query: string) => ({
+      matches: query === "(prefers-reduced-motion: reduce)" && isReducedMotion,
+    }));
+    const pulse = (id: string): EditorLectureAnimation => ({
+      type: "highlight",
+      targetClientIds: [id],
+      style: "pulse",
+      durationMs: 500,
+      persist: true,
+    });
+    const getHighlightStyles = () =>
+      [...useLectureAnimationStore.getState().layers.values()].map((layer) =>
+        layer.type === "highlight" ? layer.style : null,
+      );
+    renderPlayback();
+
+    act(() =>
+      lecture().startLecture({
+        ...script,
+        scenes: [
+          {
+            id: "scene-1",
+            clientId: "c1",
+            beats: [
+              createBeat("first", pulse("c1")),
+              createBeat("second", pulse("c2")),
+            ],
+          },
+        ],
+      }),
+    );
+    await advance(0);
+    expect(getHighlightStyles()).toEqual(["pulse"]);
+
+    isReducedMotion = true;
+    await advance(1000);
+    expect(getHighlightStyles()).toEqual(["pulse", "steady"]);
+  });
+
   it("끝난 강의를 다시 시작하면 처음부터 진행한다", async () => {
     renderPlayback();
     act(() => lecture().startLecture(script));
