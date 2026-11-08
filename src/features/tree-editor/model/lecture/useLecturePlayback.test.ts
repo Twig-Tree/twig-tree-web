@@ -519,6 +519,68 @@ describe("useLecturePlayback", () => {
     expect(revealNodes).toHaveBeenCalledOnce();
   });
 
+  /*
+  병렬 그룹의 한 동작이 실패해도 다른 동작의 강조가 화면에 남지 않아야 하고, 강의는 멈추지 않아야 한다.
+  */
+  it("비트 애니메이션이 실패하면 화면을 정리하고 내레이션 뒤 다음 비트로 넘어간다", async () => {
+    const consoleError = vi
+      .spyOn(console, "error")
+      .mockImplementation(() => undefined);
+    revealNodes.mockImplementationOnce(() => {
+      throw new Error("카메라 실패");
+    });
+    const { result } = renderPlayback();
+
+    act(() =>
+      lecture().startLecture({
+        ...script,
+        scenes: [
+          {
+            id: "scene-1",
+            clientId: "c1",
+            beats: [
+              createBeat("broken", {
+                type: "group",
+                mode: "parallel",
+                children: [
+                  {
+                    type: "highlight",
+                    targetClientIds: ["c1"],
+                    style: "steady",
+                    durationMs: 3000,
+                  },
+                  {
+                    type: "focus",
+                    targetClientIds: ["c2"],
+                    maxZoom: 1,
+                    durationMs: 500,
+                  },
+                ],
+              }),
+              createBeat("next"),
+            ],
+          },
+        ],
+      }),
+    );
+    await advance(0);
+
+    expect(useLectureAnimationStore.getState().layers.size).toBe(0);
+    expect(consoleError).toHaveBeenCalledOnce();
+
+    act(() => result.current.refocusCamera());
+    expect(revealNodes).toHaveBeenCalledOnce();
+
+    await advance(999);
+    expect(getPosition().beatIndex).toBe(0);
+
+    await advance(1);
+    expect(getPosition().beatIndex).toBe(1);
+    expect(useLectureAnimationStore.getState().layers.size).toBe(0);
+
+    consoleError.mockRestore();
+  });
+
   it("끝난 강의를 다시 시작하면 처음부터 진행한다", async () => {
     renderPlayback();
     act(() => lecture().startLecture(script));

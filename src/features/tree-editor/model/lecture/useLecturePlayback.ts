@@ -175,6 +175,29 @@ export const useLecturePlayback = ({
     previewLayerIdsRef.current = [];
 
     const controller = new AbortController();
+    /*
+    애니메이션만 멈추는 신호. 애니메이션이 실패해도 내레이션은 끝까지 읽고 다음 비트로 넘어가야 하므로,
+    비트 완료를 막는 controller와 나눈다. 비트를 떠나면 둘 다 멈춘다.
+    */
+    const animationController = new AbortController();
+
+    /*
+    비트 애니메이션이 예외로 끝나면 병렬 그룹의 나머지 동작은 계속 돌며 레이어를 남긴다. 나머지를 멈추고 화면을 비운다.
+    실패한 카메라 동작을 패널이 바뀔 때 다시 실행하지 않도록 기억한 동작도 지운다.
+    완료로 처리해 내레이션이 끝나면 다음 비트로 넘어간다. 연출 하나가 빠져도 강의는 이어진다.
+    */
+    const handleBeatAnimationError = (error: unknown) => {
+      if (controller.signal.aborted) return;
+
+      animationController.abort();
+      useLectureAnimationStore.getState().resetVisual();
+      forgetLastCameraMove();
+      console.error(
+        `강의 비트 애니메이션이 실패했습니다(장면 ${sceneIndex}, 비트 ${beatIndex}, ${beat.id}).`,
+        error,
+      );
+    };
+
     const runBeatAnimation = () =>
       runLectureAnimation(beat.animation, {
         revealNodes: (clientIds, options) =>
@@ -184,8 +207,8 @@ export const useLecturePlayback = ({
               revealBeatNodes(clientIds, { ...options, keepCollapse: true }),
           ),
         resetCamera: () => runCameraMove(() => resetBeatCamera()),
-        signal: controller.signal,
-      });
+        signal: animationController.signal,
+      }).catch(handleBeatAnimationError);
     let cancelSeekFrame = () => {};
     const animationCompletion = shouldWaitForSeekRef.current
       ? new Promise<void>((resolve) => {
@@ -258,6 +281,7 @@ export const useLecturePlayback = ({
     return () => {
       changeNarrationVoiceRef.current = null;
       controller.abort();
+      animationController.abort();
       cancelSeekFrame();
       stopNarration();
       finishNarration();
@@ -284,6 +308,7 @@ export const useLecturePlayback = ({
     seekId,
     completeBeat,
     runCameraMove,
+    forgetLastCameraMove,
   ]);
 
   useEffect(() => {
