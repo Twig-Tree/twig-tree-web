@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, it, expect, vi } from "vitest";
-import { playSentence } from "./lectureSpeech";
+import { playSentence } from "./playSentence";
 
 const createVoice = (lang: string, voiceURI = lang, name = voiceURI) =>
   ({ lang, voiceURI, name }) as SpeechSynthesisVoice;

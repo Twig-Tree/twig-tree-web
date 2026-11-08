@@ -1,7 +1,9 @@
+export { playSentence } from "./playSentence";
 export {
-  findPreferredKoreanVoice,
-  isSpeechSynthesisSupported,
-} from "./speechVoices";
+  useKoreanVoice,
+  useKoreanVoiceOptions,
+  type KoreanVoiceOption,
+} from "./useKoreanVoice";
 export { useVoiceSettings } from "./useVoiceSettings";
 export { updateVoiceSettings } from "./voiceSettingsStore";
 export {

@@ -1,8 +1,16 @@
 import { useMemo, useSyncExternalStore } from "react";
 import {
   findPreferredKoreanVoice,
+  getSelectableKoreanVoices,
   isSpeechSynthesisSupported,
-} from "@/src/shared/lib/speech";
+} from "./speechVoices";
+
+export type KoreanVoiceOption = {
+  voiceUri: string; // 저장과 비교에 쓰는 음성 식별자
+  name: string; // 화면에 보여 줄 음성 이름
+};
+
+const EMPTY_VOICE_OPTIONS_SNAPSHOT = "[]";
 
 const subscribeVoices = (onChange: () => void) => {
   if (!isSpeechSynthesisSupported()) return () => {};
@@ -54,4 +62,35 @@ export const useKoreanVoice = (
         .find((voice) => voice.voiceURI === voiceUri) ?? null
     );
   }, [voiceUri]);
+};
+
+const getKoreanVoiceOptionsSnapshot = (): string => {
+  if (!isSpeechSynthesisSupported()) return EMPTY_VOICE_OPTIONS_SNAPSHOT;
+
+  return JSON.stringify(
+    getSelectableKoreanVoices(window.speechSynthesis.getVoices()).map(
+      (voice): KoreanVoiceOption => ({
+        voiceUri: voice.voiceURI,
+        name: voice.name,
+      }),
+    ),
+  );
+};
+
+const getServerKoreanVoiceOptionsSnapshot = () => EMPTY_VOICE_OPTIONS_SNAPSHOT;
+
+/*
+함수 이름 : useKoreanVoiceOptions
+기능 : 사용자가 고를 수 있는 한국어 음성 목록을 구독한다. 스냅숏은 음성 객체와 같은 이유로 문자열로 둔다.
+인자 : 없음
+반환값 : 한국어 음성 선택지. 음성 합성을 지원하지 않거나 고를 수 있는 음성이 없으면 빈 배열
+*/
+export const useKoreanVoiceOptions = (): KoreanVoiceOption[] => {
+  const snapshot = useSyncExternalStore(
+    subscribeVoices,
+    getKoreanVoiceOptionsSnapshot,
+    getServerKoreanVoiceOptionsSnapshot,
+  );
+
+  return useMemo(() => JSON.parse(snapshot), [snapshot]);
 };

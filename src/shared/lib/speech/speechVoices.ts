@@ -14,12 +14,14 @@ export const isSpeechSynthesisSupported = (): boolean =>
 - Edge의 신경망 음성: "Microsoft SunHi Online (Natural) - Korean (Korea)"
 - Chrome의 온라인 음성: "Google 한국의"
 - macOS에서 내려받은 고품질 음성: "Yuna (Premium)", "Yuna (Enhanced)". 시스템 언어에 따라 한국어로 표기되기도 한다
+- macOS의 기본 음성 Yuna: 같은 목록의 Eddy, Grandma 같은 음성은 강의를 듣기 어려워 패턴에 넣지 않는다
 */
 const NATURAL_VOICE_NAME_PATTERNS = [
   /natural/i,
   /google/i,
   /premium|프리미엄/i,
   /enhanced|향상/i,
+  /yuna|유나/i,
 ];
 
 /*
@@ -67,18 +69,34 @@ export const findKoreanVoice = (
 };
 
 /*
+함수 이름 : getSelectableKoreanVoices
+기능 : 사용자가 고를 수 있는 한국어 음성을 추린다. 자연스러운 음성 패턴에 맞는 음성만 남긴다.
+인자 : SpeechSynthesisVoice[] voices -> 브라우저가 제공하는 음성 목록
+반환값 : 고를 수 있는 한국어 음성 목록
+
+목록에서만 뺀다. 패턴에 맞는 음성이 없는 기기에서는 자막만 재생하는 것보다 나으므로 자동 선택은 남은 한국어 음성으로 읽는다.
+*/
+export const getSelectableKoreanVoices = (
+  voices: SpeechSynthesisVoice[],
+): SpeechSynthesisVoice[] =>
+  getKoreanVoices(voices).filter(
+    (voice) =>
+      getVoiceNaturalnessRank(voice) < NATURAL_VOICE_NAME_PATTERNS.length,
+  );
+
+/*
 함수 이름 : findPreferredKoreanVoice
 기능 : 사용자가 고른 한국어 음성을 찾고, 없으면 가장 자연스러운 한국어 음성을 찾는다.
 인자 : SpeechSynthesisVoice[] voices -> 브라우저가 제공하는 음성 목록
 string | null preferredVoiceUri -> 사용자가 고른 음성. null이면 자동으로 고른다
 반환값 : 한국어 음성. 없으면 null
 
-쓸 수 있는 음성은 기기와 브라우저마다 다르므로, 다른 기기에서 고른 값이거나 사라진 음성이면 자동 선택으로 돌아간다.
+쓸 수 있는 음성은 기기와 브라우저마다 다르므로, 다른 기기에서 고른 값이거나 사라졌거나 목록에서 뺀 음성이면 자동 선택으로 돌아간다.
 */
 export const findPreferredKoreanVoice = (
   voices: SpeechSynthesisVoice[],
   preferredVoiceUri: string | null,
 ): SpeechSynthesisVoice | null =>
-  getKoreanVoices(voices).find(
+  getSelectableKoreanVoices(voices).find(
     (voice) => voice.voiceURI === preferredVoiceUri,
   ) ?? findKoreanVoice(voices);

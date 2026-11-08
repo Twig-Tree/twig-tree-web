@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { findKoreanVoice, findPreferredKoreanVoice } from "./speechVoices";
+import {
+  findKoreanVoice,
+  findPreferredKoreanVoice,
+  getSelectableKoreanVoices,
+} from "./speechVoices";
 
 const createVoice = (lang: string, voiceURI = lang, name = voiceURI) =>
   ({ lang, voiceURI, name }) as SpeechSynthesisVoice;
@@ -59,6 +63,16 @@ describe("findKoreanVoice", () => {
     expect(findKoreanVoice(voices)?.voiceURI).toBe("premium");
   });
 
+  it("macOS의 다른 기본 음성보다 Yuna를 먼저 고른다", () => {
+    const voices = [
+      createVoice("ko-KR", "eddy", "Eddy"),
+      createVoice("ko-KR", "grandma", "Grandma"),
+      createVoice("ko-KR", "yuna", "Yuna"),
+    ];
+
+    expect(findKoreanVoice(voices)?.voiceURI).toBe("yuna");
+  });
+
   it("다른 언어의 자연스러운 음성은 고르지 않는다", () => {
     const voices = [
       createVoice("en-US", "google-en", "Google US English"),
@@ -91,11 +105,49 @@ describe("findPreferredKoreanVoice", () => {
     expect(findPreferredKoreanVoice([yuna, google], null)).toBe(google);
   });
 
+  it("목록에서 뺀 음성을 골라 두었으면 자동 선택으로 돌아간다", () => {
+    const eddy = createVoice("ko-KR", "eddy", "Eddy");
+
+    expect(findPreferredKoreanVoice([eddy, yuna], "eddy")).toBe(yuna);
+  });
+
   it("고른 값이 한국어 음성이 아니면 쓰지 않는다", () => {
     expect(findPreferredKoreanVoice([samantha, yuna], "samantha")).toBe(yuna);
   });
 
   it("한국어 음성이 없으면 null을 돌려준다", () => {
     expect(findPreferredKoreanVoice([samantha], "samantha")).toBeNull();
+  });
+});
+
+describe("getSelectableKoreanVoices", () => {
+  const getSelectableUris = (voices: SpeechSynthesisVoice[]) =>
+    getSelectableKoreanVoices(voices).map((voice) => voice.voiceURI);
+
+  it("Google 음성과 Yuna만 남기고 다른 기본 음성은 뺀다", () => {
+    expect(
+      getSelectableUris([
+        createVoice("ko-KR", "eddy", "Eddy (한국어(대한민국))"),
+        createVoice("ko-KR", "google", "Google 한국의"),
+        createVoice("ko-KR", "rocko", "Rocko (한국어(대한민국))"),
+        createVoice("ko-KR", "yuna", "Yuna"),
+        createVoice("en-US", "samantha", "Samantha"),
+      ]),
+    ).toEqual(["google", "yuna"]);
+  });
+
+  it("Edge의 신경망 음성과 macOS의 고품질 음성은 남긴다", () => {
+    expect(
+      getSelectableUris([
+        createVoice("ko-KR", "sunhi", "Microsoft SunHi Online (Natural)"),
+        createVoice("ko-KR", "premium", "Yuna (Premium)"),
+      ]),
+    ).toEqual(["sunhi", "premium"]);
+  });
+
+  it("시스템 언어가 한국어여서 유나로 표기되어도 남긴다", () => {
+    expect(getSelectableUris([createVoice("ko-KR", "yuna", "유나")])).toEqual([
+      "yuna",
+    ]);
   });
 });

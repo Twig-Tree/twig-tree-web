@@ -4,18 +4,26 @@ import {
   getReducedMotionAnimation,
   logLectureEvent,
 } from "@/src/entities/lecture";
-import { useVoiceSettings } from "@/src/shared/lib/speech";
+import {
+  playSentence,
+  useKoreanVoice,
+  useVoiceSettings,
+} from "@/src/shared/lib/speech";
 import { prefersReducedMotion } from "../../lib/motion";
 import { useCollapseStore } from "../collapse/collapseStore";
 import { useTreeStore } from "../treeStore";
 import { getLectureSeekState } from "./getLectureSeekState";
-import { playSentence, type LectureAudioMode } from "./lectureSpeech";
 import { useLectureAnimationStore } from "./lectureAnimationStore";
 import { runLectureAnimation } from "./runLectureAnimation";
-import { useKoreanVoice } from "./useKoreanVoice";
 import { useLectureCameraRefit } from "./useLectureCameraRefit";
 import { useLectureCollapseRestore } from "./useLectureCollapseRestore";
 import { useLectureStore } from "./lectureStore";
+
+/*
+speech: 브라우저 음성 합성으로 문장을 읽는다. muted: 읽을 수 있지만 사용자가 음성을 껐다. silent: 읽을 음성이 없다.
+muted와 silent는 자막 시각만큼 기다렸다 넘어간다.
+*/
+type LectureAudioMode = "speech" | "muted" | "silent";
 
 type UseLecturePlaybackParams = {
   revealNodes: (

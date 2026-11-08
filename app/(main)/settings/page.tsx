@@ -1,4 +1,5 @@
 import { ThemeSelector } from "@/src/features/theme/select-theme";
+import { VoiceSettingsForm } from "@/src/features/voice/select-voice";
 import { SettingsSection } from "@/src/widgets/settings";
 
 const PREPARING_MESSAGE = "준비 중입니다.";
@@ -27,7 +28,7 @@ export default function SettingsPage() {
           title="음성"
           description="강의를 읽어 주는 음성을 고릅니다."
         >
-          <p className="text-sm text-content-muted">{PREPARING_MESSAGE}</p>
+          <VoiceSettingsForm />
         </SettingsSection>
       </div>
     </div>
