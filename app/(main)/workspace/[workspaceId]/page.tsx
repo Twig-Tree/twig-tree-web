@@ -281,6 +281,11 @@ function LayoutFlow({ workspaceId, treeId }: LayoutFlowProps) {
           onPaneClick={handlePaneClick}
           onNodeDrag={onNodeDrag}
           onNodeDragStop={onNodeDragStop}
+          /*
+          React Flow의 기본 삭제 키(Backspace)는 서버 요청 없이 화면에서만 노드를 지운다. 삭제는 컨텍스트 메뉴의
+          handleDeleteNode가 맡고, 키보드 삭제는 #170에서 같은 handler에 연결한다.
+          */
+          deleteKeyCode={null}
           disableKeyboardA11y={isMutating || isLectureActive}
           /*
           disableKeyboardA11y는 선택 키를 끄지 않는다. Shift + 방향키로 장면을 옮기는 동안 영역 선택 모드가 켜지지 않게 한다.
