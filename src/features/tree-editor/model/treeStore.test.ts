@@ -253,6 +253,52 @@ describe("onNodesChange", () => {
   });
 });
 
+/*
+React Flow는 삭제 키가 눌리면 선택된 노드와 연결 엣지를 remove 변경으로 보낸다. 받아들이면 서버 요청 없이 store에서만 지워진다.
+*/
+describe("React Flow의 삭제 변경", () => {
+  beforeEach(() => {
+    useTreeStore.getState().initializeTree({
+      treeId: "5",
+      nodes: [1, 2, 3].map(createNode),
+      edges: [
+        createEditorEdge({ sourceClientId: "c1", targetClientId: "c2" }),
+        createEditorEdge({ sourceClientId: "c2", targetClientId: "c3" }),
+      ],
+    });
+  });
+
+  afterEach(() => {
+    useTreeStore.getState().resetTree();
+  });
+
+  const getNodeIds = () => useTreeStore.getState().nodes.map((node) => node.id);
+  const getEdgeIds = () => useTreeStore.getState().edges.map((edge) => edge.id);
+
+  it("노드 삭제 변경을 무시하고 같은 배치의 다른 변경은 적용한다", () => {
+    useTreeStore.getState().onNodesChange([
+      { type: "remove", id: "c2" },
+      { type: "select", id: "c1", selected: true },
+    ]);
+
+    expect(getNodeIds()).toEqual(["c1", "c2", "c3"]);
+    expect(getSelectedClientIds()).toEqual(["c1"]);
+  });
+
+  it("엣지 삭제 변경을 무시하고 같은 배치의 다른 변경은 적용한다", () => {
+    useTreeStore.getState().onEdgesChange([
+      { type: "remove", id: "e-c1-c2" },
+      { type: "select", id: "e-c2-c3", selected: true },
+    ]);
+
+    expect(getEdgeIds()).toEqual(["e-c1-c2", "e-c2-c3"]);
+    expect(
+      useTreeStore.getState().edges.find((edge) => edge.id === "e-c2-c3")
+        ?.selected,
+    ).toBe(true);
+  });
+});
+
 describe("restoreStructureInStore", () => {
   const createOrderedNode = (clientId: string, orderIndex: number) =>
     createEditorNode({

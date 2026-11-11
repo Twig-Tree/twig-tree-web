@@ -90,22 +90,34 @@ export const useTreeStore = create<TreeState>()((set, get) => ({
   드래그를 놓았을 때의 노드 이동이 맡는다. 이 변경은 화살표 키 이동과 포인터 드래그의 끝에서 생긴다. 화살표 키 이동은
   onNodeDragStop을 거치지 않아 반영하면 저장되지 않은 좌표가 남고, 포인터 드래그는 onNodeDragStop이 끌기 전 좌표로 되돌린다.
   dragging 표시는 풀어야 하므로 변경을 버리지 않고 좌표만 뺀다.
+
+  삭제 변경(remove)은 버린다. 노드·엣지를 지우는 일은 서버 반영과 실패 복구를 함께 하는 deleteNodeFromStore 같은
+  action만 맡는다. React Flow는 삭제 키(deleteKeyCode)가 눌리면 이 변경을 보내는데, 받아들이면 서버 요청 없이
+  store에서만 사라져 새로고침하면 되살아난다. 화면에서 삭제 키를 끄는 것과 별개로 store가 이 규칙을 지킨다.
   */
   onNodesChange: (changes) => {
-    const nextChanges = changes.map((change) =>
-      change.type === "position" && !change.dragging
-        ? { ...change, position: undefined }
-        : change,
-    );
+    const nextChanges = changes
+      .filter((change) => change.type !== "remove")
+      .map((change) =>
+        change.type === "position" && !change.dragging
+          ? { ...change, position: undefined }
+          : change,
+      );
 
     set({
       nodes: applyNodeChanges(nextChanges, get().nodes),
     });
   },
 
+  /*
+  삭제 변경은 onNodesChange와 같은 이유로 버린다. 엣지는 노드 삭제·이동 action이 함께 고친다.
+  */
   onEdgesChange: (changes) => {
     set({
-      edges: applyEdgeChanges(changes, get().edges),
+      edges: applyEdgeChanges(
+        changes.filter((change) => change.type !== "remove"),
+        get().edges,
+      ),
     });
   },
 
