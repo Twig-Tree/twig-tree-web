@@ -57,6 +57,43 @@ function OptionGroup<Value extends string>({
   );
 }
 
+type ToggleOptionProps = {
+  label: string;
+  description?: string; // 켰을 때 무엇이 달라지는지
+  checked: boolean;
+  onChange: (checked: boolean) => void;
+};
+
+/*
+함수 이름 : ToggleOption
+기능 : 켜고 끄는 선택지를 체크박스로 그린다.
+인자 : ToggleOptionProps
+반환값 : 체크박스와 설명
+*/
+function ToggleOption({
+  label,
+  description,
+  checked,
+  onChange,
+}: ToggleOptionProps) {
+  return (
+    <label className="flex items-start gap-2 text-xs text-content-secondary">
+      <input
+        type="checkbox"
+        checked={checked}
+        onChange={(event) => onChange(event.target.checked)}
+        className="mt-0.5 accent-accent"
+      />
+      <span className="flex flex-col">
+        <span className="font-medium">{label}</span>
+        {description ? (
+          <span className="text-content-muted">{description}</span>
+        ) : null}
+      </span>
+    </label>
+  );
+}
+
 /*
 함수 이름 : LabSettingsPanel
 기능 : 실험실에서 켜고 끄는 진입 방식을 묶음별로 고르게 한다.
@@ -83,6 +120,14 @@ export function LabSettingsPanel({
         options={MENU_TRIGGER_OPTIONS}
         value={config.menuTrigger}
         onChange={(menuTrigger) => onChangeConfig({ ...config, menuTrigger })}
+      />
+      <ToggleOption
+        label="메뉴에 단축키 표기"
+        description="표기만 합니다. 키를 눌러 실행하는 기능은 아직 없습니다."
+        checked={config.showMenuShortcuts}
+        onChange={(showMenuShortcuts) =>
+          onChangeConfig({ ...config, showMenuShortcuts })
+        }
       />
     </section>
   );

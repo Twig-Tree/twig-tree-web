@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { type MouseEvent, useEffect, useRef, useState } from "react";
 import {
   Background,
   BackgroundVariant,
@@ -8,6 +8,7 @@ import {
   ReactFlowProvider,
 } from "@xyflow/react";
 import {
+  type CustomEditorNode,
   MIN_ZOOM,
   edgeTypes,
   nodeTypes,
@@ -21,6 +22,7 @@ import {
 } from "@/src/features/tree-editor";
 import {
   DEFAULT_NODE_ACTION_LAB_CONFIG,
+  type MenuEntry,
   type NodeActionLabConfig,
 } from "../model/config";
 import {
@@ -116,6 +118,33 @@ function NodeActionLabCanvas() {
     closeContextMenuAndFocusNode,
   } = useNodeContextMenu({ containerRef: canvasRef, isDisabled: false });
 
+  /*
+  메뉴를 연 방법을 열 때 기억해 둔다. 메뉴가 열린 사이에 설정을 바꿔도 실행 기록에는 실제로 연 방법이 남는다.
+  */
+  const [menuEntry, setMenuEntry] = useState<MenuEntry>("contextMenu");
+
+  const openMenu = (
+    entry: MenuEntry,
+    event: MouseEvent,
+    node: CustomEditorNode,
+  ) => {
+    setMenuEntry(entry);
+    handleNodeContextMenu(event, node);
+  };
+
+  /*
+  노드를 누르면 React Flow가 먼저 선택을 옮기고 이 handler를 부른다. 넘어오는 node는 누르기 전 값이라
+  selected로 이미 선택된 노드를 다시 눌렀는지 알 수 있다. 접기 버튼은 클릭 전파를 막아 여기까지 오지 않는다.
+  */
+  const handleNodeClick = (event: MouseEvent, node: CustomEditorNode) => {
+    const { menuTrigger } = config;
+
+    if (menuTrigger === "click") openMenu("click", event, node);
+    if (menuTrigger === "clickSelected" && node.selected) {
+      openMenu("clickSelected", event, node);
+    }
+  };
+
   const memoNode = nodes.find((node) => node.id === memoClientId);
   const renamingNode = nodes.find((node) => node.id === renamingClientId);
 
@@ -163,13 +192,14 @@ function NodeActionLabCanvas() {
           onEdgesChange={onEdgesChange}
           onNodeContextMenu={
             config.menuTrigger === "contextMenu"
-              ? handleNodeContextMenu
+              ? (event, node) => openMenu("contextMenu", event, node)
               : undefined
           }
+          onNodeClick={handleNodeClick}
           onMoveStart={closeContextMenu}
           deleteKeyCode={null}
           /*
-          노드를 끌어 옮기는 제품 동작은 서버 저장을 거쳐 실험실에서 재현하지 않는다. 다음 단계의 클릭 메뉴가 끌기와 부딪히는지는 제품 편집기에서 함께 본다.
+          노드를 끌어 옮기는 제품 동작은 서버 저장을 거쳐 실험실에서 재현하지 않는다. 클릭 메뉴가 끌기와 부딪히는지는 제품에 넣을 때 함께 본다.
           */
           nodesDraggable={false}
           nodesConnectable={false}
@@ -200,8 +230,9 @@ function NodeActionLabCanvas() {
             getBlockReason={(actionId) =>
               getBlockReason(actionId, contextMenu.clientId)
             }
+            showShortcuts={config.showMenuShortcuts}
             onSelect={(actionId) =>
-              runAction(actionId, "contextMenu", contextMenu.clientId)
+              runAction(actionId, menuEntry, contextMenu.clientId)
             }
             onClose={closeContextMenu}
             onEscape={closeContextMenuAndFocusNode}

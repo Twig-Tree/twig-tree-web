@@ -6,6 +6,7 @@ import {
   type CustomEditorEdge,
   type CustomEditorNode,
 } from "@/src/features/tree-editor";
+import { type MenuEntry } from "./config";
 
 export const NODE_ACTION_IDS = [
   "openMemo",
@@ -26,10 +27,12 @@ export const NODE_ACTION_LABELS: Record<NodeActionId, string> = {
 /*
 동작을 실행한 진입점. 실행 기록에서 어떤 방식으로 동작을 찾았는지 비교하는 데 쓴다.
 */
-export type NodeActionEntry = "contextMenu";
+export type NodeActionEntry = MenuEntry;
 
 export const NODE_ACTION_ENTRY_LABELS: Record<NodeActionEntry, string> = {
   contextMenu: "우클릭 메뉴",
+  click: "클릭 메뉴",
+  clickSelected: "다시 클릭 메뉴",
 };
 
 /*
