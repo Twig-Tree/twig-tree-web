@@ -55,6 +55,7 @@ export {
 export { useAddNodeMutation } from "./model/mutations/useAddNodeMutation";
 export { useCreateTreeFromPromptMutation } from "./model/mutations/useCreateTreeFromPromptMutation";
 export { useCreateWorkspaceTreeFromPromptMutation } from "./model/mutations/useCreateWorkspaceTreeFromPromptMutation";
+export { useIsCreatingWorkspaceTreeFromPrompt } from "./model/useIsCreatingWorkspaceTreeFromPrompt";
 export { useDeleteNodeMutation } from "./model/mutations/useDeleteNodeMutation";
 export { useEditNodeNameMutation } from "./model/mutations/useEditNodeNameMutation";
 export { useMoveNodeMutation } from "./model/mutations/useMoveNodeMutation";

@@ -149,4 +149,90 @@ describe("useFillWorkspaceTree", () => {
       expect(result.current.isFillingWorkspaceTree).toBe(false),
     );
   });
+
+  /*
+  요청은 화면을 벗어나도 mutation cache에서 계속 진행된다. 돌아온 화면이 새 hook으로 다시 보내면 LLM이 두 번 돈다.
+  */
+  it("생성 중에 화면을 벗어났다 돌아와도 진행 중으로 보고 다시 보내지 않는다", async () => {
+    let requestCount = 0;
+
+    server.use(
+      http.post("*/api/workspaces/:workspaceId/tree-request", async () => {
+        requestCount += 1;
+        await delay(50);
+
+        return HttpResponse.json(
+          {
+            isSuccess: true,
+            code: "CHAT201-1",
+            message: "트리가 성공적으로 생성되었습니다.",
+            data: { ...RAW_CREATED_TREE_DATA, workspaceId: 9 },
+          },
+          { status: 201 },
+        );
+      }),
+    );
+
+    const { wrapper } = createQueryWrapper();
+    const firstView = renderHook(
+      () => useFillWorkspaceTree({ workspaceId: "9" }),
+      { wrapper },
+    );
+
+    const first = firstView.result.current.fillWorkspaceTree("자료구조 트리");
+    firstView.unmount();
+
+    const { result } = renderHook(
+      () => useFillWorkspaceTree({ workspaceId: "9" }),
+      { wrapper },
+    );
+
+    expect(result.current.isFillingWorkspaceTree).toBe(true);
+    await expect(
+      result.current.fillWorkspaceTree("자료구조 트리"),
+    ).rejects.toThrow();
+
+    await first;
+
+    expect(requestCount).toBe(1);
+    await waitFor(() =>
+      expect(result.current.isFillingWorkspaceTree).toBe(false),
+    );
+  });
+
+  it("다른 워크스페이스의 생성 요청은 진행 중으로 보지 않는다", async () => {
+    server.use(
+      http.post("*/api/workspaces/:workspaceId/tree-request", async () => {
+        await delay(50);
+
+        return HttpResponse.json(
+          {
+            isSuccess: true,
+            code: "CHAT201-1",
+            message: "트리가 성공적으로 생성되었습니다.",
+            data: { ...RAW_CREATED_TREE_DATA, workspaceId: 9 },
+          },
+          { status: 201 },
+        );
+      }),
+    );
+
+    const { wrapper } = createQueryWrapper();
+    const { result } = renderHook(
+      () => ({
+        workspace9: useFillWorkspaceTree({ workspaceId: "9" }),
+        workspace10: useFillWorkspaceTree({ workspaceId: "10" }),
+      }),
+      { wrapper },
+    );
+
+    const pending = result.current.workspace9.fillWorkspaceTree("자료구조");
+
+    await waitFor(() =>
+      expect(result.current.workspace9.isFillingWorkspaceTree).toBe(true),
+    );
+    expect(result.current.workspace10.isFillingWorkspaceTree).toBe(false);
+
+    await pending;
+  });
 });

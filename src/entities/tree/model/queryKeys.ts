@@ -19,4 +19,11 @@ export const treeQueryKeys = {
 
   // 열려 있는 트리를 바꾸는 mutation의 공통 키. 이 탭의 저장이 진행 중인지 한곳에서 세기 위해 붙인다
   mutations: () => [...treeQueryKeys.all, "mutation"] as const,
+
+  // 빈 워크스페이스를 프롬프트로 채우는 mutation. mutations() 아래에 두어 접두사로 함께 세어진다
+  createWorkspaceTreeFromPrompt: () =>
+    [
+      ...treeQueryKeys.mutations(),
+      "create-workspace-tree-from-prompt",
+    ] as const,
 };

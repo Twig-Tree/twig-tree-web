@@ -4,6 +4,7 @@ import { useCallback, useRef } from "react";
 import {
   TREE_REQUEST_ERROR_CODE,
   useCreateWorkspaceTreeFromPromptMutation,
+  useIsCreatingWorkspaceTreeFromPrompt,
 } from "@/src/entities/tree";
 import {
   getApiErrorCode,
@@ -66,7 +67,14 @@ export function useFillWorkspaceTree({
   const { mutateAsync, isPending } = useCreateWorkspaceTreeFromPromptMutation();
 
   /*
-  연타로 요청이 두 번 나가지 않게 막는 동기 가드다. isPending은 렌더 시점 값이라 리렌더 전에 들어온 다음 호출은
+  생성 중에 다른 페이지에 갔다 돌아오면 이 hook은 새로 만들어져 isPending과 아래 가드가 처음 값으로 돌아간다.
+  요청은 그대로 진행 중이므로, 진행 표시와 중복 전송 판단은 mutation cache의 값도 함께 본다.
+  */
+  const isCreatingInCache = useIsCreatingWorkspaceTreeFromPrompt(workspaceId);
+  const isFillingWorkspaceTree = isPending || isCreatingInCache;
+
+  /*
+  연타로 요청이 두 번 나가지 않게 막는 동기 가드다. isFillingWorkspaceTree는 렌더 시점 값이라 리렌더 전에 들어온 다음 호출은
   아직 false를 본다. 서버가 두 번째 요청을 409로 거절하더라도 LLM 응답을 기다린 뒤라, 그동안 과금과 대기가 겹친다.
   */
   const isSubmittingRef = useRef(false);
@@ -76,7 +84,7 @@ export function useFillWorkspaceTree({
       /*
       진행 중이면 reject한다. resolve하면 호출부(useComposePrompt)가 성공으로 보고 입력을 비운다.
       */
-      if (isSubmittingRef.current) {
+      if (isSubmittingRef.current || isFillingWorkspaceTree) {
         throw new Error("Workspace tree filling is already in progress.");
       }
 
@@ -96,11 +104,11 @@ export function useFillWorkspaceTree({
         isSubmittingRef.current = false;
       }
     },
-    [mutateAsync, workspaceId],
+    [mutateAsync, workspaceId, isFillingWorkspaceTree],
   );
 
   return {
     fillWorkspaceTree,
-    isFillingWorkspaceTree: isPending,
+    isFillingWorkspaceTree,
   };
 }

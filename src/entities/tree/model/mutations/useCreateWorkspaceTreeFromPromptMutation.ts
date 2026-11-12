@@ -9,7 +9,7 @@ import type { TreeMockScenario } from "../../api/types";
 import { TREE_REQUEST_ERROR_CODE } from "../constants";
 import { treeQueryKeys } from "../queryKeys";
 
-interface CreateWorkspaceTreeFromPromptVariables {
+export interface CreateWorkspaceTreeFromPromptVariables {
   workspaceId: string; // 채울 워크스페이스 ID
   message: string; // 사용자가 입력한 지시문. 첨부만 보내는 경우 빈 문자열일 수 있다
   file?: File; // 첨부 파일. 있으면 multipart로 보낸다
@@ -26,8 +26,8 @@ interface CreateWorkspaceTreeFromPromptVariables {
 응답의 노드는 트리 캐시에 넣지 않고 트리 조회를 무효화한다. useCreateTreeFromPromptMutation과 같은 이유로,
 응답 노드에는 version과 tagIds가 없어 넣으면 그 노드의 이름·메모 저장이 version 없이 나간다.
 
-트리 요청 mutation key를 단다. 다른 곳의 변경을 찾는 쪽(useTreeRequestTracker)이 이 탭의 요청이 진행 중인 동안
-비교를 미뤄야, 응답을 기다리는 사이의 재조회 결과를 다른 곳의 변경으로 오판하지 않는다.
+트리 요청 mutation key 아래의 전용 키를 단다. 다른 곳의 변경을 찾는 쪽(useTreeRequestTracker)이 접두사로 이 요청도 세어
+진행 중인 동안 비교를 미루고, useIsCreatingWorkspaceTreeFromPrompt는 전용 키로 이 요청만 골라 본다.
 
 트리는 워크스페이스의 자식이라 entities/workspace를 import한다(fsd-layers.md "Entity 사이의 의존 방향").
 */
@@ -36,7 +36,7 @@ export const useCreateWorkspaceTreeFromPromptMutation = () => {
   const setWorkspaceTreeIdInCache = useSetWorkspaceTreeIdInCache();
 
   return useMutation({
-    mutationKey: treeQueryKeys.mutations(),
+    mutationKey: treeQueryKeys.createWorkspaceTreeFromPrompt(),
 
     mutationFn: ({
       workspaceId,
