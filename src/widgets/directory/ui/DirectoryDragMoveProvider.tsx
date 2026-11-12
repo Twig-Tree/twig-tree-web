@@ -9,6 +9,7 @@ import {
   useSensors,
   type DragEndEvent,
   type DragStartEvent,
+  type Modifier,
 } from "@dnd-kit/core";
 import { Archive, Folder } from "lucide-react";
 import {
@@ -31,6 +32,43 @@ import {
 끌기 시작으로 보는 이동 거리(px). 이보다 짧게 움직이고 떼면 클릭으로 남아 카드가 열린다.
 */
 const DRAG_ACTIVATION_DISTANCE = 8;
+
+/*
+이름표를 마우스 포인터에서 띄워 둘 거리(px). 포인터 바로 아래에 두면 놓을 곳의 강조를 가린다.
+*/
+const PREVIEW_CURSOR_OFFSET = 12;
+
+/*
+함수 이름 : followCursor
+기능 : 끄는 동안 이름표가 마우스 포인터 오른쪽 아래를 따라다니게 위치를 옮긴다.
+인자 : Modifier 인자 -> dnd-kit이 넘기는 끌기 시작 이벤트, 원래 카드의 위치, 지금까지 움직인 거리
+반환값 : 이름표를 옮길 거리
+
+DragOverlay는 원래 카드의 왼쪽 위에서 시작한다. 이름표는 카드보다 작아, 그대로 두면 카드를 잡은 위치만큼 포인터에서 떨어져 보인다.
+*/
+const followCursor: Modifier = ({
+  activatorEvent,
+  activeNodeRect,
+  transform,
+}) => {
+  if (!(activatorEvent instanceof MouseEvent) || !activeNodeRect) {
+    return transform;
+  }
+
+  return {
+    ...transform,
+    x:
+      transform.x +
+      activatorEvent.clientX -
+      activeNodeRect.left +
+      PREVIEW_CURSOR_OFFSET,
+    y:
+      transform.y +
+      activatorEvent.clientY -
+      activeNodeRect.top +
+      PREVIEW_CURSOR_OFFSET,
+  };
+};
 
 /*
 끌기가 끝난 뒤 click을 막아 두는 시간(ms). dnd-kit이 click 전파를 막아 두는 시간과 같게 맞춘다.
@@ -169,7 +207,7 @@ export function DirectoryDragMoveProvider({
         onDragCancel={handleDragCancel}
       >
         {children}
-        <DragOverlay dropAnimation={null}>
+        <DragOverlay dropAnimation={null} modifiers={[followCursor]}>
           {activeItem ? <DragMovePreview item={activeItem} /> : null}
         </DragOverlay>
       </DndContext>
