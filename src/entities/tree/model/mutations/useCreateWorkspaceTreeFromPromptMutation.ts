@@ -3,8 +3,10 @@ import {
   useSetWorkspaceTreeIdInCache,
   workspaceQueryKeys,
 } from "@/src/entities/workspace";
+import { getApiErrorCode } from "@/src/shared/api/authErrorCodes";
 import { treeApi } from "../../api/treeApi";
 import type { TreeMockScenario } from "../../api/types";
+import { TREE_REQUEST_ERROR_CODE } from "../constants";
 import { treeQueryKeys } from "../queryKeys";
 
 interface CreateWorkspaceTreeFromPromptVariables {
@@ -17,6 +19,7 @@ interface CreateWorkspaceTreeFromPromptVariables {
 /*
 함수 이름 : useCreateWorkspaceTreeFromPromptMutation
 기능 : 프롬프트로 이미 있는 빈 워크스페이스를 트리로 채우고, 워크스페이스 상세의 treeId와 낡은 트리·최신순 목록 캐시를 갱신한다.
+이미 노드가 있다고 거절되면 그 트리를 보이도록 워크스페이스 상세와 트리 조회를 무효화한다.
 인자 : 없음
 반환값 : 워크스페이스 트리 채우기 mutation. 성공 데이터는 워크스페이스 ID, 트리 ID
 
@@ -57,6 +60,28 @@ export const useCreateWorkspaceTreeFromPromptMutation = () => {
         queryClient.invalidateQueries({
           queryKey: workspaceQueryKeys.recent(),
         }),
+      ]);
+    },
+
+    onError: (error, { workspaceId }) => {
+      if (
+        getApiErrorCode(error) !==
+        TREE_REQUEST_ERROR_CODE.WORKSPACE_TREE_NOT_EMPTY
+      ) {
+        return;
+      }
+
+      /*
+      다른 곳에서 먼저 트리를 채운 경우다. 응답을 기다리는 사이에 생겼을 수도 있다.
+      트리가 새로 생겼으면 상세의 treeId가, 빈 트리에 노드가 생겼으면 트리 조회가 낡았다.
+      거절 응답에는 treeId가 없어 트리 조회는 열려 있는 것을 모두 무효화한다. 다시 받는 것은 화면에 걸린 트리뿐이다.
+      */
+      return Promise.all([
+        queryClient.invalidateQueries({
+          queryKey: workspaceQueryKeys.detail(workspaceId),
+          exact: true,
+        }),
+        queryClient.invalidateQueries({ queryKey: treeQueryKeys.details() }),
       ]);
     },
   });

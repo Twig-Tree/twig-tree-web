@@ -122,4 +122,75 @@ describe("useCreateWorkspaceTreeFromPromptMutation", () => {
       queryClient.getQueryState(workspaceQueryKeys.recent())?.isInvalidated,
     ).toBe(true);
   });
+
+  /*
+  다른 곳에서 먼저 채운 트리를 보이게 한다. 거절 응답에 treeId가 없어 트리 조회는 모두 무효화한다.
+  */
+  it("이미 노드가 있다고 거절되면 워크스페이스 상세와 트리 조회 캐시를 무효화한다", async () => {
+    server.use(
+      http.post("*/api/workspaces/:workspaceId/tree-request", () =>
+        HttpResponse.json(
+          {
+            isSuccess: false,
+            code: "CHAT409-1",
+            message: "이 워크스페이스에는 이미 노드가 있는 트리가 있습니다.",
+            data: null,
+          },
+          { status: 409 },
+        ),
+      ),
+    );
+
+    const { queryClient, wrapper } = createQueryWrapper();
+    queryClient.setQueryData(workspaceQueryKeys.detail("9"), WORKSPACE_DETAIL);
+    queryClient.setQueryData(treeQueryKeys.detail("30"), []);
+
+    const { result } = renderHook(
+      () => useCreateWorkspaceTreeFromPromptMutation(),
+      { wrapper },
+    );
+
+    result.current.mutate({ workspaceId: "9", message: "자료구조 트리" });
+
+    await waitFor(() => expect(result.current.isError).toBe(true));
+
+    expect(
+      queryClient.getQueryState(workspaceQueryKeys.detail("9"))?.isInvalidated,
+    ).toBe(true);
+    expect(
+      queryClient.getQueryState(treeQueryKeys.detail("30"))?.isInvalidated,
+    ).toBe(true);
+  });
+
+  it("다른 이유로 실패하면 캐시를 건드리지 않는다", async () => {
+    server.use(
+      http.post("*/api/workspaces/:workspaceId/tree-request", () =>
+        HttpResponse.json(
+          {
+            isSuccess: false,
+            code: "CHAT504-1",
+            message: "LLM 응답 시간이 초과되었습니다.",
+            data: null,
+          },
+          { status: 504 },
+        ),
+      ),
+    );
+
+    const { queryClient, wrapper } = createQueryWrapper();
+    queryClient.setQueryData(workspaceQueryKeys.detail("9"), WORKSPACE_DETAIL);
+
+    const { result } = renderHook(
+      () => useCreateWorkspaceTreeFromPromptMutation(),
+      { wrapper },
+    );
+
+    result.current.mutate({ workspaceId: "9", message: "자료구조 트리" });
+
+    await waitFor(() => expect(result.current.isError).toBe(true));
+
+    expect(
+      queryClient.getQueryState(workspaceQueryKeys.detail("9"))?.isInvalidated,
+    ).toBe(false);
+  });
 });
