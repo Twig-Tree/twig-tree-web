@@ -27,12 +27,14 @@ export const NODE_ACTION_LABELS: Record<NodeActionId, string> = {
 /*
 동작을 실행한 진입점. 실행 기록에서 어떤 방식으로 동작을 찾았는지 비교하는 데 쓴다.
 */
-export type NodeActionEntry = MenuEntry;
+export type NodeActionEntry = MenuEntry | "hoverToolbar" | "selectedToolbar";
 
 export const NODE_ACTION_ENTRY_LABELS: Record<NodeActionEntry, string> = {
   contextMenu: "우클릭 메뉴",
   click: "클릭 메뉴",
   clickSelected: "다시 클릭 메뉴",
+  hoverToolbar: "호버 버튼",
+  selectedToolbar: "선택 버튼",
 };
 
 /*

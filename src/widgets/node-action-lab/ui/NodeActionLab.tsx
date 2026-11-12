@@ -29,10 +29,13 @@ import {
   NODE_ACTION_LAB_TREE,
   NODE_ACTION_LAB_TREE_ID,
 } from "../model/fixtureTree";
+import { getToolbarTargets } from "../model/getToolbarTargets";
+import { useHoveredNode } from "../model/useHoveredNode";
 import { useLabNodeActions } from "../model/useLabNodeActions";
 import { LabActionLog } from "./LabActionLog";
 import { LabActionMenu } from "./LabActionMenu";
 import { LabMemoPanel } from "./LabMemoPanel";
+import { LabNodeToolbar } from "./LabNodeToolbar";
 import { LabRenameInput } from "./LabRenameInput";
 import { LabSettingsPanel } from "./LabSettingsPanel";
 
@@ -148,6 +151,16 @@ function NodeActionLabCanvas() {
   const memoNode = nodes.find((node) => node.id === memoClientId);
   const renamingNode = nodes.find((node) => node.id === renamingClientId);
 
+  const { hoveredClientId, enterNode, leaveNode, enterToolbar, leaveToolbar } =
+    useHoveredNode();
+  const selectedNodes = nodes.filter((node) => node.selected);
+  const toolbarTargets = getToolbarTargets({
+    visibility: config.toolbarVisibility,
+    hoveredClientId,
+    selectedClientId: selectedNodes.length === 1 ? selectedNodes[0].id : null, // 여러 노드에 같은 동작을 실행하는 일은 다루지 않는다
+    renamingClientId,
+  });
+
   const handleResetTree = () => {
     closeContextMenu();
     closeOverlays();
@@ -168,7 +181,12 @@ function NodeActionLabCanvas() {
           </p>
         </div>
 
-        <LabSettingsPanel config={config} onChangeConfig={setConfig} />
+        <LabSettingsPanel
+          config={config}
+          onChangeConfig={(patch) =>
+            setConfig((previous) => ({ ...previous, ...patch }))
+          }
+        />
 
         <button
           type="button"
@@ -196,6 +214,8 @@ function NodeActionLabCanvas() {
               : undefined
           }
           onNodeClick={handleNodeClick}
+          onNodeMouseEnter={(_, node) => enterNode(node.id)}
+          onNodeMouseLeave={leaveNode}
           onMoveStart={closeContextMenu}
           deleteKeyCode={null}
           /*
@@ -211,6 +231,23 @@ function NodeActionLabCanvas() {
             size={0.8}
             bgColor="transparent"
           />
+          {toolbarTargets.map((target) => (
+            <LabNodeToolbar
+              key={target.clientId}
+              target={target}
+              position={config.toolbarPosition}
+              buttonStyle={config.toolbarStyle}
+              tooltip={config.tooltip}
+              getBlockReason={(actionId) =>
+                getBlockReason(actionId, target.clientId)
+              }
+              onRunAction={(actionId) =>
+                runAction(actionId, target.entry, target.clientId)
+              }
+              onMouseEnter={enterToolbar}
+              onMouseLeave={leaveToolbar}
+            />
+          ))}
           {renamingNode ? (
             <LabRenameInput
               key={renamingNode.id}

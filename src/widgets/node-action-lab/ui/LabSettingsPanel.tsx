@@ -1,11 +1,15 @@
 import {
   MENU_TRIGGER_OPTIONS,
   type NodeActionLabConfig,
+  TOOLBAR_POSITION_OPTIONS,
+  TOOLBAR_STYLE_OPTIONS,
+  TOOLBAR_VISIBILITY_OPTIONS,
+  TOOLTIP_OPTIONS,
 } from "../model/config";
 
 type LabSettingsPanelProps = {
   config: NodeActionLabConfig;
-  onChangeConfig: (config: NodeActionLabConfig) => void;
+  onChangeConfig: (patch: Partial<NodeActionLabConfig>) => void; // 바꾼 값만 넘긴다. 합치는 일은 호출부가 이전 값을 기준으로 한다
 };
 
 type OptionGroupProps<Value extends string> = {
@@ -119,16 +123,43 @@ export function LabSettingsPanel({
         label="메뉴 여는 방법"
         options={MENU_TRIGGER_OPTIONS}
         value={config.menuTrigger}
-        onChange={(menuTrigger) => onChangeConfig({ ...config, menuTrigger })}
+        onChange={(menuTrigger) => onChangeConfig({ menuTrigger })}
       />
       <ToggleOption
         label="메뉴에 단축키 표기"
         description="표기만 합니다. 키를 눌러 실행하는 기능은 아직 없습니다."
         checked={config.showMenuShortcuts}
-        onChange={(showMenuShortcuts) =>
-          onChangeConfig({ ...config, showMenuShortcuts })
-        }
+        onChange={(showMenuShortcuts) => onChangeConfig({ showMenuShortcuts })}
       />
+
+      <OptionGroup
+        label="노드 옆 버튼"
+        options={TOOLBAR_VISIBILITY_OPTIONS}
+        value={config.toolbarVisibility}
+        onChange={(toolbarVisibility) => onChangeConfig({ toolbarVisibility })}
+      />
+      {config.toolbarVisibility === "off" ? null : (
+        <>
+          <OptionGroup
+            label="버튼 위치"
+            options={TOOLBAR_POSITION_OPTIONS}
+            value={config.toolbarPosition}
+            onChange={(toolbarPosition) => onChangeConfig({ toolbarPosition })}
+          />
+          <OptionGroup
+            label="버튼 모양"
+            options={TOOLBAR_STYLE_OPTIONS}
+            value={config.toolbarStyle}
+            onChange={(toolbarStyle) => onChangeConfig({ toolbarStyle })}
+          />
+          <OptionGroup
+            label="툴팁"
+            options={TOOLTIP_OPTIONS}
+            value={config.tooltip}
+            onChange={(tooltip) => onChangeConfig({ tooltip })}
+          />
+        </>
+      )}
     </section>
   );
 }
