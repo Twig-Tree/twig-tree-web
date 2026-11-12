@@ -9,6 +9,7 @@ interface WorkspaceCardProps {
   heightClassName?: string; // 카드 최소 높이. 세로 공간이 부족한 화면에서 낮춘다
   isDeleteDisabled?: boolean; // 삭제 항목을 잠시 막을지 여부. 다른 삭제 요청이 진행 중일 때 넘긴다
   onDelete?: () => void; // 워크스페이스 삭제를 시작하는 callback. 넘긴 화면에만 삭제 항목이 생긴다
+  onMove?: () => void; // 다른 폴더로 옮기기를 시작하는 callback. 넘긴 화면에만 이동 항목이 생긴다
   onRename?: () => void; // 이름 수정을 시작하는 callback. 넘긴 화면에만 수정 항목이 생긴다
   workspace: WorkspaceItem;
 }
@@ -32,6 +33,7 @@ export function WorkspaceCard({
   heightClassName = "min-h-36",
   isDeleteDisabled = false,
   onDelete,
+  onMove,
   onRename,
   workspace,
 }: WorkspaceCardProps) {
@@ -45,6 +47,14 @@ export function WorkspaceCard({
       id: "rename",
       label: "이름 수정하기",
       onSelect: onRename,
+    });
+  }
+
+  if (onMove) {
+    menuItems.push({
+      id: "move",
+      label: "이동하기",
+      onSelect: onMove,
     });
   }
 
