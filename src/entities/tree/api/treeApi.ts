@@ -32,6 +32,69 @@ axiosInstance 기본값(10초)은 다른 요청을 위해 그대로 둔다.
 */
 const CREATE_TREE_FROM_PROMPT_TIMEOUT_MS = 90_000;
 
+/*
+함수 이름 : postTreeRequest
+기능 : 프롬프트 트리 생성 요청을 보낸다. 첨부 파일이 있으면 multipart로 보낸다.
+인자 : string url -> 요청 경로. 새 워크스페이스를 만드는지, 기존 워크스페이스를 채우는지에 따라 다르다
+CreateTreeFromPromptParams params -> 지시문, 첨부 파일, 개발용 mock 시나리오
+반환값 : 서버가 확정한 워크스페이스 ID, 트리 ID
+
+두 경로는 요청 형식이 같다. 형식을 한곳에 두어 multipart 규칙이 한쪽에서만 바뀌지 않게 한다.
+*/
+const postTreeRequest = async (
+  url: string,
+  { message, file, mock }: CreateTreeFromPromptParams,
+): Promise<CreatedTree> => {
+  const mockParams = mock === undefined ? undefined : { mock };
+
+  if (file === undefined) {
+    const body: CreateTreeFromPromptRequest = {
+      message,
+      provider: LLM_PROVIDER,
+    };
+
+    const res = await axiosInstance.post<CreateTreeFromPromptResponse>(
+      url,
+      body,
+      { params: mockParams, timeout: CREATE_TREE_FROM_PROMPT_TIMEOUT_MS },
+    );
+
+    return mapCreatedTreeDtoToDomain(res.data.data);
+  }
+
+  /*
+  백엔드의 multipart 핸들러는 파일만 본문으로 받고 message와 provider는 쿼리 파라미터로 읽는다.
+  지시문 없이 파일만 보내는 경우가 있어 빈 문자열은 싣지 않는다. 백엔드는 둘 다 비었을 때만 거절한다.
+  */
+  const formData = new FormData();
+
+  /*
+  파일 이름을 세 번째 인자로 명시한다. 생략하면 환경에 따라 조각의 filename이 "blob"으로 실려
+  백엔드가 확장자로 파서를 고르지 못하고 CHAT400-4로 거절한다.
+  */
+  formData.append("file", file, file.name);
+
+  const res = await axiosInstance.post<CreateTreeFromPromptResponse>(
+    url,
+    formData,
+    {
+      params: {
+        ...mockParams,
+        ...(message === "" ? {} : { message }),
+        provider: LLM_PROVIDER,
+      },
+      timeout: CREATE_TREE_FROM_PROMPT_TIMEOUT_MS,
+      /*
+      FormData의 경계 문자열은 요청마다 달라 브라우저가 직접 붙여야 한다.
+      axiosInstance의 기본 Content-Type(application/json)을 지워야 그 자리가 비고, 남겨 두면 서버가 조각을 나누지 못한다.
+      */
+      headers: { "Content-Type": undefined },
+    },
+  );
+
+  return mapCreatedTreeDtoToDomain(res.data.data);
+};
+
 export const treeApi = {
   /*
   함수 이름 : createTreeFromPrompt
@@ -42,60 +105,22 @@ export const treeApi = {
   빈 트리를 만드는 workspaceApi.createWorkspaceTree와 다른 요청이다.
   이쪽은 LLM이 채운 트리를 워크스페이스째로 만들어 돌려준다.
   */
-  createTreeFromPrompt: async ({
-    message,
-    file,
-    mock,
-  }: CreateTreeFromPromptParams): Promise<CreatedTree> => {
-    const mockParams = mock === undefined ? undefined : { mock };
+  createTreeFromPrompt: (params: CreateTreeFromPromptParams) =>
+    postTreeRequest("/tree-request", params),
 
-    if (file === undefined) {
-      const body: CreateTreeFromPromptRequest = {
-        message,
-        provider: LLM_PROVIDER,
-      };
+  /*
+  함수 이름 : createWorkspaceTreeFromPrompt
+  기능 : 프롬프트를 보내 이미 있는 빈 워크스페이스를 LLM이 만든 트리로 채운다.
+  인자 : number workspaceId -> 채울 워크스페이스 ID
+  CreateTreeFromPromptParams params -> 지시문, 첨부 파일, 개발용 mock 시나리오
+  반환값 : 서버가 확정한 워크스페이스 ID, 트리 ID
 
-      const res = await axiosInstance.post<CreateTreeFromPromptResponse>(
-        "/tree-request",
-        body,
-        { params: mockParams, timeout: CREATE_TREE_FROM_PROMPT_TIMEOUT_MS },
-      );
-
-      return mapCreatedTreeDtoToDomain(res.data.data);
-    }
-
-    /*
-    백엔드의 multipart 핸들러는 파일만 본문으로 받고 message와 provider는 쿼리 파라미터로 읽는다.
-    지시문 없이 파일만 보내는 경우가 있어 빈 문자열은 싣지 않는다. 백엔드는 둘 다 비었을 때만 거절한다.
-    */
-    const formData = new FormData();
-
-    /*
-    파일 이름을 세 번째 인자로 명시한다. 생략하면 환경에 따라 조각의 filename이 "blob"으로 실려
-    백엔드가 확장자로 파서를 고르지 못하고 CHAT400-4로 거절한다.
-    */
-    formData.append("file", file, file.name);
-
-    const res = await axiosInstance.post<CreateTreeFromPromptResponse>(
-      "/tree-request",
-      formData,
-      {
-        params: {
-          ...mockParams,
-          ...(message === "" ? {} : { message }),
-          provider: LLM_PROVIDER,
-        },
-        timeout: CREATE_TREE_FROM_PROMPT_TIMEOUT_MS,
-        /*
-        FormData의 경계 문자열은 요청마다 달라 브라우저가 직접 붙여야 한다.
-        axiosInstance의 기본 Content-Type(application/json)을 지워야 그 자리가 비고, 남겨 두면 서버가 조각을 나누지 못한다.
-        */
-        headers: { "Content-Type": undefined },
-      },
-    );
-
-    return mapCreatedTreeDtoToDomain(res.data.data);
-  },
+  트리가 없으면 서버가 만들고, 노드 없는 트리만 있으면 그 트리를 그대로 쓴다. 노드가 있으면 409 CHAT409-1로 거절한다.
+  */
+  createWorkspaceTreeFromPrompt: (
+    workspaceId: number,
+    params: CreateTreeFromPromptParams,
+  ) => postTreeRequest(`/workspaces/${workspaceId}/tree-request`, params),
 
   getTree: async (treeId: number): Promise<TreeNode[]> => {
     const res = await axiosInstance.get<GetTreeResponse>(

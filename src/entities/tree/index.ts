@@ -32,6 +32,7 @@ export {
   MAX_PROMPT_MESSAGE_LENGTH,
   NODE_ERROR_CODE,
   TAG_ERROR_CODE,
+  TREE_REQUEST_ERROR_CODE,
 } from "./model/constants";
 export { treeApi } from "./api/treeApi";
 export { nodeApi } from "./api/nodeApi";
@@ -53,6 +54,7 @@ export {
 } from "./model/queries";
 export { useAddNodeMutation } from "./model/mutations/useAddNodeMutation";
 export { useCreateTreeFromPromptMutation } from "./model/mutations/useCreateTreeFromPromptMutation";
+export { useCreateWorkspaceTreeFromPromptMutation } from "./model/mutations/useCreateWorkspaceTreeFromPromptMutation";
 export { useDeleteNodeMutation } from "./model/mutations/useDeleteNodeMutation";
 export { useEditNodeNameMutation } from "./model/mutations/useEditNodeNameMutation";
 export { useMoveNodeMutation } from "./model/mutations/useMoveNodeMutation";
