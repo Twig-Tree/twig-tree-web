@@ -348,20 +348,23 @@ function LayoutFlow({ workspaceId, treeId }: LayoutFlowProps) {
 
           {/*
           지금 트리에서 만든 강의를, 없으면 트리에 맞는 데모 대본을 재생한다. 서버가 강의를 저장하게 되면 조회 결과로 바꾼다.
+          노드가 없으면 강의로 설명할 대상이 없으므로 그리지 않는다. 빈 트리 안내가 그 자리의 시작점을 맡는다.
           */}
-          <Panel
-            position="bottom-center"
-            className="!pointer-events-none flex w-[calc(100%-2rem)] max-w-2xl justify-center"
-          >
-            <LecturePlayer
-              script={lectureScript}
-              isGeneratedScript={isGeneratedLecture}
-              onRevealNodes={revealNodes}
-              onResetCamera={fitTreeView}
-              onBeforeCollapseRestore={fitTreeViewAfterNextLayout}
-              panelLayoutKey={`${isPanelOpen}:${isPanelOverlay}:${isMemoPanelOpen}`}
-            />
-          </Panel>
+          {nodes.length === 0 ? null : (
+            <Panel
+              position="bottom-center"
+              className="!pointer-events-none flex w-[calc(100%-2rem)] max-w-2xl justify-center"
+            >
+              <LecturePlayer
+                script={lectureScript}
+                isGeneratedScript={isGeneratedLecture}
+                onRevealNodes={revealNodes}
+                onResetCamera={fitTreeView}
+                onBeforeCollapseRestore={fitTreeViewAfterNextLayout}
+                panelLayoutKey={`${isPanelOpen}:${isPanelOverlay}:${isMemoPanelOpen}`}
+              />
+            </Panel>
+          )}
         </ReactFlow>
 
         {/*
