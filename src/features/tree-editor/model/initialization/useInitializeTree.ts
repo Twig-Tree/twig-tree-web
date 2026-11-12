@@ -26,6 +26,7 @@ export const useInitializeTree = ({
   const initializeTree = useTreeStore((state) => state.initializeTree);
   const resetTree = useTreeStore((state) => state.resetTree);
   const currentTreeId = useTreeStore((state) => state.treeId);
+  const isStoreEmpty = useTreeStore((state) => state.nodes.length === 0);
   const restoreCollapse = useCollapseStore((state) => state.restoreCollapse);
   const resetCollapse = useCollapseStore((state) => state.resetCollapse);
   const clearHighlight = useHighlightStore((state) => state.clearHighlight);
@@ -38,6 +39,10 @@ export const useInitializeTree = ({
   /*
   초기화는 트리당 한 번만 수행한다. 재초기화는 모든 노드의 position을 원점으로 되돌리고
   편집 중인 내용까지 덮어쓰므로, 이미 이 트리로 초기화되어 있으면 캐시가 갱신되어도 건너뛴다.
+
+  예외는 노드 없는 트리로 초기화된 store에 조회 결과가 노드를 가져온 경우다. 빈 워크스페이스를 프롬프트로 채우면
+  treeId는 그대로인 채 노드만 생긴다. 덮어쓸 편집도 위치도 없고, 루트는 지울 수 없어 노드가 있던 store가
+  다시 비는 일도 없으므로 이때만 다시 채운다.
   */
   useEffect(() => {
     /*
@@ -45,7 +50,9 @@ export const useInitializeTree = ({
     */
     if (treeId === null || !treeData) return;
 
-    if (currentTreeId === treeId) return;
+    if (currentTreeId === treeId && !(isStoreEmpty && treeData.length > 0)) {
+      return;
+    }
 
     const { nodes, edges } = transformToFlowElements(treeData);
 
@@ -66,6 +73,7 @@ export const useInitializeTree = ({
     treeId,
     treeData,
     currentTreeId,
+    isStoreEmpty,
     initializeTree,
     restoreCollapse,
     clearEditHistory,
