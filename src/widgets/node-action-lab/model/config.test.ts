@@ -1,37 +1,17 @@
 import { describe, expect, it } from "vitest";
-import {
-  DEFAULT_NODE_ACTION_LAB_CONFIG,
-  getToolbarEntryKey,
-  type NodeActionLabConfig,
-} from "./config";
+import { hasKeyboardToolbar } from "./config";
 
-const createConfig = (
-  patch: Partial<NodeActionLabConfig>,
-): NodeActionLabConfig => ({ ...DEFAULT_NODE_ACTION_LAB_CONFIG, ...patch });
-
-describe("getToolbarEntryKey", () => {
-  it("선택된 노드에 버튼이 붙지 않으면 들어갈 키가 없다", () => {
-    expect(
-      getToolbarEntryKey(createConfig({ toolbarVisibility: "off" })),
-    ).toBeNull();
-    expect(
-      getToolbarEntryKey(createConfig({ toolbarVisibility: "hover" })),
-    ).toBeNull();
+describe("hasKeyboardToolbar", () => {
+  it("선택된 노드에 버튼이 붙으면 키보드로 들어갈 수 있다", () => {
+    expect(hasKeyboardToolbar("selected")).toBe(true);
+    expect(hasKeyboardToolbar("hoverOrSelected")).toBe(true);
   });
 
-  it("선택된 노드에 버튼이 붙으면 고른 키를 쓴다", () => {
-    expect(
-      getToolbarEntryKey(
-        createConfig({ toolbarVisibility: "selected", toolbarEntryKey: "Tab" }),
-      ),
-    ).toBe("Tab");
-    expect(
-      getToolbarEntryKey(
-        createConfig({
-          toolbarVisibility: "hoverOrSelected",
-          toolbarEntryKey: "ArrowDown",
-        }),
-      ),
-    ).toBe("ArrowDown");
+  /*
+  호버로만 보이는 버튼은 마우스를 위한 것이라 키보드로 들어갈 대상이 없다.
+  */
+  it("버튼이 없거나 호버로만 보이면 키보드로 들어갈 수 없다", () => {
+    expect(hasKeyboardToolbar("off")).toBe(false);
+    expect(hasKeyboardToolbar("hover")).toBe(false);
   });
 });

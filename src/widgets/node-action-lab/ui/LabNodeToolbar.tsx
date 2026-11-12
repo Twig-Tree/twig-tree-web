@@ -34,7 +34,7 @@ type LabNodeToolbarProps = {
   position: ToolbarPosition;
   buttonStyle: ToolbarStyle;
   tooltip: TooltipContent;
-  shortcuts: NodeActionShortcuts; // 툴팁에 적을 단축키
+  shortcuts: NodeActionShortcuts | null; // 툴팁에 적을 단축키. 적지 않으면 null
   getBlockReason: (actionId: NodeActionId) => string | null;
   onRunAction: (actionId: NodeActionId) => void; // 막힌 동작도 부른다. 실행 기록에 막힌 이유를 남기기 위해서다
   /*
@@ -164,7 +164,7 @@ export function LabNodeToolbar({
                 >
                   <span>
                     {label}
-                    {tooltip === "labelShortcut" ? (
+                    {shortcuts ? (
                       <kbd className="ml-2 font-sans opacity-70">
                         {shortcuts[actionId].label}
                       </kbd>

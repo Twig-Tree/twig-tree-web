@@ -22,9 +22,9 @@ import {
 } from "@/src/features/tree-editor";
 import {
   DEFAULT_NODE_ACTION_LAB_CONFIG,
-  getToolbarEntryKey,
+  hasKeyboardToolbar,
   type MenuEntry,
-  TOOLBAR_ENTRY_KEY_OPTIONS,
+  TOOLBAR_ENTRY_KEY,
   type NodeActionLabConfig,
 } from "../model/config";
 import {
@@ -173,16 +173,15 @@ function NodeActionLabCanvas() {
     config.shortcutPlatform === "auto"
       ? devicePlatform
       : config.shortcutPlatform;
-  const shortcuts = getNodeActionShortcuts(platform, config.macMemoKey);
+  const shortcuts = getNodeActionShortcuts(platform);
 
   const [isGuideOpen, setIsGuideOpen] = useState(false);
 
-  const toolbarEntryKey = getToolbarEntryKey(config);
+  const hasToolbar = hasKeyboardToolbar(config.toolbarVisibility);
 
   useLabShortcuts({
-    shortcutsEnabled: config.shortcutsEnabled,
     guideEnabled: config.showShortcutGuide,
-    toolbarEntryKey,
+    hasToolbar,
     shortcuts,
     canvasRef,
     onRunAction: (actionId, clientId) =>
@@ -268,7 +267,7 @@ function NodeActionLabCanvas() {
               position={config.toolbarPosition}
               buttonStyle={config.toolbarStyle}
               tooltip={config.tooltip}
-              shortcuts={shortcuts}
+              shortcuts={config.showTooltipShortcuts ? shortcuts : null}
               getBlockReason={(actionId) =>
                 getBlockReason(actionId, target.clientId)
               }
@@ -309,12 +308,8 @@ function NodeActionLabCanvas() {
 
         {config.showHintBar && selectedNodes.length === 1 && !renamingNode ? (
           <LabHintBar
-            shortcuts={config.shortcutsEnabled ? shortcuts : null}
-            toolbarEntryLabel={
-              TOOLBAR_ENTRY_KEY_OPTIONS.find(
-                (option) => option.value === toolbarEntryKey,
-              )?.label ?? null
-            }
+            shortcuts={shortcuts}
+            toolbarEntryLabel={hasToolbar ? TOOLBAR_ENTRY_KEY : null}
             getBlockReason={(actionId) =>
               getBlockReason(actionId, selectedNodes[0].id)
             }

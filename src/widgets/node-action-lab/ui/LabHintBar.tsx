@@ -6,7 +6,7 @@ import {
 import { type NodeActionShortcuts } from "../model/shortcuts";
 
 type LabHintBarProps = {
-  shortcuts: NodeActionShortcuts | null; // 단축키를 끄면 null. 버튼 이동 키만 적는다
+  shortcuts: NodeActionShortcuts;
   toolbarEntryLabel: string | null; // 노드 옆 버튼으로 들어가는 키의 표기. 선택된 노드에 버튼이 붙지 않으면 null
   getBlockReason: (actionId: NodeActionId) => string | null; // 선택된 노드에 막힌 동작은 흐리게 적는다
   showGuideHint: boolean; // ? 안내를 열 수 있으면 마지막에 함께 적는다
@@ -19,7 +19,7 @@ const KBD_CLASS_NAME =
 함수 이름 : LabHintBar
 기능 : 선택된 노드에 쓸 수 있는 키를 캔버스 아래에 한 줄로 보여 준다. 막힌 동작은 흐리게 두고 이유를 title로 단다.
 인자 : LabHintBarProps
-반환값 : 단축키 힌트 줄. 보여 줄 키가 없으면 null
+반환값 : 단축키 힌트 줄
 */
 export function LabHintBar({
   shortcuts,
@@ -27,8 +27,6 @@ export function LabHintBar({
   getBlockReason,
   showGuideHint,
 }: LabHintBarProps) {
-  if (!shortcuts && !toolbarEntryLabel && !showGuideHint) return null;
-
   return (
     <div
       aria-label="선택한 노드의 단축키"
@@ -40,24 +38,20 @@ export function LabHintBar({
           버튼으로 이동
         </span>
       ) : null}
-      {shortcuts
-        ? NODE_ACTION_IDS.map((actionId) => {
-            const blockReason = getBlockReason(actionId);
+      {NODE_ACTION_IDS.map((actionId) => {
+        const blockReason = getBlockReason(actionId);
 
-            return (
-              <span
-                key={actionId}
-                title={blockReason ?? undefined}
-                className={blockReason ? "text-content-disabled" : undefined}
-              >
-                <kbd className={KBD_CLASS_NAME}>
-                  {shortcuts[actionId].label}
-                </kbd>
-                {NODE_ACTION_LABELS[actionId]}
-              </span>
-            );
-          })
-        : null}
+        return (
+          <span
+            key={actionId}
+            title={blockReason ?? undefined}
+            className={blockReason ? "text-content-disabled" : undefined}
+          >
+            <kbd className={KBD_CLASS_NAME}>{shortcuts[actionId].label}</kbd>
+            {NODE_ACTION_LABELS[actionId]}
+          </span>
+        );
+      })}
       {showGuideHint ? (
         <span>
           <kbd className={KBD_CLASS_NAME}>?</kbd>

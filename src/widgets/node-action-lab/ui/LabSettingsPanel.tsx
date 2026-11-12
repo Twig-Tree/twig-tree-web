@@ -1,19 +1,33 @@
 import {
-  MAC_MEMO_KEY_OPTIONS,
   MENU_TRIGGER_OPTIONS,
   type NodeActionLabConfig,
   SHORTCUT_PLATFORM_OPTIONS,
   TOOLBAR_POSITION_OPTIONS,
   TOOLBAR_STYLE_OPTIONS,
   TOOLBAR_VISIBILITY_OPTIONS,
-  TOOLBAR_ENTRY_KEY_OPTIONS,
   TOOLTIP_OPTIONS,
 } from "../model/config";
 import { type ShortcutPlatform } from "../model/shortcuts";
 
+/*
+노드 옆 버튼을 언제 보일지에 따라 키보드로 쓸 수 있는지가 달라진다. 고른 값 바로 아래에 적어 실험할 때 헷갈리지 않게 한다.
+*/
+const TOOLBAR_VISIBILITY_DESCRIPTIONS: Record<
+  NodeActionLabConfig["toolbarVisibility"],
+  string | undefined
+> = {
+  off: undefined,
+  hover:
+    "호버 버튼은 마우스로만 쓸 수 있습니다. 키보드로는 버튼에 들어갈 수 없습니다.",
+  selected:
+    "선택한 노드에서 Tab을 누르면 첫 버튼으로 갑니다. ←→로 오가고 Esc로 노드에 돌아옵니다.",
+  hoverOrSelected:
+    "선택한 노드의 버튼에만 Tab으로 들어갈 수 있습니다. 호버로 보인 버튼은 마우스로만 쓸 수 있습니다.",
+};
+
 type LabSettingsPanelProps = {
   config: NodeActionLabConfig;
-  platform: ShortcutPlatform; // 설정과 기기로 정해진 운영체제. 맥일 때만 메모 키 후보를 보여 준다
+  platform: ShortcutPlatform; // 설정과 기기로 정해진 운영체제. 이 기기 선택지에 어느 운영체제인지 적는다
   onChangeConfig: (patch: Partial<NodeActionLabConfig>) => void; // 바꾼 값만 넘긴다. 합치는 일은 호출부가 이전 값을 기준으로 한다
 };
 
@@ -146,6 +160,7 @@ export function LabSettingsPanel({
         label="노드 옆 버튼"
         options={TOOLBAR_VISIBILITY_OPTIONS}
         value={config.toolbarVisibility}
+        description={TOOLBAR_VISIBILITY_DESCRIPTIONS[config.toolbarVisibility]}
         onChange={(toolbarVisibility) => onChangeConfig({ toolbarVisibility })}
       />
       {config.toolbarVisibility === "off" ? null : (
@@ -168,14 +183,12 @@ export function LabSettingsPanel({
             value={config.tooltip}
             onChange={(tooltip) => onChangeConfig({ tooltip })}
           />
-          {config.toolbarVisibility === "hover" ? null : (
-            <OptionGroup
-              label="키보드로 버튼에 들어가는 키"
-              options={TOOLBAR_ENTRY_KEY_OPTIONS}
-              value={config.toolbarEntryKey}
-              description="선택한 노드에서 누르면 첫 버튼으로 갑니다. ←→로 오가고 Esc로 노드에 돌아옵니다."
-              onChange={(toolbarEntryKey) =>
-                onChangeConfig({ toolbarEntryKey })
+          {config.tooltip === "off" ? null : (
+            <ToggleOption
+              label="툴팁에 단축키 표기"
+              checked={config.showTooltipShortcuts}
+              onChange={(showTooltipShortcuts) =>
+                onChangeConfig({ showTooltipShortcuts })
               }
             />
           )}
@@ -193,21 +206,8 @@ export function LabSettingsPanel({
             : option,
         )}
         value={config.shortcutPlatform}
+        description="노드를 하나 선택하면 단축키가 언제나 동작합니다."
         onChange={(shortcutPlatform) => onChangeConfig({ shortcutPlatform })}
-      />
-      {platform === "mac" ? (
-        <OptionGroup
-          label="Mac 메모 열기 키"
-          options={MAC_MEMO_KEY_OPTIONS}
-          value={config.macMemoKey}
-          onChange={(macMemoKey) => onChangeConfig({ macMemoKey })}
-        />
-      ) : null}
-      <ToggleOption
-        label="단축키로 실행"
-        description="노드를 하나 선택했을 때 동작합니다."
-        checked={config.shortcutsEnabled}
-        onChange={(shortcutsEnabled) => onChangeConfig({ shortcutsEnabled })}
       />
       <ToggleOption
         label="하단 힌트 줄"
