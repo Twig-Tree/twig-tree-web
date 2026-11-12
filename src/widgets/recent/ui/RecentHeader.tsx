@@ -42,6 +42,8 @@ export function RecentHeader({
         isOpen={isFolderPathPickerOpen}
         onClose={() => setIsFolderPathPickerOpen(false)}
         onSelect={onSelectFolderPath}
+        title="워크스페이스를 만들 위치"
+        confirmLabel="여기에 만들기"
       />
     </>
   );
