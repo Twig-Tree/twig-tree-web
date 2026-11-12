@@ -16,6 +16,13 @@ export interface UpdateFolderRequest {
 }
 
 /**
+ * 폴더 이동 요청 body type
+ */
+export interface MoveFolderRequest {
+  folderParentId: number | null; // 옮겨 갈 부모 폴더 ID. 루트는 null
+}
+
+/**
  * 폴더 DTO type
  */
 export interface FolderDTO {
@@ -41,6 +48,11 @@ export type CreateFolderResponse = ApiResponse<FolderDTO>;
  * 폴더 수정 응답 type
  */
 export type UpdateFolderResponse = ApiResponse<FolderDTO>;
+
+/**
+ * 폴더 이동 응답 type
+ */
+export type MoveFolderResponse = ApiResponse<FolderDTO>;
 
 /**
  * 폴더 삭제 응답 type

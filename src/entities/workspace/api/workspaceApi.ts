@@ -8,6 +8,8 @@ import {
   GetRecentWorkspaceListResponse,
   GetWorkspaceListResponse,
   GetWorkspaceResponse,
+  MoveWorkspaceRequest,
+  MoveWorkspaceResponse,
   UpdateWorkspaceRequest,
   UpdateWorkspaceResponse,
 } from "@/src/entities/workspace/api/types";
@@ -108,6 +110,25 @@ export const workspaceApi = {
   ): Promise<WorkspaceDetail> => {
     const response = await axiosInstance.patch<UpdateWorkspaceResponse>(
       `/workspaces/${workspaceId}`,
+      body,
+    );
+    return mapWorkspaceDetailDtoToDomain(response.data.data);
+  },
+
+  /*
+  함수 이름 : moveWorkspace
+  기능 : 워크스페이스를 다른 폴더로 옮긴다. 서버가 수정 시각을 갱신하므로 최신순 목록의 맨 앞으로 온다.
+  응답이 조회와 같은 DTO라 treeId까지 싣는 상세 mapper를 쓴다.
+  인자 : number workspaceId -> 옮길 워크스페이스 ID
+  MoveWorkspaceRequest body -> 옮겨 갈 폴더 ID
+  반환값 : 옮긴 워크스페이스
+  */
+  moveWorkspace: async (
+    workspaceId: number,
+    body: MoveWorkspaceRequest,
+  ): Promise<WorkspaceDetail> => {
+    const response = await axiosInstance.patch<MoveWorkspaceResponse>(
+      `/workspaces/${workspaceId}/move`,
       body,
     );
     return mapWorkspaceDetailDtoToDomain(response.data.data);

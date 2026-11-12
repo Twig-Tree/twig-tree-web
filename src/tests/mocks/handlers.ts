@@ -77,6 +77,43 @@ export const handlers = [
   }),
 
   /*
+  폴더 이동 PATCH 요청 핸들러.
+  요청 body의 부모 ID를 반영해 응답하므로, 목적지가 실제로 실려 가는지 확인할 수 있다.
+  */
+  http.patch("*/api/folders/:folderId/move", async ({ params, request }) => {
+    const folder = RAW_FOLDER_DATA.find(
+      ({ folderId }) => String(folderId) === params.folderId,
+    );
+
+    if (!folder) {
+      return HttpResponse.json(
+        {
+          isSuccess: false,
+          code: "FOLDER404-1",
+          message: "해당 폴더가 존재하지 않습니다.",
+          data: null,
+        },
+        { status: 404 },
+      );
+    }
+
+    const body = (await request.json()) as { folderParentId: number | null };
+
+    return HttpResponse.json(
+      {
+        isSuccess: true,
+        code: "FOLDER200-6",
+        message: "성공적으로 폴더를 이동했습니다.",
+        data: {
+          ...folder,
+          folderParentId: body.folderParentId,
+        },
+      },
+      { status: 200 },
+    );
+  }),
+
+  /*
   폴더 삭제 DELETE 요청 핸들러.
   없는 폴더는 백엔드처럼 404로 거절한다.
   */
@@ -280,6 +317,47 @@ export const handlers = [
       { status: 200 },
     );
   }),
+
+  /*
+  워크스페이스 이동 PATCH 요청 핸들러.
+  요청 body의 폴더 ID를 반영해 응답한다. 수정 시각은 백엔드처럼 새 값으로 바뀐다.
+  */
+  http.patch(
+    "*/api/workspaces/:workspaceId/move",
+    async ({ params, request }) => {
+      const workspace = RAW_WORKSPACE_DATA.find(
+        ({ workspaceId }) => String(workspaceId) === params.workspaceId,
+      );
+
+      if (!workspace) {
+        return HttpResponse.json(
+          {
+            isSuccess: false,
+            code: "WORKSPACE404-1",
+            message: "해당 워크스페이스가 존재하지 않습니다.",
+            data: null,
+          },
+          { status: 404 },
+        );
+      }
+
+      const body = (await request.json()) as { folderId: number | null };
+
+      return HttpResponse.json(
+        {
+          isSuccess: true,
+          code: "WORKSPACE200-5",
+          message: "성공적으로 워크스페이스를 이동했습니다.",
+          data: {
+            ...workspace,
+            folderId: body.folderId,
+            updatedAt: "2026-11-13T15:00:00.000000Z",
+          },
+        },
+        { status: 200 },
+      );
+    },
+  ),
 
   /*
   워크스페이스 삭제 DELETE 요청 핸들러.

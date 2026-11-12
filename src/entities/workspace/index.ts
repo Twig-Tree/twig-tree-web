@@ -8,6 +8,7 @@ export {
 } from "./model/queries";
 export { useCreateWorkspaceMutation } from "./model/mutations/useCreateWorkspaceMutation";
 export { useUpdateWorkspaceMutation } from "./model/mutations/useUpdateWorkspaceMutation";
+export { useMoveWorkspaceMutation } from "./model/mutations/useMoveWorkspaceMutation";
 export { useDeleteWorkspaceMutation } from "./model/mutations/useDeleteWorkspaceMutation";
 export { useCreateWorkspaceTreeMutation } from "./model/mutations/useCreateWorkspaceTreeMutation";
 export { useSetWorkspaceTreeIdInCache } from "./model/useSetWorkspaceTreeIdInCache";

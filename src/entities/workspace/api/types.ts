@@ -27,6 +27,13 @@ export interface UpdateWorkspaceRequest {
 }
 
 /**
+ * 워크스페이스 이동 요청 body type
+ */
+export interface MoveWorkspaceRequest {
+  folderId: number | null; // 옮겨 갈 폴더 ID. 루트는 null
+}
+
+/**
  * 워크스페이스 목록 조회 응답 type
  */
 export type GetWorkspaceListResponse = ApiResponse<WorkspaceDTO[]>;
@@ -71,6 +78,12 @@ export type CreateWorkspaceResponse = ApiResponse<WorkspaceDTO>;
  * 조회와 같은 DTO라 treeId까지 모두 담겨 온다.
  */
 export type UpdateWorkspaceResponse = ApiResponse<WorkspaceDTO>;
+
+/**
+ * 워크스페이스 이동 응답 type
+ * 조회와 같은 DTO라 treeId까지 모두 담겨 온다.
+ */
+export type MoveWorkspaceResponse = ApiResponse<WorkspaceDTO>;
 
 /**
  * 워크스페이스 삭제 응답 type
