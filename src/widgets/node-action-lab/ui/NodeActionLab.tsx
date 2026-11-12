@@ -20,6 +20,7 @@ import {
   useTreeStore,
   useVisibleElements,
 } from "@/src/features/tree-editor";
+import { CopyButton } from "@/src/shared/ui/copy-button";
 import {
   DEFAULT_NODE_ACTION_LAB_CONFIG,
   hasKeyboardToolbar,
@@ -31,6 +32,7 @@ import {
   NODE_ACTION_LAB_TREE,
   NODE_ACTION_LAB_TREE_ID,
 } from "../model/fixtureTree";
+import { getConfigSummary } from "../model/getConfigSummary";
 import { getToolbarTargets } from "../model/getToolbarTargets";
 import { getNodeActionShortcuts } from "../model/shortcuts";
 import { useDevicePlatform } from "../model/useDevicePlatform";
@@ -217,13 +219,22 @@ function NodeActionLabCanvas() {
           }
         />
 
-        <button
-          type="button"
-          onClick={handleResetTree}
-          className="h-8 rounded-control border border-line bg-surface text-xs font-bold text-content-secondary hover:bg-surface-hover"
-        >
-          트리 처음 상태로
-        </button>
+        <div className="flex gap-2">
+          {/*
+          설정은 새로고침하면 기본값으로 돌아가므로, 비교한 조합을 글로 옮겨 둘 수 있게 한다.
+          */}
+          <CopyButton
+            label="현재 설정 복사"
+            text={getConfigSummary(config, platform)}
+          />
+          <button
+            type="button"
+            onClick={handleResetTree}
+            className="h-8 flex-1 rounded-control border border-line bg-surface text-xs font-bold text-content-secondary hover:bg-surface-hover"
+          >
+            트리 처음 상태로
+          </button>
+        </div>
 
         <LabActionLog log={log} onClear={clearLog} />
       </aside>

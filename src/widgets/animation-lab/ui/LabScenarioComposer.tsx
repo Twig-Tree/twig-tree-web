@@ -4,7 +4,7 @@ import {
   type LabScenarioIssueGroup,
   type LabScenarioRun,
 } from "../model/labScenarioRun";
-import { LabCopyButton } from "./LabCopyButton";
+import { CopyButton } from "@/src/shared/ui/copy-button";
 import { LabScenarioOutline } from "./LabScenarioOutline";
 
 export type LabScenarioDraft = {
@@ -158,12 +158,12 @@ export function LabScenarioComposer({
         fixture 트리는 fixtures/trees/<이름>.json과 같은 모양이라, 고친 시나리오와 함께 새 fixture로 옮길 수 있다.
         */}
         <div className="flex flex-wrap gap-1.5">
-          <LabCopyButton label="시나리오 복사" text={draft.scenarioText} />
-          <LabCopyButton
+          <CopyButton label="시나리오 복사" text={draft.scenarioText} />
+          <CopyButton
             label="대본 복사"
             text={run.success ? JSON.stringify(run.script, null, 2) : null}
           />
-          <LabCopyButton
+          <CopyButton
             label="fixture 트리 복사"
             text={fixture ? JSON.stringify(fixture.tree, null, 2) : null}
           />
