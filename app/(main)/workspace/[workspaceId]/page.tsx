@@ -74,6 +74,7 @@ function LayoutFlow({ workspaceId, treeId }: LayoutFlowProps) {
   // Zustand 스토어에서 상태(State) 구독
   const nodes = useTreeStore((state) => state.nodes);
   const edges = useTreeStore((state) => state.edges);
+  const storeTreeId = useTreeStore((state) => state.treeId);
 
   // Zustand 스토어에서 액션(Actions) 구독
   const onNodesChange = useTreeStore((state) => state.onNodesChange);
@@ -242,11 +243,18 @@ function LayoutFlow({ workspaceId, treeId }: LayoutFlowProps) {
     onSelectedNodeRemoved: handleSelectedNodeRemoved,
   });
 
-  if (isLoading) {
+  /*
+  빈 워크스페이스에서 루트를 추가하면 store가 먼저 그 트리로 채워진 뒤 상세 캐시의 treeId가 바뀌어 조회가 시작된다.
+  이때 로딩·오류 화면으로 바꾸면 캔버스가 내려갔다 다시 올라와 기본 viewport에서 시작하고, 첫 배치에서 맞춘 화면을 잃는다.
+  store가 이미 이 트리를 들고 있으면 편집기를 그대로 둔다. 조회 결과는 useInitializeTree가 같은 트리로 보고 건너뛴다.
+  */
+  const isTreeInStore = treeId !== null && storeTreeId === treeId;
+
+  if (isLoading && !isTreeInStore) {
     return <div>불러오는 중입니다.</div>;
   }
 
-  if (isTreeLoadFailed) {
+  if (isTreeLoadFailed && !isTreeInStore) {
     return <div>트리를 불러오지 못했습니다.</div>;
   }
 
