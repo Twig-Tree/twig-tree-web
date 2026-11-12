@@ -1,14 +1,18 @@
 import {
+  MAC_MEMO_KEY_OPTIONS,
   MENU_TRIGGER_OPTIONS,
   type NodeActionLabConfig,
+  SHORTCUT_PLATFORM_OPTIONS,
   TOOLBAR_POSITION_OPTIONS,
   TOOLBAR_STYLE_OPTIONS,
   TOOLBAR_VISIBILITY_OPTIONS,
   TOOLTIP_OPTIONS,
 } from "../model/config";
+import { type ShortcutPlatform } from "../model/shortcuts";
 
 type LabSettingsPanelProps = {
   config: NodeActionLabConfig;
+  platform: ShortcutPlatform; // 설정과 기기로 정해진 운영체제. 맥일 때만 메모 키 후보를 보여 준다
   onChangeConfig: (patch: Partial<NodeActionLabConfig>) => void; // 바꾼 값만 넘긴다. 합치는 일은 호출부가 이전 값을 기준으로 한다
 };
 
@@ -106,6 +110,7 @@ function ToggleOption({
 */
 export function LabSettingsPanel({
   config,
+  platform,
   onChangeConfig,
 }: LabSettingsPanelProps) {
   return (
@@ -127,7 +132,6 @@ export function LabSettingsPanel({
       />
       <ToggleOption
         label="메뉴에 단축키 표기"
-        description="표기만 합니다. 키를 눌러 실행하는 기능은 아직 없습니다."
         checked={config.showMenuShortcuts}
         onChange={(showMenuShortcuts) => onChangeConfig({ showMenuShortcuts })}
       />
@@ -160,6 +164,45 @@ export function LabSettingsPanel({
           />
         </>
       )}
+
+      <OptionGroup
+        label="단축키 기준 운영체제"
+        options={SHORTCUT_PLATFORM_OPTIONS.map((option) =>
+          option.value === "auto"
+            ? {
+                ...option,
+                label: `이 기기 (${platform === "mac" ? "Mac" : "Windows"})`,
+              }
+            : option,
+        )}
+        value={config.shortcutPlatform}
+        onChange={(shortcutPlatform) => onChangeConfig({ shortcutPlatform })}
+      />
+      {platform === "mac" ? (
+        <OptionGroup
+          label="Mac 메모 열기 키"
+          options={MAC_MEMO_KEY_OPTIONS}
+          value={config.macMemoKey}
+          onChange={(macMemoKey) => onChangeConfig({ macMemoKey })}
+        />
+      ) : null}
+      <ToggleOption
+        label="단축키로 실행"
+        description="노드를 하나 선택했을 때 동작합니다."
+        checked={config.shortcutsEnabled}
+        onChange={(shortcutsEnabled) => onChangeConfig({ shortcutsEnabled })}
+      />
+      <ToggleOption
+        label="하단 힌트 줄"
+        description="노드를 선택하면 쓸 수 있는 단축키를 캔버스 아래에 보여 줍니다."
+        checked={config.showHintBar}
+        onChange={(showHintBar) => onChangeConfig({ showHintBar })}
+      />
+      <ToggleOption
+        label="?로 단축키 안내 열기"
+        checked={config.showShortcutGuide}
+        onChange={(showShortcutGuide) => onChangeConfig({ showShortcutGuide })}
+      />
     </section>
   );
 }

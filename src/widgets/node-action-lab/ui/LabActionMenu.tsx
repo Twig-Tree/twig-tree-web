@@ -11,7 +11,7 @@ import {
   NODE_ACTION_LABELS,
   type NodeActionId,
 } from "../model/nodeActions";
-import { NODE_ACTION_SHORTCUTS } from "../model/shortcuts";
+import { type NodeActionShortcuts } from "../model/shortcuts";
 import { NODE_ACTION_ICONS } from "./nodeActionIcons";
 
 const MENU_EDGE_GAP = 8; // 메뉴가 캔버스 가장자리에 붙지 않도록 남기는 여백(px)
@@ -20,7 +20,7 @@ type LabActionMenuProps = {
   x: number; // 캔버스 왼쪽 위를 기준으로 한 메뉴 위치
   y: number;
   getBlockReason: (actionId: NodeActionId) => string | null; // 막힌 동작은 비활성으로 두고 이유를 보여 준다
-  showShortcuts: boolean; // 항목 오른쪽에 단축키를 적을지 여부
+  shortcuts: NodeActionShortcuts | null; // 항목 오른쪽에 적을 단축키. 적지 않으면 null
   onSelect: (actionId: NodeActionId) => void; // 고른 동작을 실행한다
   onClose: () => void; // 메뉴를 닫는다
   onEscape: () => void; // Escape로 닫는다. 메뉴를 열기 전의 자리로 focus를 돌려준다
@@ -39,7 +39,7 @@ export function LabActionMenu({
   x,
   y,
   getBlockReason,
-  showShortcuts,
+  shortcuts,
   onSelect,
   onClose,
   onEscape,
@@ -169,9 +169,9 @@ export function LabActionMenu({
                 </span>
               ) : null}
             </span>
-            {showShortcuts ? (
+            {shortcuts ? (
               <kbd className="ml-auto pl-4 font-sans text-xs text-content-muted">
-                {NODE_ACTION_SHORTCUTS[actionId].label}
+                {shortcuts[actionId].label}
               </kbd>
             ) : null}
           </button>

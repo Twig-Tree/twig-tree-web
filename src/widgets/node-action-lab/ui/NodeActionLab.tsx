@@ -30,12 +30,17 @@ import {
   NODE_ACTION_LAB_TREE_ID,
 } from "../model/fixtureTree";
 import { getToolbarTargets } from "../model/getToolbarTargets";
+import { getNodeActionShortcuts } from "../model/shortcuts";
+import { useDevicePlatform } from "../model/useDevicePlatform";
 import { useHoveredNode } from "../model/useHoveredNode";
 import { useLabNodeActions } from "../model/useLabNodeActions";
+import { useLabShortcuts } from "../model/useLabShortcuts";
 import { LabActionLog } from "./LabActionLog";
 import { LabActionMenu } from "./LabActionMenu";
+import { LabHintBar } from "./LabHintBar";
 import { LabMemoPanel } from "./LabMemoPanel";
 import { LabNodeToolbar } from "./LabNodeToolbar";
+import { LabShortcutGuide } from "./LabShortcutGuide";
 import { LabRenameInput } from "./LabRenameInput";
 import { LabSettingsPanel } from "./LabSettingsPanel";
 
@@ -161,6 +166,25 @@ function NodeActionLabCanvas() {
     renamingClientId,
   });
 
+  const devicePlatform = useDevicePlatform();
+  const platform =
+    config.shortcutPlatform === "auto"
+      ? devicePlatform
+      : config.shortcutPlatform;
+  const shortcuts = getNodeActionShortcuts(platform, config.macMemoKey);
+
+  const [isGuideOpen, setIsGuideOpen] = useState(false);
+
+  useLabShortcuts({
+    shortcutsEnabled: config.shortcutsEnabled,
+    guideEnabled: config.showShortcutGuide,
+    shortcuts,
+    canvasRef,
+    onRunAction: (actionId, clientId) =>
+      runAction(actionId, "shortcut", clientId),
+    onToggleGuide: () => setIsGuideOpen((isOpen) => !isOpen),
+  });
+
   const handleResetTree = () => {
     closeContextMenu();
     closeOverlays();
@@ -183,6 +207,7 @@ function NodeActionLabCanvas() {
 
         <LabSettingsPanel
           config={config}
+          platform={platform}
           onChangeConfig={(patch) =>
             setConfig((previous) => ({ ...previous, ...patch }))
           }
@@ -238,6 +263,7 @@ function NodeActionLabCanvas() {
               position={config.toolbarPosition}
               buttonStyle={config.toolbarStyle}
               tooltip={config.tooltip}
+              shortcuts={shortcuts}
               getBlockReason={(actionId) =>
                 getBlockReason(actionId, target.clientId)
               }
@@ -267,12 +293,30 @@ function NodeActionLabCanvas() {
             getBlockReason={(actionId) =>
               getBlockReason(actionId, contextMenu.clientId)
             }
-            showShortcuts={config.showMenuShortcuts}
+            shortcuts={config.showMenuShortcuts ? shortcuts : null}
             onSelect={(actionId) =>
               runAction(actionId, menuEntry, contextMenu.clientId)
             }
             onClose={closeContextMenu}
             onEscape={closeContextMenuAndFocusNode}
+          />
+        ) : null}
+
+        {config.showHintBar && selectedNodes.length === 1 && !renamingNode ? (
+          <LabHintBar
+            shortcuts={shortcuts}
+            getBlockReason={(actionId) =>
+              getBlockReason(actionId, selectedNodes[0].id)
+            }
+            showGuideHint={config.showShortcutGuide}
+          />
+        ) : null}
+
+        {config.showShortcutGuide && isGuideOpen ? (
+          <LabShortcutGuide
+            shortcuts={shortcuts}
+            platform={platform}
+            onClose={() => setIsGuideOpen(false)}
           />
         ) : null}
       </div>

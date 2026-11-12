@@ -10,7 +10,7 @@ import {
   NODE_ACTION_LABELS,
   type NodeActionId,
 } from "../model/nodeActions";
-import { NODE_ACTION_SHORTCUTS } from "../model/shortcuts";
+import { type NodeActionShortcuts } from "../model/shortcuts";
 import { NODE_ACTION_ICONS } from "./nodeActionIcons";
 
 const TOOLBAR_POSITIONS: Record<ToolbarPosition, Position> = {
@@ -33,6 +33,7 @@ type LabNodeToolbarProps = {
   position: ToolbarPosition;
   buttonStyle: ToolbarStyle;
   tooltip: TooltipContent;
+  shortcuts: NodeActionShortcuts; // 툴팁에 적을 단축키
   getBlockReason: (actionId: NodeActionId) => string | null;
   onRunAction: (actionId: NodeActionId) => void; // 막힌 동작도 부른다. 실행 기록에 막힌 이유를 남기기 위해서다
   /*
@@ -59,6 +60,7 @@ export function LabNodeToolbar({
   position,
   buttonStyle,
   tooltip,
+  shortcuts,
   getBlockReason,
   onRunAction,
   onMouseEnter,
@@ -122,7 +124,7 @@ export function LabNodeToolbar({
                     {label}
                     {tooltip === "labelShortcut" ? (
                       <kbd className="ml-2 font-sans opacity-70">
-                        {NODE_ACTION_SHORTCUTS[actionId].label}
+                        {shortcuts[actionId].label}
                       </kbd>
                     ) : null}
                   </span>
