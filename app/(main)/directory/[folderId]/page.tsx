@@ -13,6 +13,7 @@ import { isValidApiId } from "@/src/shared/lib/validation/isValidApiId";
 import type { BreadcrumbItem } from "@/src/shared/ui/breadcrumb";
 import {
   DirectoryContentsGrid,
+  DirectoryDragMoveProvider,
   DirectoryHeader,
   DirectoryNotFound,
 } from "@/src/widgets/directory";
@@ -122,31 +123,33 @@ function DirectoryPageContent({ folderParentId }: DirectoryPageContentProps) {
 
   return (
     <div className="h-full overflow-y-auto bg-surface-muted/70 px-6 py-8 lg:px-8">
-      <div className="mx-auto flex w-full max-w-7xl flex-col gap-8">
-        <DirectoryHeader
-          title={currentFolderName}
-          breadcrumbs={breadcrumbs}
-          isTitleLoading={folderPathQuery.isLoading}
-          isPathError={folderPathQuery.isError}
-          onCreateFolder={() => void handleCreateFolder()}
-          isCreateFolderDisabled={isCreateFolderDisabled}
-          onCreateWorkspace={() => void handleCreateWorkspace()}
-          isCreateWorkspaceDisabled={isCreateWorkspaceDisabled}
-        />
-        <DirectoryContentsGrid
-          editingFolderId={editingFolderId}
-          editingWorkspaceId={editingWorkspaceId}
-          folderParentId={folderParentId}
-          folders={folderListQuery.data ?? []}
-          isError={isListError}
-          isLoaded={isListLoaded}
-          isLoading={isListLoading}
-          onFolderEditingStart={startFolderEditing}
-          onEditingEnd={endEditing}
-          onWorkspaceEditingStart={startWorkspaceEditing}
-          workspaces={workspaceListQuery.data ?? []}
-        />
-      </div>
+      <DirectoryDragMoveProvider folderParentId={folderParentId}>
+        <div className="mx-auto flex w-full max-w-7xl flex-col gap-8">
+          <DirectoryHeader
+            title={currentFolderName}
+            breadcrumbs={breadcrumbs}
+            isTitleLoading={folderPathQuery.isLoading}
+            isPathError={folderPathQuery.isError}
+            onCreateFolder={() => void handleCreateFolder()}
+            isCreateFolderDisabled={isCreateFolderDisabled}
+            onCreateWorkspace={() => void handleCreateWorkspace()}
+            isCreateWorkspaceDisabled={isCreateWorkspaceDisabled}
+          />
+          <DirectoryContentsGrid
+            editingFolderId={editingFolderId}
+            editingWorkspaceId={editingWorkspaceId}
+            folderParentId={folderParentId}
+            folders={folderListQuery.data ?? []}
+            isError={isListError}
+            isLoaded={isListLoaded}
+            isLoading={isListLoading}
+            onFolderEditingStart={startFolderEditing}
+            onEditingEnd={endEditing}
+            onWorkspaceEditingStart={startWorkspaceEditing}
+            workspaces={workspaceListQuery.data ?? []}
+          />
+        </div>
+      </DirectoryDragMoveProvider>
     </div>
   );
 }
