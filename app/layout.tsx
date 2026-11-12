@@ -1,6 +1,7 @@
 import "./globals.css";
 import { Network } from "lucide-react";
 import { QueryProvider } from "@/src/shared/lib/react-query/QueryProvider";
+import { Toaster } from "@/src/shared/ui/toast";
 import {
   DEFAULT_THEME,
   getThemeInitScript,
@@ -49,6 +50,7 @@ export default function RootLayout({
 
             <div className="min-h-0 flex-1">{children}</div>
           </div>
+          <Toaster />
           <ReactQueryDevtools initialIsOpen={false} />
         </QueryProvider>
       </body>
