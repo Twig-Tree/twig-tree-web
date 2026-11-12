@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import { act, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, it, expect, vi } from "vitest";
 import { createQueryWrapper } from "@/src/tests/helpers/createQueryWrapper";
@@ -198,5 +198,32 @@ describe("FolderPathPickerModal", () => {
 
     expect(await screen.findByText("Root Folder")).toBeInTheDocument();
     expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+  });
+
+  /*
+  기다리는 동안 다른 폴더로 옮겨 가면, 실패했을 때 실패한 위치와 보고 있는 위치가 달라 안내를 보여줄 곳이 없다.
+  jsdom은 inert로 클릭을 막지 않으므로 막는 속성이 걸렸는지 확인한다.
+  */
+  it("확정 결과를 기다리는 동안에는 경로와 목록을 막고, 끝나면 푼다", async () => {
+    let resolveSelect: (isSelected: boolean) => void = () => {};
+    const onSelect = vi.fn(
+      () =>
+        new Promise<boolean>((resolve) => {
+          resolveSelect = resolve;
+        }),
+    );
+    renderModal({ onSelect });
+
+    const selectButton = screen.getByRole("button", { name: "여기로 옮기기" });
+    await waitFor(() => expect(selectButton).toBeEnabled());
+    await userEvent.setup().click(selectButton);
+
+    const folderRow = screen.getByText("Root Folder").closest("button");
+    expect(folderRow?.closest("[inert]")).not.toBeNull();
+    expect(selectButton).toBeDisabled();
+
+    await act(async () => resolveSelect(false));
+
+    expect(folderRow?.closest("[inert]")).toBeNull();
   });
 });

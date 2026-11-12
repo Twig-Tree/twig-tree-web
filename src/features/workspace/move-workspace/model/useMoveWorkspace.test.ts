@@ -83,4 +83,18 @@ describe("useMoveWorkspace", () => {
     expect(isMoved).toBe(false);
     expect(result.current.moveWorkspaceErrorMessage).toBe(message);
   });
+
+  /*
+  마지막 항목을 옮기면 화면이 팝업째 빈 상태 안내로 바뀌어 닫기 callback이 불리지 않는다.
+  hook이 직접 비우지 않으면 목록이 다시 그려질 때 옮긴 워크스페이스의 팝업이 다시 열린다.
+  */
+  it("옮기고 나면 옮길 워크스페이스를 비운다", async () => {
+    const { result } = renderUseMoveWorkspace();
+
+    await act(async () => {
+      await result.current.moveWorkspace(null);
+    });
+
+    expect(result.current.movingWorkspace).toBeNull();
+  });
 });

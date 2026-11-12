@@ -129,12 +129,24 @@ function FolderPathPickerContent({
   const workspaces = workspaceListQuery.data ?? [];
 
   /*
+  확정한 결과를 기다리는 동안에는 다른 폴더로 옮겨 가지 못하게 한다. 옮겨 간 뒤 실패하면
+  실패한 위치와 보고 있는 위치가 달라 안내를 보여줄 곳이 없다.
+  onSelect가 끝날 때까지와 부모가 알려 준 요청 상태를 함께 본다. 부모의 상태는 다음 렌더에야 바뀐다.
+  */
+  const [isAwaitingSelect, setIsAwaitingSelect] = useState(false);
+  const isNavigationLocked = isAwaitingSelect || isSelectPending;
+
+  /*
   현재 폴더의 목록을 확인하지 못한 상태에서는 그 폴더를 위치로 확정하지 않는다.
   목록이 비어 있는 것은 조회에 성공한 결과이므로 확정을 막지 않는다.
   */
   const isCurrentLocation = currentFolderId === currentLocationId; // 생략한 undefined는 어떤 위치와도 같지 않다.
   const isSelectDisabled =
-    isListPending || isListError || isCurrentLocation || isSelectPending;
+    isListPending ||
+    isListError ||
+    isCurrentLocation ||
+    isSelectPending ||
+    isAwaitingSelect;
 
   /*
   실패 문구는 실패한 위치에서만 보여준다. 다른 폴더로 옮겨 가서도 남아 있으면,
@@ -155,12 +167,15 @@ function FolderPathPickerContent({
     if (isSelectDisabled) return;
 
     const selectedFolderId = currentFolderId;
+    setIsAwaitingSelect(true);
     const result = await onSelect(selectedFolderId);
 
     /*
     기다리는 동안 사용자가 팝업을 닫았으면 이미 사라진 팝업이므로 아무것도 하지 않는다.
     */
     if (!isMounted()) return;
+
+    setIsAwaitingSelect(false);
 
     if (result === false) {
       setFailedFolderId(selectedFolderId);
@@ -173,7 +188,7 @@ function FolderPathPickerContent({
   return (
     <div className="flex flex-col">
       <div className="flex items-start justify-between gap-3 px-5 pb-4 pt-5">
-        <div className="min-w-0">
+        <div className="min-w-0" inert={isNavigationLocked}>
           <Breadcrumb items={breadcrumbItems} />
           <h2 className="mt-2 text-xl font-bold tracking-tight text-content">
             {title}
@@ -189,7 +204,7 @@ function FolderPathPickerContent({
         </button>
       </div>
 
-      <div className="px-5 pb-4">
+      <div className="px-5 pb-4" inert={isNavigationLocked}>
         <div className={CONTENTS_LIST_CLASS_NAME}>
           {hasParentFolder ? (
             <button

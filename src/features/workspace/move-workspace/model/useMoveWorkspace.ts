@@ -63,6 +63,11 @@ export function useMoveWorkspace() {
         return false;
       }
 
+      /*
+      팝업이 닫힐 때를 기다리지 않고 여기서 비운다. 마지막 항목을 옮겨 목록이 비면 화면이 팝업째 빈 상태 안내로 바뀌어
+      팝업의 닫기 callback이 불리지 않는다. 남겨 두면 목록이 다시 그려질 때 이미 옮긴 항목의 팝업이 다시 열린다.
+      */
+      setMovingWorkspace(null);
       setErrorMessage(null);
       return true;
     },

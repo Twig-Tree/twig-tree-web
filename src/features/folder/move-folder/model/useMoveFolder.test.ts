@@ -105,4 +105,32 @@ describe("useMoveFolder", () => {
 
     expect(result.current.moveFolderErrorMessage).toBeNull();
   });
+
+  /*
+  마지막 항목을 옮기면 화면이 팝업째 빈 상태 안내로 바뀌어 닫기 callback이 불리지 않는다.
+  hook이 직접 비우지 않으면 목록이 다시 그려질 때 옮긴 폴더의 팝업이 다시 열린다.
+  */
+  it("옮기고 나면 옮길 폴더를 비운다", async () => {
+    const { result } = renderUseMoveFolder();
+
+    await act(async () => {
+      await result.current.moveFolder(null);
+    });
+
+    expect(result.current.movingFolder).toBeNull();
+  });
+
+  it("실패하면 옮길 폴더를 남겨 다시 고를 수 있게 한다", async () => {
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    vi.spyOn(folderApi, "moveFolder").mockRejectedValue(
+      createNodeApiError(400, FOLDER_ERROR_CODE.DUPLICATE_FOLDER_NAME),
+    );
+    const { result } = renderUseMoveFolder();
+
+    await act(async () => {
+      await result.current.moveFolder(null);
+    });
+
+    expect(result.current.movingFolder).toEqual(FOLDER);
+  });
 });
