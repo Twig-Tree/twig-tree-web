@@ -40,7 +40,6 @@ describe("EmptyTreeGuide", () => {
       />,
     );
 
-    expect(screen.getByRole("heading", { name: "AI로 채우기" })).toBeTruthy();
     expect(screen.getByRole("textbox", { name: "프롬프트 입력" })).toBeTruthy();
     expect(screen.getByRole("button", { name: "직접 노드 추가" })).toBeTruthy();
   });
@@ -50,6 +49,8 @@ describe("EmptyTreeGuide", () => {
       <EmptyTreeGuide onAddRootNode={vi.fn()} isAddRootNodeDisabled={false} />,
     );
 
-    expect(screen.queryByRole("heading", { name: "AI로 채우기" })).toBeNull();
+    expect(
+      screen.getByText("첫 노드를 추가해 트리를 시작해 보세요."),
+    ).toBeTruthy();
   });
 });
