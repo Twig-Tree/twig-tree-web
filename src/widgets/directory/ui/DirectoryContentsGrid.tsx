@@ -2,9 +2,12 @@
 
 import { FolderCard, type FolderItem } from "@/src/entities/folder";
 import { useDeleteFolder } from "@/src/features/folder/delete-folder";
+import { useMoveFolder } from "@/src/features/folder/move-folder";
+import { FolderPathPickerModal } from "@/src/features/folder/select-folder-path";
 import { EditableFolderCard } from "@/src/features/folder/update-folder";
 import { WorkspaceCard, type WorkspaceItem } from "@/src/entities/workspace";
 import { useDeleteWorkspace } from "@/src/features/workspace/delete-workspace";
+import { useMoveWorkspace } from "@/src/features/workspace/move-workspace";
 import { EditableWorkspaceCard } from "@/src/features/workspace/update-workspace";
 import { CardGridSkeleton } from "@/src/shared/ui/card-grid-skeleton";
 
@@ -39,6 +42,27 @@ export function DirectoryContentsGrid({
     folderParentId,
   });
   const { deleteWorkspace, isDeletingWorkspace } = useDeleteWorkspace();
+
+  /*
+  이동 feature는 위치 선택 팝업을 import하지 않는다. 둘 다 feature라 서로 import하면 같은 계층끼리 의존하게 되므로,
+  두 feature를 아는 이 widget이 hook의 상태를 팝업에 잇는다.
+  */
+  const {
+    movingFolder,
+    openMoveFolder,
+    closeMoveFolder,
+    moveFolder,
+    isMovingFolder,
+    moveFolderErrorMessage,
+  } = useMoveFolder({ folderParentId });
+  const {
+    movingWorkspace,
+    openMoveWorkspace,
+    closeMoveWorkspace,
+    moveWorkspace,
+    isMovingWorkspace,
+    moveWorkspaceErrorMessage,
+  } = useMoveWorkspace();
 
   /*
   한쪽만 실패해도 아무것도 그리지 않는다. 성공한 쪽만 그리면 실패한 쪽이
@@ -82,53 +106,79 @@ export function DirectoryContentsGrid({
   }
 
   return (
-    <section
-      className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4"
-      aria-label="폴더 내용"
-    >
-      {folders.map((folder) =>
-        folder.id === editingFolderId ? (
-          <EditableFolderCard
-            key={folder.id}
-            folder={folder}
-            folders={folders}
-            folderParentId={folderParentId}
-            onEditingEnd={onEditingEnd}
-          />
-        ) : (
-          <FolderCard
-            key={folder.id}
-            folder={folder}
-            isDeleteDisabled={isDeletingFolder}
-            onDelete={() => {
-              void deleteFolder({
-                folderId: folder.id,
-                name: folder.name,
-              });
-            }}
-            onRename={() => onEditingStart(folder.id)}
-          />
-        ),
-      )}
-      {workspaces.map((workspace) =>
-        workspace.id === editingWorkspaceId ? (
-          <EditableWorkspaceCard
-            key={workspace.id}
-            workspace={workspace}
-            onEditingEnd={onEditingEnd}
-          />
-        ) : (
-          <WorkspaceCard
-            key={workspace.id}
-            workspace={workspace}
-            isDeleteDisabled={isDeletingWorkspace}
-            onDelete={() => {
-              void deleteWorkspace(workspace);
-            }}
-            onRename={() => onWorkspaceEditingStart(workspace.id)}
-          />
-        ),
-      )}
-    </section>
+    <>
+      <section
+        className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4"
+        aria-label="폴더 내용"
+      >
+        {folders.map((folder) =>
+          folder.id === editingFolderId ? (
+            <EditableFolderCard
+              key={folder.id}
+              folder={folder}
+              folders={folders}
+              folderParentId={folderParentId}
+              onEditingEnd={onEditingEnd}
+            />
+          ) : (
+            <FolderCard
+              key={folder.id}
+              folder={folder}
+              isDeleteDisabled={isDeletingFolder}
+              onDelete={() => {
+                void deleteFolder({
+                  folderId: folder.id,
+                  name: folder.name,
+                });
+              }}
+              onMove={() => openMoveFolder(folder)}
+              onRename={() => onEditingStart(folder.id)}
+            />
+          ),
+        )}
+        {workspaces.map((workspace) =>
+          workspace.id === editingWorkspaceId ? (
+            <EditableWorkspaceCard
+              key={workspace.id}
+              workspace={workspace}
+              onEditingEnd={onEditingEnd}
+            />
+          ) : (
+            <WorkspaceCard
+              key={workspace.id}
+              workspace={workspace}
+              isDeleteDisabled={isDeletingWorkspace}
+              onDelete={() => {
+                void deleteWorkspace(workspace);
+              }}
+              onMove={() => openMoveWorkspace(workspace)}
+              onRename={() => onWorkspaceEditingStart(workspace.id)}
+            />
+          ),
+        )}
+      </section>
+
+      <FolderPathPickerModal
+        isOpen={movingFolder !== null}
+        onClose={closeMoveFolder}
+        onSelect={moveFolder}
+        title={`"${movingFolder?.name ?? ""}" 폴더를 옮길 위치`}
+        confirmLabel="여기로 옮기기"
+        currentLocationId={folderParentId}
+        movingFolderId={movingFolder?.id}
+        isSelectPending={isMovingFolder}
+        errorMessage={moveFolderErrorMessage}
+      />
+      <FolderPathPickerModal
+        isOpen={movingWorkspace !== null}
+        onClose={closeMoveWorkspace}
+        onSelect={moveWorkspace}
+        title={`"${movingWorkspace?.name ?? ""}" 워크스페이스를 옮길 위치`}
+        confirmLabel="여기로 옮기기"
+        currentLocationId={movingWorkspace?.folderId}
+        isSelectPending={isMovingWorkspace}
+        errorMessage={moveWorkspaceErrorMessage}
+      />
+    </>
   );
 }

@@ -133,4 +133,33 @@ describe("WorkspaceCard", () => {
     expect(deleteItem).toBeDisabled();
     expect(onDelete).not.toHaveBeenCalled();
   });
+
+  it("메뉴에서 이동하기를 고르면 onMove를 부른다", async () => {
+    const user = userEvent.setup();
+    const onMove = vi.fn();
+    render(<WorkspaceCard workspace={WORKSPACE} onMove={onMove} />);
+
+    await user.click(
+      screen.getByRole("button", { name: "리서치 워크스페이스 메뉴" }),
+    );
+    await user.click(screen.getByRole("menuitem", { name: "이동하기" }));
+
+    expect(onMove).toHaveBeenCalledTimes(1);
+  });
+
+  /*
+  최근 화면처럼 이동을 연결하지 않은 화면에 동작하지 않는 이동 항목이 생기지 않아야 한다.
+  */
+  it("onMove를 넘기지 않으면 이동 항목을 그리지 않는다", async () => {
+    const user = userEvent.setup();
+    render(<WorkspaceCard workspace={WORKSPACE} onRename={vi.fn()} />);
+
+    await user.click(
+      screen.getByRole("button", { name: "리서치 워크스페이스 메뉴" }),
+    );
+
+    expect(
+      screen.queryByRole("menuitem", { name: "이동하기" }),
+    ).not.toBeInTheDocument();
+  });
 });

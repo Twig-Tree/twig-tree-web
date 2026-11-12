@@ -1,4 +1,5 @@
 import { render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { describe, it, expect, vi } from "vitest";
 import { createQueryWrapper } from "@/src/tests/helpers/createQueryWrapper";
 import { DirectoryContentsGrid } from "./DirectoryContentsGrid";
@@ -121,5 +122,42 @@ describe("DirectoryContentsGrid", () => {
 
     expect(screen.queryByText("기획 폴더")).not.toBeInTheDocument();
     expect(screen.queryByText("리서치")).not.toBeInTheDocument();
+  });
+
+  it("폴더 메뉴에서 이동하기를 고르면 그 폴더를 옮길 위치 팝업을 연다", async () => {
+    const user = userEvent.setup();
+    renderGrid({ folders: [folder] });
+
+    await user.click(
+      screen.getByRole("button", { name: "기획 폴더 폴더 메뉴" }),
+    );
+    await user.click(screen.getByRole("menuitem", { name: "이동하기" }));
+
+    expect(
+      screen.getByRole("heading", { name: '"기획 폴더" 폴더를 옮길 위치' }),
+    ).toBeInTheDocument();
+  });
+
+  /*
+  워크스페이스는 지금 위치를 자기 folderId로 판단한다. 루트에 있으므로 루트에서는 확정할 수 없다.
+  */
+  it("워크스페이스 메뉴에서 이동하기를 고르면 지금 위치를 막은 팝업을 연다", async () => {
+    const user = userEvent.setup();
+    renderGrid({ workspaces: [workspace] });
+
+    await user.click(
+      screen.getByRole("button", { name: "리서치 워크스페이스 메뉴" }),
+    );
+    await user.click(screen.getByRole("menuitem", { name: "이동하기" }));
+
+    expect(
+      screen.getByRole("heading", {
+        name: '"리서치" 워크스페이스를 옮길 위치',
+      }),
+    ).toBeInTheDocument();
+    expect(await screen.findByText("지금 있는 위치입니다")).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "여기로 옮기기" }),
+    ).toBeDisabled();
   });
 });

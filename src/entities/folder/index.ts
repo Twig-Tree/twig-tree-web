@@ -1,11 +1,12 @@
 export type { FolderItem } from "./model/types";
-export { MAX_FOLDER_NAME_LENGTH } from "./model/constants";
+export { FOLDER_ERROR_CODE, MAX_FOLDER_NAME_LENGTH } from "./model/constants";
 export { getApiFolderId, isValidFolderId } from "./lib/folderId";
 export { FolderCard } from "./ui/FolderCard";
 export { folderApi } from "./api/folderApi";
 export { useCreateFolderMutation } from "./model/mutations/useCreateFolderMutation";
 export { useDeleteFolderMutation } from "./model/mutations/useDeleteFolderMutation";
 export { useUpdateFolderMutation } from "./model/mutations/useUpdateFolderMutation";
+export { useMoveFolderMutation } from "./model/mutations/useMoveFolderMutation";
 export {
   useGetFolderListQuery,
   useGetFolderPathQuery,

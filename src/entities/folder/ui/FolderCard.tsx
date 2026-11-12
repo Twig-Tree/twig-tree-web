@@ -3,13 +3,14 @@
 import { Folder } from "lucide-react";
 import Link from "next/link";
 import { routes } from "@/src/shared/config/routes";
-import { KebabMenu } from "@/src/shared/ui/kebab-menu";
+import { KebabMenu, type KebabMenuItem } from "@/src/shared/ui/kebab-menu";
 import type { FolderItem } from "../model/types";
 
 interface FolderCardProps {
   folder: FolderItem;
   isDeleteDisabled?: boolean; // 삭제 항목을 잠시 막을지 여부. 다른 삭제 요청이 진행 중일 때 넘긴다
   onDelete: () => void; // 폴더 삭제를 시작하는 callback
+  onMove?: () => void; // 다른 폴더로 옮기기를 시작하는 callback. 넘긴 화면에만 이동 항목이 생긴다
   onRename: () => void; // 이름 수정을 시작하는 callback
 }
 
@@ -17,8 +18,33 @@ export function FolderCard({
   folder,
   isDeleteDisabled = false,
   onDelete,
+  onMove,
   onRename,
 }: FolderCardProps) {
+  const menuItems: KebabMenuItem[] = [
+    {
+      id: "rename",
+      label: "이름 수정하기",
+      onSelect: onRename,
+    },
+  ];
+
+  if (onMove) {
+    menuItems.push({
+      id: "move",
+      label: "이동하기",
+      onSelect: onMove,
+    });
+  }
+
+  menuItems.push({
+    id: "delete",
+    label: "삭제하기",
+    tone: "danger",
+    disabled: isDeleteDisabled,
+    onSelect: onDelete,
+  });
+
   return (
     <article className="group relative flex min-h-36 flex-col justify-between rounded-card border border-line-subtle bg-surface p-5 shadow-card transition-shadow hover:shadow-card-hover">
       <Link
@@ -28,23 +54,7 @@ export function FolderCard({
       />
 
       <div className="absolute right-3 top-3 z-10">
-        <KebabMenu
-          ariaLabel={`${folder.name} 폴더 메뉴`}
-          items={[
-            {
-              id: "rename",
-              label: "이름 수정하기",
-              onSelect: onRename,
-            },
-            {
-              id: "delete",
-              label: "삭제하기",
-              tone: "danger",
-              disabled: isDeleteDisabled,
-              onSelect: onDelete,
-            },
-          ]}
-        />
+        <KebabMenu ariaLabel={`${folder.name} 폴더 메뉴`} items={menuItems} />
       </div>
 
       <div

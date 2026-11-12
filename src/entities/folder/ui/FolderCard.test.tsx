@@ -44,4 +44,35 @@ describe("FolderCard", () => {
     expect(deleteItem).toBeDisabled();
     expect(onDelete).not.toHaveBeenCalled();
   });
+
+  it("메뉴에서 이동하기를 고르면 onMove를 부른다", async () => {
+    const user = userEvent.setup();
+    const onMove = vi.fn();
+    render(
+      <FolderCard
+        folder={FOLDER}
+        onDelete={vi.fn()}
+        onMove={onMove}
+        onRename={vi.fn()}
+      />,
+    );
+
+    await user.click(screen.getByRole("button", { name: "문서 폴더 메뉴" }));
+    await user.click(screen.getByRole("menuitem", { name: "이동하기" }));
+
+    expect(onMove).toHaveBeenCalledTimes(1);
+  });
+
+  it("onMove를 넘기지 않으면 이동 항목을 그리지 않는다", async () => {
+    const user = userEvent.setup();
+    render(
+      <FolderCard folder={FOLDER} onDelete={vi.fn()} onRename={vi.fn()} />,
+    );
+
+    await user.click(screen.getByRole("button", { name: "문서 폴더 메뉴" }));
+
+    expect(
+      screen.queryByRole("menuitem", { name: "이동하기" }),
+    ).not.toBeInTheDocument();
+  });
 });

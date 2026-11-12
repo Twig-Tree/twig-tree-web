@@ -8,17 +8,18 @@ import {
   FolderOpen,
   X,
 } from "lucide-react";
+import { useState } from "react";
 import { useGetFolderListQuery, type FolderItem } from "@/src/entities/folder";
 import {
   useGetWorkspaceListQuery,
   type WorkspaceItem,
 } from "@/src/entities/workspace";
+import { useIsMounted } from "@/src/shared/lib/react/useIsMounted";
 import { Breadcrumb } from "@/src/shared/ui/breadcrumb";
 import { Button } from "@/src/shared/ui/button";
 import { Modal } from "@/src/shared/ui/modal";
 import { useFolderPath } from "../model/useFolderPath";
 
-const MODAL_TITLE = "워크스페이스를 만들 위치";
 const SKELETON_WIDTH_CLASS_NAMES = ["w-3/5", "w-2/5", "w-2/3"];
 
 /*
@@ -35,12 +36,30 @@ const LIST_NOTICE_CLASS_NAME =
 interface FolderPathPickerModalProps {
   isOpen: boolean; // 팝업 표시 여부
   onClose: () => void; // 닫기를 요청했을 때 실행할 callback
-  onSelect: (folderParentId: string | null) => void; // 위치를 확정했을 때 선택한 폴더 ID를 받는 callback. 루트는 null
+  /*
+  위치를 확정했을 때 선택한 폴더 ID(루트는 null)를 받는 callback.
+  Promise를 돌려주면 끝날 때까지 기다렸다가 true일 때만 팝업을 닫는다. 실패하면 열어 둔 채 errorMessage를 보여준다.
+  */
+  onSelect: (folderParentId: string | null) => void | Promise<boolean>;
+  title: string; // 팝업 제목. 무엇을 위한 위치인지 적는다
+  confirmLabel: string; // 위치를 확정하는 버튼 문구
+  /*
+  옮기려는 대상이 지금 들어 있는 폴더 ID. 루트는 null이고, 생략하면 막지 않는다.
+  이 위치에서는 확정 버튼을 비활성화한다. 같은 곳으로 옮기는 것은 이동이 아니다.
+  */
+  currentLocationId?: string | null;
+  /*
+  옮기려는 폴더 ID. 생략하면 막지 않는다.
+  이 폴더 행은 들어갈 수 없게 그려, 자기 자신과 그 하위 폴더를 고를 수 없게 한다.
+  */
+  movingFolderId?: string;
+  isSelectPending?: boolean; // 확정 요청을 기다리는 중이면 true. 확정 버튼을 비활성화한다
+  errorMessage?: string | null; // 마지막 확정이 실패한 이유. 실패한 위치에 있는 동안만 보여준다
 }
 
 /*
 함수 이름 : FolderPathPickerModal
-기능 : 루트부터 폴더를 따라 내려가며 워크스페이스를 만들 위치를 고르는 팝업을 표시한다.
+기능 : 루트부터 폴더를 따라 내려가며 위치 하나를 고르는 팝업을 표시한다. 워크스페이스를 만들 위치와 폴더·워크스페이스를 옮길 위치에 쓴다.
 인자 : FolderPathPickerModalProps
 반환값 : 폴더 경로 선택 팝업
 
@@ -49,12 +68,15 @@ Modal이 닫힌 상태에서는 children을 렌더링하지 않으므로, 다시
 */
 export function FolderPathPickerModal({
   isOpen,
-  onClose,
-  onSelect,
+  ...contentProps
 }: FolderPathPickerModalProps) {
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title={MODAL_TITLE}>
-      <FolderPathPickerContent onClose={onClose} onSelect={onSelect} />
+    <Modal
+      isOpen={isOpen}
+      onClose={contentProps.onClose}
+      title={contentProps.title}
+    >
+      <FolderPathPickerContent {...contentProps} />
     </Modal>
   );
 }
@@ -70,7 +92,14 @@ type FolderPathPickerContentProps = Omit<FolderPathPickerModalProps, "isOpen">;
 function FolderPathPickerContent({
   onClose,
   onSelect,
+  title,
+  confirmLabel,
+  currentLocationId,
+  movingFolderId,
+  isSelectPending = false,
+  errorMessage = null,
 }: FolderPathPickerContentProps) {
+  const isMounted = useIsMounted();
   const {
     breadcrumbItems,
     currentFolderId,
@@ -100,30 +129,69 @@ function FolderPathPickerContent({
   const workspaces = workspaceListQuery.data ?? [];
 
   /*
+  확정한 결과를 기다리는 동안에는 다른 폴더로 옮겨 가지 못하게 한다. 옮겨 간 뒤 실패하면
+  실패한 위치와 보고 있는 위치가 달라 안내를 보여줄 곳이 없다.
+  onSelect가 끝날 때까지와 부모가 알려 준 요청 상태를 함께 본다. 부모의 상태는 다음 렌더에야 바뀐다.
+  */
+  const [isAwaitingSelect, setIsAwaitingSelect] = useState(false);
+  const isNavigationLocked = isAwaitingSelect || isSelectPending;
+
+  /*
   현재 폴더의 목록을 확인하지 못한 상태에서는 그 폴더를 위치로 확정하지 않는다.
   목록이 비어 있는 것은 조회에 성공한 결과이므로 확정을 막지 않는다.
   */
-  const isSelectDisabled = isListPending || isListError;
+  const isCurrentLocation = currentFolderId === currentLocationId; // 생략한 undefined는 어떤 위치와도 같지 않다.
+  const isSelectDisabled =
+    isListPending ||
+    isListError ||
+    isCurrentLocation ||
+    isSelectPending ||
+    isAwaitingSelect;
+
+  /*
+  실패 문구는 실패한 위치에서만 보여준다. 다른 폴더로 옮겨 가서도 남아 있으면,
+  "같은 이름이 있다"는 안내가 지금 보고 있는 폴더에 대한 말로 읽힌다.
+  */
+  const [failedFolderId, setFailedFolderId] = useState<
+    string | null | undefined
+  >(undefined);
+  const visibleErrorMessage =
+    failedFolderId === currentFolderId ? errorMessage : null;
 
   const handleRetry = () => {
     void folderListQuery.refetch();
     void workspaceListQuery.refetch();
   };
 
-  const handleSelectCurrentFolder = () => {
+  const handleSelectCurrentFolder = async () => {
     if (isSelectDisabled) return;
 
-    onSelect(currentFolderId);
+    const selectedFolderId = currentFolderId;
+    setIsAwaitingSelect(true);
+    const result = await onSelect(selectedFolderId);
+
+    /*
+    기다리는 동안 사용자가 팝업을 닫았으면 이미 사라진 팝업이므로 아무것도 하지 않는다.
+    */
+    if (!isMounted()) return;
+
+    setIsAwaitingSelect(false);
+
+    if (result === false) {
+      setFailedFolderId(selectedFolderId);
+      return;
+    }
+
     onClose();
   };
 
   return (
     <div className="flex flex-col">
       <div className="flex items-start justify-between gap-3 px-5 pb-4 pt-5">
-        <div className="min-w-0">
+        <div className="min-w-0" inert={isNavigationLocked}>
           <Breadcrumb items={breadcrumbItems} />
           <h2 className="mt-2 text-xl font-bold tracking-tight text-content">
-            {MODAL_TITLE}
+            {title}
           </h2>
         </div>
         <button
@@ -136,7 +204,7 @@ function FolderPathPickerContent({
         </button>
       </div>
 
-      <div className="px-5 pb-4">
+      <div className="px-5 pb-4" inert={isNavigationLocked}>
         <div className={CONTENTS_LIST_CLASS_NAME}>
           {hasParentFolder ? (
             <button
@@ -172,13 +240,17 @@ function FolderPathPickerContent({
               <EmptyContentsNotice />
             ) : (
               <>
-                {folders.map((folder) => (
-                  <FolderRow
-                    key={folder.id}
-                    folder={folder}
-                    onEnter={() => handleEnterFolder(folder)}
-                  />
-                ))}
+                {folders.map((folder) =>
+                  folder.id === movingFolderId ? (
+                    <MovingFolderRow key={folder.id} folder={folder} />
+                  ) : (
+                    <FolderRow
+                      key={folder.id}
+                      folder={folder}
+                      onEnter={() => handleEnterFolder(folder)}
+                    />
+                  ),
+                )}
                 {workspaces.map((workspace) => (
                   <WorkspaceRow key={workspace.id} workspace={workspace} />
                 ))}
@@ -188,14 +260,28 @@ function FolderPathPickerContent({
         </div>
       </div>
 
+      {visibleErrorMessage ? (
+        <p
+          role="alert"
+          className="mx-5 mb-4 rounded-control bg-danger-subtle px-3.5 py-2.5 text-sm font-medium text-danger"
+        >
+          {visibleErrorMessage}
+        </p>
+      ) : null}
+
       <div className="flex items-center justify-end gap-3 border-t border-line-subtle bg-surface-muted px-5 py-3.5">
+        {isCurrentLocation ? (
+          <p className="mr-auto text-sm text-content-muted">
+            지금 있는 위치입니다
+          </p>
+        ) : null}
         <Button onClick={onClose}>취소</Button>
         <Button
           variant="primary"
-          onClick={handleSelectCurrentFolder}
+          onClick={() => void handleSelectCurrentFolder()}
           disabled={isSelectDisabled}
         >
-          여기에 만들기
+          {confirmLabel}
         </Button>
       </div>
     </div>
@@ -234,6 +320,36 @@ function FolderRow({ folder, onEnter }: FolderRowProps) {
         aria-hidden="true"
       />
     </button>
+  );
+}
+
+interface MovingFolderRowProps {
+  folder: FolderItem; // 옮기려는 폴더
+}
+
+/*
+함수 이름 : MovingFolderRow
+기능 : 옮기려는 폴더 자신을 들어갈 수 없는 행으로 표시한다.
+인자 : MovingFolderRowProps
+반환값 : 폴더 목록의 한 행
+
+목록에서 빼지 않는다. 빠지면 같은 위치에 있어야 할 폴더가 사라진 것처럼 보인다.
+들어갈 수 없으면 그 하위 폴더도 고를 수 없으므로, 자기 하위로 옮기는 경로가 화면에서 막힌다.
+*/
+function MovingFolderRow({ folder }: MovingFolderRowProps) {
+  return (
+    <div className="flex w-full items-center gap-3 border-b border-line-subtle px-3.5 py-2.5 last:border-b-0">
+      <span
+        className="flex h-7 w-7 shrink-0 items-center justify-center rounded-control bg-surface-hover text-content-muted"
+        aria-hidden="true"
+      >
+        <Folder className="h-4 w-4" />
+      </span>
+      <span className="flex-1 truncate text-sm font-medium text-content-muted">
+        {folder.name}
+      </span>
+      <span className="shrink-0 text-xs text-content-muted">옮기는 폴더</span>
+    </div>
   );
 }
 
@@ -292,7 +408,7 @@ function ContentsListSkeleton() {
 
 /*
 함수 이름 : EmptyContentsNotice
-기능 : 폴더도 워크스페이스도 없는 위치에서 이 위치를 그대로 고를 수 있음을 알린다.
+기능 : 폴더도 워크스페이스도 없는 위치임을 알린다.
 인자 : 없음
 반환값 : 빈 폴더 안내 영역
 */
@@ -308,7 +424,9 @@ function EmptyContentsNotice() {
       <p className="text-sm font-medium text-content-secondary">
         하위 폴더와 워크스페이스가 없습니다
       </p>
-      <p className="mt-1 text-sm text-content-muted">여기에 만들 수 있습니다</p>
+      <p className="mt-1 text-sm text-content-muted">
+        이 위치를 그대로 고를 수 있습니다
+      </p>
     </div>
   );
 }

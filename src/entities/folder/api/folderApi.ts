@@ -6,6 +6,8 @@ import {
   GetFolderResponse,
   GetFolderListResponse,
   GetFolderPathResponse,
+  MoveFolderRequest,
+  MoveFolderResponse,
   UpdateFolderRequest,
   UpdateFolderResponse,
 } from "@/src/entities/folder/api/types";
@@ -31,6 +33,24 @@ export const folderApi = {
   ): Promise<FolderItem> => {
     const response = await axiosInstance.patch<UpdateFolderResponse>(
       `/folders/${folderId}`,
+      body,
+    );
+    return mapFolderDtoToDomain(response.data.data);
+  },
+
+  /*
+  함수 이름 : moveFolder
+  기능 : 폴더를 다른 부모 폴더 아래로 옮긴다. 하위 폴더와 워크스페이스는 함께 따라간다.
+  인자 : number folderId -> 옮길 폴더 ID
+  MoveFolderRequest body -> 옮겨 갈 부모 폴더 ID
+  반환값 : 옮긴 폴더
+  */
+  moveFolder: async (
+    folderId: number,
+    body: MoveFolderRequest,
+  ): Promise<FolderItem> => {
+    const response = await axiosInstance.patch<MoveFolderResponse>(
+      `/folders/${folderId}/move`,
       body,
     );
     return mapFolderDtoToDomain(response.data.data);
