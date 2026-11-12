@@ -4,6 +4,7 @@ import {
   DndContext,
   DragOverlay,
   MouseSensor,
+  pointerWithin,
   useSensor,
   useSensors,
   type DragEndEvent,
@@ -156,8 +157,13 @@ export function DirectoryDragMoveProvider({
     <DirectoryDragMoveContext.Provider
       value={{ directoryFolderId: folderParentId }}
     >
+      {/*
+      놓을 곳은 마우스 포인터 위치로 정한다. 기본값처럼 끄는 카드의 사각형 전체로 겹침을 재면,
+      큰 카드가 작은 브레드크럼 항목 여러 개를 한꺼번에 덮어 손이 가리키지 않은 항목에 놓일 수 있다.
+      */}
       <DndContext
         sensors={sensors}
+        collisionDetection={pointerWithin}
         onDragStart={handleDragStart}
         onDragEnd={handleDragEnd}
         onDragCancel={handleDragCancel}

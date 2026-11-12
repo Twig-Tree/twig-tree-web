@@ -3,6 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createQueryWrapper } from "@/src/tests/helpers/createQueryWrapper";
 import { DirectoryContentsGrid } from "./DirectoryContentsGrid";
 import { DirectoryDragMoveProvider } from "./DirectoryDragMoveProvider";
+import { DirectoryHeader } from "./DirectoryHeader";
 
 const { moveFolderByDrop, moveWorkspaceByDrop } = vi.hoisted(() => ({
   moveFolderByDrop: vi.fn(),
@@ -28,6 +29,22 @@ const workspace = {
   updatedAt: "2026-08-31T12:00:00.000000Z",
 };
 
+const subWorkspace = {
+  ...workspace,
+  id: "3",
+  name: "자료 조사",
+  folderId: "9",
+};
+
+/*
+하위 디렉토리 화면의 브레드크럼. "현재 폴더"(9)가 지금 위치이고, 그 위로 "상위 폴더"(8)와 루트가 있다.
+*/
+const breadcrumbs = [
+  { label: "내 폴더", href: "/directory", folderId: null },
+  { label: "상위 폴더", href: "/directory/8", folderId: "8" },
+  { label: "현재 폴더", folderId: "9" },
+];
+
 /*
 jsdom은 배치를 계산하지 않아 모든 요소의 크기가 0이다. 충돌 판정이 되도록 카드 이름으로 자리를 정해 준다.
 카드는 가로로 200px 간격, 크기 100×100이다.
@@ -36,6 +53,10 @@ const CARD_LEFT: Record<string, number> = {
   [folderA.name]: 0,
   [folderB.name]: 200,
   [workspace.name]: 400,
+  [subWorkspace.name]: 400,
+  "내 폴더": 600,
+  "상위 폴더": 800,
+  "현재 폴더": 1000,
 };
 
 const getCardRect = (element: Element): DOMRect => {
@@ -88,6 +109,34 @@ const dragCard = (name: string, deltaX: number) => {
 };
 
 const dropCard = () => fireEvent.mouseUp(document);
+
+const renderSubDirectory = () =>
+  render(
+    <DirectoryDragMoveProvider folderParentId="9">
+      <DirectoryHeader
+        title="현재 폴더"
+        breadcrumbs={breadcrumbs}
+        onCreateFolder={vi.fn()}
+        isCreateFolderDisabled={false}
+        onCreateWorkspace={vi.fn()}
+        isCreateWorkspaceDisabled={false}
+      />
+      <DirectoryContentsGrid
+        editingFolderId={null}
+        editingWorkspaceId={null}
+        folderParentId="9"
+        folders={[folderA, folderB]}
+        isError={false}
+        isLoaded={true}
+        isLoading={false}
+        onFolderEditingStart={vi.fn()}
+        onEditingEnd={vi.fn()}
+        onWorkspaceEditingStart={vi.fn()}
+        workspaces={[subWorkspace]}
+      />
+    </DirectoryDragMoveProvider>,
+    { wrapper: createQueryWrapper().wrapper },
+  );
 
 describe("디렉토리 드래그 이동", () => {
   beforeEach(() => {
@@ -167,5 +216,35 @@ describe("디렉토리 드래그 이동", () => {
     await new Promise((resolve) => setTimeout(resolve, 100));
 
     expect(fireEvent.click(link)).toBe(true);
+  });
+
+  it("브레드크럼의 상위 폴더에 놓으면 그 폴더로 옮긴다", () => {
+    renderSubDirectory();
+
+    dragCard(folderA.name, 800);
+    dropCard();
+
+    expect(moveFolderByDrop).toHaveBeenCalledWith(folderA, "8");
+  });
+
+  it("브레드크럼의 루트에 놓으면 루트로 옮긴다", () => {
+    renderSubDirectory();
+
+    dragCard(subWorkspace.name, 200);
+    dropCard();
+
+    expect(moveWorkspaceByDrop).toHaveBeenCalledWith(subWorkspace, null);
+  });
+
+  it("브레드크럼의 현재 위치에는 강조하지 않고 요청하지 않는다", () => {
+    const { container } = renderSubDirectory();
+
+    dragCard(folderA.name, 1000);
+
+    expect(container.querySelector("[data-drop-highlighted]")).toBeNull();
+
+    dropCard();
+
+    expect(moveFolderByDrop).not.toHaveBeenCalled();
   });
 });
