@@ -12,6 +12,7 @@ const NODE_TITLE_SELECTOR = ".custom-node__content"; // 제품 노드의 제목 
 type UseLabShortcutsParams = {
   shortcutsEnabled: boolean; // 키를 눌러 동작을 실행할지 여부
   guideEnabled: boolean; // ?로 단축키 안내를 열 수 있는지 여부
+  toolbarEntryKey: string | null; // 선택된 노드에서 노드 옆 버튼으로 들어가는 키. 선택된 노드에 버튼이 붙지 않으면 null
   shortcuts: NodeActionShortcuts; // 지금 쓰는 단축키 표
   canvasRef: RefObject<HTMLElement | null>; // 단축키가 동작하는 영역
   onRunAction: (actionId: NodeActionId, clientId: string) => void;
@@ -30,7 +31,7 @@ const isClosestMatch = (target: EventTarget | null, selector: string) =>
 
 /*
 함수 이름 : useLabShortcuts
-기능 : 하나만 선택된 노드에 단축키로 동작을 실행하고, ?로 단축키 안내를 열고 닫으며, Escape로 선택을 푼다.
+기능 : 하나만 선택된 노드에 단축키로 동작을 실행하고, 노드 옆 버튼으로 focus를 옮기며, ?로 단축키 안내를 열고 닫고, Escape로 선택을 푼다.
 인자 : UseLabShortcutsParams
 반환값 : 없음
 
@@ -42,6 +43,7 @@ const isClosestMatch = (target: EventTarget | null, selector: string) =>
 export function useLabShortcuts({
   shortcutsEnabled,
   guideEnabled,
+  toolbarEntryKey,
   shortcuts,
   canvasRef,
   onRunAction,
@@ -69,7 +71,6 @@ export function useLabShortcuts({
         canvasRef.current?.contains(event.target) === true);
     if (!isInCanvas) return;
 
-    if (!shortcutsEnabled) return;
     if (
       isClosestMatch(event.target, ACTIVATABLE_SELECTOR) &&
       !isClosestMatch(event.target, NODE_TITLE_SELECTOR)
@@ -80,6 +81,36 @@ export function useLabShortcuts({
     const selectedNodes = useTreeStore
       .getState()
       .nodes.filter((node) => node.selected);
+
+    /*
+    노드 옆 버튼은 모든 노드 뒤에 그려져 Tab 순서로는 닿지 않으므로, 선택된 노드에 focus가 있을 때 정한 키로 첫 버튼에 focus를 옮긴다.
+    들어가는 키는 단축키와 겹치지 않게 getToolbarEntryKey가 정한다.
+    */
+    if (
+      toolbarEntryKey !== null &&
+      event.key === toolbarEntryKey &&
+      !event.shiftKey &&
+      !event.metaKey &&
+      !event.ctrlKey &&
+      !event.altKey &&
+      selectedNodes.length === 1 &&
+      event.target instanceof Element &&
+      event.target.closest<HTMLElement>(".react-flow__node")?.dataset.id ===
+        selectedNodes[0].id
+    ) {
+      const firstButton = document.querySelector<HTMLButtonElement>(
+        `.react-flow__node-toolbar[data-id="${CSS.escape(selectedNodes[0].id)}"] button`,
+      );
+
+      if (firstButton) {
+        event.preventDefault();
+        event.stopPropagation();
+        firstButton.focus();
+        return;
+      }
+    }
+
+    if (!shortcutsEnabled) return;
 
     /*
     노드에 focus가 있으면 React Flow도 Escape로 선택을 푸는데, 이미 풀린 노드는 다시 선택한다.
@@ -108,11 +139,14 @@ export function useLabShortcuts({
     onRunAction(actionId, selectedNodes[0].id);
   });
 
+  const isListening =
+    shortcutsEnabled || guideEnabled || toolbarEntryKey !== null;
+
   useEffect(() => {
-    if (!shortcutsEnabled && !guideEnabled) return;
+    if (!isListening) return;
 
     document.addEventListener("keydown", handleKeyDown, true);
 
     return () => document.removeEventListener("keydown", handleKeyDown, true);
-  }, [shortcutsEnabled, guideEnabled]);
+  }, [isListening]);
 }

@@ -34,10 +34,13 @@ const MAC_MEMO_SHORTCUTS: Record<MacMemoKey, NodeActionShortcut> = {
 /*
 Windows는 F2가 탐색기의 이름 바꾸기다. 맥은 F1~F12가 기본으로 밝기·볼륨 같은 시스템 키라 fn 없이는 F2가 앱에 오지 않으므로
 Finder와 같이 Return으로 이름을 바꾼다. 맥의 delete 키는 브라우저에 Backspace로 오고, fn+delete가 Delete로 온다.
+
+자식 추가는 두 운영체제 모두 →다. 트리가 오른쪽으로 자라므로 자식이 생기는 방향과 같다. 마인드맵 도구는 흔히 Tab을 쓰지만,
+Tab은 키보드 사용자가 화면 요소 사이를 옮겨 다니는 키라 가로채면 캔버스 밖으로 나갈 수 없다.
 */
 const WINDOWS_SHORTCUTS: NodeActionShortcuts = {
   openMemo: { bindings: [{ key: "Enter" }], label: "Enter" },
-  addChild: { bindings: [{ key: "Tab" }], label: "Tab" },
+  addChild: { bindings: [{ key: "ArrowRight" }], label: "→" },
   rename: { bindings: [{ key: "F2" }], label: "F2" },
   delete: {
     bindings: [{ key: "Delete" }, { key: "Backspace" }],
@@ -60,7 +63,7 @@ export const getNodeActionShortcuts = (
 
   return {
     openMemo: MAC_MEMO_SHORTCUTS[macMemoKey],
-    addChild: { bindings: [{ key: "Tab" }], label: "Tab" },
+    addChild: { bindings: [{ key: "ArrowRight" }], label: "→" },
     rename: { bindings: [{ key: "Enter" }], label: "Return" },
     delete: {
       bindings: [{ key: "Backspace" }, { key: "Delete" }],
@@ -81,7 +84,7 @@ type PressedKey = Pick<
 NodeActionShortcuts shortcuts -> 지금 쓰는 단축키 표
 반환값 : 맞는 동작, 없으면 null
 
-Shift+Tab처럼 수정키가 더 붙은 키를 맞다고 보면 포커스를 뒤로 옮기려던 키가 자식 추가로 바뀐다.
+Shift+→처럼 수정키가 더 붙은 키를 맞다고 보면 텍스트 선택 같은 다른 키 조합까지 자식 추가로 가로챈다.
 */
 export const getNodeActionForKey = (
   pressed: PressedKey,

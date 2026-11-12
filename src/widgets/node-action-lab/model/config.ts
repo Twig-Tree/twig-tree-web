@@ -26,6 +26,11 @@ export type ToolbarStyle = "icon" | "iconLabel";
 export type TooltipContent = "off" | "label" | "labelShortcut";
 
 /*
+선택된 노드에서 노드 옆 버튼으로 키보드 focus를 옮기는 키. 버튼은 모든 노드 뒤에 그려져 Tab 순서로는 닿지 않는다.
+*/
+export type ToolbarEntryKey = "Tab" | "ArrowDown";
+
+/*
 단축키 표를 고를 운영체제. auto는 접속한 기기를 따르고, 나머지는 다른 운영체제의 표를 미리 볼 때 쓴다.
 */
 export type ShortcutPlatformSetting = "auto" | ShortcutPlatform;
@@ -40,6 +45,7 @@ export type NodeActionLabConfig = {
   toolbarPosition: ToolbarPosition; // 노드 옆 버튼이 붙는 쪽
   toolbarStyle: ToolbarStyle; // 버튼에 글자를 함께 적을지 여부
   tooltip: TooltipContent; // 버튼에 마우스를 올리거나 focus했을 때 보여 줄 내용
+  toolbarEntryKey: ToolbarEntryKey; // 선택된 노드에서 노드 옆 버튼으로 들어가는 키
   shortcutsEnabled: boolean; // 키를 눌러 동작을 실행할지 여부
   shortcutPlatform: ShortcutPlatformSetting; // 단축키 표를 고를 운영체제
   macMemoKey: MacMemoKey; // 맥에서 메모 열기에 쓸 키
@@ -54,6 +60,7 @@ export const DEFAULT_NODE_ACTION_LAB_CONFIG: NodeActionLabConfig = {
   toolbarPosition: "right",
   toolbarStyle: "icon",
   tooltip: "labelShortcut",
+  toolbarEntryKey: "ArrowDown",
   shortcutsEnabled: false,
   shortcutPlatform: "auto",
   macMemoKey: "space",
@@ -100,6 +107,14 @@ export const TOOLBAR_STYLE_OPTIONS: { value: ToolbarStyle; label: string }[] = [
   { value: "iconLabel", label: "아이콘 + 글자" },
 ];
 
+export const TOOLBAR_ENTRY_KEY_OPTIONS: {
+  value: ToolbarEntryKey;
+  label: string;
+}[] = [
+  { value: "ArrowDown", label: "↓" },
+  { value: "Tab", label: "Tab" },
+];
+
 export const TOOLTIP_OPTIONS: { value: TooltipContent; label: string }[] = [
   { value: "off", label: "끄기" },
   { value: "label", label: "이름" },
@@ -112,3 +127,24 @@ export const MENU_TRIGGER_OPTIONS: { value: MenuTrigger; label: string }[] = [
   { value: "clickSelected", label: "다시 클릭" },
   { value: "off", label: "끄기" },
 ];
+
+/*
+함수 이름 : getToolbarEntryKey
+기능 : 선택된 노드에서 노드 옆 버튼으로 들어갈 때 실제로 쓰는 키를 정한다.
+인자 : NodeActionLabConfig config -> 실험실 설정
+반환값 : KeyboardEvent.key 값. 선택된 노드에 버튼이 붙지 않으면 null
+
+호버로만 보이는 버튼은 마우스를 위한 것이라 키보드로 들어갈 대상이 없다.
+*/
+export const getToolbarEntryKey = (
+  config: NodeActionLabConfig,
+): ToolbarEntryKey | null => {
+  if (
+    config.toolbarVisibility !== "selected" &&
+    config.toolbarVisibility !== "hoverOrSelected"
+  ) {
+    return null;
+  }
+
+  return config.toolbarEntryKey;
+};

@@ -1,3 +1,4 @@
+import { type KeyboardEvent } from "react";
 import { NodeToolbar, Position } from "@xyflow/react";
 import {
   type ToolbarPosition,
@@ -69,6 +70,41 @@ export function LabNodeToolbar({
   const tooltipSide =
     position === "bottom" ? "top-full mt-1.5" : "bottom-full mb-1.5"; // 노드 반대쪽으로 띄워 노드를 가리지 않게 한다
 
+  /*
+  버튼 묶음 안에서는 ←→로 오가고 Home·End로 양 끝에 간다. Escape와 Shift+Tab은 버튼을 띄운 노드로 focus를 돌려준다.
+  버튼은 모든 노드 뒤에 그려지므로 Shift+Tab을 그대로 두면 마지막 노드로 가 버린다.
+  */
+  const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
+    if (event.key === "Escape" || (event.key === "Tab" && event.shiftKey)) {
+      const nodeTitle = document.querySelector<HTMLElement>(
+        `.react-flow__node[data-id="${CSS.escape(target.clientId)}"] .custom-node__content`,
+      );
+      if (!nodeTitle) return;
+
+      event.preventDefault();
+      event.stopPropagation();
+      nodeTitle.focus();
+      return;
+    }
+
+    const buttons = Array.from(
+      event.currentTarget.querySelectorAll<HTMLButtonElement>("button"),
+    );
+    const currentIndex = buttons.indexOf(
+      document.activeElement as HTMLButtonElement,
+    );
+    const nextIndex = {
+      ArrowRight: (currentIndex + 1) % buttons.length,
+      ArrowLeft: (currentIndex - 1 + buttons.length) % buttons.length,
+      Home: 0,
+      End: buttons.length - 1,
+    }[event.key];
+    if (nextIndex === undefined) return;
+
+    event.preventDefault();
+    buttons[nextIndex].focus();
+  };
+
   return (
     <NodeToolbar
       nodeId={target.clientId}
@@ -87,6 +123,7 @@ export function LabNodeToolbar({
         aria-label="노드 동작"
         onMouseEnter={onMouseEnter}
         onMouseLeave={onMouseLeave}
+        onKeyDown={handleKeyDown}
         className="flex gap-1 rounded-control border border-line bg-surface p-1 shadow-overlay"
       >
         {NODE_ACTION_IDS.map((actionId) => {
@@ -103,6 +140,11 @@ export function LabNodeToolbar({
                 aria-label={buttonStyle === "icon" ? label : undefined}
                 aria-disabled={isBlocked || undefined}
                 aria-describedby={tooltip === "off" ? undefined : tooltipId}
+                /*
+                마우스로 누를 때는 focus를 가져오지 않는다. 가져오면 focus가 버튼에 남아 그 뒤의 단축키가 노드가 아니라 버튼으로 가고,
+                Enter·Space는 방금 누른 버튼을 다시 누른다. 키보드로 들어온 경우에는 focus가 이미 버튼에 있다.
+                */
+                onMouseDown={(event) => event.preventDefault()}
                 onClick={() => onRunAction(actionId)}
                 className={`flex h-8 min-w-8 items-center justify-center gap-1.5 rounded-control px-2 text-xs font-medium whitespace-nowrap focus-visible:outline-2 focus-visible:outline-focus aria-disabled:cursor-not-allowed aria-disabled:text-content-disabled aria-disabled:hover:bg-transparent ${
                   actionId === "delete"

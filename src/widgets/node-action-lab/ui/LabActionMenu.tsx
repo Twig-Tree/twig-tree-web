@@ -64,10 +64,12 @@ export function LabActionMenu({
     });
   }, [x, y]);
 
+  /*
+  메뉴는 마우스로 열리므로 첫 항목이 아니라 메뉴 자체에 focus를 둔다. 마우스 다음에 옮긴 focus는 브라우저가 focus 표시를 그리지 않아,
+  첫 항목에 두면 보이지 않는 채로 focus가 가 있고 Tab이 둘째 항목으로 넘어간다. 메뉴에 두면 Tab·↓가 첫 항목으로 간다.
+  */
   useEffect(() => {
-    menuRef.current
-      ?.querySelector<HTMLButtonElement>('[role="menuitem"]:not(:disabled)')
-      ?.focus();
+    menuRef.current?.focus();
   }, []);
 
   /*
@@ -111,7 +113,11 @@ export function LabActionMenu({
     );
     const step = event.key === "ArrowDown" ? 1 : -1;
     const nextIndex =
-      (currentIndex + step + enabledItems.length) % enabledItems.length;
+      currentIndex === -1 // 메뉴 자체에 focus가 있으면 ↓는 첫 항목, ↑는 마지막 항목으로 간다
+        ? step === 1
+          ? 0
+          : enabledItems.length - 1
+        : (currentIndex + step + enabledItems.length) % enabledItems.length;
 
     enabledItems[nextIndex].focus();
   };
@@ -132,11 +138,12 @@ export function LabActionMenu({
       ref={menuRef}
       role="menu"
       aria-label="노드 메뉴"
+      tabIndex={-1}
       onKeyDown={handleKeyDown}
       onBlur={handleBlur}
       onContextMenu={(event) => event.preventDefault()}
       style={{ left: position.left, top: position.top }}
-      className="absolute z-20 min-w-44 rounded-control border border-line bg-surface p-1 shadow-overlay"
+      className="absolute z-20 min-w-44 rounded-control outline-none border border-line bg-surface p-1 shadow-overlay"
     >
       {NODE_ACTION_IDS.map((actionId) => {
         const Icon = NODE_ACTION_ICONS[actionId];

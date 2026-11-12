@@ -59,12 +59,26 @@ describe("getNodeActionForKey", () => {
   const shortcuts = getNodeActionShortcuts("mac", "metaEnter");
 
   /*
-  Shift+Tab은 포커스를 뒤로 옮기는 키라 자식 추가로 가로채지 않는다.
+  Shift+→는 텍스트 선택 같은 다른 조합이라 자식 추가로 가로채지 않는다.
   */
   it("단축키에 없는 수정키가 붙으면 맞지 않는다", () => {
+    expect(getNodeActionForKey(press("ArrowRight"), shortcuts)).toBe(
+      "addChild",
+    );
     expect(
-      getNodeActionForKey(press("Tab", { shift: true }), shortcuts),
+      getNodeActionForKey(press("ArrowRight", { shift: true }), shortcuts),
     ).toBeNull();
+  });
+
+  it("Tab은 화면 요소 사이를 옮겨 다니는 키라 동작에 쓰지 않는다", () => {
+    (["mac", "windows"] as const).forEach((platform) => {
+      expect(
+        getNodeActionForKey(
+          press("Tab"),
+          getNodeActionShortcuts(platform, "space"),
+        ),
+      ).toBeNull();
+    });
   });
 
   it("⌘가 필요한 단축키는 ⌘ 없이 맞지 않는다", () => {
@@ -76,7 +90,7 @@ describe("getNodeActionForKey", () => {
 
   it("⌘가 필요 없는 단축키는 ⌘와 함께 누르면 맞지 않는다", () => {
     expect(
-      getNodeActionForKey(press("Tab", { meta: true }), shortcuts),
+      getNodeActionForKey(press("ArrowRight", { meta: true }), shortcuts),
     ).toBeNull();
   });
 });

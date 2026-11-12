@@ -6,6 +6,7 @@ import {
   TOOLBAR_POSITION_OPTIONS,
   TOOLBAR_STYLE_OPTIONS,
   TOOLBAR_VISIBILITY_OPTIONS,
+  TOOLBAR_ENTRY_KEY_OPTIONS,
   TOOLTIP_OPTIONS,
 } from "../model/config";
 import { type ShortcutPlatform } from "../model/shortcuts";
@@ -20,6 +21,7 @@ type OptionGroupProps<Value extends string> = {
   label: string; // 선택지 묶음의 이름
   options: { value: Value; label: string }[];
   value: Value;
+  description?: string; // 선택지 아래에 적을 설명
   onChange: (value: Value) => void;
 };
 
@@ -33,6 +35,7 @@ function OptionGroup<Value extends string>({
   label,
   options,
   value,
+  description,
   onChange,
 }: OptionGroupProps<Value>) {
   return (
@@ -61,6 +64,9 @@ function OptionGroup<Value extends string>({
           </button>
         ))}
       </div>
+      {description ? (
+        <span className="text-xs text-content-muted">{description}</span>
+      ) : null}
     </div>
   );
 }
@@ -162,6 +168,17 @@ export function LabSettingsPanel({
             value={config.tooltip}
             onChange={(tooltip) => onChangeConfig({ tooltip })}
           />
+          {config.toolbarVisibility === "hover" ? null : (
+            <OptionGroup
+              label="키보드로 버튼에 들어가는 키"
+              options={TOOLBAR_ENTRY_KEY_OPTIONS}
+              value={config.toolbarEntryKey}
+              description="선택한 노드에서 누르면 첫 버튼으로 갑니다. ←→로 오가고 Esc로 노드에 돌아옵니다."
+              onChange={(toolbarEntryKey) =>
+                onChangeConfig({ toolbarEntryKey })
+              }
+            />
+          )}
         </>
       )}
 

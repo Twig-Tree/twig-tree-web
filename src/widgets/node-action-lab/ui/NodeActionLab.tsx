@@ -22,7 +22,9 @@ import {
 } from "@/src/features/tree-editor";
 import {
   DEFAULT_NODE_ACTION_LAB_CONFIG,
+  getToolbarEntryKey,
   type MenuEntry,
+  TOOLBAR_ENTRY_KEY_OPTIONS,
   type NodeActionLabConfig,
 } from "../model/config";
 import {
@@ -175,9 +177,12 @@ function NodeActionLabCanvas() {
 
   const [isGuideOpen, setIsGuideOpen] = useState(false);
 
+  const toolbarEntryKey = getToolbarEntryKey(config);
+
   useLabShortcuts({
     shortcutsEnabled: config.shortcutsEnabled,
     guideEnabled: config.showShortcutGuide,
+    toolbarEntryKey,
     shortcuts,
     canvasRef,
     onRunAction: (actionId, clientId) =>
@@ -304,7 +309,12 @@ function NodeActionLabCanvas() {
 
         {config.showHintBar && selectedNodes.length === 1 && !renamingNode ? (
           <LabHintBar
-            shortcuts={shortcuts}
+            shortcuts={config.shortcutsEnabled ? shortcuts : null}
+            toolbarEntryLabel={
+              TOOLBAR_ENTRY_KEY_OPTIONS.find(
+                (option) => option.value === toolbarEntryKey,
+              )?.label ?? null
+            }
             getBlockReason={(actionId) =>
               getBlockReason(actionId, selectedNodes[0].id)
             }
