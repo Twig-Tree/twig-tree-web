@@ -9,6 +9,7 @@ import {
 import {
   DropIndicatorOverlay,
   EditorToolbar,
+  EmptyTreeGuide,
   LecturePlayer,
   MemoSidePanel,
   NodeContextMenu,
@@ -325,10 +326,8 @@ function LayoutFlow({ workspaceId, treeId }: LayoutFlowProps) {
               onExpandLevel={handleExpandLevel}
               isCollapseLevelDisabled={isCollapseLevelDisabled}
               isExpandLevelDisabled={isExpandLevelDisabled}
-              onAddRootNode={nodes.length === 0 ? handleAddNode : undefined}
               isUndoDisabled={!canUndo || isMutating}
               isRedoDisabled={!canRedo || isMutating}
-              isAddRootNodeDisabled={!isAddNodeEnabled || isMutating}
             />
           </Panel>
 
@@ -349,6 +348,22 @@ function LayoutFlow({ workspaceId, treeId }: LayoutFlowProps) {
             />
           </Panel>
         </ReactFlow>
+
+        {/*
+        노드가 없으면 우클릭할 노드도 없어 트리를 시작할 방법이 보이지 않으므로 캔버스 가운데에 안내를 둔다.
+        트리 조회가 끝난 뒤에만 여기까지 오므로, 트리가 없거나 루트 생성이 실패해 노드가 없는 경우가 모두 해당한다.
+        바깥은 pointer 이벤트를 꺼서 안내 주변의 캔버스 이동을 막지 않는다.
+        */}
+        {nodes.length === 0 ? (
+          <div className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center p-4">
+            <div className="pointer-events-auto w-full max-w-sm">
+              <EmptyTreeGuide
+                onAddRootNode={handleAddNode}
+                isAddRootNodeDisabled={!isAddNodeEnabled || isMutating}
+              />
+            </div>
+          </div>
+        ) : null}
 
         {/*
         노드 추가·삭제·메모는 우클릭한 노드를 대상으로 한다. 메뉴를 열 때 그 노드를 선택해 두므로 handler는 선택된 노드를 기준으로 동작한다.
