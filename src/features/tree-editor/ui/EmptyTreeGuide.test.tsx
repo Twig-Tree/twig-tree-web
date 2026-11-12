@@ -30,4 +30,26 @@ describe("EmptyTreeGuide", () => {
         .disabled,
     ).toBe(true);
   });
+
+  it("AI 입력 자리를 받으면 직접 추가와 함께 보여 준다", () => {
+    render(
+      <EmptyTreeGuide
+        onAddRootNode={vi.fn()}
+        isAddRootNodeDisabled={false}
+        aiFillSlot={<textarea aria-label="프롬프트 입력" />}
+      />,
+    );
+
+    expect(screen.getByRole("heading", { name: "AI로 채우기" })).toBeTruthy();
+    expect(screen.getByRole("textbox", { name: "프롬프트 입력" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "직접 노드 추가" })).toBeTruthy();
+  });
+
+  it("AI 입력 자리가 없으면 직접 추가만 안내한다", () => {
+    render(
+      <EmptyTreeGuide onAddRootNode={vi.fn()} isAddRootNodeDisabled={false} />,
+    );
+
+    expect(screen.queryByRole("heading", { name: "AI로 채우기" })).toBeNull();
+  });
 });

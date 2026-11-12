@@ -36,6 +36,8 @@ import {
 import { use, useCallback, useRef, useState } from "react";
 import { useGetTreeQuery } from "@/src/entities/tree/model/queries";
 import { useGetWorkspaceQuery } from "@/src/entities/workspace";
+import { PromptComposer } from "@/src/features/prompt/compose-prompt";
+import { useFillWorkspaceTree } from "@/src/features/prompt/fill-workspace-tree";
 import { isClientError } from "@/src/shared/api/httpErrors";
 import { isValidApiId } from "@/src/shared/lib/validation/isValidApiId";
 import {
@@ -46,6 +48,7 @@ import {
   useIsNarrowScreen,
   useResponsivePanelVisibility,
 } from "@/src/widgets/workspace";
+import { TreeCreatingNotice } from "@/src/widgets/dashboard";
 
 interface LayoutFlowProps {
   workspaceId: string;
@@ -97,6 +100,10 @@ function LayoutFlow({ workspaceId, treeId }: LayoutFlowProps) {
     canRedo,
     isUndoingOrRedoing,
   } = useTreeEditorActions({ workspaceId, treeId });
+
+  const { fillWorkspaceTree, isFillingWorkspaceTree } = useFillWorkspaceTree({
+    workspaceId,
+  });
 
   useInitializeTree({
     treeId,
@@ -363,11 +370,32 @@ function LayoutFlow({ workspaceId, treeId }: LayoutFlowProps) {
         바깥은 pointer 이벤트를 꺼서 안내 주변의 캔버스 이동을 막지 않는다.
         */}
         {nodes.length === 0 ? (
-          <div className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center p-4">
-            <div className="pointer-events-auto w-full max-w-sm">
+          <div className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center overflow-y-auto p-4">
+            <div className="pointer-events-auto w-full max-w-xl">
+              {/*
+              AI 생성은 1분 넘게 걸릴 수 있어, 그동안 직접 추가를 막아 두 요청이 같은 빈 트리를 채우려 다투지 않게 한다.
+              첨부는 하나까지만 받으므로 첫 항목의 원본 파일을 넘긴다. 대시보드와 같다.
+              */}
               <EmptyTreeGuide
                 onAddRootNode={handleAddNode}
-                isAddRootNodeDisabled={!isAddNodeEnabled || isMutating}
+                isAddRootNodeDisabled={
+                  !isAddNodeEnabled || isMutating || isFillingWorkspaceTree
+                }
+                aiFillSlot={
+                  <>
+                    {isFillingWorkspaceTree ? <TreeCreatingNotice /> : null}
+                    <PromptComposer
+                      placeholder="예: 재생 에너지 연구"
+                      isSubmitting={isFillingWorkspaceTree || isMutating}
+                      onSubmit={(draft) =>
+                        fillWorkspaceTree(
+                          draft.text,
+                          draft.attachments[0]?.file,
+                        )
+                      }
+                    />
+                  </>
+                }
               />
             </div>
           </div>

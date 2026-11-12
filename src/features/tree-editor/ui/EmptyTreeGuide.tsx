@@ -1,13 +1,19 @@
+import type { ReactNode } from "react";
 import { Plus } from "lucide-react";
 
 type EmptyTreeGuideProps = {
   onAddRootNode: () => void; // 빈 트리에 루트 노드를 추가한다.
-  isAddRootNodeDisabled: boolean; // 추가 요청 중이거나 다른 편집이 진행 중이면 true
+  isAddRootNodeDisabled: boolean; // 추가 요청 중이거나 다른 편집·AI 생성이 진행 중이면 true
+  /*
+  AI로 트리를 채우는 입력 영역. 프롬프트 입력은 다른 feature가 소유하므로 이 컴포넌트는 자리만 두고,
+  무엇을 넣을지는 두 feature를 조합하는 호출부가 정한다. 넘기지 않으면 직접 추가만 보인다.
+  */
+  aiFillSlot?: ReactNode;
 };
 
 /*
 함수 이름 : EmptyTreeGuide
-기능 : 노드가 하나도 없는 트리에서 트리를 시작하는 방법을 안내하고, 루트 노드를 직접 추가하는 버튼을 보여준다.
+기능 : 노드가 하나도 없는 트리에서 트리를 시작하는 방법을 안내한다. AI로 채우는 입력 자리와 루트 노드를 직접 추가하는 버튼을 보여준다.
 인자 : EmptyTreeGuideProps
 반환값 : 빈 트리 안내 영역
 
@@ -17,33 +23,56 @@ type EmptyTreeGuideProps = {
 export function EmptyTreeGuide({
   onAddRootNode,
   isAddRootNodeDisabled,
+  aiFillSlot,
 }: EmptyTreeGuideProps) {
   return (
     <section
       aria-labelledby="empty-tree-guide-title"
-      className="flex w-full max-w-sm flex-col items-center gap-4 rounded-card border border-line bg-surface px-6 py-8 text-center shadow-control"
+      className="flex w-full flex-col items-center gap-5 rounded-card border border-line bg-surface px-6 py-8 text-center shadow-control"
     >
-      <div>
-        <h2
-          id="empty-tree-guide-title"
-          className="text-base font-semibold text-content"
-        >
-          아직 트리가 없어요
-        </h2>
-        <p className="mt-1 text-sm text-content-secondary">
+      <h2
+        id="empty-tree-guide-title"
+        className="text-base font-semibold text-content"
+      >
+        아직 트리가 없어요
+      </h2>
+
+      {aiFillSlot ? (
+        <div className="flex w-full flex-col gap-3 text-left">
+          <div>
+            <h3 className="text-sm font-medium text-content">AI로 채우기</h3>
+            <p className="mt-0.5 text-xs text-content-secondary">
+              주제를 적거나 문서를 첨부하세요.
+            </p>
+          </div>
+
+          {aiFillSlot}
+        </div>
+      ) : (
+        <p className="-mt-3 text-sm text-content-secondary">
           첫 노드를 추가해 트리를 시작해 보세요.
         </p>
-      </div>
+      )}
 
-      <button
-        type="button"
-        onClick={onAddRootNode}
-        disabled={isAddRootNodeDisabled}
-        className="flex h-9 items-center gap-1.5 rounded-control bg-accent px-3 text-sm font-medium text-on-accent transition-colors hover:bg-accent-hover focus-visible:ring-2 focus-visible:ring-focus focus-visible:outline-none disabled:pointer-events-none disabled:bg-accent-disabled"
-      >
-        <Plus aria-hidden className="size-4" strokeWidth={2} />
-        직접 노드 추가
-      </button>
+      <div className="flex items-center gap-2">
+        {aiFillSlot ? (
+          <span className="text-sm text-content-muted">또는</span>
+        ) : null}
+
+        <button
+          type="button"
+          onClick={onAddRootNode}
+          disabled={isAddRootNodeDisabled}
+          className={`flex h-9 items-center gap-1.5 rounded-control px-3 text-sm font-medium transition-colors focus-visible:ring-2 focus-visible:ring-focus focus-visible:outline-none disabled:pointer-events-none ${
+            aiFillSlot
+              ? "border border-line text-content hover:bg-surface-hover disabled:text-content-disabled"
+              : "bg-accent text-on-accent hover:bg-accent-hover disabled:bg-accent-disabled"
+          }`}
+        >
+          <Plus aria-hidden className="size-4" strokeWidth={2} />
+          직접 노드 추가
+        </button>
+      </div>
     </section>
   );
 }
