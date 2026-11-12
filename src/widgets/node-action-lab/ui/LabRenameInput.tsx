@@ -1,5 +1,5 @@
 import { type KeyboardEvent, useEffect, useRef, useState } from "react";
-import { useInternalNode, ViewportPortal } from "@xyflow/react";
+import { useInternalNode, useStore } from "@xyflow/react";
 import { type CustomEditorNode } from "@/src/features/tree-editor";
 
 type LabRenameInputProps = {
@@ -11,12 +11,15 @@ type LabRenameInputProps = {
 
 /*
 함수 이름 : LabRenameInput
-기능 : 노드 위에 같은 크기의 이름 입력창을 겹쳐 띄운다. Enter와 focus 이탈은 저장, Escape는 취소다. 검사에 걸리면 닫지 않고 안내 문구를 보여 준다.
+기능 : 노드 위에 이름 입력창을 겹쳐 띄운다. Enter와 focus 이탈은 저장, Escape는 취소다. 검사에 걸리면 닫지 않고 안내 문구를 보여 준다.
 인자 : LabRenameInputProps
-반환값 : 캔버스 좌표에 놓인 이름 입력창
+반환값 : 노드 가운데에 놓인 이름 입력창
 
 제품 노드의 편집 상태는 CustomNode 안에 있어 메뉴·단축키·버튼에서 시작할 수 없고, 저장은 서버 요청이라 실험실 트리에서는 실패한다.
-그래서 실험실은 노드 위에 입력창을 따로 겹친다. ViewportPortal 안은 캔버스 좌표를 따르므로 확대·이동해도 노드에 붙어 있다.
+그래서 실험실은 노드 위에 입력창을 따로 겹친다.
+
+캔버스를 축소해도 입력창은 줄이지 않는다. 캔버스 좌표(ViewportPortal)에 두면 노드와 함께 줄어, 최소 배율(0.3)에서는 입력창이
+몇 픽셀로 작아져 열린 줄 모른다. 노드 옆 버튼(NodeToolbar)처럼 화면 좌표로 옮겨 그리고, 확대했을 때만 노드 크기를 따른다.
 */
 export function LabRenameInput({
   clientId,
@@ -25,6 +28,7 @@ export function LabRenameInput({
   onCancel,
 }: LabRenameInputProps) {
   const internalNode = useInternalNode<CustomEditorNode>(clientId);
+  const [translateX, translateY, zoom] = useStore((state) => state.transform);
   const [name, setName] = useState(initialName);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -63,45 +67,45 @@ export function LabRenameInput({
   }
 
   const { x, y } = internalNode.internals.positionAbsolute;
+  const { width, height } = internalNode.measured;
+  const scale = Math.max(zoom, 1); // 축소할 때는 원래 크기, 확대할 때는 노드와 같은 크기로 그린다
 
   return (
-    <ViewportPortal>
-      <div
-        style={{
-          transform: `translate(${x}px, ${y}px)`,
-          width: internalNode.measured.width,
-          minHeight: internalNode.measured.height,
-          pointerEvents: "all",
+    <div
+      style={{
+        left: translateX + (x + width / 2) * zoom,
+        top: translateY + (y + height / 2) * zoom,
+        width: width * scale,
+        minHeight: height * scale,
+      }}
+      className="absolute z-10 flex -translate-x-1/2 -translate-y-1/2 flex-col justify-center gap-1 rounded-node border-2 border-accent bg-surface px-2 py-1 shadow-overlay"
+    >
+      <input
+        ref={inputRef}
+        type="text"
+        value={name}
+        aria-label="노드 이름"
+        aria-invalid={errorMessage !== null}
+        aria-describedby={
+          errorMessage ? `lab-rename-error-${clientId}` : undefined
+        }
+        onChange={(event) => {
+          setName(event.target.value);
+          setErrorMessage(null);
         }}
-        className="nodrag nopan absolute top-0 left-0 z-10 flex flex-col justify-center gap-1 rounded-node border-2 border-accent bg-surface px-2 py-1 shadow-overlay"
-      >
-        <input
-          ref={inputRef}
-          type="text"
-          value={name}
-          aria-label="노드 이름"
-          aria-invalid={errorMessage !== null}
-          aria-describedby={
-            errorMessage ? `lab-rename-error-${clientId}` : undefined
-          }
-          onChange={(event) => {
-            setName(event.target.value);
-            setErrorMessage(null);
-          }}
-          onKeyDown={handleKeyDown}
-          onBlur={commit}
-          className="w-full rounded-control border border-line bg-surface px-1.5 py-1 text-center text-sm text-content outline-none focus-visible:border-accent"
-        />
-        {errorMessage ? (
-          <p
-            id={`lab-rename-error-${clientId}`}
-            role="alert"
-            className="text-[10px] leading-tight font-medium text-danger"
-          >
-            {errorMessage}
-          </p>
-        ) : null}
-      </div>
-    </ViewportPortal>
+        onKeyDown={handleKeyDown}
+        onBlur={commit}
+        className="w-full rounded-control border border-line bg-surface px-1.5 py-1 text-center text-sm text-content outline-none focus-visible:border-accent"
+      />
+      {errorMessage ? (
+        <p
+          id={`lab-rename-error-${clientId}`}
+          role="alert"
+          className="text-[10px] leading-tight font-medium text-danger"
+        >
+          {errorMessage}
+        </p>
+      ) : null}
+    </div>
   );
 }
