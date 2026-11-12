@@ -15,4 +15,8 @@ export { useSetWorkspaceTreeIdInCache } from "./model/useSetWorkspaceTreeIdInCac
 export { useInvalidateRecentWorkspaceList } from "./model/useInvalidateRecentWorkspaceList";
 export { workspaceApi } from "./api/workspaceApi";
 export { workspaceQueryKeys } from "./model/queryKeys";
-export { MAX_WORKSPACE_NAME_LENGTH, TREE_ERROR_CODE } from "./model/constants";
+export {
+  MAX_WORKSPACE_NAME_LENGTH,
+  TREE_ERROR_CODE,
+  WORKSPACE_ERROR_CODE,
+} from "./model/constants";

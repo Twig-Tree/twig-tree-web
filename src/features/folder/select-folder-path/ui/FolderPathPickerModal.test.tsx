@@ -4,14 +4,18 @@ import { describe, it, expect, vi } from "vitest";
 import { createQueryWrapper } from "@/src/tests/helpers/createQueryWrapper";
 import { FolderPathPickerModal } from "./FolderPathPickerModal";
 
-type RestrictionProps = {
+type OptionalProps = {
   currentLocationId?: string | null;
   movingFolderId?: string;
+  errorMessage?: string | null;
+  onSelect?: (folderParentId: string | null) => void | Promise<boolean>;
 };
 
-const renderModal = (restrictionProps: RestrictionProps = {}) => {
+const renderModal = ({
+  onSelect = vi.fn(),
+  ...restrictionProps
+}: OptionalProps = {}) => {
   const onClose = vi.fn();
-  const onSelect = vi.fn();
 
   render(
     <FolderPathPickerModal
@@ -133,5 +137,66 @@ describe("FolderPathPickerModal", () => {
     expect(
       screen.queryByRole("button", { name: /Root Folder/ }),
     ).not.toBeInTheDocument();
+  });
+
+  it("확정 callback이 true로 끝나면 팝업을 닫는다", async () => {
+    const { onClose } = renderModal({
+      onSelect: vi.fn().mockResolvedValue(true),
+    });
+
+    const selectButton = screen.getByRole("button", { name: "여기로 옮기기" });
+    await waitFor(() => expect(selectButton).toBeEnabled());
+    await userEvent.setup().click(selectButton);
+
+    await waitFor(() => expect(onClose).toHaveBeenCalled());
+  });
+
+  /*
+  실패하면 사용자가 다른 위치를 고를 수 있도록 팝업을 열어 둔다.
+  */
+  it("확정 callback이 false로 끝나면 열어 둔 채 실패 안내를 보여준다", async () => {
+    const { onClose } = renderModal({
+      onSelect: vi.fn().mockResolvedValue(false),
+      errorMessage: "옮길 위치에 같은 이름의 폴더가 있습니다.",
+    });
+
+    const selectButton = screen.getByRole("button", { name: "여기로 옮기기" });
+    await waitFor(() => expect(selectButton).toBeEnabled());
+    await userEvent.setup().click(selectButton);
+
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      "옮길 위치에 같은 이름의 폴더가 있습니다.",
+    );
+    expect(onClose).not.toHaveBeenCalled();
+  });
+
+  /*
+  다른 폴더로 옮겨 가서도 남아 있으면 지금 보는 폴더에 대한 안내로 읽힌다.
+  */
+  it("실패한 위치를 벗어나면 실패 안내를 숨긴다", async () => {
+    const user = userEvent.setup();
+    renderModal({
+      onSelect: vi.fn().mockResolvedValue(false),
+      errorMessage: "옮길 위치에 같은 이름의 폴더가 있습니다.",
+    });
+
+    const selectButton = screen.getByRole("button", { name: "여기로 옮기기" });
+    await waitFor(() => expect(selectButton).toBeEnabled());
+    await user.click(selectButton);
+    expect(await screen.findByRole("alert")).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "Root Folder" }));
+
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+  });
+
+  /*
+  실패 안내는 확정한 뒤에만 보인다. 팝업을 열자마자 이전 문구가 보이면 안 된다.
+  */
+  it("확정하기 전에는 실패 안내를 보여주지 않는다", async () => {
+    renderModal({ errorMessage: "옮길 위치에 같은 이름의 폴더가 있습니다." });
+
+    expect(await screen.findByText("Root Folder")).toBeInTheDocument();
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
   });
 });

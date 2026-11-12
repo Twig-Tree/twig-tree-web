@@ -8,11 +8,13 @@ import {
   FolderOpen,
   X,
 } from "lucide-react";
+import { useState } from "react";
 import { useGetFolderListQuery, type FolderItem } from "@/src/entities/folder";
 import {
   useGetWorkspaceListQuery,
   type WorkspaceItem,
 } from "@/src/entities/workspace";
+import { useIsMounted } from "@/src/shared/lib/react/useIsMounted";
 import { Breadcrumb } from "@/src/shared/ui/breadcrumb";
 import { Button } from "@/src/shared/ui/button";
 import { Modal } from "@/src/shared/ui/modal";
@@ -34,7 +36,11 @@ const LIST_NOTICE_CLASS_NAME =
 interface FolderPathPickerModalProps {
   isOpen: boolean; // 팝업 표시 여부
   onClose: () => void; // 닫기를 요청했을 때 실행할 callback
-  onSelect: (folderParentId: string | null) => void; // 위치를 확정했을 때 선택한 폴더 ID를 받는 callback. 루트는 null
+  /*
+  위치를 확정했을 때 선택한 폴더 ID(루트는 null)를 받는 callback.
+  Promise를 돌려주면 끝날 때까지 기다렸다가 true일 때만 팝업을 닫는다. 실패하면 열어 둔 채 errorMessage를 보여준다.
+  */
+  onSelect: (folderParentId: string | null) => void | Promise<boolean>;
   title: string; // 팝업 제목. 무엇을 위한 위치인지 적는다
   confirmLabel: string; // 위치를 확정하는 버튼 문구
   /*
@@ -47,6 +53,8 @@ interface FolderPathPickerModalProps {
   이 폴더 행은 들어갈 수 없게 그려, 자기 자신과 그 하위 폴더를 고를 수 없게 한다.
   */
   movingFolderId?: string;
+  isSelectPending?: boolean; // 확정 요청을 기다리는 중이면 true. 확정 버튼을 비활성화한다
+  errorMessage?: string | null; // 마지막 확정이 실패한 이유. 실패한 위치에 있는 동안만 보여준다
 }
 
 /*
@@ -88,7 +96,10 @@ function FolderPathPickerContent({
   confirmLabel,
   currentLocationId,
   movingFolderId,
+  isSelectPending = false,
+  errorMessage = null,
 }: FolderPathPickerContentProps) {
+  const isMounted = useIsMounted();
   const {
     breadcrumbItems,
     currentFolderId,
@@ -122,17 +133,40 @@ function FolderPathPickerContent({
   목록이 비어 있는 것은 조회에 성공한 결과이므로 확정을 막지 않는다.
   */
   const isCurrentLocation = currentFolderId === currentLocationId; // 생략한 undefined는 어떤 위치와도 같지 않다.
-  const isSelectDisabled = isListPending || isListError || isCurrentLocation;
+  const isSelectDisabled =
+    isListPending || isListError || isCurrentLocation || isSelectPending;
+
+  /*
+  실패 문구는 실패한 위치에서만 보여준다. 다른 폴더로 옮겨 가서도 남아 있으면,
+  "같은 이름이 있다"는 안내가 지금 보고 있는 폴더에 대한 말로 읽힌다.
+  */
+  const [failedFolderId, setFailedFolderId] = useState<
+    string | null | undefined
+  >(undefined);
+  const visibleErrorMessage =
+    failedFolderId === currentFolderId ? errorMessage : null;
 
   const handleRetry = () => {
     void folderListQuery.refetch();
     void workspaceListQuery.refetch();
   };
 
-  const handleSelectCurrentFolder = () => {
+  const handleSelectCurrentFolder = async () => {
     if (isSelectDisabled) return;
 
-    onSelect(currentFolderId);
+    const selectedFolderId = currentFolderId;
+    const result = await onSelect(selectedFolderId);
+
+    /*
+    기다리는 동안 사용자가 팝업을 닫았으면 이미 사라진 팝업이므로 아무것도 하지 않는다.
+    */
+    if (!isMounted()) return;
+
+    if (result === false) {
+      setFailedFolderId(selectedFolderId);
+      return;
+    }
+
     onClose();
   };
 
@@ -211,6 +245,15 @@ function FolderPathPickerContent({
         </div>
       </div>
 
+      {visibleErrorMessage ? (
+        <p
+          role="alert"
+          className="mx-5 mb-4 rounded-control bg-danger-subtle px-3.5 py-2.5 text-sm font-medium text-danger"
+        >
+          {visibleErrorMessage}
+        </p>
+      ) : null}
+
       <div className="flex items-center justify-end gap-3 border-t border-line-subtle bg-surface-muted px-5 py-3.5">
         {isCurrentLocation ? (
           <p className="mr-auto text-sm text-content-muted">
@@ -220,7 +263,7 @@ function FolderPathPickerContent({
         <Button onClick={onClose}>취소</Button>
         <Button
           variant="primary"
-          onClick={handleSelectCurrentFolder}
+          onClick={() => void handleSelectCurrentFolder()}
           disabled={isSelectDisabled}
         >
           {confirmLabel}

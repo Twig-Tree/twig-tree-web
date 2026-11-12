@@ -11,3 +11,10 @@ export const MAX_WORKSPACE_NAME_LENGTH = 30;
 export const TREE_ERROR_CODE = {
   TREE_ALREADY_EXISTS: "TREE409-1",
 } as const;
+
+/*
+워크스페이스 요청에서 분기에 필요한 백엔드 에러 코드. 백엔드 WorkspaceErrorCode.java가 출처다.
+*/
+export const WORKSPACE_ERROR_CODE = {
+  DUPLICATE_WORKSPACE_NAME: "WORKSPACE400-1",
+} as const;
