@@ -1,5 +1,5 @@
 import { renderHook, waitFor } from "@testing-library/react";
-import { http, HttpResponse } from "msw";
+import { delay, http, HttpResponse } from "msw";
 import { describe, it, expect } from "vitest";
 import { createQueryWrapper } from "@/src/tests/helpers/createQueryWrapper";
 import { server } from "@/src/tests/mocks/server";
@@ -77,6 +77,39 @@ describe("useCreateWorkspaceTreeFromPromptMutation", () => {
       ...WORKSPACE_DETAIL,
       treeId: "30",
     });
+  });
+
+  /*
+  응답을 기다리는 동안 시작된 상세 재조회가 늦게 끝나 treeId: null로 되돌리면 편집기가 만들어진 트리를 불러오지 못한다.
+  */
+  it("진행 중이던 상세 조회가 늦게 끝나도 채운 treeId를 덮어쓰지 않는다", async () => {
+    const { queryClient, wrapper } = createQueryWrapper();
+    queryClient.setQueryData(workspaceQueryKeys.detail("9"), WORKSPACE_DETAIL);
+
+    /*
+    생성 응답보다 늦게 끝나는 상세 조회. 서버 저장 전에 시작했으므로 treeId: null을 돌려준다.
+    */
+    void queryClient.prefetchQuery({
+      queryKey: workspaceQueryKeys.detail("9"),
+      queryFn: async () => {
+        await delay(100);
+        return WORKSPACE_DETAIL;
+      },
+    });
+
+    const { result } = renderHook(
+      () => useCreateWorkspaceTreeFromPromptMutation(),
+      { wrapper },
+    );
+
+    result.current.mutate({ workspaceId: "9", message: "자료구조 트리" });
+
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+    await delay(150);
+
+    expect(
+      queryClient.getQueryData(workspaceQueryKeys.detail("9")),
+    ).toMatchObject({ treeId: "30" });
   });
 
   /*

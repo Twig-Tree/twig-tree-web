@@ -44,7 +44,16 @@ export const useCreateWorkspaceTreeFromPromptMutation = () => {
     }: CreateWorkspaceTreeFromPromptVariables) =>
       treeApi.createWorkspaceTreeFromPrompt(Number(workspaceId), params),
 
-    onSuccess: ({ workspaceId, treeId }) => {
+    onSuccess: async ({ workspaceId, treeId }) => {
+      /*
+      응답을 기다리는 동안 탭으로 돌아오면 워크스페이스 상세가 다시 조회된다. 그 조회가 서버 저장 전에 시작해
+      여기보다 늦게 끝나면 treeId: null로 캐시를 되돌리므로, 진행 중인 상세 조회를 먼저 취소한다.
+      */
+      await queryClient.cancelQueries({
+        queryKey: workspaceQueryKeys.detail(workspaceId),
+        exact: true,
+      });
+
       /*
       트리가 없던 워크스페이스는 상세 캐시의 treeId가 채워지면서 편집기가 새 트리를 조회한다.
       노드 없는 트리가 있던 워크스페이스는 treeId가 같으므로 트리 조회를 무효화해 노드를 다시 받는다.
@@ -52,7 +61,7 @@ export const useCreateWorkspaceTreeFromPromptMutation = () => {
       */
       setWorkspaceTreeIdInCache(workspaceId, treeId);
 
-      return Promise.all([
+      await Promise.all([
         queryClient.invalidateQueries({
           queryKey: treeQueryKeys.detail(treeId),
           exact: true,
