@@ -34,6 +34,7 @@ import {
 } from "../model/fixtureTree";
 import { getConfigSummary } from "../model/getConfigSummary";
 import { getToolbarTargets } from "../model/getToolbarTargets";
+import { applyPreset } from "../model/presets";
 import { getNodeActionShortcuts } from "../model/shortcuts";
 import { useDevicePlatform } from "../model/useDevicePlatform";
 import { useHoveredNode } from "../model/useHoveredNode";
@@ -44,6 +45,7 @@ import { LabActionMenu } from "./LabActionMenu";
 import { LabHintBar } from "./LabHintBar";
 import { LabMemoPanel } from "./LabMemoPanel";
 import { LabNodeToolbar } from "./LabNodeToolbar";
+import { LabPresetPicker } from "./LabPresetPicker";
 import { LabShortcutGuide } from "./LabShortcutGuide";
 import { LabRenameInput } from "./LabRenameInput";
 import { LabSettingsPanel } from "./LabSettingsPanel";
@@ -211,6 +213,13 @@ function NodeActionLabCanvas() {
           </p>
         </div>
 
+        <LabPresetPicker
+          config={config}
+          onApply={(preset) =>
+            setConfig((previous) => applyPreset(previous, preset))
+          }
+        />
+
         <LabSettingsPanel
           config={config}
           platform={platform}
@@ -332,6 +341,7 @@ function NodeActionLabCanvas() {
           <LabShortcutGuide
             shortcuts={shortcuts}
             platform={platform}
+            showToolbarEntry={hasToolbar}
             onClose={() => setIsGuideOpen(false)}
           />
         ) : null}

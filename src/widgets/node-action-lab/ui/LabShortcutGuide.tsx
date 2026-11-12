@@ -9,6 +9,7 @@ import {
 type LabShortcutGuideProps = {
   shortcuts: NodeActionShortcuts;
   platform: ShortcutPlatform; // 목록 제목에 어느 운영체제의 표인지 적는다
+  showToolbarEntry: boolean; // 선택한 노드에 버튼이 붙으면 Tab으로 들어가는 것도 적는다
   onClose: () => void;
 };
 
@@ -21,6 +22,7 @@ type LabShortcutGuideProps = {
 export function LabShortcutGuide({
   shortcuts,
   platform,
+  showToolbarEntry,
   onClose,
 }: LabShortcutGuideProps) {
   const closeButtonRef = useRef<HTMLButtonElement>(null);
@@ -48,6 +50,9 @@ export function LabShortcutGuide({
     })),
     { label: "선택 해제", keys: "Esc" },
     { label: "단축키 안내 열고 닫기", keys: "?" },
+    ...(showToolbarEntry
+      ? [{ label: "노드 옆 버튼으로 이동", keys: "Tab" }]
+      : []),
   ];
 
   return (
