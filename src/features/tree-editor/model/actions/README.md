@@ -322,7 +322,7 @@ mutation 선언부에는 `onError`를 두지 않는다. cache를 미리 바꾸�
 
 ## 예시: Add Root Node
 
-`useAddRootNode`는 노드가 하나도 없는 트리에 루트 노드를 추가한다. 트리가 없는 워크스페이스는 트리부터 만든다. 자식 추가와 같은 `handleAddNode`를 쓰며, `useTreeEditorActions`가 노드 개수로 둘을 나눈다. 화면에서는 빈 트리일 때 툴바의 노드 추가 버튼이, 노드가 있을 때 노드 우클릭 메뉴의 노드 추가가 이 handler를 부른다.
+`useAddRootNode`는 노드가 하나도 없는 트리에 루트 노드를 추가한다. 트리가 없는 워크스페이스는 트리부터 만든다. 자식 추가와 같은 `handleAddNode`를 쓰며, `useTreeEditorActions`가 노드 개수로 둘을 나눈다. 화면에서는 빈 트리일 때 캔버스 가운데 안내(`EmptyTreeGuide`)의 직접 노드 추가 버튼이, 노드가 있을 때 노드 우클릭 메뉴의 노드 추가가 이 handler를 부른다.
 
 위 "Optimistic Update 규칙"의 예외다. editor store에 먼저 넣지 않고 서버 응답을 받은 뒤에 넣는다.
 

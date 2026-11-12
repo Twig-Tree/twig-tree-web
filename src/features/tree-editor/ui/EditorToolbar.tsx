@@ -5,14 +5,8 @@ type EditorToolbarProps = {
   onUndo: () => void; // 직전 편집을 되돌린다.
   onRedo: () => void; // 되돌린 편집을 다시 실행한다.
   onFitView: () => void; // 트리 전체를 화면에 맞춘다.
-  /*
-  빈 트리에 루트 노드를 추가한다. 노드가 있으면 추가·삭제·메모는 노드 우클릭 메뉴가 맡으므로,
-  우클릭할 노드가 없는 빈 트리에서만 넘겨 버튼을 보인다.
-  */
-  onAddRootNode?: () => void;
   isUndoDisabled: boolean;
   isRedoDisabled: boolean;
-  isAddRootNodeDisabled: boolean;
   treeLevel: number | null; // 지금 보이는 가장 깊은 계층. 루트가 1이고, 접고 펼칠 트리가 없으면 null
   onCollapseLevel: () => void; // 보이는 계층을 한 단계 줄인다.
   onExpandLevel: () => void; // 보이는 계층을 한 단계 늘린다.
@@ -24,27 +18,12 @@ type ToolbarButtonProps = ComponentProps<"button"> & {
   icon: LucideIcon;
   label: string; // 버튼 이름. 글자가 숨겨져도 aria-label과 툴팁으로 남는다.
   isIconOnly?: boolean;
-  variant?: "default" | "primary";
-};
-
-/*
-잠긴 버튼은 hover에도 바뀌지 않도록 pointer 이벤트를 끈다. 강조 버튼은 글자색 대신 바탕을 잠긴 색으로 바꾼다.
-*/
-const VARIANT_CLASS_NAMES: Record<
-  NonNullable<ToolbarButtonProps["variant"]>,
-  string
-> = {
-  default:
-    "text-content-secondary hover:bg-surface-hover hover:text-content disabled:text-content-disabled",
-  primary:
-    "bg-accent text-on-accent hover:bg-accent-hover disabled:bg-accent-disabled",
 };
 
 function ToolbarButton({
   icon: Icon,
   label,
   isIconOnly = false,
-  variant = "default",
   className,
   ...buttonProps
 }: ToolbarButtonProps) {
@@ -55,7 +34,7 @@ function ToolbarButton({
       title={label}
       className={`flex h-8 shrink-0 items-center justify-center gap-1.5 rounded-control text-[13px] font-medium whitespace-nowrap transition-colors focus-visible:ring-2 focus-visible:ring-focus focus-visible:outline-none disabled:pointer-events-none ${
         isIconOnly ? "w-8" : "min-w-8 px-2"
-      } ${VARIANT_CLASS_NAMES[variant]} ${className ?? ""}`}
+      } text-content-secondary hover:bg-surface-hover hover:text-content disabled:text-content-disabled ${className ?? ""}`}
       {...buttonProps}
     >
       <Icon aria-hidden className="size-4" strokeWidth={2} />
@@ -77,7 +56,7 @@ function ToolbarDivider() {
 
 /*
 함수 이름 : EditorToolbar
-기능 : 트리 편집기의 기록·화면·계층 조절 버튼과 빈 트리의 루트 추가 버튼을 한 줄의 도구 모음으로 그린다. 버튼이 하는 일은 호출부가 정한다.
+기능 : 트리 편집기의 기록·화면·계층 조절 버튼을 한 줄의 도구 모음으로 그린다. 버튼이 하는 일은 호출부가 정한다.
 인자 : EditorToolbarProps
 반환값 : 편집기 도구 모음
 */
@@ -85,10 +64,8 @@ export function EditorToolbar({
   onUndo,
   onRedo,
   onFitView,
-  onAddRootNode,
   isUndoDisabled,
   isRedoDisabled,
-  isAddRootNodeDisabled,
   treeLevel,
   onCollapseLevel,
   onExpandLevel,
@@ -151,22 +128,6 @@ export function EditorToolbar({
               isIconOnly
               onClick={onExpandLevel}
               disabled={isExpandLevelDisabled}
-            />
-          </ToolbarGroup>
-        </>
-      ) : null}
-
-      {onAddRootNode ? (
-        <>
-          <ToolbarDivider />
-
-          <ToolbarGroup>
-            <ToolbarButton
-              icon={Plus}
-              label="노드 추가"
-              variant="primary"
-              onClick={onAddRootNode}
-              disabled={isAddRootNodeDisabled}
             />
           </ToolbarGroup>
         </>

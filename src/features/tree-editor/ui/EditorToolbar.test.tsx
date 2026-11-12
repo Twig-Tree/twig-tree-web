@@ -8,7 +8,6 @@ const baseProps = {
   onFitView: vi.fn(),
   isUndoDisabled: false,
   isRedoDisabled: false,
-  isAddRootNodeDisabled: false,
   onCollapseLevel: vi.fn(),
   onExpandLevel: vi.fn(),
   isCollapseLevelDisabled: false,

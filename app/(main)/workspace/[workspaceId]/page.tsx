@@ -9,6 +9,7 @@ import {
 import {
   DropIndicatorOverlay,
   EditorToolbar,
+  EmptyTreeGuide,
   LecturePlayer,
   MemoSidePanel,
   NodeContextMenu,
@@ -35,6 +36,8 @@ import {
 import { use, useCallback, useRef, useState } from "react";
 import { useGetTreeQuery } from "@/src/entities/tree/model/queries";
 import { useGetWorkspaceQuery } from "@/src/entities/workspace";
+import { PromptComposer } from "@/src/features/prompt/compose-prompt";
+import { useFillWorkspaceTree } from "@/src/features/prompt/fill-workspace-tree";
 import { isClientError } from "@/src/shared/api/httpErrors";
 import { isValidApiId } from "@/src/shared/lib/validation/isValidApiId";
 import {
@@ -45,6 +48,7 @@ import {
   useIsNarrowScreen,
   useResponsivePanelVisibility,
 } from "@/src/widgets/workspace";
+import { TreeCreatingNotice } from "@/src/widgets/dashboard";
 
 interface LayoutFlowProps {
   workspaceId: string;
@@ -73,6 +77,7 @@ function LayoutFlow({ workspaceId, treeId }: LayoutFlowProps) {
   // Zustand 스토어에서 상태(State) 구독
   const nodes = useTreeStore((state) => state.nodes);
   const edges = useTreeStore((state) => state.edges);
+  const storeTreeId = useTreeStore((state) => state.treeId);
 
   // Zustand 스토어에서 액션(Actions) 구독
   const onNodesChange = useTreeStore((state) => state.onNodesChange);
@@ -95,6 +100,10 @@ function LayoutFlow({ workspaceId, treeId }: LayoutFlowProps) {
     canRedo,
     isUndoingOrRedoing,
   } = useTreeEditorActions({ workspaceId, treeId });
+
+  const { fillWorkspaceTree, isFillingWorkspaceTree } = useFillWorkspaceTree({
+    workspaceId,
+  });
 
   useInitializeTree({
     treeId,
@@ -241,11 +250,18 @@ function LayoutFlow({ workspaceId, treeId }: LayoutFlowProps) {
     onSelectedNodeRemoved: handleSelectedNodeRemoved,
   });
 
-  if (isLoading) {
+  /*
+  빈 워크스페이스에서 루트를 추가하면 store가 먼저 그 트리로 채워진 뒤 상세 캐시의 treeId가 바뀌어 조회가 시작된다.
+  이때 로딩·오류 화면으로 바꾸면 캔버스가 내려갔다 다시 올라와 기본 viewport에서 시작하고, 첫 배치에서 맞춘 화면을 잃는다.
+  store가 이미 이 트리를 들고 있으면 편집기를 그대로 둔다. 조회 결과는 useInitializeTree가 같은 트리로 보고 건너뛴다.
+  */
+  const isTreeInStore = treeId !== null && storeTreeId === treeId;
+
+  if (isLoading && !isTreeInStore) {
     return <div>불러오는 중입니다.</div>;
   }
 
-  if (isTreeLoadFailed) {
+  if (isTreeLoadFailed && !isTreeInStore) {
     return <div>트리를 불러오지 못했습니다.</div>;
   }
 
@@ -325,30 +341,68 @@ function LayoutFlow({ workspaceId, treeId }: LayoutFlowProps) {
               onExpandLevel={handleExpandLevel}
               isCollapseLevelDisabled={isCollapseLevelDisabled}
               isExpandLevelDisabled={isExpandLevelDisabled}
-              onAddRootNode={nodes.length === 0 ? handleAddNode : undefined}
               isUndoDisabled={!canUndo || isMutating}
               isRedoDisabled={!canRedo || isMutating}
-              isAddRootNodeDisabled={!isAddNodeEnabled || isMutating}
             />
           </Panel>
 
           {/*
           지금 트리에서 만든 강의를, 없으면 트리에 맞는 데모 대본을 재생한다. 서버가 강의를 저장하게 되면 조회 결과로 바꾼다.
+          노드가 없으면 강의로 설명할 대상이 없으므로 그리지 않는다. 빈 트리 안내가 그 자리의 시작점을 맡는다.
           */}
-          <Panel
-            position="bottom-center"
-            className="!pointer-events-none flex w-[calc(100%-2rem)] max-w-2xl justify-center"
-          >
-            <LecturePlayer
-              script={lectureScript}
-              isGeneratedScript={isGeneratedLecture}
-              onRevealNodes={revealNodes}
-              onResetCamera={fitTreeView}
-              onBeforeCollapseRestore={fitTreeViewAfterNextLayout}
-              panelLayoutKey={`${isPanelOpen}:${isPanelOverlay}:${isMemoPanelOpen}`}
-            />
-          </Panel>
+          {nodes.length === 0 ? null : (
+            <Panel
+              position="bottom-center"
+              className="!pointer-events-none flex w-[calc(100%-2rem)] max-w-2xl justify-center"
+            >
+              <LecturePlayer
+                script={lectureScript}
+                isGeneratedScript={isGeneratedLecture}
+                onRevealNodes={revealNodes}
+                onResetCamera={fitTreeView}
+                onBeforeCollapseRestore={fitTreeViewAfterNextLayout}
+                panelLayoutKey={`${isPanelOpen}:${isPanelOverlay}:${isMemoPanelOpen}`}
+              />
+            </Panel>
+          )}
         </ReactFlow>
+
+        {/*
+        노드가 없으면 우클릭할 노드도 없어 트리를 시작할 방법이 보이지 않으므로 캔버스 가운데에 안내를 둔다.
+        트리 조회가 끝난 뒤에만 여기까지 오므로, 트리가 없거나 루트 생성이 실패해 노드가 없는 경우가 모두 해당한다.
+        바깥은 pointer 이벤트를 꺼서 안내 주변의 캔버스 이동을 막지 않는다.
+        */}
+        {nodes.length === 0 ? (
+          <div className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center overflow-y-auto p-4">
+            <div className="pointer-events-auto w-full max-w-xl">
+              {/*
+              AI 생성은 1분 넘게 걸릴 수 있어, 그동안 직접 추가를 막아 두 요청이 같은 빈 트리를 채우려 다투지 않게 한다.
+              첨부는 하나까지만 받으므로 첫 항목의 원본 파일을 넘긴다. 대시보드와 같다.
+              */}
+              <EmptyTreeGuide
+                onAddRootNode={handleAddNode}
+                isAddRootNodeDisabled={
+                  !isAddNodeEnabled || isMutating || isFillingWorkspaceTree
+                }
+                aiFillSlot={
+                  <>
+                    {isFillingWorkspaceTree ? <TreeCreatingNotice /> : null}
+                    <PromptComposer
+                      placeholder="예: 재생 에너지 연구"
+                      isSubmitting={isFillingWorkspaceTree || isMutating}
+                      onSubmit={(draft) =>
+                        fillWorkspaceTree(
+                          draft.text,
+                          draft.attachments[0]?.file,
+                        )
+                      }
+                    />
+                  </>
+                }
+              />
+            </div>
+          </div>
+        ) : null}
 
         {/*
         노드 추가·삭제·메모는 우클릭한 노드를 대상으로 한다. 메뉴를 열 때 그 노드를 선택해 두므로 handler는 선택된 노드를 기준으로 동작한다.

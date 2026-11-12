@@ -526,6 +526,25 @@ export const handlers = [
     );
   }),
 
+  /*
+  기존 워크스페이스를 프롬프트로 채우는 POST 요청 핸들러.
+  요청 형식은 위 /tree-request와 같으므로 형식 검사는 그쪽 테스트에 맡기고, 백엔드처럼 응답의 workspaceId를 경로 값으로 돌려준다.
+  */
+  http.post("*/api/workspaces/:workspaceId/tree-request", ({ params }) => {
+    return HttpResponse.json(
+      {
+        isSuccess: true,
+        code: "CHAT201-1",
+        message: "트리가 성공적으로 생성되었습니다.",
+        data: {
+          ...RAW_CREATED_TREE_DATA,
+          workspaceId: Number(params.workspaceId),
+        },
+      },
+      { status: 201 },
+    );
+  }),
+
   // 트리 태그 목록 조회 GET 요청 핸들러
   http.get("*/api/trees/:treeId/tags", () => {
     return HttpResponse.json(

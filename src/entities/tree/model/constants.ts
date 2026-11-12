@@ -54,3 +54,12 @@ export const LLM_PROVIDER: LlmProvider = "OPENAI";
 프롬프트 트리 생성 요청의 지시문 길이 상한. 백엔드 ChatReqDTO.MESSAGE_MAX_LENGTH가 출처다.
 */
 export const MAX_PROMPT_MESSAGE_LENGTH = 500;
+
+/*
+프롬프트 트리 생성 요청에서 분기에 필요한 백엔드 에러 코드. 백엔드 ChatErrorCode.java가 출처다.
+WORKSPACE_TREE_NOT_EMPTY는 기존 워크스페이스를 채우는 요청에서만 온다. 노드 없는 트리는 받아들이므로
+트리 생성의 TREE409-1(트리가 이미 있음)과 의미가 다르다. LLM 응답을 기다린 뒤 저장하기 직전에도 올 수 있다.
+*/
+export const TREE_REQUEST_ERROR_CODE = {
+  WORKSPACE_TREE_NOT_EMPTY: "CHAT409-1",
+} as const;
