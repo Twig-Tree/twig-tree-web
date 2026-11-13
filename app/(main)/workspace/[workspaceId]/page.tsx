@@ -14,6 +14,7 @@ import {
   MemoSidePanel,
   NodeActionToolbar,
   NodeContextMenu,
+  ShortcutGuide,
   edgeTypes,
   MIN_ZOOM,
   nodeTypes,
@@ -229,10 +230,24 @@ function LayoutFlow({ workspaceId, treeId }: LayoutFlowProps) {
 
   const canvasRef = useRef<HTMLDivElement>(null);
 
+  /*
+  단축키 안내는 단축키를 막지 않는 참고 패널이라, 연 채로 노드를 골라 단축키를 써 볼 수 있다.
+  */
+  const [isShortcutGuideOpen, setIsShortcutGuideOpen] = useState(false);
+  const toggleShortcutGuide = useCallback(
+    () => setIsShortcutGuideOpen((isOpen) => !isOpen),
+    [],
+  );
+  const closeShortcutGuide = useCallback(
+    () => setIsShortcutGuideOpen(false),
+    [],
+  );
+
   useNodeActionShortcuts({
     canvasRef,
     targetClientId: nodeActionTargetClientId,
     onRunAction: runNodeAction,
+    onToggleGuide: toggleShortcutGuide,
   });
   const {
     contextMenu,
@@ -438,6 +453,10 @@ function LayoutFlow({ workspaceId, treeId }: LayoutFlowProps) {
               />
             </div>
           </div>
+        ) : null}
+
+        {isShortcutGuideOpen ? (
+          <ShortcutGuide onClose={closeShortcutGuide} />
         ) : null}
 
         {/*

@@ -55,6 +55,8 @@ describe("useNodeActionShortcuts", () => {
   const getNodeTitle = () =>
     canvas.querySelector<HTMLButtonElement>(".custom-node__content")!;
 
+  const onToggleGuide = vi.fn();
+
   const renderShortcuts = (targetClientId: string | null = "c1") => {
     const onRunAction = vi.fn();
     renderHook(() =>
@@ -62,6 +64,7 @@ describe("useNodeActionShortcuts", () => {
         canvasRef: { current: canvas },
         targetClientId,
         onRunAction,
+        onToggleGuide,
       }),
     );
 
@@ -82,6 +85,7 @@ describe("useNodeActionShortcuts", () => {
   });
 
   afterEach(() => {
+    onToggleGuide.mockClear();
     document.body.innerHTML = "";
     useTreeStore.getState().resetTree();
     useLectureStore.setState({ status: "idle" });
@@ -226,5 +230,29 @@ describe("useNodeActionShortcuts", () => {
 
     expect(onRunAction).not.toHaveBeenCalled();
     expect(useTreeStore.getState().nodes[0].selected).toBe(true);
+  });
+
+  /*
+  안내는 무엇을 누를지 모를 때 여는 것이라, 단축키를 받지 않는 곳에서도 연다.
+  */
+  it("?는 캔버스 밖과 강의 중에도 안내를 열고 닫는다", () => {
+    useLectureStore.setState({ status: "playing" });
+    renderShortcuts(null);
+
+    press(outside, "?", { shiftKey: true });
+    press(getNodeTitle(), "?", { shiftKey: true });
+
+    expect(onToggleGuide).toHaveBeenCalledTimes(2);
+  });
+
+  it("입력 중에 누른 ?는 글자로 넘긴다", () => {
+    renderShortcuts();
+    const input = document.createElement("input");
+    canvas.append(input);
+
+    const event = press(input, "?", { shiftKey: true });
+
+    expect(onToggleGuide).not.toHaveBeenCalled();
+    expect(event.defaultPrevented).toBe(false);
   });
 });

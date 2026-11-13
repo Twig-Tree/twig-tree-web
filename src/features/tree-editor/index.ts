@@ -18,6 +18,7 @@ export { validateLectureRequest } from "./lib/lecture/validateLectureGeneration"
 export { useIsLectureActive } from "./model/lecture/lectureStore";
 export { NodeContextMenu } from "./ui/NodeContextMenu";
 export { NodeActionToolbar } from "./ui/NodeActionToolbar";
+export { ShortcutGuide } from "./ui/ShortcutGuide";
 export { useNodeActions } from "./model/node-action/useNodeActions";
 export { useNodeActionShortcuts } from "./model/node-action/useNodeActionShortcuts";
 export { DropIndicatorOverlay } from "./ui/DropIndicatorOverlay";

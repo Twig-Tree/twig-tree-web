@@ -22,6 +22,7 @@ type UseNodeActionShortcutsParams = {
   canvasRef: RefObject<HTMLElement | null>; // 단축키가 동작하는 캔버스 영역
   targetClientId: string | null; // 동작을 실행할 노드. useNodeActions가 정한다
   onRunAction: (actionId: NodeActionId) => void; // useNodeActions의 runNodeAction. 막힌 동작은 그쪽에서 거른다
+  onToggleGuide: () => void; // 단축키 안내를 열거나 닫는다
 };
 
 /*
@@ -36,13 +37,13 @@ const isClosestMatch = (target: EventTarget | null, selector: string) =>
 
 /*
 함수 이름 : useNodeActionShortcuts
-기능 : 선택한 노드에 단축키로 동작을 실행하고, Tab으로 노드 아래 버튼에 focus를 옮기며, Escape로 선택을 푼다.
+기능 : 선택한 노드에 단축키로 동작을 실행하고, Tab으로 노드 아래 버튼에 focus를 옮기며, Escape로 선택을 푼다. ?로 단축키 안내를 열고 닫는다.
 인자 : UseNodeActionShortcutsParams
 반환값 : 없음
 
 focus가 캔버스 안이나 페이지 바탕에 있을 때만 동작한다. 검색 패널이나 메모 패널에서 누른 키가 노드를 바꾸면 안 된다.
 입력 중이거나 메뉴·대화상자가 열려 있으면 그 UI의 키이므로 넘긴다. 판단 기준은 강의 키보드 조작(useLectureKeyboard)과 같다.
-강의 중에는 방향키·Space·Escape가 강의 조작 키이므로 아무것도 받지 않는다.
+강의 중에는 방향키·Space·Escape가 강의 조작 키이므로 ? 말고는 받지 않는다.
 
 버튼에 focus가 있으면 그 버튼의 키이므로 넘긴다. 노드 아래 버튼도 여기에 들어가, 그 안의 Escape는 노드로 돌아가는 키로 남는다.
 노드 제목 버튼은 예외다. CustomNode는 이 버튼의 Enter·Space로 이름 편집을 시작하고 전파를 막으므로, 맥의 Space 메모 열기와
@@ -52,15 +53,26 @@ export function useNodeActionShortcuts({
   canvasRef,
   targetClientId,
   onRunAction,
+  onToggleGuide,
 }: UseNodeActionShortcutsParams) {
   const shortcuts = getNodeActionShortcuts(useDevicePlatform());
   const isLectureActive = useIsLectureActive();
 
   const handleKeyDown = useEffectEvent((event: KeyboardEvent) => {
-    if (isLectureActive) return;
     if (event.defaultPrevented || event.isComposing || event.repeat) return;
     if (isClosestMatch(event.target, TEXT_INPUT_SELECTOR)) return;
     if (document.querySelector(OPEN_OVERLAY_SELECTOR)) return;
+
+    /*
+    안내는 무엇을 누를지 모를 때 여는 것이므로 focus가 어디에 있든, 강의 중에도 연다. ?는 Shift와 함께 눌러야 나오는 키라 수정키를 보지 않는다.
+    */
+    if (event.key === "?") {
+      event.preventDefault();
+      onToggleGuide();
+      return;
+    }
+
+    if (isLectureActive) return;
 
     const isInCanvas =
       event.target === document.body ||
