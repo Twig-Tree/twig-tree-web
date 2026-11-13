@@ -23,6 +23,7 @@ import {
   useIsLectureActive,
   useLectureScript,
   useNodeActions,
+  useNodeActionShortcuts,
   useNodeContextMenu,
   useMoveNodeByDrag,
   useReactFlowStoreSetters,
@@ -227,6 +228,12 @@ function LayoutFlow({ workspaceId, treeId }: LayoutFlowProps) {
   };
 
   const canvasRef = useRef<HTMLDivElement>(null);
+
+  useNodeActionShortcuts({
+    canvasRef,
+    targetClientId: nodeActionTargetClientId,
+    onRunAction: runNodeAction,
+  });
   const {
     contextMenu,
     handleNodeContextMenu,
@@ -314,8 +321,8 @@ function LayoutFlow({ workspaceId, treeId }: LayoutFlowProps) {
           onNodeDrag={onNodeDrag}
           onNodeDragStop={onNodeDragStop}
           /*
-          React Flow의 기본 삭제 키(Backspace)는 서버 요청 없이 화면에서만 노드를 지운다. 삭제는 컨텍스트 메뉴의
-          handleDeleteNode가 맡고, 키보드 삭제는 #170에서 같은 handler에 연결한다.
+          React Flow의 기본 삭제 키(Backspace)는 서버 요청 없이 화면에서만 노드를 지운다. 삭제 키는
+          useNodeActionShortcuts가 받아 우클릭 메뉴·노드 아래 버튼과 같은 handleDeleteNode에 잇는다.
           */
           deleteKeyCode={null}
           disableKeyboardA11y={isMutating || isLectureActive}

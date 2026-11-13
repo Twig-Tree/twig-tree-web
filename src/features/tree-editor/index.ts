@@ -19,6 +19,7 @@ export { useIsLectureActive } from "./model/lecture/lectureStore";
 export { NodeContextMenu } from "./ui/NodeContextMenu";
 export { NodeActionToolbar } from "./ui/NodeActionToolbar";
 export { useNodeActions } from "./model/node-action/useNodeActions";
+export { useNodeActionShortcuts } from "./model/node-action/useNodeActionShortcuts";
 export { DropIndicatorOverlay } from "./ui/DropIndicatorOverlay";
 export { useTreeEditorActions } from "./model/actions/useTreeEditorActions";
 export { useDeleteTreeTag } from "./model/actions/delete-tree-tag/useDeleteTreeTag";
