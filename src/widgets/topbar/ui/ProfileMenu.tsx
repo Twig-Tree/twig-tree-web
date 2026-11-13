@@ -1,10 +1,12 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useSyncExternalStore } from "react";
+import { useState, useSyncExternalStore } from "react";
 import { useLogout } from "@/src/features/auth/logout";
+import { WithdrawConfirmModal } from "@/src/features/auth/withdraw";
 import { routes } from "@/src/shared/config/routes";
 import { authSession } from "@/src/shared/lib/auth/authSession";
+import { DefaultAvatar } from "@/src/shared/ui/default-avatar";
 import { KebabMenu } from "@/src/shared/ui/kebab-menu";
 
 // 서버에서는 sessionStorage에 접근할 수 없으므로 로그인하지 않은 상태로 렌더링한다.
@@ -12,7 +14,7 @@ const getServerSnapshot = () => false;
 
 /*
 함수 이름 : ProfileMenu
-기능 : 상단바의 프로필 이미지를 눌러 메뉴를 열고 설정 페이지로 이동하거나 로그아웃을 실행한다.
+기능 : 로그인한 동안에만 상단바의 프로필 메뉴를 그린다.
 인자 : 없음
 반환값 : 로그인한 경우 프로필 메뉴, 로그인하지 않은 경우 아무것도 렌더링하지 않는다
 */
@@ -28,38 +30,60 @@ export function ProfileMenu() {
     getServerSnapshot,
   );
 
+  /*
+  상단바는 루트 레이아웃에 있어 화면을 옮겨도 사라지지 않는다.
+  메뉴의 상태를 로그인한 동안만 그리는 컴포넌트에 두어, 세션이 끝나면 상태도 함께 버린다.
+  여기에 두면 탈퇴 직전에 연 모달이 다음 로그인에서 다시 열린다.
+  */
+  return hasAccessToken ? <SignedInProfileMenu /> : null;
+}
+
+/*
+함수 이름 : SignedInProfileMenu
+기능 : 프로필 이미지를 눌러 메뉴를 열고 설정 페이지로 이동하거나 로그아웃·회원 탈퇴를 실행한다.
+인자 : 없음
+반환값 : 프로필 메뉴와 회원 탈퇴 확인 모달
+*/
+function SignedInProfileMenu() {
   const router = useRouter();
   const { logout, isLoggingOut } = useLogout();
-
-  if (!hasAccessToken) {
-    return null;
-  }
+  const [isWithdrawModalOpen, setIsWithdrawModalOpen] = useState(false);
 
   return (
-    <KebabMenu
-      ariaLabel="프로필 메뉴"
-      triggerClassName="group flex h-8 w-8 items-center justify-center rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
-      trigger={
-        <span
-          className="h-8 w-8 rounded-full bg-surface-strong ring-1 ring-line-strong transition-colors group-hover:bg-line-strong"
-          aria-hidden="true"
-        />
-      }
-      items={[
-        {
-          id: "settings",
-          label: "설정",
-          onSelect: () => router.push(routes.settings),
-        },
-        {
-          id: "logout",
-          hasDividerBefore: true,
-          label: isLoggingOut ? "로그아웃 중..." : "로그아웃",
-          tone: "danger",
-          disabled: isLoggingOut,
-          onSelect: () => void logout(),
-        },
-      ]}
-    />
+    <>
+      <KebabMenu
+        ariaLabel="프로필 메뉴"
+        triggerClassName="group flex h-8 w-8 items-center justify-center rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+        trigger={
+          <DefaultAvatar className="h-8 w-8 ring-1 ring-line-strong transition-colors group-hover:bg-line-strong" />
+        }
+        items={[
+          {
+            id: "settings",
+            label: "설정",
+            onSelect: () => router.push(routes.settings),
+          },
+          {
+            id: "logout",
+            hasDividerBefore: true,
+            label: isLoggingOut ? "로그아웃 중..." : "로그아웃",
+            tone: "danger",
+            disabled: isLoggingOut,
+            onSelect: () => void logout(),
+          },
+          {
+            id: "withdraw",
+            label: "회원 탈퇴",
+            tone: "danger",
+            disabled: isLoggingOut,
+            onSelect: () => setIsWithdrawModalOpen(true),
+          },
+        ]}
+      />
+      <WithdrawConfirmModal
+        isOpen={isWithdrawModalOpen}
+        onClose={() => setIsWithdrawModalOpen(false)}
+      />
+    </>
   );
 }

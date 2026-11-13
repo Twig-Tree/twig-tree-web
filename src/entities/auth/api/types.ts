@@ -22,3 +22,5 @@ export interface GoogleLoginData {
 export type GoogleLoginResponse = ApiResponse<GoogleLoginData>;
 
 export type LogoutResponse = ApiResponse<null>;
+
+export type WithdrawResponse = ApiResponse<null>;
