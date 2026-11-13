@@ -42,7 +42,7 @@ export function WorkspaceLoadError({
       <p className="text-sm text-content-muted">
         {isNotFound
           ? "삭제되었거나 접근할 수 없는 워크스페이스입니다."
-          : "잠시 후 다시 시도해주세요."}
+          : "잠시 후 다시 시도해 주세요."}
       </p>
 
       <div className="mt-4">

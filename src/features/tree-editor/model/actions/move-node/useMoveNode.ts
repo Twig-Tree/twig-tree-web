@@ -10,7 +10,7 @@ type UseMoveNodeParams = {
 };
 
 const UNSAVED_NODE_MESSAGE =
-  "아직 서버에 저장되지 않은 노드입니다. 잠시 후 다시 시도해주세요.";
+  "아직 서버에 저장되지 않은 노드입니다. 잠시 후 다시 시도해 주세요.";
 
 /*
 함수 이름 : getMoveNodeErrorMessage
@@ -29,7 +29,7 @@ const getMoveNodeErrorMessage = (error: unknown): string => {
     editor store는 트리당 한 번만 채우므로 새로고침해야 서버 상태를 받는다.
     */
     case NODE_ERROR_CODE.INVALID_POSITION:
-      return "트리가 다른 곳에서 바뀌었습니다. 새로고침한 뒤 다시 시도해주세요.";
+      return "트리가 다른 곳에서 바뀌었습니다. 새로고침한 뒤 다시 시도해 주세요.";
     default:
       return "노드 이동에 실패했습니다.";
   }

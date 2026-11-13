@@ -20,9 +20,9 @@ type UseAttachNodeTagParams = {
 
 const TAG_LIMIT_MESSAGE = `태그는 노드당 최대 ${MAX_NODE_TAG_COUNT}개까지 붙일 수 있습니다.`;
 const UNSAVED_NODE_MESSAGE =
-  "아직 서버에 저장되지 않은 노드입니다. 잠시 후 다시 시도해주세요.";
+  "아직 서버에 저장되지 않은 노드입니다. 잠시 후 다시 시도해 주세요.";
 const CREATING_TAG_MESSAGE =
-  "태그를 만드는 중입니다. 잠시 후 다시 시도해주세요.";
+  "태그를 만드는 중입니다. 잠시 후 다시 시도해 주세요.";
 const ATTACH_FAILED_MESSAGE = "태그 추가에 실패했습니다.";
 
 /*

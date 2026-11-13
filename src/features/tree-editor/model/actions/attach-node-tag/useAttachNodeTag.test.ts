@@ -217,7 +217,7 @@ describe("useAttachNodeTag", () => {
     });
 
     expect(attachError).toBe(
-      "아직 서버에 저장되지 않은 노드입니다. 잠시 후 다시 시도해주세요.",
+      "아직 서버에 저장되지 않은 노드입니다. 잠시 후 다시 시도해 주세요.",
     );
     expect(attachByNameError).toBe(attachError);
     expect(createTreeTagSpy).not.toHaveBeenCalled();
@@ -240,7 +240,7 @@ describe("useAttachNodeTag", () => {
     });
 
     expect(secondError).toBe(
-      "태그를 만드는 중입니다. 잠시 후 다시 시도해주세요.",
+      "태그를 만드는 중입니다. 잠시 후 다시 시도해 주세요.",
     );
     await waitFor(() => expect(getNodeTagIds()).toEqual(["600"]));
     expect(createTreeTagSpy).toHaveBeenCalledOnce();

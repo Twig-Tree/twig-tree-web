@@ -45,7 +45,9 @@ export const useDeleteNode = ({
     const serverId = selectedNode.data.serverId; // 서버 요청에 사용할 삭제 대상 노드의 서버 ID
 
     if (serverId === null) {
-      alert("아직 서버에 저장되지 않은 노드입니다. 잠시 후 다시 시도해주세요.");
+      alert(
+        "아직 서버에 저장되지 않은 노드입니다. 잠시 후 다시 시도해 주세요.",
+      );
       return;
     }
 

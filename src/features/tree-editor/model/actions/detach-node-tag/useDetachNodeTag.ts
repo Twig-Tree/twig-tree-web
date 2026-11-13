@@ -32,7 +32,9 @@ export const useDetachNodeTag = ({
     if (!clientId) return;
 
     if (serverId === null) {
-      alert("아직 서버에 저장되지 않은 노드입니다. 잠시 후 다시 시도해주세요.");
+      alert(
+        "아직 서버에 저장되지 않은 노드입니다. 잠시 후 다시 시도해 주세요.",
+      );
       return;
     }
 

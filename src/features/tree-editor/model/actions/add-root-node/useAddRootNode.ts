@@ -40,11 +40,11 @@ const getAddRootNodeErrorMessage = (error: unknown): string => {
   루트는 store가 트리당 한 번만 채워지므로 새로고침해야 보인다.
   */
   if (code === TREE_ERROR_CODE.TREE_ALREADY_EXISTS) {
-    return "이미 트리가 만들어진 워크스페이스입니다. 잠시 후 다시 시도해주세요.";
+    return "이미 트리가 만들어진 워크스페이스입니다. 잠시 후 다시 시도해 주세요.";
   }
 
   if (code === NODE_ERROR_CODE.ONE_ROOT_PER_TREE) {
-    return "이미 루트 노드가 있습니다. 새로고침 후 다시 시도해주세요.";
+    return "이미 루트 노드가 있습니다. 새로고침 후 다시 시도해 주세요.";
   }
 
   return "노드 추가에 실패했습니다.";
