@@ -542,7 +542,7 @@ function WorkspacePageContent({ workspaceId }: WorkspacePageContentProps) {
   */
   return (
     <div className="flex h-full w-full flex-col">
-      <WorkspaceHeader name={workspace?.name} isNameLoading={isPending} />
+      <WorkspaceHeader workspace={workspace} isNameLoading={isPending} />
 
       <div className="min-h-0 flex-1">
         {isPending ? (
