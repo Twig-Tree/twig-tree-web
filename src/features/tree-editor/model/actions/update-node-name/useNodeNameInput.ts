@@ -6,7 +6,10 @@ import {
   useRef,
   useState,
 } from "react";
-import { useEditingStore } from "../../sync/editingStore";
+import {
+  type NodeNameEditorLocation,
+  useEditingStore,
+} from "../../sync/editingStore";
 import { useUpdateNodeName } from "./useUpdateNodeName";
 
 const NAME_CONFLICT_MESSAGE =
@@ -17,6 +20,7 @@ interface UseNodeNameInputParams {
   clientId: string; // 제목을 수정할 노드의 편집기 노드 ID
   serverId: string | null; // 같은 노드의 서버 ID, 아직 저장 전이면 null
   label: string; // 지금 저장된 제목. 편집을 시작하거나 취소할 때 입력값을 이 값으로 맞춘다
+  location: NodeNameEditorLocation; // 이 입력창이 열리는 곳. 같은 노드를 다른 곳에서 편집 중이면 열지 않는다
 }
 
 /*
@@ -27,15 +31,20 @@ interface UseNodeNameInputParams {
 
 저장은 useUpdateNodeName이 맡고, 이 hook은 그 결과를 입력창 상태로 옮긴다. 캔버스 노드와 메모 패널이 같은 흐름을 쓰고 모양만 다르다.
 입력창이 열려 있는 동안 editingStore에 알려, 다른 곳의 변경이 입력 중인 노드를 덮어쓰지 않게 한다.
+한 노드에는 입력창을 하나만 연다. 두 곳에서 열면 검증 실패나 충돌 안내로 남은 입력창이 서로 focus를 가져가며 blur 저장을 일으킨다.
 */
 export const useNodeNameInput = ({
   treeId,
   clientId,
   serverId,
   label,
+  location,
 }: UseNodeNameInputParams) => {
-  const setNodeNameEditing = useEditingStore(
-    (state) => state.setNodeNameEditing,
+  const startNodeNameEditing = useEditingStore(
+    (state) => state.startNodeNameEditing,
+  );
+  const endNodeNameEditing = useEditingStore(
+    (state) => state.endNodeNameEditing,
   );
 
   const [isEditing, setIsEditing] = useState(false);
@@ -69,10 +78,10 @@ export const useNodeNameInput = ({
   useEffect(() => {
     if (!isEditing) return;
 
-    setNodeNameEditing(clientId, true);
+    startNodeNameEditing(clientId, location);
 
-    return () => setNodeNameEditing(clientId, false);
-  }, [clientId, isEditing, setNodeNameEditing]);
+    return () => endNodeNameEditing(clientId, location);
+  }, [clientId, endNodeNameEditing, isEditing, location, startNodeNameEditing]);
 
   const focusInput = useCallback(() => {
     requestAnimationFrame(() => {
@@ -82,12 +91,13 @@ export const useNodeNameInput = ({
 
   const startEditing = useCallback(() => {
     if (!treeId) return;
+    if (useEditingStore.getState().nameEditors.has(clientId)) return; // 다른 곳에서 이미 편집 중이다.
 
     setName(label);
     setErrorMessage(null);
     setHasConflict(false);
     setIsEditing(true);
-  }, [label, treeId]);
+  }, [clientId, label, treeId]);
 
   const endEditing = useCallback(() => {
     setIsEditing(false);

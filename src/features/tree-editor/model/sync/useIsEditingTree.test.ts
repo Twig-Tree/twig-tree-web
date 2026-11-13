@@ -19,7 +19,7 @@ const renderIsEditingTree = (isStructureEditing = false) => {
 describe("useIsEditingTree", () => {
   afterEach(() => {
     useEditingStore.setState({
-      nameEditingClientIds: new Set(),
+      nameEditors: new Map(),
       isMemoDirty: false,
     });
     useTreeStore.getState().resetTree();
@@ -33,15 +33,15 @@ describe("useIsEditingTree", () => {
     const { result } = renderIsEditingTree();
 
     act(() => {
-      useEditingStore.getState().setNodeNameEditing("c1", true);
-      useEditingStore.getState().setNodeNameEditing("c2", true);
+      useEditingStore.getState().startNodeNameEditing("c1", "canvas");
+      useEditingStore.getState().startNodeNameEditing("c2", "panel");
     });
     expect(result.current).toBe(true);
 
-    act(() => useEditingStore.getState().setNodeNameEditing("c1", false));
+    act(() => useEditingStore.getState().endNodeNameEditing("c1", "canvas"));
     expect(result.current).toBe(true);
 
-    act(() => useEditingStore.getState().setNodeNameEditing("c2", false));
+    act(() => useEditingStore.getState().endNodeNameEditing("c2", "panel"));
     expect(result.current).toBe(false);
   });
 

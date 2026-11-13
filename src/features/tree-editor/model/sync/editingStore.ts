@@ -1,6 +1,11 @@
 import { create } from "zustand";
 
 /*
+노드 이름 입력창이 열린 곳. 캔버스 노드와 메모 패널이 같은 노드의 이름을 편집할 수 있다.
+*/
+export type NodeNameEditorLocation = "canvas" | "panel";
+
+/*
 노드 밖에서 보낸 이름 편집 시작 요청. 요청마다 새 객체를 만들어, 같은 노드에 다시 요청해도 바뀐 요청으로 알아본다.
 */
 export type NodeNameEditRequest = {
@@ -8,11 +13,18 @@ export type NodeNameEditRequest = {
 };
 
 interface EditingState {
-  nameEditingClientIds: ReadonlySet<string>; // 이름 입력창이 열려 있는 노드. 충돌 안내가 뜬 입력창은 닫히지 않아 여러 개일 수 있다
+  nameEditors: ReadonlyMap<string, NodeNameEditorLocation>; // 이름 입력창이 열려 있는 노드와 그 입력창이 열린 곳. 충돌 안내가 뜬 입력창은 닫히지 않아 여러 노드일 수 있다
   nameEditRequest: NodeNameEditRequest | null; // 가장 최근의 이름 편집 시작 요청
   isMemoDirty: boolean; // 메모 패널에 저장하지 않은 입력이 있는지
 
-  setNodeNameEditing: (clientId: string, isEditing: boolean) => void;
+  startNodeNameEditing: (
+    clientId: string,
+    location: NodeNameEditorLocation,
+  ) => void;
+  endNodeNameEditing: (
+    clientId: string,
+    location: NodeNameEditorLocation,
+  ) => void;
   requestNodeNameEdit: (clientId: string) => void;
   setMemoDirty: (isDirty: boolean) => void;
 }
@@ -22,21 +34,47 @@ interface EditingState {
 서버와 무관하고 undo 대상도 아니므로 editor store와 따로 둔다.
 */
 export const useEditingStore = create<EditingState>()((set) => ({
-  nameEditingClientIds: new Set(),
+  nameEditors: new Map(),
   nameEditRequest: null,
   isMemoDirty: false,
 
-  setNodeNameEditing: (clientId, isEditing) => {
+  /*
+  함수 이름 : startNodeNameEditing
+  기능 : 노드의 이름 입력창이 어디에서 열렸는지 기록한다.
+  인자 : string clientId -> 이름 입력창을 연 노드의 편집기 노드 ID
+  NodeNameEditorLocation location -> 입력창이 열린 곳
+  반환값 : 없음
+
+  한 노드에는 입력창을 하나만 연다. 다른 곳에서 이미 열려 있으면 기록을 바꾸지 않는다. 입력창을 열기 전에 호출부가 nameEditors로 먼저 확인한다.
+  */
+  startNodeNameEditing: (clientId, location) => {
     set((state) => {
-      const nameEditingClientIds = new Set(state.nameEditingClientIds);
+      if (state.nameEditors.has(clientId)) return state;
 
-      if (isEditing) {
-        nameEditingClientIds.add(clientId);
-      } else {
-        nameEditingClientIds.delete(clientId);
-      }
+      const nameEditors = new Map(state.nameEditors);
+      nameEditors.set(clientId, location);
 
-      return { nameEditingClientIds };
+      return { nameEditors };
+    });
+  },
+
+  /*
+  함수 이름 : endNodeNameEditing
+  기능 : 노드의 이름 입력창이 닫혔음을 기록한다.
+  인자 : string clientId -> 이름 입력창을 닫은 노드의 편집기 노드 ID
+  NodeNameEditorLocation location -> 입력창이 열렸던 곳
+  반환값 : 없음
+
+  자기가 연 기록만 지운다. 다른 곳의 기록까지 지우면 아직 입력 중인 그 입력창을 다른 곳의 변경이 덮어쓸 수 있다.
+  */
+  endNodeNameEditing: (clientId, location) => {
+    set((state) => {
+      if (state.nameEditors.get(clientId) !== location) return state;
+
+      const nameEditors = new Map(state.nameEditors);
+      nameEditors.delete(clientId);
+
+      return { nameEditors };
     });
   },
 

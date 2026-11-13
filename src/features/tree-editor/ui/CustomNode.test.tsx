@@ -75,7 +75,7 @@ describe("CustomNode 이름 편집 요청", () => {
 
   afterEach(() => {
     useTreeStore.getState().resetTree();
-    useEditingStore.setState({ nameEditRequest: null });
+    useEditingStore.setState({ nameEditRequest: null, nameEditors: new Map() });
   });
 
   it("요청한 노드의 입력창만 열고 제목 전체를 선택한다", () => {
@@ -123,6 +123,37 @@ describe("CustomNode 이름 편집 요청", () => {
 
     expect(input.value).toBe("고친 제목");
   });
+
+  /*
+  두 곳에서 열면 검증 실패나 충돌 안내로 남은 입력창이 서로 focus를 가져가며 blur 저장을 일으킨다.
+  */
+  it("메모 패널에서 같은 노드를 편집 중이면 요청·더블클릭·키보드로 열지 않는다", () => {
+    useEditingStore.getState().startNodeNameEditing("c1", "panel");
+    renderNodes();
+
+    requestNodeNameEdit("c1");
+
+    const title = screen.getByRole("button", {
+      name: "노드 제목 첫 노드 편집",
+    });
+
+    fireEvent.doubleClick(title);
+    fireEvent.keyDown(title, { key: "Enter" });
+
+    expect(screen.queryByRole("textbox")).not.toBeInTheDocument();
+    expect(useEditingStore.getState().nameEditors.get("c1")).toBe("panel");
+  });
+
+  it("메모 패널이 편집 중인 노드가 아니면 연다", () => {
+    useEditingStore.getState().startNodeNameEditing("c2", "panel");
+    renderNodes();
+
+    requestNodeNameEdit("c1");
+
+    expect(
+      screen.getByRole("textbox", { name: "노드 제목" }),
+    ).toBeInTheDocument();
+  });
 });
 
 describe("CustomNode 이름 저장", () => {
@@ -164,7 +195,7 @@ describe("CustomNode 이름 저장", () => {
     useTreeStore.getState().resetTree();
     useEditingStore.setState({
       nameEditRequest: null,
-      nameEditingClientIds: new Set(),
+      nameEditors: new Map(),
     });
   });
 
@@ -172,9 +203,7 @@ describe("CustomNode 이름 저장", () => {
     vi.spyOn(nodeApi, "editNodeName").mockResolvedValue(SAVED_NODE);
     const input = openNameInput();
 
-    expect(useEditingStore.getState().nameEditingClientIds.has("c1")).toBe(
-      true,
-    );
+    expect(useEditingStore.getState().nameEditors.get("c1")).toBe("canvas");
 
     typeName(input, "새 제목");
     pressKey(input, "Enter");
@@ -182,7 +211,7 @@ describe("CustomNode 이름 저장", () => {
     await waitFor(() =>
       expect(screen.queryByRole("textbox")).not.toBeInTheDocument(),
     );
-    expect(useEditingStore.getState().nameEditingClientIds.size).toBe(0);
+    expect(useEditingStore.getState().nameEditors.size).toBe(0);
   });
 
   /*

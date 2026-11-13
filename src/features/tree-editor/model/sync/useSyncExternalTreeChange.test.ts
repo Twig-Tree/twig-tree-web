@@ -127,7 +127,7 @@ describe("useSyncExternalTreeChange", () => {
     useTreeStore.getState().resetTree();
     useEditHistoryStore.getState().clear();
     useEditingStore.setState({
-      nameEditingClientIds: new Set(),
+      nameEditors: new Map(),
       isMemoDirty: false,
     });
   });

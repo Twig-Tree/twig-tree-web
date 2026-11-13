@@ -80,6 +80,7 @@ export function CustomNode({
     clientId: id,
     serverId: data.serverId,
     label: data.label,
+    location: "canvas",
   });
 
   /*
