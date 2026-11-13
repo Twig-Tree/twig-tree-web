@@ -86,6 +86,55 @@ describe("useOnboardingTour", () => {
     expect(result.current.step).toEqual(tourSteps[0]);
   });
 
+  it("화면에 없는 target의 단계는 건너뛰고, 번호도 남은 단계로 센다", async () => {
+    const useOnboardingTour = await loadUseOnboardingTour();
+    const [first, , third] = tourSteps;
+    const { result } = renderHook(() =>
+      useOnboardingTour(tourScenario.id, true, {
+        availableTargets: [first.target, third.target],
+      }),
+    );
+
+    expect(result.current.step).toEqual(first);
+    expect(result.current.progress).toEqual({ current: 1, total: 2 });
+
+    act(() => result.current.goToNext?.());
+    expect(result.current.step).toEqual(third);
+    expect(result.current.goToNext).toBeUndefined();
+  });
+
+  it("투어 중 지금 단계의 요소가 사라지면 남은 마지막 단계에 머문다", async () => {
+    const useOnboardingTour = await loadUseOnboardingTour();
+    const allTargets = tourSteps.map(({ target }) => target);
+    const { result, rerender } = renderHook(
+      ({ availableTargets }) =>
+        useOnboardingTour(tourScenario.id, true, { availableTargets }),
+      { initialProps: { availableTargets: allTargets } },
+    );
+
+    for (let index = 1; index < tourSteps.length; index += 1) {
+      act(() => result.current.goToNext?.());
+    }
+
+    rerender({ availableTargets: allTargets.slice(0, -1) });
+
+    expect(result.current.isVisible).toBe(true);
+    expect(result.current.step).toEqual(tourSteps.at(-2));
+    expect(result.current.progress).toEqual({
+      current: tourSteps.length - 1,
+      total: tourSteps.length - 1,
+    });
+  });
+
+  it("가리킬 요소가 하나도 없으면 보이지 않는다", async () => {
+    const useOnboardingTour = await loadUseOnboardingTour();
+    const { result } = renderHook(() =>
+      useOnboardingTour(tourScenario.id, true, { availableTargets: [] }),
+    );
+
+    expect(result.current.isVisible).toBe(false);
+  });
+
   it("단계가 없는 상황이면 보이지 않는다", async () => {
     const useOnboardingTour = await loadUseOnboardingTour();
     const { result } = renderHook(() =>
