@@ -1,4 +1,5 @@
 import { useRef } from "react";
+import { requestConfirm } from "@/src/shared/ui/confirm-dialog";
 import { getTaggedNodeResults } from "../../../lib/tag/getTaggedNodeResults";
 import { useTreeTags } from "../../tag/useTreeTags";
 import { useTreeStore } from "../../treeStore";
@@ -17,8 +18,9 @@ export const useDeleteTreeTag = () => {
   );
 
   /*
-  삭제 요청 중인 태그 ID. 응답 전까지 칩이 남아 있어 다시 누를 수 있는데, 두 번째 요청은 이미 지운 태그라 실패 알림만 남긴다.
+  확인을 묻거나 삭제 요청 중인 태그 ID. 응답 전까지 칩이 남아 있어 다시 누를 수 있는데, 두 번째 요청은 이미 지운 태그라 실패 알림만 남긴다.
   pending 값은 리렌더 전의 연타를 막지 못하므로 동기 가드를 두고, 다른 태그는 막지 않도록 태그별로 둔다.
+  확인 창은 답을 기다리는 동안 handler를 멈추므로, 묻기 전에 가드를 세워야 연타가 확인 창을 두 번 열지 않는다.
   */
   const deletingTagIdsRef = useRef(new Set<string>());
 
@@ -36,29 +38,36 @@ export const useDeleteTreeTag = () => {
       tagId,
     ).length;
 
-    const confirmMessage =
-      taggedNodeCount > 0
-        ? `"${tag.name}" 태그를 삭제하면 관련된 노드 ${taggedNodeCount}개에서도 제거됩니다.\n삭제하시겠습니까?`
-        : `"${tag.name}" 태그를 삭제하시겠습니까?`;
-
-    if (!window.confirm(confirmMessage)) return;
-
     deletingTagIdsRef.current.add(tagId);
 
-    /*
-    트리 태그 목록 cache가 응답으로 먼저 갱신된다. 노드의 tagIds에 잠시 남아 있어도 칩은 트리 태그 목록에 있는 태그만 그리므로 빈 칩이 생기지 않는다.
-    실패하면 어느 쪽도 바꾸지 않았으므로 알리기만 한다.
-    */
     try {
-      await deleteTag(tagId);
-    } catch {
-      alert("태그 삭제에 실패했습니다.");
-      return;
+      const shouldDelete = await requestConfirm({
+        title: `"${tag.name}" 태그를 삭제할까요?`,
+        description:
+          taggedNodeCount > 0
+            ? `관련된 노드 ${taggedNodeCount}개에서도 제거됩니다.`
+            : undefined,
+        confirmLabel: "삭제",
+        tone: "danger",
+      });
+
+      if (!shouldDelete) return;
+
+      /*
+      트리 태그 목록 cache가 응답으로 먼저 갱신된다. 노드의 tagIds에 잠시 남아 있어도 칩은 트리 태그 목록에 있는 태그만 그리므로 빈 칩이 생기지 않는다.
+      실패하면 어느 쪽도 바꾸지 않았으므로 알리기만 한다.
+      */
+      try {
+        await deleteTag(tagId);
+      } catch {
+        alert("태그 삭제에 실패했습니다.");
+        return;
+      }
+
+      removeTagFromAllNodesInStore(tagId);
     } finally {
       deletingTagIdsRef.current.delete(tagId);
     }
-
-    removeTagFromAllNodesInStore(tagId);
   };
 
   return { handleDeleteTreeTag };

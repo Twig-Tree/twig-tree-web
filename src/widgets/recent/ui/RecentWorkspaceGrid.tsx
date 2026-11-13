@@ -89,6 +89,9 @@ export function RecentWorkspaceGrid({
         <p className="text-sm text-content-muted">
           아직 워크스페이스가 없습니다.
         </p>
+        <p className="mt-1 text-sm text-content-muted">
+          위의 새 워크스페이스 버튼으로 만들 수 있습니다.
+        </p>
       </section>
     );
   }

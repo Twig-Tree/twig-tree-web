@@ -132,7 +132,7 @@ describe("useAddRootNode", () => {
       await act(() => result.current.handleAddRootNode());
 
       expect(alertSpy).toHaveBeenCalledWith(
-        "이미 루트 노드가 있습니다. 새로고침 후 다시 시도해주세요.",
+        "이미 루트 노드가 있습니다. 새로고침 후 다시 시도해 주세요.",
       );
       expect(useTreeStore.getState().nodes).toEqual([]);
     });
@@ -199,7 +199,7 @@ describe("useAddRootNode", () => {
       await act(() => result.current.handleAddRootNode());
 
       expect(alertSpy).toHaveBeenCalledWith(
-        "이미 트리가 만들어진 워크스페이스입니다. 잠시 후 다시 시도해주세요.",
+        "이미 트리가 만들어진 워크스페이스입니다. 잠시 후 다시 시도해 주세요.",
       );
       expect(createNodeSpy).not.toHaveBeenCalled();
       await waitFor(() =>

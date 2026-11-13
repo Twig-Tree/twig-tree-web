@@ -6,6 +6,7 @@ import {
   type WorkspaceItem,
   useDeleteWorkspaceMutation,
 } from "@/src/entities/workspace";
+import { requestConfirm } from "@/src/shared/ui/confirm-dialog";
 
 /*
 함수 이름 : useDeleteWorkspace
@@ -31,9 +32,13 @@ export function useDeleteWorkspace() {
       /*
       워크스페이스를 지우면 안의 트리와 노드도 서버에서 함께 지워지고 되돌릴 수 없어, 그 사실까지 확인받는다.
       */
-      const shouldDelete = window.confirm(
-        `"${name}" 워크스페이스를 삭제하시겠습니까?\n워크스페이스 안의 트리와 노드도 함께 삭제되며 되돌릴 수 없습니다.`,
-      );
+      const shouldDelete = await requestConfirm({
+        title: `"${name}" 워크스페이스를 삭제할까요?`,
+        description:
+          "워크스페이스 안의 트리와 노드도 함께 삭제되며 되돌릴 수 없습니다.",
+        confirmLabel: "삭제",
+        tone: "danger",
+      });
 
       if (!shouldDelete) {
         return false;

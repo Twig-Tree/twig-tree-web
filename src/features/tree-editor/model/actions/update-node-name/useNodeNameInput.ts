@@ -20,7 +20,7 @@ import { useUpdateNodeName } from "./useUpdateNodeName";
 export type NodeNameEditingEndReason = "keyboard" | "blur";
 
 const NAME_CONFLICT_MESSAGE =
-  "다른 곳에서 수정되었습니다. Enter로 덮어쓰거나 Esc로 취소하세요.";
+  "다른 곳에서 수정되었습니다. Enter로 덮어쓰거나 Esc로 취소할 수 있습니다.";
 
 interface UseNodeNameInputParams {
   treeId: string | null; // 노드가 속한 트리 ID. 트리를 불러오기 전에는 null이라 편집을 시작하지 않는다

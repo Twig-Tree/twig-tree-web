@@ -50,7 +50,7 @@ export function EmptyTreeGuide({
           </h2>
           <p className="mt-2 text-sm leading-relaxed text-content-muted">
             {aiFillSlot
-              ? "주제를 적거나 문서를 첨부하면 AI가 트리를 만들어 드려요."
+              ? "AI로 트리를 만들거나 노드를 직접 추가해 시작해 보세요."
               : "첫 노드를 추가해 트리를 시작해 보세요."}
           </p>
         </div>

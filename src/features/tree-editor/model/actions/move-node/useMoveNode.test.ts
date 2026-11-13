@@ -175,7 +175,7 @@ describe("useMoveNode", () => {
 
     await waitFor(() =>
       expect(alertSpy).toHaveBeenCalledExactlyOnceWith(
-        "트리가 다른 곳에서 바뀌었습니다. 새로고침한 뒤 다시 시도해주세요.",
+        "트리가 다른 곳에서 바뀌었습니다. 새로고침한 뒤 다시 시도해 주세요.",
       ),
     );
     expect(getChildClientIds("c2")).toEqual(["c21", "c22", "c23"]);

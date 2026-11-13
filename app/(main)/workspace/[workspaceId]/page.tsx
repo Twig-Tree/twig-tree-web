@@ -436,7 +436,7 @@ function LayoutFlow({ workspaceId, treeId }: LayoutFlowProps) {
                   <>
                     {isFillingWorkspaceTree ? <TreeCreatingNotice /> : null}
                     <PromptComposer
-                      placeholder="예: 재생 에너지 연구"
+                      placeholder="주제를 적거나 파일을 첨부하세요. 예: 재생 에너지 연구"
                       isSubmitting={isFillingWorkspaceTree || isMutating}
                       onSubmit={(draft) =>
                         fillWorkspaceTree(

@@ -310,7 +310,7 @@ describe("CustomNode 이름 저장", () => {
       pressKey(input, "Enter");
 
       expect(await screen.findByRole("alert")).toHaveTextContent(
-        "다른 곳에서 수정되었습니다. Enter로 덮어쓰거나 Esc로 취소하세요.",
+        "다른 곳에서 수정되었습니다. Enter로 덮어쓰거나 Esc로 취소할 수 있습니다.",
       );
 
       return { input, editNodeNameSpy };
