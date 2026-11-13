@@ -31,21 +31,21 @@ describe("getLectureGenerationErrorMessage", () => {
     ).toBeNull();
   });
 
-  it("json 단계 실패는 다시 시도를, 그 밖의 실패는 요청을 바꾸라고 안내한다", () => {
+  it("json 단계 실패와 트리와 맞지 않는 실패를 나눠 안내한다", () => {
     expect(
       getLectureGenerationErrorMessage({
         status: "failure",
         failedStep: "json",
         issues: [],
       }),
-    ).toContain("다시 시도해 주세요");
+    ).toBe("AI 응답을 읽지 못했습니다. 다시 시도해 주세요.");
     expect(
       getLectureGenerationErrorMessage({
         status: "failure",
         failedStep: "compile",
         issues: [],
       }),
-    ).toContain("요청을 바꿔");
+    ).toBe("만든 강의가 이 트리와 맞지 않습니다. 다시 시도해 주세요.");
   });
 
   it("프론트가 먼저 끊은 요청과 백엔드 오류 코드를 구분한다", () => {
@@ -60,7 +60,9 @@ describe("getLectureGenerationErrorMessage", () => {
         status: "request-error",
         error: createResponseError(LECTURE_ERROR_CODE.MODEL_REFUSED),
       }),
-    ).toContain("요청을 바꿔");
+    ).toBe(
+      "AI가 이 트리로는 강의를 만들지 않았습니다. 잠시 후 다시 시도해 주세요.",
+    );
     expect(
       getLectureGenerationErrorMessage({
         status: "request-error",

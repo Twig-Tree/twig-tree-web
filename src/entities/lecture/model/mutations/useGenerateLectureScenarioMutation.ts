@@ -5,7 +5,7 @@ import { LECTURE_SCENARIO_SCHEMA_VERSION } from "../scenario/schema";
 
 type GenerateLectureScenarioVariables = {
   treeId: string; // 강의를 만들 트리 ID
-  request: string; // 사용자 요청 문장
+  request: string; // 요청 문장. 화면은 LECTURE_GENERATION_REQUEST를 보낸다
   treeOutline: string; // getLectureTreeOutline으로 만든 outline. 모델이 본 노드와 컴파일러가 인정하는 노드를 같게 둔다
   repair: LectureRepairRequest | null; // getLectureRepairRequest가 만든 요청. 처음 요청이면 null
 };

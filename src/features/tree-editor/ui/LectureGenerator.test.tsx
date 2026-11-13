@@ -220,12 +220,12 @@ describe("LectureGenerator", () => {
     await userEvent.click(screen.getByRole("button", { name: "강의 만들기" }));
 
     expect(await screen.findByRole("alert")).toHaveTextContent(
-      "범위를 좁혀 다시 요청해 주세요",
+      "트리의 노드를 줄여 다시 시도해 주세요",
     );
     expect(screen.getByRole("button", { name: "강의 만들기" })).toBeEnabled();
   });
 
-  it("repair 뒤에도 트리와 맞지 않으면 요청을 바꾸라고 안내한다", async () => {
+  it("repair 뒤에도 트리와 맞지 않으면 다시 시도하라고 안내한다", async () => {
     mockResponse(() =>
       createSuccessResponse(
         VALID_RESPONSE.replace('"subject":"2"', '"subject":"999"'),
