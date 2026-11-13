@@ -1,4 +1,4 @@
-import { useMemo, type KeyboardEvent } from "react";
+import { useMemo, type KeyboardEvent, type Ref } from "react";
 import { NodeToolbar, Position } from "@xyflow/react";
 import { NODE_ACTION_LABELS } from "../constants/nodeActions";
 import {
@@ -22,6 +22,7 @@ type NodeActionToolbarProps = {
   버튼 요소가 붙거나 떨어질 때 부른다. 기능 안내처럼 버튼을 가리켜야 하는 쪽이 요소를 받는다.
   렌더마다 바뀌면 버튼 ref가 매번 다시 불리므로 고정된 함수를 넘긴다.
   */
+  toolbarRef?: Ref<HTMLDivElement>; // 버튼 묶음 요소. 기능 안내가 카드를 이 묶음에 맞춘다
   onActionButtonChange?: (
     actionId: NodeActionId,
     element: HTMLButtonElement | null,
@@ -42,6 +43,7 @@ export function NodeActionToolbar({
   clientId,
   blockReasons,
   onRunAction,
+  toolbarRef,
   onActionButtonChange,
 }: NodeActionToolbarProps) {
   const shortcuts = getNodeActionShortcuts(useDevicePlatform());
@@ -111,6 +113,7 @@ export function NodeActionToolbar({
       className="nodrag nopan nowheel"
     >
       <div
+        ref={toolbarRef}
         role="toolbar"
         aria-label="노드 동작"
         onKeyDown={handleKeyDown}

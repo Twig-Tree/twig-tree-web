@@ -8,6 +8,7 @@ import {
   offset,
   shift,
   useFloating,
+  type Middleware,
   type Placement,
   type Side,
 } from "@floating-ui/react-dom";
@@ -35,6 +36,65 @@ const VIEWPORT_PADDING = 16;
 const ARROW_PADDING = 12;
 
 /*
+꼬리 한 변의 길이(px). CoachmarkCard의 꼬리 size-2와 맞춘다.
+*/
+const ARROW_SIZE = 8;
+
+/*
+useFloating은 middleware를 options로 비교해 같으면 이전 것을 그대로 쓴다. 요소를 options에 그대로 넣으면 비교가
+React가 요소에 붙인 내부 속성까지 따라 들어가므로, 요소마다 번호를 붙여 번호로 비교하게 한다.
+*/
+const elementKeys = new WeakMap<HTMLElement, number>();
+let nextElementKey = 0;
+
+const getElementKey = (element: HTMLElement): number => {
+  const key = elementKeys.get(element) ?? (nextElementKey += 1);
+  elementKeys.set(element, key);
+  return key;
+};
+
+/*
+함수 이름 : getArrowToTargetMiddleware
+기능 : 카드는 기준 요소에 맞춰 둔 채, 꼬리만 다른 요소의 가운데를 가리키게 한다. 카드 모서리까지는 가지 않게 막는다.
+인자 : HTMLElement target -> 꼬리가 가리킬 요소
+반환값 : 꼬리 위치를 middlewareData.arrowToTarget에 담는 middleware
+*/
+const getArrowToTargetMiddleware = (target: HTMLElement): Middleware => ({
+  name: "arrowToTarget",
+  options: { targetKey: getElementKey(target) },
+  fn: ({ x, y, placement, rects, elements }) => {
+    const side = placement.split("-")[0] as Side;
+    const targetRect = target.getBoundingClientRect();
+    const referenceRect = elements.reference.getBoundingClientRect();
+    const isHorizontalEdge = side === "top" || side === "bottom";
+
+    /*
+    기준 요소를 거쳐 재므로 화면 좌표와 카드 좌표의 기준이 달라도 맞는다.
+    */
+    const targetCenter = isHorizontalEdge
+      ? targetRect.left +
+        targetRect.width / 2 -
+        referenceRect.left +
+        rects.reference.x -
+        x
+      : targetRect.top +
+        targetRect.height / 2 -
+        referenceRect.top +
+        rects.reference.y -
+        y;
+    const length = isHorizontalEdge
+      ? rects.floating.width
+      : rects.floating.height;
+    const position = Math.min(
+      Math.max(targetCenter - ARROW_SIZE / 2, ARROW_PADDING),
+      length - ARROW_PADDING - ARROW_SIZE,
+    );
+
+    return { data: isHorizontalEdge ? { x: position } : { y: position } };
+  },
+});
+
+/*
 카드가 기준 요소의 어느 쪽에 놓이는지와 꼬리가 붙는 카드의 변은 반대다. 위에 놓인 카드는 아랫변에서 기준 요소를 가리킨다.
 */
 const ARROW_SIDE_BY_PLACEMENT: Record<Side, CoachmarkSide> = {
@@ -45,7 +105,8 @@ const ARROW_SIDE_BY_PLACEMENT: Record<Side, CoachmarkSide> = {
 };
 
 interface CoachmarkProps {
-  anchor: HTMLElement | null; // 안내가 가리킬 요소. null이면 그리지 않는다
+  anchor: HTMLElement | null; // 카드를 맞출 요소. null이면 그리지 않는다
+  arrowTarget?: HTMLElement | null; // 꼬리가 가리킬 요소. 생략하면 anchor. 여러 요소를 차례로 가리킬 때 카드는 제자리에 두고 꼬리만 옮긴다
   title?: ReactNode; // 안내 제목. 생략하면 본문만 그린다
   children: ReactNode; // 안내 문구
   onDismiss: () => void; // 안내를 닫을 때 부른다
@@ -81,6 +142,7 @@ export function Coachmark({
   onNext,
   placement = "top",
   container,
+  arrowTarget,
 }: CoachmarkProps) {
   const [floatingElement, setFloatingElement] = useState<HTMLElement | null>(
     null,
@@ -104,7 +166,9 @@ export function Coachmark({
       offset(ANCHOR_GAP),
       flip({ padding: VIEWPORT_PADDING, boundary: container ?? undefined }),
       shift({ padding: VIEWPORT_PADDING, boundary: container ?? undefined }),
-      arrow({ element: arrowElement, padding: ARROW_PADDING }),
+      arrowTarget
+        ? getArrowToTargetMiddleware(arrowTarget)
+        : arrow({ element: arrowElement, padding: ARROW_PADDING }),
       hide(),
     ],
   });
@@ -112,7 +176,9 @@ export function Coachmark({
   if (!anchor) return null;
 
   const side = resolvedPlacement.split("-")[0] as Side; // placement는 "top-start"처럼 정렬이 붙어 올 수 있다.
-  const arrowData = middlewareData.arrow;
+  const arrowData = arrowTarget
+    ? (middlewareData.arrowToTarget as { x?: number; y?: number } | undefined)
+    : middlewareData.arrow;
   const isAnchorHidden = middlewareData.hide?.referenceHidden ?? false;
 
   return createPortal(

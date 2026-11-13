@@ -62,6 +62,8 @@ Escape는 focus가 카드 안에 있을 때만 닫는다. 노드 툴바·메모 
 
 step을 받으면 제목 위에 번호를, 아래에 이전·다음 버튼을 그린다. 마지막 단계에서는 다음 자리에 완료가 오고, 완료는 닫기와 같다.
 다음과 완료는 같은 버튼 요소라, 다음을 눌러 마지막 단계에 와도 focus가 그 자리에 남는다.
+단계마다 문구 길이가 달라도 버튼이 같은 자리에 오도록 폭과 문구 높이를 고정한다. 다음을 연달아 누르는 마우스가 빗나가지 않게 하기 위해서다.
+버튼 줄은 빈 곳도 클릭을 받는다. 버튼을 살짝 빗나간 클릭이 아래 노드를 누르지 않게 한다.
 */
 export function CoachmarkCard({
   title,
@@ -139,7 +141,7 @@ export function CoachmarkCard({
       onFocus={handleFocus}
       onKeyDown={handleKeyDown}
       style={style}
-      className={`pointer-events-none relative flex w-max max-w-[min(18rem,calc(100vw-2rem))] items-start gap-2 rounded-card bg-inverse py-2.5 pr-2 pl-3.5 text-sm text-on-inverse shadow-overlay ${className ?? ""}`}
+      className={`pointer-events-none relative flex ${step ? "w-[min(18rem,calc(100vw-2rem))]" : "w-max max-w-[min(18rem,calc(100vw-2rem))]"} items-start gap-2 rounded-card bg-inverse py-2.5 pr-2 pl-3.5 text-sm text-on-inverse shadow-overlay ${className ?? ""}`}
     >
       <div className="min-w-0 flex-1 py-0.5 break-keep">
         {step ? (
@@ -156,12 +158,14 @@ export function CoachmarkCard({
           </p>
         ) : null}
         {title ? <p className="font-semibold leading-snug">{title}</p> : null}
-        <p className={`${title ? "mt-1" : ""} leading-relaxed opacity-90`}>
+        <p
+          className={`${title ? "mt-1" : ""} ${step ? "min-h-[2lh]" : ""} leading-relaxed opacity-90`}
+        >
           {children}
         </p>
 
         {step ? (
-          <div className="mt-3 flex justify-end gap-1">
+          <div className="pointer-events-auto mt-3 flex justify-end gap-1">
             {onPrevious ? (
               <button
                 type="button"
