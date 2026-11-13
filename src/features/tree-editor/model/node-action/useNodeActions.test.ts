@@ -61,7 +61,7 @@ describe("useNodeActions", () => {
   afterEach(() => {
     useTreeStore.getState().resetTree();
     useEditingStore.setState({
-      nameEditingClientIds: new Set(),
+      nameEditors: new Map(),
       nameEditRequest: null,
     });
     useLectureStore.setState({ status: "idle" });
@@ -138,17 +138,41 @@ describe("useNodeActions", () => {
     expect(handlers.onOpenMemo).not.toHaveBeenCalled();
   });
 
-  it("이름을 입력 중인 노드와 강의 중에는 대상이 없다", () => {
+  it("캔버스에서 이름을 입력 중인 노드와 강의 중에는 대상이 없다", () => {
     const { result } = renderNodeActions();
     selectNodes("child");
 
-    act(() => useEditingStore.getState().setNodeNameEditing("child", true));
+    act(() =>
+      useEditingStore.getState().startNodeNameEditing("child", "canvas"),
+    );
 
     expect(result.current.targetClientId).toBeNull();
 
-    act(() => useEditingStore.getState().setNodeNameEditing("child", false));
+    act(() => useEditingStore.getState().endNodeNameEditing("child", "canvas"));
     act(() => useLectureStore.setState({ status: "playing" }));
 
     expect(result.current.targetClientId).toBeNull();
+  });
+
+  /*
+  메모 패널 입력창은 노드 아래 버튼에 가려지지 않으므로 버튼과 우클릭 메뉴는 남긴다.
+  */
+  it("메모 패널에서 이름을 입력 중이면 대상은 두고 이름 편집만 막는다", () => {
+    const { result } = renderNodeActions();
+    selectNodes("child");
+
+    act(() =>
+      useEditingStore.getState().startNodeNameEditing("child", "panel"),
+    );
+
+    expect(result.current.targetClientId).toBe("child");
+    expect(result.current.blockReasons.rename).toBe(
+      "메모 패널에서 이름을 편집하는 중입니다.",
+    );
+    expect(result.current.blockReasons.addChild).toBeNull();
+
+    act(() => result.current.runNodeAction("rename"));
+
+    expect(useEditingStore.getState().nameEditRequest).toBeNull();
   });
 });
