@@ -49,6 +49,7 @@ const ARROW_CENTER_CLASS_NAMES: Record<CoachmarkSide, string> = {
 
 화면을 막지 않는 안내라 나타날 때 focus를 옮기지 않고, 모달 대신 note 영역으로 읽힌다. 닫기 버튼은 Tab으로 닿는다.
 Escape는 focus가 카드 안에 있을 때만 닫는다. 노드 툴바·메모 패널·모달이 이미 전역에서 Escape를 쓴다.
+카드 본문은 클릭을 아래로 흘려보내고 닫기 버튼만 받는다. 안내가 가리키는 노드나 입력창을 덮어도 그 자리를 그대로 누를 수 있다.
 */
 export function CoachmarkCard({
   children,
@@ -106,7 +107,7 @@ export function CoachmarkCard({
       onFocus={handleFocus}
       onKeyDown={handleKeyDown}
       style={style}
-      className={`relative flex w-max max-w-[min(20rem,calc(100vw-2rem))] items-start gap-2 rounded-card bg-inverse py-2.5 pr-2 pl-3.5 text-sm text-on-inverse shadow-overlay ${className ?? ""}`}
+      className={`pointer-events-none relative flex w-max max-w-[min(20rem,calc(100vw-2rem))] items-start gap-2 rounded-card bg-inverse py-2.5 pr-2 pl-3.5 text-sm text-on-inverse shadow-overlay ${className ?? ""}`}
     >
       <p className="min-w-0 flex-1 py-0.5 leading-relaxed break-keep">
         {children}
@@ -120,7 +121,7 @@ export function CoachmarkCard({
             event.currentTarget.closest<HTMLElement>('[role="note"]');
           if (card) dismiss(card);
         }}
-        className="flex size-6 shrink-0 items-center justify-center rounded-control opacity-70 hover:opacity-100 focus-visible:opacity-100 focus-visible:outline-2 focus-visible:outline-focus"
+        className="pointer-events-auto flex size-6 shrink-0 items-center justify-center rounded-control opacity-70 hover:opacity-100 focus-visible:opacity-100 focus-visible:outline-2 focus-visible:outline-focus"
       >
         <X aria-hidden className="size-4" strokeWidth={2} />
       </button>

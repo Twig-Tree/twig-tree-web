@@ -6,3 +6,4 @@ export {
 export { useOnboardingHint } from "./model/useOnboardingHint";
 export { ResetOnboardingButton } from "./ui/ResetOnboardingButton";
 export { OnboardingHint } from "./ui/OnboardingHint";
+export { CanvasOnboardingHint } from "./ui/CanvasOnboardingHint";

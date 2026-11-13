@@ -130,7 +130,10 @@ export const markScenarioSeen = (scenarioId: OnboardingScenarioId): void => {
   const scenario = ONBOARDING_SCENARIOS.find(({ id }) => id === scenarioId);
   if (!scenario) return;
 
-  writeSeenRecord({ ...getSeenRecord(), [scenarioId]: scenario.version });
+  const record = getSeenRecord();
+  if (record[scenarioId] === scenario.version) return; // 이미 기록돼 있으면 저장과 알림을 건너뛴다.
+
+  writeSeenRecord({ ...record, [scenarioId]: scenario.version });
 };
 
 /*

@@ -41,6 +41,7 @@ import {
 import { use, useCallback, useRef, useState } from "react";
 import { useGetTreeQuery } from "@/src/entities/tree/model/queries";
 import { useGetWorkspaceQuery } from "@/src/entities/workspace";
+import { CanvasOnboardingHint } from "@/src/features/onboarding";
 import { PromptComposer } from "@/src/features/prompt/compose-prompt";
 import { useFillWorkspaceTree } from "@/src/features/prompt/fill-workspace-tree";
 import { isClientError } from "@/src/shared/api/httpErrors";
@@ -256,6 +257,15 @@ function LayoutFlow({ workspaceId, treeId }: LayoutFlowProps) {
   */
   const isLectureActive = useIsLectureActive();
 
+  /*
+  노드를 고르기 전의 안내는 루트 노드를 가리킨다. 루트는 들어오는 엣지가 없는 노드이고 접어도 숨지 않는다.
+  */
+  const rootClientId = useTreeStore((state) => {
+    const childIds = new Set(state.edges.map((edge) => edge.target));
+
+    return state.nodes.find((node) => !childIds.has(node.id))?.id ?? null;
+  });
+
   const {
     contextMenu,
     handleNodeContextMenu,
@@ -379,6 +389,29 @@ function LayoutFlow({ workspaceId, treeId }: LayoutFlowProps) {
               onRunAction={runNodeAction}
             />
           ) : null}
+
+          {/*
+          노드를 고르면 고르기 전 안내는 할 일을 마친 것이라 닫은 것으로 기록하고, 선택 툴바 안내로 넘어간다.
+          강의 중에는 노드 동작을 쓸 수 없어 둘 다 숨긴다. 선택 툴바 대상은 강의 중 이미 null이다.
+
+          루트는 트리 맨 위에 있어 위쪽에 띄우면 캔버스 끝과 패널에 가린다. 고르기 전에는 선택 툴바가 없으니 그 자리인 아래에 띄운다.
+          루트는 트리 맨 왼쪽이기도 해서, 가운데에 맞추면 좁은 화면에서 카드 왼쪽이 잘린다. 노드 왼쪽 끝에 맞춰 오른쪽으로 펼친다.
+          고른 뒤에는 아래가 선택 툴바와 툴팁 자리라 위에 띄운다.
+          */}
+          <CanvasOnboardingHint
+            scenarioId="canvas-root-node"
+            nodeId={rootClientId}
+            isReached={nodeActionTargetClientId === null && !isLectureActive}
+            placement="bottom"
+            align="start"
+            isCompleted={nodeActionTargetClientId !== null}
+          />
+          <CanvasOnboardingHint
+            scenarioId="canvas-node-actions"
+            nodeId={nodeActionTargetClientId}
+            isReached
+            placement="top"
+          />
 
           {isPanelOpen ? null : (
             <Panel position="top-left">

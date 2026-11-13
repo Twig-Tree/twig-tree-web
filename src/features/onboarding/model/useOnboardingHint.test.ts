@@ -158,6 +158,50 @@ describe("useOnboardingHint", () => {
     expect(result.current.isVisible).toBe(false);
   });
 
+  it("권한 동작을 해 보면 닫은 것으로 기록한다", async () => {
+    const { useOnboardingHint } = await loadModules();
+
+    const { result, rerender } = renderHook(
+      ({ isCompleted }) => useOnboardingHint(first.id, true, { isCompleted }),
+      { initialProps: { isCompleted: false } },
+    );
+    expect(result.current.isVisible).toBe(true);
+
+    rerender({ isCompleted: true });
+
+    expect(result.current.isVisible).toBe(false);
+    expect(
+      JSON.parse(window.localStorage.getItem(ONBOARDING_STORAGE_KEY) ?? "{}"),
+    ).toEqual({ [first.id]: first.version });
+  });
+
+  it("안내가 보이기 전에 권한 동작을 해 봐도 기록해 뒤늦게 뜨지 않는다", async () => {
+    const { useOnboardingHint } = await loadModules();
+
+    const { result, rerender } = renderHook(
+      ({ isReached }) =>
+        useOnboardingHint(first.id, isReached, { isCompleted: true }),
+      { initialProps: { isReached: false } },
+    );
+
+    rerender({ isReached: true });
+
+    expect(result.current.isVisible).toBe(false);
+  });
+
+  it("이미 기록된 안내를 다시 닫아도 저장하지 않는다", async () => {
+    window.localStorage.setItem(
+      ONBOARDING_STORAGE_KEY,
+      JSON.stringify({ [first.id]: first.version }),
+    );
+    const { markScenarioSeen } = await loadModules();
+    const setItem = vi.spyOn(Storage.prototype, "setItem");
+
+    markScenarioSeen(first.id);
+
+    expect(setItem).not.toHaveBeenCalled();
+  });
+
   it("형식이 틀린 저장값은 빈 기록으로 읽는다", async () => {
     window.localStorage.setItem(ONBOARDING_STORAGE_KEY, "not-json");
     const { useOnboardingHint } = await loadModules();
