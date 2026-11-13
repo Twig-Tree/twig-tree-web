@@ -1,5 +1,5 @@
 import { http, HttpResponse } from "msw";
-import { render, screen, waitFor } from "@testing-library/react";
+import { act, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { authSession } from "@/src/shared/lib/auth/authSession";
@@ -116,6 +116,38 @@ describe("ProfileMenu", () => {
 
     await waitFor(() => expect(mockReplace).toHaveBeenCalledWith("/login"));
     expect(requests.count).toBe(1);
+  });
+
+  /*
+  상단바는 루트 레이아웃에 있어 탈퇴 뒤에도 사라지지 않는다.
+  모달 상태가 남으면 같은 탭에서 다시 로그인하자마자 탈퇴 모달이 열린다.
+  */
+  it("탈퇴한 뒤 다시 로그인하면 탈퇴 모달이 닫혀 있다", async () => {
+    vi.restoreAllMocks(); // 토큰 여부 고정을 풀고 실제 세션 변화를 따라가게 한다.
+    authSession.setTokens({ accessToken: "access-token" });
+    mockWithdrawResponse(200);
+    renderProfileMenu();
+
+    const user = await openMenu();
+    await user.click(screen.getByRole("menuitem", { name: "회원 탈퇴" }));
+    await user.click(screen.getByRole("button", { name: "탈퇴하기" }));
+
+    await waitFor(() =>
+      expect(
+        screen.queryByRole("button", { name: "프로필 메뉴" }),
+      ).not.toBeInTheDocument(),
+    );
+
+    act(() => authSession.setTokens({ accessToken: "new-access-token" }));
+
+    expect(
+      screen.getByRole("button", { name: "프로필 메뉴" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole("dialog", { name: "회원 탈퇴" }),
+    ).not.toBeInTheDocument();
+
+    authSession.clearSession();
   });
 
   it("확인 모달에서 취소하면 탈퇴를 요청하지 않는다", async () => {
