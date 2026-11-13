@@ -24,7 +24,7 @@ interface UseOnboardingHintOptions {
 인자 : OnboardingScenarioId scenarioId -> 안내할 상황
 boolean isReached -> 화면이 지금 그 상황에 있는지. 예: 노드가 선택됐는지
 UseOnboardingHintOptions options
-반환값 : 보여 줄지 여부, 안내 문구, 닫기 함수
+반환값 : 보여 줄지 여부, 안내 제목·문구, 닫기 함수
 */
 export const useOnboardingHint = (
   scenarioId: OnboardingScenarioId,
@@ -66,8 +66,12 @@ export const useOnboardingHint = (
 
   const dismiss = useCallback(() => markScenarioSeen(scenarioId), [scenarioId]);
 
-  const message =
-    ONBOARDING_SCENARIOS.find(({ id }) => id === scenarioId)?.message ?? "";
+  const scenario = ONBOARDING_SCENARIOS.find(({ id }) => id === scenarioId);
 
-  return { isVisible, message, dismiss };
+  return {
+    isVisible,
+    title: scenario?.title ?? "",
+    message: scenario?.message ?? "",
+    dismiss,
+  };
 };

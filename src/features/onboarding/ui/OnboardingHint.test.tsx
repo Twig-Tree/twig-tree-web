@@ -37,6 +37,7 @@ describe("OnboardingHint", () => {
 
     render(<OnboardingHintHarness isReached />);
 
+    expect(await screen.findByText(first.title)).toBeInTheDocument();
     expect(await screen.findByText(first.message)).toBeInTheDocument();
 
     await user.click(screen.getByLabelText("안내 닫기"));

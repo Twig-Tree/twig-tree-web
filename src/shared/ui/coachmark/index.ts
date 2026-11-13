@@ -1,4 +1,4 @@
-export { Coachmark } from "./Coachmark";
+export { Coachmark, type CoachmarkPlacement } from "./Coachmark";
 export {
   CoachmarkCard,
   type CoachmarkCardProps,

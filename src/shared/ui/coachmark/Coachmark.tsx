@@ -8,6 +8,7 @@ import {
   offset,
   shift,
   useFloating,
+  type Placement,
   type Side,
 } from "@floating-ui/react-dom";
 import { useState, type ReactNode } from "react";
@@ -41,27 +42,35 @@ const ARROW_SIDE_BY_PLACEMENT: Record<Side, CoachmarkSide> = {
 
 interface CoachmarkProps {
   anchor: HTMLElement | null; // 안내가 가리킬 요소. null이면 그리지 않는다
+  title?: ReactNode; // 안내 제목. 생략하면 본문만 그린다
   children: ReactNode; // 안내 문구
   onDismiss: () => void; // 안내를 닫을 때 부른다
-  placement?: Side; // 기준 요소의 어느 쪽에 띄울지. 자리가 모자라면 반대쪽으로 뒤집는다. 생략하면 위
+  placement?: Placement; // 기준 요소의 어느 쪽과 정렬에 띄울지. 자리가 모자라면 반대쪽으로 뒤집는다. 생략하면 위
+  container?: HTMLElement | null; // 카드를 그릴 요소이자 카드가 벗어나지 않을 영역. 생략하면 body와 화면 전체
 }
+
+export type CoachmarkPlacement = Placement;
 
 /*
 함수 이름 : Coachmark
 기능 : 기준 요소 옆에 안내 카드를 띄운다. 자리가 모자라면 반대쪽으로 뒤집고, 화면 밖으로 나가면 안쪽으로 민다.
 스크롤·크기 변화를 따라가고, 기준 요소가 스크롤로 가려지면 카드도 숨긴다.
 인자 : CoachmarkProps
-반환값 : body에 그린 안내 카드. 기준 요소가 없으면 null
+반환값 : container에 그린 안내 카드. 기준 요소가 없으면 null
 
-카드는 body에 그린다. 기준 요소를 감싼 스크롤 영역의 overflow에 잘리지 않게 하기 위해서다.
+카드는 기본으로 body에 그린다. 기준 요소를 감싼 스크롤 영역의 overflow에 잘리지 않게 하기 위해서다.
+container를 넘기면 그 안에 그려 그 영역의 쌓임 순서를 따르고, 뒤집기·밀기도 그 영역 안에서 한다.
+캔버스처럼 바깥 패널이 위에 겹쳐 뜨는 영역에서, 기준 요소가 패널에 가려졌는데 카드만 패널 위에 남지 않게 하기 위해서다.
 anchor를 ref가 아닌 요소로 받는 이유는 요소가 붙는 시점에 다시 그려야 위치를 계산할 수 있어서다. 호출하는 쪽은 useState의 setter를 ref에 넘긴다.
 카드와 꼬리도 같은 이유로 state에 받는다. useFloating의 refs.setFloating을 넘기면 lint가 render 중 ref 접근으로 본다.
 */
 export function Coachmark({
   anchor,
+  title,
   children,
   onDismiss,
   placement = "top",
+  container,
 }: CoachmarkProps) {
   const [floatingElement, setFloatingElement] = useState<HTMLElement | null>(
     null,
@@ -83,8 +92,8 @@ export function Coachmark({
     whileElementsMounted: autoUpdate,
     middleware: [
       offset(ANCHOR_GAP),
-      flip({ padding: VIEWPORT_PADDING }),
-      shift({ padding: VIEWPORT_PADDING }),
+      flip({ padding: VIEWPORT_PADDING, boundary: container ?? undefined }),
+      shift({ padding: VIEWPORT_PADDING, boundary: container ?? undefined }),
       arrow({ element: arrowElement, padding: ARROW_PADDING }),
       hide(),
     ],
@@ -99,6 +108,7 @@ export function Coachmark({
   return createPortal(
     <CoachmarkCard
       ref={setFloatingElement}
+      title={title}
       onDismiss={onDismiss}
       arrowSide={ARROW_SIDE_BY_PLACEMENT[side]}
       arrowRef={setArrowElement}
@@ -121,6 +131,6 @@ export function Coachmark({
     >
       {children}
     </CoachmarkCard>,
-    document.body,
+    container ?? document.body,
   );
 }

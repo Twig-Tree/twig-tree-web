@@ -14,7 +14,7 @@ function CoachmarkHarness({ onDismiss }: { onDismiss: () => void }) {
   return (
     <>
       <input ref={setAnchor} aria-label="주제" />
-      <Coachmark anchor={anchor} onDismiss={onDismiss}>
+      <Coachmark anchor={anchor} title="첫 트리" onDismiss={onDismiss}>
         주제를 적어 보세요.
       </Coachmark>
     </>
@@ -26,10 +26,14 @@ describe("CoachmarkCard", () => {
     const user = userEvent.setup();
     const onDismiss = vi.fn();
 
-    render(<CoachmarkCard onDismiss={onDismiss}>안내 문구</CoachmarkCard>);
+    render(
+      <CoachmarkCard title="안내 제목" onDismiss={onDismiss}>
+        안내 문구
+      </CoachmarkCard>,
+    );
 
     expect(screen.getByRole("note", { name: "기능 안내" })).toHaveTextContent(
-      "안내 문구",
+      "안내 제목안내 문구",
     );
 
     await user.click(screen.getByRole("button", { name: "안내 닫기" }));
@@ -96,6 +100,7 @@ describe("Coachmark", () => {
     const note = message.closest('[role="note"]');
 
     expect(note?.parentElement).toBe(document.body);
+    expect(screen.getByText("첫 트리")).toBeInTheDocument();
     expect(input).toHaveFocus();
   });
 

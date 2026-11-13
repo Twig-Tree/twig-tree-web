@@ -39,6 +39,7 @@ describe("useOnboardingHint", () => {
 
     rerender({ isReached: true });
     expect(result.current.isVisible).toBe(true);
+    expect(result.current.title).toBe(first.title);
     expect(result.current.message).toBe(first.message);
 
     act(() => result.current.dismiss());

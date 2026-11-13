@@ -13,6 +13,7 @@ import {
 export type CoachmarkSide = "top" | "right" | "bottom" | "left";
 
 export interface CoachmarkCardProps {
+  title?: ReactNode; // 안내 제목. 생략하면 본문만 그린다
   children: ReactNode; // 안내 문구
   onDismiss: () => void; // 닫기 버튼이나 Escape로 안내를 닫을 때 부른다
   arrowSide?: CoachmarkSide; // 꼬리가 붙을 카드의 변. 기준 요소가 있는 쪽이다. 생략하면 꼬리를 그리지 않는다
@@ -52,6 +53,7 @@ Escape는 focus가 카드 안에 있을 때만 닫는다. 노드 툴바·메모 
 카드 본문은 클릭을 아래로 흘려보내고 닫기 버튼만 받는다. 안내가 가리키는 노드나 입력창을 덮어도 그 자리를 그대로 누를 수 있다.
 */
 export function CoachmarkCard({
+  title,
   children,
   onDismiss,
   arrowSide,
@@ -107,11 +109,14 @@ export function CoachmarkCard({
       onFocus={handleFocus}
       onKeyDown={handleKeyDown}
       style={style}
-      className={`pointer-events-none relative flex w-max max-w-[min(20rem,calc(100vw-2rem))] items-start gap-2 rounded-card bg-inverse py-2.5 pr-2 pl-3.5 text-sm text-on-inverse shadow-overlay ${className ?? ""}`}
+      className={`pointer-events-none relative flex w-max max-w-[min(18rem,calc(100vw-2rem))] items-start gap-2 rounded-card bg-inverse py-2.5 pr-2 pl-3.5 text-sm text-on-inverse shadow-overlay ${className ?? ""}`}
     >
-      <p className="min-w-0 flex-1 py-0.5 leading-relaxed break-keep">
-        {children}
-      </p>
+      <div className="min-w-0 flex-1 py-0.5 break-keep">
+        {title ? <p className="font-semibold leading-snug">{title}</p> : null}
+        <p className={`${title ? "mt-1" : ""} leading-relaxed opacity-90`}>
+          {children}
+        </p>
+      </div>
 
       <button
         type="button"

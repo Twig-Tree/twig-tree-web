@@ -1,6 +1,6 @@
 "use client";
 
-import { Coachmark, type CoachmarkSide } from "@/src/shared/ui/coachmark";
+import { Coachmark, type CoachmarkPlacement } from "@/src/shared/ui/coachmark";
 import type { OnboardingScenarioId } from "../model/scenarios";
 import { useOnboardingHint } from "../model/useOnboardingHint";
 
@@ -8,7 +8,7 @@ interface OnboardingHintProps {
   scenarioId: OnboardingScenarioId; // 안내할 상황
   anchor: HTMLElement | null; // 안내가 가리킬 요소. 호출하는 쪽이 useState의 setter를 ref에 넘겨 받는다
   isReached: boolean; // 화면이 지금 그 상황에 있는지. false면 순서를 다음 안내에 넘긴다
-  placement?: CoachmarkSide; // 기준 요소의 어느 쪽에 띄울지. 생략하면 위
+  placement?: CoachmarkPlacement; // 기준 요소의 어느 쪽과 정렬에 띄울지. 생략하면 위
 }
 
 /*
@@ -23,7 +23,7 @@ export function OnboardingHint({
   isReached,
   placement,
 }: OnboardingHintProps) {
-  const { isVisible, message, dismiss } = useOnboardingHint(
+  const { isVisible, title, message, dismiss } = useOnboardingHint(
     scenarioId,
     isReached && anchor !== null,
   );
@@ -31,7 +31,12 @@ export function OnboardingHint({
   if (!isVisible) return null;
 
   return (
-    <Coachmark anchor={anchor} onDismiss={dismiss} placement={placement}>
+    <Coachmark
+      anchor={anchor}
+      title={title}
+      onDismiss={dismiss}
+      placement={placement}
+    >
       {message}
     </Coachmark>
   );
