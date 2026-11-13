@@ -1,13 +1,8 @@
 "use client";
 
 import { useCallback, useState } from "react";
-import { isValidFolderId } from "@/src/entities/folder";
-import {
-  useMoveWorkspaceMutation,
-  type WorkspaceItem,
-} from "@/src/entities/workspace";
-import { getApiErrorCode } from "@/src/shared/api/authErrorCodes";
-import { getMoveWorkspaceErrorMessage } from "../lib/getMoveWorkspaceErrorMessage";
+import type { WorkspaceItem } from "@/src/entities/workspace";
+import { useRequestMoveWorkspace } from "./useRequestMoveWorkspace";
 
 /*
 함수 이름 : useMoveWorkspace
@@ -18,7 +13,8 @@ import { getMoveWorkspaceErrorMessage } from "../lib/getMoveWorkspaceErrorMessag
 지금 위치는 워크스페이스가 가진 folderId를 쓴다. 최근 화면처럼 여러 폴더의 워크스페이스가 섞인 곳에서도 같은 hook을 쓸 수 있다.
 */
 export function useMoveWorkspace() {
-  const { mutateAsync, isPending } = useMoveWorkspaceMutation();
+  const { requestMoveWorkspace, isRequestingMoveWorkspace } =
+    useRequestMoveWorkspace();
   const [movingWorkspace, setMovingWorkspace] = useState<WorkspaceItem | null>(
     null,
   );
@@ -39,39 +35,25 @@ export function useMoveWorkspace() {
   */
   const moveWorkspace = useCallback(
     async (toFolderId: string | null): Promise<boolean> => {
-      if (!movingWorkspace || isPending) return false;
+      if (!movingWorkspace || isRequestingMoveWorkspace) return false;
 
-      /*
-      같은 위치는 팝업이 이미 막는다. 그래도 들어오면 옮길 것이 없으므로 요청하지 않고 끝낸다.
-      */
-      if (toFolderId === movingWorkspace.folderId) return true;
+      const result = await requestMoveWorkspace(movingWorkspace, toFolderId);
 
-      if (!isValidFolderId(toFolderId)) {
-        setErrorMessage(getMoveWorkspaceErrorMessage(null));
-        return false;
-      }
-
-      try {
-        await mutateAsync({
-          workspaceId: movingWorkspace.id,
-          fromFolderId: movingWorkspace.folderId,
-          toFolderId,
-        });
-      } catch (error) {
-        setErrorMessage(getMoveWorkspaceErrorMessage(getApiErrorCode(error)));
-        console.error("Failed to move workspace", error);
+      if (result.status === "failed") {
+        setErrorMessage(result.errorMessage);
         return false;
       }
 
       /*
       팝업이 닫힐 때를 기다리지 않고 여기서 비운다. 마지막 항목을 옮겨 목록이 비면 화면이 팝업째 빈 상태 안내로 바뀌어
       팝업의 닫기 callback이 불리지 않는다. 남겨 두면 목록이 다시 그려질 때 이미 옮긴 항목의 팝업이 다시 열린다.
+      같은 위치라 요청하지 않은 경우도 옮길 것이 없으므로 똑같이 닫는다.
       */
       setMovingWorkspace(null);
       setErrorMessage(null);
       return true;
     },
-    [isPending, movingWorkspace, mutateAsync],
+    [isRequestingMoveWorkspace, movingWorkspace, requestMoveWorkspace],
   );
 
   return {
@@ -79,7 +61,7 @@ export function useMoveWorkspace() {
     openMoveWorkspace,
     closeMoveWorkspace,
     moveWorkspace,
-    isMovingWorkspace: isPending,
+    isMovingWorkspace: isRequestingMoveWorkspace,
     moveWorkspaceErrorMessage: errorMessage,
   };
 }

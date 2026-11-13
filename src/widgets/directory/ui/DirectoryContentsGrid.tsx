@@ -10,6 +10,7 @@ import { useDeleteWorkspace } from "@/src/features/workspace/delete-workspace";
 import { useMoveWorkspace } from "@/src/features/workspace/move-workspace";
 import { EditableWorkspaceCard } from "@/src/features/workspace/update-workspace";
 import { CardGridSkeleton } from "@/src/shared/ui/card-grid-skeleton";
+import { DraggableDirectoryItem } from "./DraggableDirectoryItem";
 
 interface DirectoryContentsGridProps {
   editingFolderId: string | null;
@@ -121,19 +122,23 @@ export function DirectoryContentsGrid({
               onEditingEnd={onEditingEnd}
             />
           ) : (
-            <FolderCard
+            <DraggableDirectoryItem
               key={folder.id}
-              folder={folder}
-              isDeleteDisabled={isDeletingFolder}
-              onDelete={() => {
-                void deleteFolder({
-                  folderId: folder.id,
-                  name: folder.name,
-                });
-              }}
-              onMove={() => openMoveFolder(folder)}
-              onRename={() => onEditingStart(folder.id)}
-            />
+              item={{ kind: "folder", folder }}
+            >
+              <FolderCard
+                folder={folder}
+                isDeleteDisabled={isDeletingFolder}
+                onDelete={() => {
+                  void deleteFolder({
+                    folderId: folder.id,
+                    name: folder.name,
+                  });
+                }}
+                onMove={() => openMoveFolder(folder)}
+                onRename={() => onEditingStart(folder.id)}
+              />
+            </DraggableDirectoryItem>
           ),
         )}
         {workspaces.map((workspace) =>
@@ -144,16 +149,20 @@ export function DirectoryContentsGrid({
               onEditingEnd={onEditingEnd}
             />
           ) : (
-            <WorkspaceCard
+            <DraggableDirectoryItem
               key={workspace.id}
-              workspace={workspace}
-              isDeleteDisabled={isDeletingWorkspace}
-              onDelete={() => {
-                void deleteWorkspace(workspace);
-              }}
-              onMove={() => openMoveWorkspace(workspace)}
-              onRename={() => onWorkspaceEditingStart(workspace.id)}
-            />
+              item={{ kind: "workspace", workspace }}
+            >
+              <WorkspaceCard
+                workspace={workspace}
+                isDeleteDisabled={isDeletingWorkspace}
+                onDelete={() => {
+                  void deleteWorkspace(workspace);
+                }}
+                onMove={() => openMoveWorkspace(workspace)}
+                onRename={() => onWorkspaceEditingStart(workspace.id)}
+              />
+            </DraggableDirectoryItem>
           ),
         )}
       </section>

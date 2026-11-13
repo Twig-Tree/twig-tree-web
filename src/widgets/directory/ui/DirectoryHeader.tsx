@@ -1,10 +1,18 @@
 import { NewFolderButton } from "@/src/features/folder/create-folder";
 import { NewWorkspaceButton } from "@/src/features/workspace/create-workspace";
 import { Breadcrumb, type BreadcrumbItem } from "@/src/shared/ui/breadcrumb";
+import { DroppableBreadcrumbItem } from "./DroppableBreadcrumbItem";
+
+/*
+디렉토리 경로 항목. 카드를 끌어 놓을 수 있도록 항목이 가리키는 폴더를 함께 싣는다.
+*/
+export type DirectoryBreadcrumbItem = BreadcrumbItem & {
+  folderId: string | null; // 이 항목이 가리키는 폴더 ID. 루트("내 폴더")는 null
+};
 
 export interface DirectoryHeaderProps {
   title: string;
-  breadcrumbs: BreadcrumbItem[]; // 비어 있으면 경로를 그리지 않는다. 루트는 제목이 곧 현재 위치다
+  breadcrumbs: DirectoryBreadcrumbItem[]; // 비어 있으면 경로를 그리지 않는다. 루트는 제목이 곧 현재 위치다
   isTitleLoading?: boolean; // 제목을 처음 불러오는 중이라 자리표시자를 보여줄지 여부
   isPathError?: boolean; // 상위 경로를 불러오지 못해 제목과 breadcrumb을 믿을 수 없는 상태인지 여부
   onCreateFolder: () => void;
@@ -28,7 +36,14 @@ export function DirectoryHeader({
       <div>
         {breadcrumbs.length > 0 ? (
           <div className="mb-2">
-            <Breadcrumb items={breadcrumbs} />
+            <Breadcrumb
+              items={breadcrumbs}
+              renderItem={(item, content) => (
+                <DroppableBreadcrumbItem folderId={item.folderId}>
+                  {content}
+                </DroppableBreadcrumbItem>
+              )}
+            />
           </div>
         ) : null}
         <h1 className="text-3xl font-bold tracking-tight text-content">

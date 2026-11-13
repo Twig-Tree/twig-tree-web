@@ -3,6 +3,7 @@ import userEvent from "@testing-library/user-event";
 import { describe, it, expect, vi } from "vitest";
 import { createQueryWrapper } from "@/src/tests/helpers/createQueryWrapper";
 import { DirectoryContentsGrid } from "./DirectoryContentsGrid";
+import { DirectoryDragMoveProvider } from "./DirectoryDragMoveProvider";
 
 const ERROR_MESSAGE = "목록을 불러오지 못했습니다.";
 const EMPTY_MESSAGE = "아직 폴더나 워크스페이스가 없습니다.";
@@ -12,20 +13,24 @@ const renderGrid = (
   overrides: Partial<Parameters<typeof DirectoryContentsGrid>[0]> = {},
 ) =>
   render(
-    <DirectoryContentsGrid
-      editingFolderId={null}
-      editingWorkspaceId={null}
-      folderParentId={null}
-      folders={[]}
-      isError={false}
-      isLoaded={true}
-      isLoading={false}
-      onFolderEditingStart={vi.fn()}
-      onEditingEnd={vi.fn()}
-      onWorkspaceEditingStart={vi.fn()}
-      workspaces={[]}
-      {...overrides}
-    />,
+    <DirectoryDragMoveProvider
+      folderParentId={overrides.folderParentId ?? null}
+    >
+      <DirectoryContentsGrid
+        editingFolderId={null}
+        editingWorkspaceId={null}
+        folderParentId={null}
+        folders={[]}
+        isError={false}
+        isLoaded={true}
+        isLoading={false}
+        onFolderEditingStart={vi.fn()}
+        onEditingEnd={vi.fn()}
+        onWorkspaceEditingStart={vi.fn()}
+        workspaces={[]}
+        {...overrides}
+      />
+    </DirectoryDragMoveProvider>,
     { wrapper: createQueryWrapper().wrapper },
   );
 

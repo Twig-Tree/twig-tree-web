@@ -10,10 +10,11 @@ import { useCreateFolder } from "@/src/features/folder/create-folder";
 import { useCreateWorkspace } from "@/src/features/workspace/create-workspace";
 import { routes } from "@/src/shared/config/routes";
 import { isValidApiId } from "@/src/shared/lib/validation/isValidApiId";
-import type { BreadcrumbItem } from "@/src/shared/ui/breadcrumb";
 import {
   DirectoryContentsGrid,
+  DirectoryDragMoveProvider,
   DirectoryHeader,
+  type DirectoryBreadcrumbItem,
   DirectoryNotFound,
 } from "@/src/widgets/directory";
 
@@ -70,10 +71,11 @@ function DirectoryPageContent({ folderParentId }: DirectoryPageContentProps) {
   const folderPath = folderPathQuery.data ?? [];
   const currentFolderName = folderPath.at(-1)?.name ?? FALLBACK_FOLDER_NAME;
 
-  const breadcrumbs: BreadcrumbItem[] = [
-    { label: "내 폴더", href: routes.directoryRoot },
+  const breadcrumbs: DirectoryBreadcrumbItem[] = [
+    { label: "내 폴더", href: routes.directoryRoot, folderId: null },
     ...folderPath.map(({ id, name }, index) => ({
       label: name,
+      folderId: id,
       href: index === folderPath.length - 1 ? undefined : routes.directory(id),
     })),
   ];
@@ -122,31 +124,33 @@ function DirectoryPageContent({ folderParentId }: DirectoryPageContentProps) {
 
   return (
     <div className="h-full overflow-y-auto bg-surface-muted/70 px-6 py-8 lg:px-8">
-      <div className="mx-auto flex w-full max-w-7xl flex-col gap-8">
-        <DirectoryHeader
-          title={currentFolderName}
-          breadcrumbs={breadcrumbs}
-          isTitleLoading={folderPathQuery.isLoading}
-          isPathError={folderPathQuery.isError}
-          onCreateFolder={() => void handleCreateFolder()}
-          isCreateFolderDisabled={isCreateFolderDisabled}
-          onCreateWorkspace={() => void handleCreateWorkspace()}
-          isCreateWorkspaceDisabled={isCreateWorkspaceDisabled}
-        />
-        <DirectoryContentsGrid
-          editingFolderId={editingFolderId}
-          editingWorkspaceId={editingWorkspaceId}
-          folderParentId={folderParentId}
-          folders={folderListQuery.data ?? []}
-          isError={isListError}
-          isLoaded={isListLoaded}
-          isLoading={isListLoading}
-          onFolderEditingStart={startFolderEditing}
-          onEditingEnd={endEditing}
-          onWorkspaceEditingStart={startWorkspaceEditing}
-          workspaces={workspaceListQuery.data ?? []}
-        />
-      </div>
+      <DirectoryDragMoveProvider folderParentId={folderParentId}>
+        <div className="mx-auto flex w-full max-w-7xl flex-col gap-8">
+          <DirectoryHeader
+            title={currentFolderName}
+            breadcrumbs={breadcrumbs}
+            isTitleLoading={folderPathQuery.isLoading}
+            isPathError={folderPathQuery.isError}
+            onCreateFolder={() => void handleCreateFolder()}
+            isCreateFolderDisabled={isCreateFolderDisabled}
+            onCreateWorkspace={() => void handleCreateWorkspace()}
+            isCreateWorkspaceDisabled={isCreateWorkspaceDisabled}
+          />
+          <DirectoryContentsGrid
+            editingFolderId={editingFolderId}
+            editingWorkspaceId={editingWorkspaceId}
+            folderParentId={folderParentId}
+            folders={folderListQuery.data ?? []}
+            isError={isListError}
+            isLoaded={isListLoaded}
+            isLoading={isListLoading}
+            onFolderEditingStart={startFolderEditing}
+            onEditingEnd={endEditing}
+            onWorkspaceEditingStart={startWorkspaceEditing}
+            workspaces={workspaceListQuery.data ?? []}
+          />
+        </div>
+      </DirectoryDragMoveProvider>
     </div>
   );
 }

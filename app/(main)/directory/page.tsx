@@ -7,6 +7,7 @@ import { useCreateFolder } from "@/src/features/folder/create-folder";
 import { useCreateWorkspace } from "@/src/features/workspace/create-workspace";
 import {
   DirectoryContentsGrid,
+  DirectoryDragMoveProvider,
   DirectoryHeader,
 } from "@/src/widgets/directory";
 
@@ -70,29 +71,31 @@ export default function DirectoryRootPage() {
 
   return (
     <div className="h-full overflow-y-auto bg-surface-muted/70 px-6 py-8 lg:px-8">
-      <div className="mx-auto flex w-full max-w-7xl flex-col gap-8">
-        <DirectoryHeader
-          title="내 폴더"
-          breadcrumbs={[]}
-          onCreateFolder={() => void handleCreateFolder()}
-          isCreateFolderDisabled={isCreateFolderDisabled}
-          onCreateWorkspace={() => void handleCreateWorkspace()}
-          isCreateWorkspaceDisabled={isCreateWorkspaceDisabled}
-        />
-        <DirectoryContentsGrid
-          editingFolderId={editingFolderId}
-          editingWorkspaceId={editingWorkspaceId}
-          folderParentId={null}
-          folders={folderListQuery.data ?? []}
-          isError={isListError}
-          isLoaded={isListLoaded}
-          isLoading={isListLoading}
-          onFolderEditingStart={startFolderEditing}
-          onEditingEnd={endEditing}
-          onWorkspaceEditingStart={startWorkspaceEditing}
-          workspaces={workspaceListQuery.data ?? []}
-        />
-      </div>
+      <DirectoryDragMoveProvider folderParentId={null}>
+        <div className="mx-auto flex w-full max-w-7xl flex-col gap-8">
+          <DirectoryHeader
+            title="내 폴더"
+            breadcrumbs={[]}
+            onCreateFolder={() => void handleCreateFolder()}
+            isCreateFolderDisabled={isCreateFolderDisabled}
+            onCreateWorkspace={() => void handleCreateWorkspace()}
+            isCreateWorkspaceDisabled={isCreateWorkspaceDisabled}
+          />
+          <DirectoryContentsGrid
+            editingFolderId={editingFolderId}
+            editingWorkspaceId={editingWorkspaceId}
+            folderParentId={null}
+            folders={folderListQuery.data ?? []}
+            isError={isListError}
+            isLoaded={isListLoaded}
+            isLoading={isListLoading}
+            onFolderEditingStart={startFolderEditing}
+            onEditingEnd={endEditing}
+            onWorkspaceEditingStart={startWorkspaceEditing}
+            workspaces={workspaceListQuery.data ?? []}
+          />
+        </div>
+      </DirectoryDragMoveProvider>
     </div>
   );
 }
