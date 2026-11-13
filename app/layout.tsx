@@ -1,5 +1,7 @@
 import "./globals.css";
+import Link from "next/link";
 import { Network } from "lucide-react";
+import { routes } from "@/src/shared/config/routes";
 import { QueryProvider } from "@/src/shared/lib/react-query/QueryProvider";
 import { Toaster } from "@/src/shared/ui/toast";
 import {
@@ -34,7 +36,14 @@ export default function RootLayout({
           <div className="flex h-dvh flex-col">
             {/* Topbar */}
             <header className="flex h-14 shrink-0 items-center justify-between border-b border-line bg-surface px-5">
-              <div className="flex items-center gap-2.5">
+              {/*
+              로그인하지 않았으면 대시보드의 인증 확인이 로그인 화면으로 보내므로 따로 나누지 않는다.
+              */}
+              <Link
+                href={routes.dashboard}
+                aria-label="Twig Tree 대시보드로 이동"
+                className="flex items-center gap-2.5 rounded-control focus-visible:ring-2 focus-visible:ring-focus focus-visible:outline-none"
+              >
                 <span
                   className="flex h-8 w-8 items-center justify-center rounded-control bg-accent text-on-accent"
                   aria-hidden="true"
@@ -44,7 +53,7 @@ export default function RootLayout({
                 <span className="text-base font-semibold tracking-tight text-content">
                   Twig Tree
                 </span>
-              </div>
+              </Link>
               <ProfileMenu />
             </header>
 
