@@ -129,6 +129,23 @@ export function CustomNode({
     setIsEditing(true);
   }, [data.label, treeId]);
 
+  /*
+  노드 밖에서 보낸 이름 편집 요청을 받아 입력창을 연다. 요청이 바뀐 순간에만 반응하므로, 이 노드가 나중에 그려져도 지난 요청으로 열리지 않는다.
+  이미 입력 중이면 입력값을 원래 제목으로 되돌리지 않도록 무시한다.
+  */
+  useEffect(() => {
+    if (isEditing) return;
+
+    return useEditingStore.subscribe((state, previousState) => {
+      const request = state.nameEditRequest;
+
+      if (request === previousState.nameEditRequest) return;
+      if (request?.clientId !== id) return;
+
+      startEditing();
+    });
+  }, [id, isEditing, startEditing]);
+
   const endEditing = useCallback(() => {
     setIsEditing(false);
     setErrorMessage(null);
