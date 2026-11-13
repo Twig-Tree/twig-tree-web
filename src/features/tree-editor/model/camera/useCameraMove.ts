@@ -10,6 +10,7 @@ import { NODE_HEIGHT, NODE_WIDTH } from "../../lib/layout";
 import { getMotionDuration, prefersReducedMotion } from "../../lib/motion";
 import { useTreeStore } from "../treeStore";
 import { CustomEditorNode } from "../types";
+import { useCameraPhaseStore } from "./cameraPhaseStore";
 
 type FitFinalNodesOptions = {
   clientIds?: string[]; // 모을 노드 ID. 없으면 화면에 그려진 노드 전체
@@ -23,7 +24,7 @@ type FitFinalNodesOptions = {
 인자 : CustomEditorNode node -> 상자를 구할 노드
 반환값 : 노드 상자의 네 변
 */
-const getFinalNodeRect = (node: CustomEditorNode) => {
+export const getFinalNodeRect = (node: CustomEditorNode) => {
   const width = node.measured?.width ?? node.width ?? NODE_WIDTH;
   const height = node.measured?.height ?? node.height ?? NODE_HEIGHT;
 
@@ -97,19 +98,23 @@ export const useCameraMove = () => {
       const right = Math.max(...rects.map((rect) => rect.right));
       const bottom = Math.max(...rects.map((rect) => rect.bottom));
       const { minZoom } = reactFlowStore.getState();
-
-      void setViewport(
-        getViewportFittedInFrame(
-          { left, top, right, bottom },
-          measureCanvasFrame(),
-          { minZoom, maxZoom },
-        ),
-        {
-          duration: prefersReducedMotion()
-            ? 0
-            : (duration ?? getMotionDuration()),
-        },
+      const frame = measureCanvasFrame();
+      const viewport = getViewportFittedInFrame(
+        { left, top, right, bottom },
+        frame,
+        { minZoom, maxZoom },
       );
+      const moveDuration = prefersReducedMotion()
+        ? 0
+        : (duration ?? getMotionDuration());
+
+      useCameraPhaseStore
+        .getState()
+        .recordExplicitCameraMove(viewport, frame, moveDuration);
+
+      void setViewport(viewport, {
+        duration: moveDuration,
+      });
     },
     [getInternalNode, measureCanvasFrame, reactFlowStore, setViewport],
   );
@@ -123,18 +128,22 @@ export const useCameraMove = () => {
       if (!node || !getInternalNode(clientId)) return; // 그 사이 삭제되었거나 여전히 숨겨져 있으면 옮기지 않는다.
 
       const { left, top, right, bottom } = getFinalNodeRect(node);
-
-      void setViewport(
-        getViewportCenteredInFrame(
-          { x: (left + right) / 2, y: (top + bottom) / 2 },
-          getZoom(),
-          measureCanvasFrame(),
-        ),
-        { duration: getMotionDuration() },
+      const frame = measureCanvasFrame();
+      const viewport = getViewportCenteredInFrame(
+        { x: (left + right) / 2, y: (top + bottom) / 2 },
+        getZoom(),
+        frame,
       );
+      const moveDuration = getMotionDuration();
+
+      useCameraPhaseStore
+        .getState()
+        .recordExplicitCameraMove(viewport, frame, moveDuration);
+
+      void setViewport(viewport, { duration: moveDuration });
     },
     [getInternalNode, getZoom, measureCanvasFrame, setViewport],
   );
 
-  return { fitFinalNodes, centerFinalNode };
+  return { fitFinalNodes, centerFinalNode, measureCanvasFrame };
 };

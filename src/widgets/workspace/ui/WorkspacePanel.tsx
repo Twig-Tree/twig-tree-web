@@ -111,8 +111,8 @@ export function WorkspacePanel({
       aria-label="워크스페이스 패널"
       data-camera-inset="left"
       hidden={!isOpen}
-      className={`z-10 flex h-full w-64 shrink-0 flex-col bg-surface-muted shadow-panel ${
-        isOverlay ? "absolute inset-y-0 left-0 z-30" : "relative"
+      className={`absolute inset-y-0 left-0 flex h-full w-64 shrink-0 flex-col bg-surface-muted shadow-panel ${
+        isOverlay ? "z-30" : "z-10"
       }`}
     >
       <div className="flex shrink-0 items-center justify-between pt-2 pr-1.5 pl-panel">

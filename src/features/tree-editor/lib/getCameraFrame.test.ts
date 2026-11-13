@@ -1,9 +1,12 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   getCameraFrameInsets,
+  getCameraReferencePhase,
   getViewportCenteredInFrame,
   getViewportFittedInFrame,
+  getViewportPreservingFramePhase,
   measureCameraFrameInsets,
+  measureNodeBaseFontSize,
 } from "./getCameraFrame";
 
 const canvas = { top: 100, right: 1200, bottom: 900, left: 200 };
@@ -173,5 +176,171 @@ describe("getViewportFittedInFrame", () => {
         zoomRange,
       ).zoom,
     ).toBe(0.1);
+  });
+});
+
+describe("measureNodeBaseFontSize", () => {
+  afterEach(() => {
+    document.documentElement.style.removeProperty("--theme-node-font-size");
+  });
+
+  it("테마 CSS 변수에서 노드 기본 글자 크기를 읽고 없으면 13px을 돌려준다", () => {
+    expect(measureNodeBaseFontSize()).toBe(13);
+
+    document.documentElement.style.setProperty(
+      "--theme-node-font-size",
+      "14px",
+    );
+    expect(measureNodeBaseFontSize()).toBe(14);
+  });
+});
+
+describe("getCameraReferencePhase", () => {
+  it("시각 프레임 중심의 흐름 좌표와 프레임에 들어오던 흐름 크기를 구한다", () => {
+    expect(
+      getCameraReferencePhase(
+        { x: 400, y: 250, zoom: 2 },
+        {
+          width: 1000,
+          height: 800,
+          insets: { ...NO_INSETS, left: 200, bottom: 100 },
+        },
+      ),
+    ).toEqual({
+      center: { x: 100, y: 50 },
+      flowWidth: 400,
+      flowHeight: 350,
+      zoom: 2,
+    });
+  });
+});
+
+describe("getViewportPreservingFramePhase", () => {
+  const zoomRange = { minZoom: 0.3, maxZoom: 2 };
+  const baseFrame = {
+    width: 1000,
+    height: 800,
+    insets: NO_INSETS,
+  };
+  const reference = getCameraReferencePhase(
+    { x: 500, y: 400, zoom: 1 },
+    baseFrame,
+  )!;
+
+  it("더 많이 줄어든 축의 비율로 배율을 줄여 원래 보던 영역을 100% 담고, 프레임이 복구되면 원래 배율로 돌아간다", () => {
+    const shrunkFrame = {
+      width: 800,
+      height: 800,
+      insets: NO_INSETS,
+    };
+
+    const shrunkViewport = getViewportPreservingFramePhase(
+      reference,
+      shrunkFrame,
+      {
+        ...zoomRange,
+        nodeBaseFontSizePx: 13,
+        minReadableFontSizePx: 10,
+      },
+    );
+
+    expect(shrunkViewport).toEqual({
+      x: 400,
+      y: 400,
+      zoom: 0.8,
+    });
+
+    const restoredViewport = getViewportPreservingFramePhase(
+      reference,
+      baseFrame,
+      {
+        ...zoomRange,
+        nodeBaseFontSizePx: 13,
+        minReadableFontSizePx: 10,
+      },
+    );
+
+    expect(restoredViewport).toEqual({
+      x: 500,
+      y: 400,
+      zoom: 1,
+    });
+  });
+
+  it("글자 크기가 10px 아래로 내려가야 하는 축소는 멈추고, 선택 노드가 새 시각 프레임의 여백 안에 들어오도록 최소 이동한다", () => {
+    const narrowFrame = {
+      width: 1000,
+      height: 800,
+      insets: { ...NO_INSETS, right: 500 },
+    };
+    const rightSideNodeBounds = {
+      left: 300,
+      top: -20,
+      right: 450,
+      bottom: 20,
+    };
+
+    const viewport = getViewportPreservingFramePhase(reference, narrowFrame, {
+      ...zoomRange,
+      nodeBaseFontSizePx: 13,
+      minReadableFontSizePx: 10,
+      selectedNodeBounds: rightSideNodeBounds,
+    });
+
+    expect(viewport.zoom).toBeCloseTo(10 / 13);
+    expect(viewport.x + rightSideNodeBounds.right * viewport.zoom).toBeCloseTo(
+      narrowFrame.width - narrowFrame.insets.right - 24,
+    );
+    expect(viewport.y).toBeCloseTo(400);
+  });
+
+  it("임계치에 걸려도 선택 노드가 이미 새 시각 프레임의 여백 안에 있으면 중심을 그대로 둔다", () => {
+    const narrowFrame = {
+      width: 1000,
+      height: 800,
+      insets: { ...NO_INSETS, right: 500 },
+    };
+    const centeredNodeBounds = {
+      left: -50,
+      top: -20,
+      right: 50,
+      bottom: 20,
+    };
+
+    const viewport = getViewportPreservingFramePhase(reference, narrowFrame, {
+      ...zoomRange,
+      nodeBaseFontSizePx: 13,
+      minReadableFontSizePx: 10,
+      selectedNodeBounds: centeredNodeBounds,
+    });
+
+    expect(viewport.zoom).toBeCloseTo(10 / 13);
+    expect(viewport.x).toBeCloseTo(250);
+    expect(viewport.y).toBeCloseTo(400);
+  });
+
+  it("원래부터 임계 글자 크기보다 작게 축소해 보고 있었다면 패널을 열 때 확대하지 않고 원래 배율을 유지한다", () => {
+    const zoomedOutReference = getCameraReferencePhase(
+      { x: 500, y: 400, zoom: 0.5 },
+      baseFrame,
+    )!;
+    const narrowFrame = {
+      width: 1000,
+      height: 800,
+      insets: { ...NO_INSETS, right: 400 },
+    };
+
+    const viewport = getViewportPreservingFramePhase(
+      zoomedOutReference,
+      narrowFrame,
+      {
+        ...zoomRange,
+        nodeBaseFontSizePx: 13,
+        minReadableFontSizePx: 10,
+      },
+    );
+
+    expect(viewport.zoom).toBe(0.5);
+    expect(viewport.x).toBe(300);
   });
 });

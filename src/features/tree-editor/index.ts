@@ -32,6 +32,7 @@ export { useTreeLevelControl } from "./model/collapse/useTreeLevelControl";
 export { useNodeTransition } from "./model/collapse/useNodeTransition";
 export { useEditorLayout } from "./model/layout/useEditorLayout";
 export { useFocusNode } from "./model/focus/useFocusNode";
+export { usePanelCameraAlignment } from "./model/camera/usePanelCameraAlignment";
 export { useNodeContextMenu } from "./model/context-menu/useNodeContextMenu";
 export { useMoveNodeByDrag } from "./model/drag/useMoveNodeByDrag";
 export { useNodeSearch } from "./model/search/useNodeSearch";

@@ -27,6 +27,7 @@ import {
   useNodeActionShortcuts,
   useNodeContextMenu,
   useMoveNodeByDrag,
+  usePanelCameraAlignment,
   useReactFlowStoreSetters,
   useSyncCollapseAcrossTabs,
   useSyncExternalTreeChange,
@@ -267,6 +268,9 @@ function LayoutFlow({ workspaceId, treeId }: LayoutFlowProps) {
 
   const { script: lectureScript, isGenerated: isGeneratedLecture } =
     useLectureScript();
+  const [isLectureGeneratorOpen, setIsLectureGeneratorOpen] = useState(false);
+  const panelLayoutKey = `${isPanelOpen}:${isPanelOverlay}:${isMemoPanelOpen}:${isLectureGeneratorOpen}`;
+  const { handleUserMoveStart } = usePanelCameraAlignment(panelLayoutKey);
 
   /*
   선택했던 노드가 다른 곳에서 지워지면 그 노드를 가리키던 메모 패널과 우클릭 메뉴가 갈 곳을 잃으므로 닫는다.
@@ -291,6 +295,9 @@ function LayoutFlow({ workspaceId, treeId }: LayoutFlowProps) {
   store가 이미 이 트리를 들고 있으면 편집기를 그대로 둔다. 조회 결과는 useInitializeTree가 같은 트리로 보고 건너뛴다.
   */
   const isTreeInStore = treeId !== null && storeTreeId === treeId;
+  const hasLeftPanelOffset = isPanelOpen && !isPanelOverlay;
+  const hasRightPanelOffset =
+    isMemoPanelOpen && treeId !== null && !isMemoPanelOverlay;
 
   if (isLoading && !isTreeInStore) {
     return <div>불러오는 중입니다.</div>;
@@ -328,7 +335,10 @@ function LayoutFlow({ workspaceId, treeId }: LayoutFlowProps) {
             onNodeDragStart(event, node, draggedNodes);
           }}
           onNodeContextMenu={handleNodeContextMenu}
-          onMoveStart={closeContextMenu}
+          onMoveStart={(event) => {
+            closeContextMenu();
+            handleUserMoveStart(event);
+          }}
           onPaneClick={handlePaneClick}
           onNodeDrag={onNodeDrag}
           onNodeDragStop={onNodeDragStop}
@@ -379,7 +389,10 @@ function LayoutFlow({ workspaceId, treeId }: LayoutFlowProps) {
             </Panel>
           )}
 
-          <Panel position="top-right">
+          <Panel
+            position="top-right"
+            className={hasRightPanelOffset ? "!right-[360px]" : undefined}
+          >
             <EditorToolbar
               onUndo={handleUndo}
               onRedo={handleRedo}
@@ -401,7 +414,11 @@ function LayoutFlow({ workspaceId, treeId }: LayoutFlowProps) {
           {nodes.length === 0 ? null : (
             <Panel
               position="bottom-center"
-              className="!pointer-events-none flex w-[calc(100%-2rem)] max-w-2xl justify-center"
+              style={{
+                left: hasLeftPanelOffset ? 256 : 0,
+                right: hasRightPanelOffset ? 360 : 0,
+              }}
+              className="!pointer-events-none !translate-x-0 mx-auto flex w-auto max-w-2xl justify-center px-4"
             >
               <LecturePlayer
                 script={lectureScript}
@@ -409,7 +426,8 @@ function LayoutFlow({ workspaceId, treeId }: LayoutFlowProps) {
                 onRevealNodes={revealNodes}
                 onResetCamera={fitTreeView}
                 onBeforeCollapseRestore={fitTreeViewAfterNextLayout}
-                panelLayoutKey={`${isPanelOpen}:${isPanelOverlay}:${isMemoPanelOpen}`}
+                panelLayoutKey={panelLayoutKey}
+                onGeneratorOpenChange={setIsLectureGeneratorOpen}
               />
             </Panel>
           )}
@@ -421,7 +439,13 @@ function LayoutFlow({ workspaceId, treeId }: LayoutFlowProps) {
         바깥은 pointer 이벤트를 꺼서 안내 주변의 캔버스 이동을 막지 않는다.
         */}
         {nodes.length === 0 ? (
-          <div className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center overflow-y-auto p-4">
+          <div
+            style={{
+              left: hasLeftPanelOffset ? 256 : 0,
+              right: hasRightPanelOffset ? 360 : 0,
+            }}
+            className="pointer-events-none absolute inset-y-0 z-10 flex items-center justify-center overflow-y-auto p-4"
+          >
             <div className="pointer-events-auto w-full max-w-xl">
               {/*
               AI 생성은 1분 넘게 걸릴 수 있어, 그동안 직접 추가를 막아 두 요청이 같은 빈 트리를 채우려 다투지 않게 한다.

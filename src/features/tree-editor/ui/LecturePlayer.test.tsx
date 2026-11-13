@@ -1,6 +1,7 @@
 import { act, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { createQueryWrapper } from "@/src/tests/helpers/createQueryWrapper";
 import { WORLD_GEOGRAPHY_NODE_IDS } from "@/src/tests/mocks/data";
 import { createEditorEdge } from "../lib/add-node/createEditorEdge";
 import { createEditorNode } from "../lib/add-node/createEditorNode";
@@ -327,5 +328,32 @@ describe("LecturePlayer", () => {
     unmount();
 
     expect(useLectureAnimationStore.getState().layers.size).toBe(0);
+  });
+
+  it("강의 만들기 패널을 열고 닫으면 열림 상태 변화를 알린다", async () => {
+    const onGeneratorOpenChange = vi.fn();
+
+    render(
+      <LecturePlayer
+        script={null}
+        isGeneratedScript={false}
+        onRevealNodes={onRevealNodes}
+        onResetCamera={onResetCamera}
+        onBeforeCollapseRestore={onBeforeCollapseRestore}
+        panelLayoutKey="panels"
+        onGeneratorOpenChange={onGeneratorOpenChange}
+      />,
+      { wrapper: createQueryWrapper().wrapper },
+    );
+
+    expect(onGeneratorOpenChange).toHaveBeenLastCalledWith(false);
+
+    await userEvent.click(screen.getByRole("button", { name: "강의 만들기" }));
+    expect(onGeneratorOpenChange).toHaveBeenLastCalledWith(true);
+
+    await userEvent.click(
+      screen.getByRole("button", { name: "강의 만들기 닫기" }),
+    );
+    expect(onGeneratorOpenChange).toHaveBeenLastCalledWith(false);
   });
 });
