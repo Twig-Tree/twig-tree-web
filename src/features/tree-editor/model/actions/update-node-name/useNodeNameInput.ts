@@ -10,7 +10,14 @@ import {
   type NodeNameEditorLocation,
   useEditingStore,
 } from "../../sync/editingStore";
+import { useIsMounted } from "@/src/shared/lib/react/useIsMounted";
 import { useUpdateNodeName } from "./useUpdateNodeName";
+
+/*
+편집이 끝난 원인. Enter·Escape는 사용자가 입력창 안에서 끝낸 것이고, blur는 다른 곳으로 옮겨 가며 끝난 것이다.
+호출부는 이 값으로 focus를 되돌릴지 정한다. blur로 끝났다면 사용자가 옮긴 곳이 있으므로 되돌리지 않는다.
+*/
+export type NodeNameEditingEndReason = "keyboard" | "blur";
 
 const NAME_CONFLICT_MESSAGE =
   "다른 곳에서 수정되었습니다. Enter로 덮어쓰거나 Esc로 취소하세요.";
@@ -21,6 +28,7 @@ interface UseNodeNameInputParams {
   serverId: string | null; // 같은 노드의 서버 ID, 아직 저장 전이면 null
   label: string; // 지금 저장된 제목. 편집을 시작하거나 취소할 때 입력값을 이 값으로 맞춘다
   location: NodeNameEditorLocation; // 이 입력창이 열리는 곳. 같은 노드를 다른 곳에서 편집 중이면 열지 않는다
+  onEditingEnd?: (reason: NodeNameEditingEndReason) => void; // 저장이나 취소로 입력창이 닫힌 뒤 부른다. 원인에 따라 focus를 되돌릴지 정한다
 }
 
 /*
@@ -39,6 +47,7 @@ export const useNodeNameInput = ({
   serverId,
   label,
   location,
+  onEditingEnd,
 }: UseNodeNameInputParams) => {
   const startNodeNameEditing = useEditingStore(
     (state) => state.startNodeNameEditing,
@@ -54,6 +63,7 @@ export const useNodeNameInput = ({
   const inputRef = useRef<HTMLInputElement>(null);
   const isCommittingRef = useRef(false);
   const isCancellingRef = useRef(false);
+  const isMounted = useIsMounted();
 
   const { getNodeNameError, updateNodeName, isUpdatingNodeName } =
     useUpdateNodeName({
@@ -99,57 +109,69 @@ export const useNodeNameInput = ({
     setIsEditing(true);
   }, [clientId, label, treeId]);
 
-  const endEditing = useCallback(() => {
-    setIsEditing(false);
-    setErrorMessage(null);
-    setHasConflict(false);
-    isCancellingRef.current = false;
-  }, []);
+  /*
+  요청을 기다리는 동안 입력창이 사라졌다면 onEditingEnd를 부르지 않는다. 메모 패널은 노드를 바꾸면 입력창을 새로 그리므로,
+  사라진 입력창의 결과로 focus를 옮기면 사용자가 방금 고른 노드의 화면을 건드린다.
+  */
+  const endEditing = useCallback(
+    (reason: NodeNameEditingEndReason) => {
+      setIsEditing(false);
+      setErrorMessage(null);
+      setHasConflict(false);
+      isCancellingRef.current = false;
+
+      if (isMounted()) onEditingEnd?.(reason);
+    },
+    [isMounted, onEditingEnd],
+  );
 
   /*
   현재 입력값을 검증한 뒤 제목 수정을 요청한다.
   검증이나 요청이 실패하면 편집 상태를 유지하고 입력창으로 focus를 되돌린다.
   */
-  const commitName = useCallback(async () => {
-    if (isCommittingRef.current || isCancellingRef.current) return;
+  const commitName = useCallback(
+    async (reason: NodeNameEditingEndReason) => {
+      if (isCommittingRef.current || isCancellingRef.current) return;
 
-    const validationError = getNodeNameError(name);
+      const validationError = getNodeNameError(name);
 
-    if (validationError) {
-      setErrorMessage(validationError);
+      if (validationError) {
+        setErrorMessage(validationError);
+        focusInput();
+        return;
+      }
+
+      isCommittingRef.current = true; // Enter와 blur가 연속으로 발생해도 요청은 한 번만 보낸다.
+      setErrorMessage(null);
+      setHasConflict(false);
+
+      const result = await updateNodeName(name);
+
+      isCommittingRef.current = false;
+
+      if (result === "saved") {
+        endEditing(reason);
+        return;
+      }
+
+      if (result === "notFound") {
+        alert("다른 곳에서 삭제된 노드입니다.");
+        endEditing(reason);
+        return;
+      }
+
+      if (result === "conflict") {
+        setHasConflict(true);
+        setErrorMessage(NAME_CONFLICT_MESSAGE);
+        focusInput();
+        return;
+      }
+
+      setErrorMessage("제목을 저장하지 못했습니다. 다시 시도해 주세요.");
       focusInput();
-      return;
-    }
-
-    isCommittingRef.current = true; // Enter와 blur가 연속으로 발생해도 요청은 한 번만 보낸다.
-    setErrorMessage(null);
-    setHasConflict(false);
-
-    const result = await updateNodeName(name);
-
-    isCommittingRef.current = false;
-
-    if (result === "saved") {
-      endEditing();
-      return;
-    }
-
-    if (result === "notFound") {
-      alert("다른 곳에서 삭제된 노드입니다.");
-      endEditing();
-      return;
-    }
-
-    if (result === "conflict") {
-      setHasConflict(true);
-      setErrorMessage(NAME_CONFLICT_MESSAGE);
-      focusInput();
-      return;
-    }
-
-    setErrorMessage("제목을 저장하지 못했습니다. 다시 시도해 주세요.");
-    focusInput();
-  }, [endEditing, focusInput, getNodeNameError, name, updateNodeName]);
+    },
+    [endEditing, focusInput, getNodeNameError, name, updateNodeName],
+  );
 
   /*
   충돌 안내는 입력을 고쳐도 남긴다. 사용자가 Enter나 Esc로 정할 때까지 알아야 하는 내용이다.
@@ -168,7 +190,7 @@ export const useNodeNameInput = ({
   const handleBlur = useCallback(() => {
     if (hasConflict) return;
 
-    void commitName();
+    void commitName("blur");
   }, [commitName, hasConflict]);
 
   /*
@@ -180,14 +202,14 @@ export const useNodeNameInput = ({
         event.preventDefault();
         isCancellingRef.current = true; // 편집 종료 과정에서 발생하는 blur 저장을 막는다.
         setName(label);
-        endEditing();
+        endEditing("keyboard");
         return;
       }
 
       if (event.key !== "Enter" || event.nativeEvent.isComposing) return;
 
       event.preventDefault();
-      void commitName();
+      void commitName("keyboard");
     },
     [commitName, endEditing, label],
   );

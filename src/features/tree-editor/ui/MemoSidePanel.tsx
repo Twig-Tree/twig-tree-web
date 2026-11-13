@@ -1,6 +1,7 @@
 import { X } from "lucide-react";
 import { IconButton } from "@/src/shared/ui/icon-button";
 import { MemoEditor } from "./MemoEditor";
+import { MemoPanelNodeName } from "./MemoPanelNodeName";
 import { TagChipList } from "./TagChipList";
 import { TagInput } from "./TagInput";
 import { getTagsByIds } from "../lib/tag/getTagsByIds";
@@ -58,14 +59,28 @@ export const MemoSidePanel = ({
         isOverlay ? "absolute inset-y-0 right-0 z-30" : "relative"
       }`}
     >
-      <header className="flex h-16 shrink-0 items-center justify-between border-b border-line px-panel">
-        <div className="min-w-0">
+      <header className="flex h-16 shrink-0 items-center justify-between gap-2 border-b border-line px-panel">
+        {/*
+        제목 영역을 닫기 버튼 앞까지 늘려, 이름 입력창이 그 너비를 쓰게 한다.
+        */}
+        <div className="min-w-0 flex-1">
           <p className="text-xs font-medium uppercase tracking-wide text-content-muted">
             메모
           </p>
-          <h2 className="truncate text-lg font-semibold text-content">
-            {selectedNode?.data.label ?? "선택한 노드 없음"}
-          </h2>
+          {/*
+          노드를 바꾸면 입력 중이던 이름을 버리도록 노드 ID를 key로 준다.
+          */}
+          {selectedNode ? (
+            <MemoPanelNodeName
+              key={selectedNode.id}
+              treeId={treeId}
+              node={selectedNode}
+            />
+          ) : (
+            <h2 className="truncate text-lg font-semibold text-content">
+              선택한 노드 없음
+            </h2>
+          )}
         </div>
         <IconButton size="sm" aria-label="메모 패널 닫기" onClick={onClose}>
           <X aria-hidden="true" />
