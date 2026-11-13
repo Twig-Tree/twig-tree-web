@@ -7,8 +7,8 @@ export interface OnboardingTourStep {
 interface OnboardingScenarioDefinition {
   id: string; // 상황 ID
   version: number; // 문구나 가리키는 대상을 바꿀 때 올린다
-  title: string; // 카드 한 장으로 안내할 때의 제목
-  message: string; // 카드 한 장으로 안내할 때의 문구
+  title?: string; // 카드 한 장으로 안내할 때의 제목. steps가 있으면 두지 않는다
+  message?: string; // 카드 한 장으로 안내할 때의 문구. steps가 있으면 두지 않는다
   steps?: readonly OnboardingTourStep[]; // 여러 요소를 차례로 가리키는 안내의 단계. 배열 순서가 단계 순서다
 }
 
@@ -34,10 +34,7 @@ export const ONBOARDING_SCENARIOS = [
   },
   {
     id: "canvas-node-actions", // 노드 첫 선택, 선택 툴바
-    version: 3,
-    title: "이곳에서 내용을 발전시켜요",
-    message:
-      "메모 아이콘으로 설명을 남기고, +\u00a0버튼으로 하위 노드를 추가해 보세요.", // "+"와 "버튼"이 다른 줄로 갈리지 않게 붙인다.
+    version: 4,
     /*
     target은 선택 툴바의 동작 ID와 같다. features/tree-editor를 import할 수 없어 문자열로 적고, 워크스페이스 페이지가 버튼 요소와 잇는다.
     막힌 동작도 기능을 소개하려고 그대로 가리킨다. 막힌 이유는 버튼 툴팁이 알려 준다.

@@ -1,4 +1,4 @@
-import { type KeyboardEvent } from "react";
+import { useMemo, type KeyboardEvent } from "react";
 import { NodeToolbar, Position } from "@xyflow/react";
 import { NODE_ACTION_LABELS } from "../constants/nodeActions";
 import {
@@ -18,6 +18,14 @@ type NodeActionToolbarProps = {
   clientId: string; // 버튼을 붙일 노드의 편집기 노드 ID
   blockReasons: Record<NodeActionId, string | null>; // 동작별 막힌 이유. 실행할 수 있으면 null
   onRunAction: (actionId: NodeActionId) => void; // 막힌 동작도 부른다. 막을지는 useNodeActions가 정한다
+  /*
+  버튼 요소가 붙거나 떨어질 때 부른다. 기능 안내처럼 버튼을 가리켜야 하는 쪽이 요소를 받는다.
+  렌더마다 바뀌면 버튼 ref가 매번 다시 불리므로 고정된 함수를 넘긴다.
+  */
+  onActionButtonChange?: (
+    actionId: NodeActionId,
+    element: HTMLButtonElement | null,
+  ) => void;
 };
 
 /*
@@ -34,8 +42,25 @@ export function NodeActionToolbar({
   clientId,
   blockReasons,
   onRunAction,
+  onActionButtonChange,
 }: NodeActionToolbarProps) {
   const shortcuts = getNodeActionShortcuts(useDevicePlatform());
+
+  /*
+  동작별 ref 콜백을 한 번만 만든다. map 안에서 화살표 함수로 넘기면 렌더마다 새 함수가 되어
+  React가 null과 요소로 다시 부르고, 받는 쪽이 state를 바꾸면 다시 렌더된다.
+  */
+  const actionButtonRefs = useMemo(
+    () =>
+      Object.fromEntries(
+        NODE_ACTION_IDS.map((actionId) => [
+          actionId,
+          (element: HTMLButtonElement | null) =>
+            onActionButtonChange?.(actionId, element),
+        ]),
+      ) as Record<NodeActionId, (element: HTMLButtonElement | null) => void>,
+    [onActionButtonChange],
+  );
 
   /*
   버튼 묶음 안에서는 ←→로 오가고 Home·End로 양 끝에 간다. Escape와 Shift+Tab은 버튼을 띄운 노드로 focus를 돌려준다.
@@ -100,6 +125,7 @@ export function NodeActionToolbar({
           return (
             <span key={actionId} className="group relative">
               <button
+                ref={actionButtonRefs[actionId]}
                 type="button"
                 aria-label={label}
                 aria-disabled={blockReason !== null || undefined}

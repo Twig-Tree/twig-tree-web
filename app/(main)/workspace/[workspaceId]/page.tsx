@@ -36,12 +36,16 @@ import {
   useTreeStore,
   useNodeTransition,
   useVisibleElements,
+  type NodeActionId,
   type NodeResult,
 } from "@/src/features/tree-editor";
 import { use, useCallback, useRef, useState } from "react";
 import { useGetTreeQuery } from "@/src/entities/tree/model/queries";
 import { useGetWorkspaceQuery } from "@/src/entities/workspace";
-import { CanvasOnboardingHint } from "@/src/features/onboarding";
+import {
+  CanvasOnboardingHint,
+  CanvasOnboardingTour,
+} from "@/src/features/onboarding";
 import { PromptComposer } from "@/src/features/prompt/compose-prompt";
 import { useFillWorkspaceTree } from "@/src/features/prompt/fill-workspace-tree";
 import { isClientError } from "@/src/shared/api/httpErrors";
@@ -206,6 +210,23 @@ function LayoutFlow({ workspaceId, treeId }: LayoutFlowProps) {
     onAddChild: handleAddNode,
     onDelete: handleDeleteNode,
   });
+
+  /*
+  노드 동작 안내가 단계마다 가리킬 툴바 버튼. 안내의 단계 이름표가 동작 ID와 같다.
+  툴바가 다른 노드로 옮겨 가 버튼이 다시 붙어도 요소가 같으면 state를 바꾸지 않는다.
+  */
+  const [nodeActionButtons, setNodeActionButtons] = useState<
+    Partial<Record<NodeActionId, HTMLButtonElement | null>>
+  >({});
+  const handleNodeActionButtonChange = useCallback(
+    (actionId: NodeActionId, element: HTMLButtonElement | null) =>
+      setNodeActionButtons((buttons) =>
+        buttons[actionId] === element
+          ? buttons
+          : { ...buttons, [actionId]: element },
+      ),
+    [],
+  );
 
   const { isPanelOpen, isPanelOverlay, openPanel, closePanel } =
     useResponsivePanelVisibility();
@@ -387,6 +408,7 @@ function LayoutFlow({ workspaceId, treeId }: LayoutFlowProps) {
               clientId={nodeActionTargetClientId}
               blockReasons={nodeActionBlockReasons}
               onRunAction={runNodeAction}
+              onActionButtonChange={handleNodeActionButtonChange}
             />
           ) : null}
 
@@ -394,9 +416,8 @@ function LayoutFlow({ workspaceId, treeId }: LayoutFlowProps) {
           노드를 고르면 고르기 전 안내는 할 일을 마친 것이라 닫은 것으로 기록하고, 선택 툴바 안내로 넘어간다.
           강의 중에는 노드 동작을 쓸 수 없어 둘 다 숨긴다. 선택 툴바 대상은 강의 중 이미 null이다.
 
-          루트 안내는 NodeToolbar의 기준점만 노드를 따라가고 실제 카드는 body에서 화면 안으로 보정한다.
-          고른 뒤 안내는 고른 노드 위에 띄운다. 툴바를 기준으로 위에 띄우면 고른 노드를, 아래는 버튼 툴팁을 가리고,
-          옆은 캔버스 폭이 좁으면 양쪽 모두 자리가 모자라 잘린다.
+          루트 안내는 NodeToolbar의 기준점만 노드를 따라가고 실제 카드는 캔버스 안으로 보정한다.
+          고른 뒤 안내는 툴바 버튼을 하나씩 가리키며 단계마다 그 버튼 아래에 띄운다. 선택을 풀면 숨고, 다시 고르면 처음부터 보인다.
           */}
           <CanvasOnboardingHint
             scenarioId="canvas-root-node"
@@ -406,11 +427,10 @@ function LayoutFlow({ workspaceId, treeId }: LayoutFlowProps) {
             align="start"
             isCompleted={nodeActionTargetClientId !== null}
           />
-          <CanvasOnboardingHint
+          <CanvasOnboardingTour
             scenarioId="canvas-node-actions"
-            nodeId={nodeActionTargetClientId}
-            isReached
-            placement="top"
+            isReached={nodeActionTargetClientId !== null}
+            anchors={nodeActionButtons}
           />
 
           {isPanelOpen ? null : (

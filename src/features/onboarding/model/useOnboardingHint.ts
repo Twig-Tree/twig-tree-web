@@ -67,11 +67,12 @@ export const useOnboardingHint = (
   const dismiss = useCallback(() => markScenarioSeen(scenarioId), [scenarioId]);
 
   const scenario = ONBOARDING_SCENARIOS.find(({ id }) => id === scenarioId);
+  const isSingleCard = scenario !== undefined && "title" in scenario; // 단계로 이어지는 안내는 문구를 useOnboardingTour가 단계별로 준다.
 
   return {
     isVisible,
-    title: scenario?.title ?? "",
-    message: scenario?.message ?? "",
+    title: isSingleCard ? scenario.title : "",
+    message: isSingleCard ? scenario.message : "",
     dismiss,
   };
 };
