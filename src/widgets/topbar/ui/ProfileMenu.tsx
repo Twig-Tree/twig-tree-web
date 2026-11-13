@@ -5,6 +5,7 @@ import { useSyncExternalStore } from "react";
 import { useLogout } from "@/src/features/auth/logout";
 import { routes } from "@/src/shared/config/routes";
 import { authSession } from "@/src/shared/lib/auth/authSession";
+import { DefaultAvatar } from "@/src/shared/ui/default-avatar";
 import { KebabMenu } from "@/src/shared/ui/kebab-menu";
 
 // 서버에서는 sessionStorage에 접근할 수 없으므로 로그인하지 않은 상태로 렌더링한다.
@@ -40,10 +41,7 @@ export function ProfileMenu() {
       ariaLabel="프로필 메뉴"
       triggerClassName="group flex h-8 w-8 items-center justify-center rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
       trigger={
-        <span
-          className="h-8 w-8 rounded-full bg-surface-strong ring-1 ring-line-strong transition-colors group-hover:bg-line-strong"
-          aria-hidden="true"
-        />
+        <DefaultAvatar className="h-8 w-8 ring-1 ring-line-strong transition-colors group-hover:bg-line-strong" />
       }
       items={[
         {
