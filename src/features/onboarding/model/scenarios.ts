@@ -1,3 +1,17 @@
+export interface OnboardingTourStep {
+  target: string; // 가리킬 요소의 이름표. 화면이 이름표와 요소를 잇는다
+  title: string; // 단계 제목
+  message: string; // 단계 문구
+}
+
+interface OnboardingScenarioDefinition {
+  id: string; // 상황 ID
+  version: number; // 문구나 가리키는 대상을 바꿀 때 올린다
+  title: string; // 카드 한 장으로 안내할 때의 제목
+  message: string; // 카드 한 장으로 안내할 때의 문구
+  steps?: readonly OnboardingTourStep[]; // 여러 요소를 차례로 가리키는 안내의 단계. 배열 순서가 단계 순서다
+}
+
 /*
 안내를 띄울 상황 목록. 배열 순서가 노출 순서다. 여러 상황에 동시에 도달하면 앞의 것부터 하나씩 보인다.
 
@@ -24,8 +38,34 @@ export const ONBOARDING_SCENARIOS = [
     title: "이곳에서 내용을 발전시켜요",
     message:
       "메모 아이콘으로 설명을 남기고, +\u00a0버튼으로 하위 노드를 추가해 보세요.", // "+"와 "버튼"이 다른 줄로 갈리지 않게 붙인다.
+    /*
+    target은 선택 툴바의 동작 ID와 같다. features/tree-editor를 import할 수 없어 문자열로 적고, 워크스페이스 페이지가 버튼 요소와 잇는다.
+    막힌 동작도 기능을 소개하려고 그대로 가리킨다. 막힌 이유는 버튼 툴팁이 알려 준다.
+    */
+    steps: [
+      {
+        target: "openMemo",
+        title: "메모 남기기",
+        message: "노드에 설명이나 자료를 적어 둘 수 있어요.",
+      },
+      {
+        target: "addChild",
+        title: "하위 노드 추가",
+        message: "이 노드 아래에 새 노드를 만들어 내용을 넓혀요.",
+      },
+      {
+        target: "rename",
+        title: "이름 바꾸기",
+        message: "노드 제목을 그 자리에서 고칠 수 있어요.",
+      },
+      {
+        target: "delete",
+        title: "노드 삭제",
+        message: "하위 노드까지 함께 지워져요. 실행 취소로 되돌릴 수 있어요.",
+      },
+    ],
   },
-] as const;
+] as const satisfies readonly OnboardingScenarioDefinition[];
 
 export type OnboardingScenarioId = (typeof ONBOARDING_SCENARIOS)[number]["id"];
 
