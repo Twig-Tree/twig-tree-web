@@ -254,7 +254,7 @@ const handleAddRootNode = async () => {
 
 `handle*`을 붙이는 기준은 인자 유무가 아니라 **이벤트나 콜백 prop에 연결되어 그 자체로 완결되는가**다. `handleSaveMemo(content)`처럼 인자를 받아도 호출부가 결과를 쓰지 않고 그대로 넘기면 handler다.
 
-반면 호출부가 반환값을 받아 자기 흐름을 결정하는 함수는 동사형으로 둔다. `updateNodeName(name)`은 `Promise<boolean>`을 돌려주고, `CustomNode`의 `commitName`이 그 결과로 편집 종료와 에러 표시를 나눈다. 이런 함수는 handler가 아니라 handler가 조립해 쓰는 연산이다.
+반면 호출부가 반환값을 받아 자기 흐름을 결정하는 함수는 동사형으로 둔다. `updateNodeName(name)`은 저장 결과(`saved`, `conflict`, `notFound`, `failed`)를 돌려주고, `useNodeNameInput`의 `commitName`이 그 결과로 편집 종료와 에러 표시를 나눈다. 이런 함수는 handler가 아니라 handler가 조립해 쓰는 연산이다.
 
 `moveNode(params)`도 동사형이다. 반환값은 없지만 이벤트에 바로 연결되지 않기 때문이다. 드래그 handler `onNodeDragStop`이 놓은 지점에서 목적지를 구하고 접힌 노드를 펼친 뒤 부르는 연산이다.
 
@@ -430,7 +430,28 @@ treeId가 있음 →            루트 노드 생성 → store 초기화(treeId 
 - Query cache는 그대로 둔다. 바꾼 적이 없다.
 - Editor store는 보관해 둔 이전 label만 직접 되돌린다(위 "값 단위 편집은 바꾼 값만 되돌린다" 참고).
 
-이 action은 노드마다 다른 대상에 적용되므로 `useTreeEditorActions` facade에 넣지 않고 `CustomNode`가 직접 호출한다. 검증 메시지와 저장 실패 메시지도 alert이 아니라 노드 안의 문구로 보여주므로, action hook은 결과(`saved`, `conflict`, `notFound`, `failed`)만 반환하고 메시지 표시는 UI가 결정한다.
+이 action은 노드마다 다른 대상에 적용되므로 `useTreeEditorActions` facade에 넣지 않고 `useNodeNameInput`이 호출한다. 검증 메시지와 저장 실패 메시지도 alert이 아니라 입력창 아래 문구로 보여주므로, action hook은 결과(`saved`, `conflict`, `notFound`, `failed`)만 반환하고 메시지 표시는 UI가 결정한다.
+
+### 이름 입력창
+
+이름은 캔버스 노드(`CustomNode`)와 메모 패널 제목(`MemoPanelNodeName`) 두 곳에서 바꾼다. 두 곳은 모양만 다르고 입력 흐름은 `useNodeNameInput` 하나를 쓴다.
+
+| 맡는 곳             | 하는 일                                                                                                         |
+| ------------------- | --------------------------------------------------------------------------------------------------------------- |
+| `useNodeNameInput`  | 입력창 열림, 입력값, 오류 문구, 충돌 대기, Enter·blur·Esc 처리, `useUpdateNodeName` 결과를 입력창 상태로 옮기기 |
+| `CustomNode`        | React Flow 키 전파 막기, 노드 밖에서 보낸 편집 요청(`requestNodeNameEdit`) 받기                                 |
+| `MemoPanelNodeName` | 막힌 이유 말풍선, Enter·Esc로 끝나면 제목 버튼으로 focus 되돌리기(`onEditingEnd`의 원인)                        |
+
+**입력창이 열린 곳을 기록한다.** `editingStore.nameEditors`는 노드마다 입력창이 열린 곳(`"canvas" | "panel"`)을 담는다. 다른 곳의 변경을 미룰지(`useIsEditingTree`)는 크기로, 노드 동작을 어떻게 막을지(`useNodeActions`)는 위치로 판단한다.
+
+**한 노드에는 입력창을 하나만 연다.** 두 곳에서 열면 검증 실패·저장 실패·충돌 안내로 남은 입력창이 `focusInput`으로 서로 focus를 가져가며 blur 저장을 일으킨다. 그래서 `useNodeNameInput`의 `startEditing`은 다른 곳에 열려 있으면 열지 않고, 기록은 자기가 연 것만 지운다(`endNodeNameEditing`). 먼저 연 곳의 기록을 덮거나 지우면 아직 입력 중인 입력창을 다른 곳의 변경이 덮어쓴다.
+
+**막는 방식은 입력창 위치에 따라 다르다.**
+
+- 캔버스에서 입력 중이면 노드 아래 버튼·단축키·우클릭 메뉴의 대상에서 그 노드를 뺀다. 버튼이 입력창을 가리기 때문이다. 메모 패널 제목은 "캔버스에서 이름을 편집하는 중입니다."로 막는다.
+- 메모 패널에서 입력 중이면 대상은 그대로 두고 이름 편집만 "메모 패널에서 이름을 편집하는 중입니다."로 막는다(`getNodeActionBlockReason`). 패널 입력창은 버튼에 가려지지 않아, 대상에서 빼면 쓸 수 있는 버튼과 메뉴까지 사라진다.
+
+메모 패널 제목은 저장 전 노드와 강의 중에도 막는다. 노드 아래 버튼처럼 누르기 전에 이유를 보여준다. 누른 뒤에 알게 되면 저장 전 노드는 저장할 때 alert이 뜬다.
 
 ## 이름·메모 저장과 version
 

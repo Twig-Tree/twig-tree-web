@@ -71,4 +71,34 @@ describe("getNodeActionBlockReason", () => {
       }),
     ).toBe("루트 노드는 삭제할 수 없습니다.");
   });
+
+  /*
+  한 노드의 이름 입력창은 하나만 연다. 저장 전 노드여도 다른 곳에서 입력 중이라는 이유가 먼저다.
+  */
+  it("다른 곳에서 이름을 편집 중이면 이름 편집만 막고 그곳을 알려 준다", () => {
+    expect(
+      getNodeActionBlockReason({
+        actionId: "rename",
+        ...SAVED_CHILD,
+        nameEditorLocation: "panel",
+      }),
+    ).toBe("메모 패널에서 이름을 편집하는 중입니다.");
+    expect(
+      getNodeActionBlockReason({
+        actionId: "rename",
+        ...SAVED_CHILD,
+        isSaved: false,
+        nameEditorLocation: "canvas",
+      }),
+    ).toBe("캔버스에서 이름을 편집하는 중입니다.");
+    (["openMemo", "addChild", "delete"] as const).forEach((actionId) => {
+      expect(
+        getNodeActionBlockReason({
+          actionId,
+          ...SAVED_CHILD,
+          nameEditorLocation: "panel",
+        }),
+      ).toBeNull();
+    });
+  });
 });

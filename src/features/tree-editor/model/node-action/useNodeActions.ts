@@ -23,8 +23,8 @@ type UseNodeActionsParams = {
 반환값 : 동작 대상 노드의 clientId(없으면 null), 동작별 막힌 이유, 동작 실행 함수
 
 동작 대상은 노드를 하나만 골랐을 때만 정한다. 추가·삭제 handler는 선택된 노드 중 첫 노드를 대상으로 하므로, 여럿을 고른 채 실행하면
-사용자가 어느 노드에 실행되는지 알 수 없다. 이름을 입력 중인 노드는 버튼이 입력창을 가리지 않도록, 강의 중에는 재생 순서가
-지금 트리에 맞춰져 있어 대상에서 뺀다.
+사용자가 어느 노드에 실행되는지 알 수 없다. 캔버스에서 이름을 입력 중인 노드는 버튼이 입력창을 가리지 않도록, 강의 중에는 재생 순서가
+지금 트리에 맞춰져 있어 대상에서 뺀다. 메모 패널에서 이름을 입력 중이면 버튼이 입력창을 가리지 않으므로 대상에 두고 이름 편집만 막는다.
 */
 export function useNodeActions({
   isMutating,
@@ -41,15 +41,17 @@ export function useNodeActions({
     return selectedNodes.length === 1 ? selectedNodes[0].id : null;
   });
 
-  const isRenaming = useEditingStore(
-    (state) =>
-      selectedClientId !== null &&
-      state.nameEditingClientIds.has(selectedClientId),
+  const nameEditorLocation = useEditingStore((state) =>
+    selectedClientId === null
+      ? null
+      : (state.nameEditors.get(selectedClientId) ?? null),
   );
   const isLectureActive = useIsLectureActive();
 
   const targetClientId =
-    isRenaming || isLectureActive ? null : selectedClientId;
+    nameEditorLocation === "canvas" || isLectureActive
+      ? null
+      : selectedClientId;
 
   const isRoot = useTreeStore(
     (state) =>
@@ -70,10 +72,16 @@ export function useNodeActions({
       Object.fromEntries(
         NODE_ACTION_IDS.map((actionId) => [
           actionId,
-          getNodeActionBlockReason({ actionId, isRoot, isSaved, isMutating }),
+          getNodeActionBlockReason({
+            actionId,
+            isRoot,
+            isSaved,
+            isMutating,
+            nameEditorLocation,
+          }),
         ]),
       ) as Record<NodeActionId, string | null>,
-    [isMutating, isRoot, isSaved],
+    [isMutating, isRoot, isSaved, nameEditorLocation],
   );
 
   /*
