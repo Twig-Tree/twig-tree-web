@@ -17,9 +17,11 @@ const KBD_CLASS_NAME =
 
 /*
 함수 이름 : LabHintBar
-기능 : 선택된 노드에 쓸 수 있는 키를 캔버스 아래에 한 줄로 보여 준다. 막힌 동작은 흐리게 두고 이유를 title로 단다.
+기능 : 선택된 노드에 쓸 수 있는 키를 캔버스 아래에 한 줄로 보여 준다. 막힌 동작은 흐리게 두고 이유를 뒤에 글자로 적는다.
 인자 : LabHintBarProps
 반환값 : 단축키 힌트 줄
+
+캔버스 위의 포인터 입력을 가로채지 않도록 pointer-events-none이라 title은 마우스로도 보이지 않는다. 그래서 막힌 이유를 글자로 둔다.
 */
 export function LabHintBar({
   shortcuts,
@@ -44,11 +46,13 @@ export function LabHintBar({
         return (
           <span
             key={actionId}
-            title={blockReason ?? undefined}
             className={blockReason ? "text-content-disabled" : undefined}
           >
             <kbd className={KBD_CLASS_NAME}>{shortcuts[actionId].label}</kbd>
             {NODE_ACTION_LABELS[actionId]}
+            {blockReason ? (
+              <span className="ml-1 text-content-muted">({blockReason})</span>
+            ) : null}
           </span>
         );
       })}

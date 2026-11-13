@@ -215,17 +215,22 @@ function NodeActionLabCanvas() {
 
         <LabPresetPicker
           config={config}
-          onApply={(preset) =>
-            setConfig((previous) => applyPreset(previous, preset))
-          }
+          onApply={(preset) => {
+            if (!preset.config.showShortcutGuide) setIsGuideOpen(false);
+            setConfig((previous) => applyPreset(previous, preset));
+          }}
         />
 
         <LabSettingsPanel
           config={config}
-          platform={platform}
-          onChangeConfig={(patch) =>
-            setConfig((previous) => ({ ...previous, ...patch }))
-          }
+          devicePlatform={devicePlatform}
+          onChangeConfig={(patch) => {
+            /*
+            안내를 끄면 열린 상태도 닫는다. 남겨 두면 다시 켤 때 요청하지 않은 안내가 바로 열린다.
+            */
+            if (patch.showShortcutGuide === false) setIsGuideOpen(false);
+            setConfig((previous) => ({ ...previous, ...patch }));
+          }}
         />
 
         <div className="flex gap-2">

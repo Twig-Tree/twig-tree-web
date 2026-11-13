@@ -5,8 +5,11 @@ import { TOOLBAR_ENTRY_KEY } from "./config";
 import { getNodeActionForKey, type NodeActionShortcuts } from "./shortcuts";
 
 const TEXT_INPUT_SELECTOR = "input, textarea, select, [contenteditable]";
+/*
+단축키 안내는 화면 한쪽에 떠 있는 참고 패널이라 단축키를 막지 않는다. 막으면 안내를 연 채 노드를 누른 뒤 모든 단축키와 ? 닫기가 동작하지 않는다.
+*/
 const OPEN_OVERLAY_SELECTOR =
-  '[role="menu"], [role="dialog"], [role="alertdialog"], dialog[open]';
+  '[role="menu"], [role="dialog"]:not([data-non-blocking]), [role="alertdialog"], dialog[open]';
 const ACTIVATABLE_SELECTOR = 'button, a[href], summary, [role="button"]';
 const NODE_TITLE_SELECTOR = ".custom-node__content"; // 제품 노드의 제목 버튼. 노드를 누르면 여기에 focus가 간다
 

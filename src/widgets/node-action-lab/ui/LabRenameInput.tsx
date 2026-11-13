@@ -45,10 +45,21 @@ export function LabRenameInput({
     const nextErrorMessage = onCommit(name);
     setErrorMessage(nextErrorMessage);
 
-    if (nextErrorMessage === null) isClosingRef.current = true;
+    if (nextErrorMessage === null) {
+      isClosingRef.current = true;
+      return;
+    }
+
+    /*
+    다른 곳을 눌러 저장하다 검사에 걸리면 입력창은 남지만 focus는 떠난다. 고칠 자리로 돌려준다. 제품 노드의 이름 편집과 같다.
+    누른 곳이 focus를 가져간 뒤에 돌려줘야 하므로 다음 프레임에 옮긴다.
+    */
+    requestAnimationFrame(() => inputRef.current?.focus());
   };
 
   const handleKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
+    if (event.nativeEvent.isComposing) return; // 한글을 조합하는 중의 Enter·Escape는 조합을 끝내는 키다
+
     if (event.key === "Enter") {
       event.preventDefault();
       commit();

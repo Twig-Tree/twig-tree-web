@@ -27,7 +27,7 @@ const TOOLBAR_VISIBILITY_DESCRIPTIONS: Record<
 
 type LabSettingsPanelProps = {
   config: NodeActionLabConfig;
-  platform: ShortcutPlatform; // 설정과 기기로 정해진 운영체제. 이 기기 선택지에 어느 운영체제인지 적는다
+  devicePlatform: ShortcutPlatform; // 접속한 기기의 운영체제. "이 기기" 선택지에 어느 운영체제인지 적는다
   onChangeConfig: (patch: Partial<NodeActionLabConfig>) => void; // 바꾼 값만 넘긴다. 합치는 일은 호출부가 이전 값을 기준으로 한다
 };
 
@@ -130,7 +130,7 @@ function ToggleOption({
 */
 export function LabSettingsPanel({
   config,
-  platform,
+  devicePlatform,
   onChangeConfig,
 }: LabSettingsPanelProps) {
   return (
@@ -201,7 +201,7 @@ export function LabSettingsPanel({
           option.value === "auto"
             ? {
                 ...option,
-                label: `이 기기 (${platform === "mac" ? "Mac" : "Windows"})`,
+                label: `이 기기 (${devicePlatform === "mac" ? "Mac" : "Windows"})`,
               }
             : option,
         )}

@@ -5,6 +5,8 @@ const subscribe = () => () => {}; // 기기의 운영체제는 화면이 열려 
 
 /*
 userAgentData는 Chromium 계열에만 있어 없으면 platform으로 판단한다. platform은 폐기 예정이지만 아직 모든 브라우저가 채운다.
+iPad·iPhone에 연결한 키보드도 ⌘·Return을 쓰는 맥 방식이고 F키 줄이 없거나 시스템 키라 Mac 표를 쓴다.
+모바일 사이트를 요청하는 iPad는 platform이 "iPad"로 와서 mac만 보면 놓친다.
 */
 const getPlatform = (): ShortcutPlatform => {
   const navigatorWithUserAgentData = navigator as Navigator & {
@@ -13,7 +15,7 @@ const getPlatform = (): ShortcutPlatform => {
   const platform =
     navigatorWithUserAgentData.userAgentData?.platform ?? navigator.platform;
 
-  return /mac/i.test(platform) ? "mac" : "windows";
+  return /mac|iphone|ipad|ipod/i.test(platform) ? "mac" : "windows";
 };
 
 const getServerPlatform = (): ShortcutPlatform => "windows"; // 서버는 기기를 모른다. 첫 렌더 뒤 실제 값으로 바뀐다
