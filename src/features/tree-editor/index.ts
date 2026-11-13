@@ -17,6 +17,8 @@ export type { GenerateLectureResult } from "./model/lecture/useGenerateLecture";
 export { validateLectureRequest } from "./lib/lecture/validateLectureGeneration";
 export { useIsLectureActive } from "./model/lecture/lectureStore";
 export { NodeContextMenu } from "./ui/NodeContextMenu";
+export { NodeActionToolbar } from "./ui/NodeActionToolbar";
+export { useNodeActions } from "./model/node-action/useNodeActions";
 export { DropIndicatorOverlay } from "./ui/DropIndicatorOverlay";
 export { useTreeEditorActions } from "./model/actions/useTreeEditorActions";
 export { useDeleteTreeTag } from "./model/actions/delete-tree-tag/useDeleteTreeTag";

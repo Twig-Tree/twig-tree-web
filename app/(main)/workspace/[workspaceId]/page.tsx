@@ -12,6 +12,7 @@ import {
   EmptyTreeGuide,
   LecturePlayer,
   MemoSidePanel,
+  NodeActionToolbar,
   NodeContextMenu,
   edgeTypes,
   MIN_ZOOM,
@@ -21,6 +22,7 @@ import {
   useInitializeTree,
   useIsLectureActive,
   useLectureScript,
+  useNodeActions,
   useNodeContextMenu,
   useMoveNodeByDrag,
   useReactFlowStoreSetters,
@@ -187,6 +189,20 @@ function LayoutFlow({ workspaceId, treeId }: LayoutFlowProps) {
   const isMutating =
     isAddingNode || isDeletingNode || isMovingNode || isUndoingOrRedoing;
 
+  /*
+  노드 옆 버튼과 단축키는 우클릭 메뉴와 같은 handler를 부른다. 막힌 동작은 handler의 alert 대신 툴팁으로 이유를 미리 보여 준다.
+  */
+  const {
+    targetClientId: nodeActionTargetClientId,
+    blockReasons: nodeActionBlockReasons,
+    runNodeAction,
+  } = useNodeActions({
+    isMutating,
+    onOpenMemo: openMemoPanel,
+    onAddChild: handleAddNode,
+    onDelete: handleDeleteNode,
+  });
+
   const { isPanelOpen, isPanelOverlay, openPanel, closePanel } =
     useResponsivePanelVisibility();
 
@@ -326,6 +342,14 @@ function LayoutFlow({ workspaceId, treeId }: LayoutFlowProps) {
             bgColor="transparent"
           />
           <DropIndicatorOverlay indicator={dropIndicator} />
+
+          {nodeActionTargetClientId !== null ? (
+            <NodeActionToolbar
+              clientId={nodeActionTargetClientId}
+              blockReasons={nodeActionBlockReasons}
+              onRunAction={runNodeAction}
+            />
+          ) : null}
 
           {isPanelOpen ? null : (
             <Panel position="top-left">
