@@ -5,3 +5,4 @@ export {
 } from "./model/scenarios";
 export { useOnboardingHint } from "./model/useOnboardingHint";
 export { ResetOnboardingButton } from "./ui/ResetOnboardingButton";
+export { OnboardingHint } from "./ui/OnboardingHint";
