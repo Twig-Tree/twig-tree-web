@@ -187,9 +187,12 @@ describe("useSyncExternalTreeChange", () => {
 
     getTreeSpy.mockResolvedValue([CHANGED_NODE]);
     act(() => finishMutation());
-    await flushRequests();
 
-    expect(getTreeSpy).toHaveBeenCalledTimes(3);
+    /*
+    mutation이 끝난 뒤 다시 확인하기까지 React Query의 알림, 다시 그리기, effect, 재조회가 이어진다.
+    한 번의 setTimeout으로는 실행 환경이 느릴 때 재조회 전에 확인하게 되므로 호출될 때까지 기다린다.
+    */
+    await waitFor(() => expect(getTreeSpy).toHaveBeenCalledTimes(3));
   });
 
   it("mutation 중에 돌아오면 요청을 보내지 않고, 끝난 뒤 확인한다", async () => {
