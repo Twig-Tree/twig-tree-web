@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback } from "react";
+import { useCallback, useRef } from "react";
 import type { WorkspaceItem } from "@/src/entities/workspace";
 import { showToast } from "@/src/shared/ui/toast";
 import { useRequestMoveWorkspace } from "./useRequestMoveWorkspace";
@@ -13,8 +13,11 @@ import { useRequestMoveWorkspace } from "./useRequestMoveWorkspace";
 
 위치 선택 팝업과 달리 놓는 순간 대상과 위치를 함께 받는다. 실패를 띄울 팝업이 없어 토스트로 알린다.
 드롭은 대상마다 따로 일어나므로 다른 워크스페이스의 이동이 진행 중이어도 막지 않는다.
+같은 워크스페이스는 이동이 끝날 때까지 다시 놓아도 요청하지 않는다. 목록은 응답 뒤에야 갱신되어 그사이 카드가 제자리에 보이고,
+두 요청이 함께 나가면 서버가 처리한 순서에 따라 마지막에 놓은 곳이 아닌 위치에 남을 수 있다.
 */
 export function useMoveWorkspaceByDrop() {
+  const movingIdsRef = useRef(new Set<string>()); // 이동 요청이 진행 중인 워크스페이스 ID
   const { requestMoveWorkspace } = useRequestMoveWorkspace();
 
   /*
@@ -26,10 +29,18 @@ export function useMoveWorkspaceByDrop() {
   */
   const moveWorkspaceByDrop = useCallback(
     async (workspace: WorkspaceItem, toFolderId: string | null) => {
-      const result = await requestMoveWorkspace(workspace, toFolderId);
+      if (movingIdsRef.current.has(workspace.id)) return;
 
-      if (result.status === "failed") {
-        showToast({ message: result.errorMessage, tone: "error" });
+      movingIdsRef.current.add(workspace.id);
+
+      try {
+        const result = await requestMoveWorkspace(workspace, toFolderId);
+
+        if (result.status === "failed") {
+          showToast({ message: result.errorMessage, tone: "error" });
+        }
+      } finally {
+        movingIdsRef.current.delete(workspace.id);
       }
     },
     [requestMoveWorkspace],

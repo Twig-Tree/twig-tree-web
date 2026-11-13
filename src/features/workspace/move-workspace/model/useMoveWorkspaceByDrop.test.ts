@@ -75,4 +75,72 @@ describe("useMoveWorkspaceByDrop", () => {
       },
     ]);
   });
+
+  /*
+  응답 전까지 목록이 갱신되지 않아 카드가 제자리에 보인다. 그사이 다시 놓은 요청까지 보내면 서버 처리 순서에 따라 최종 위치가 달라진다.
+  */
+  it("이동이 끝나기 전에 같은 워크스페이스를 다시 놓으면 요청하지 않는다", async () => {
+    const originalmoveWorkspace = workspaceApi.moveWorkspace;
+    let releaseRequest = () => {};
+    const requestGate = new Promise<void>((resolve) => {
+      releaseRequest = resolve;
+    });
+    const moveWorkspaceSpy = vi
+      .spyOn(workspaceApi, "moveWorkspace")
+      .mockImplementation(async (...args) => {
+        await requestGate;
+        return originalmoveWorkspace(...args);
+      });
+    const { result } = renderUseMoveWorkspaceByDrop();
+
+    /*
+    두 번째 드롭은 첫 요청이 응답을 기다리는 동안 놓는다. 막지 않으면 두 요청이 모두 나간다.
+    */
+    let drops: Promise<void>[] = [];
+    await act(async () => {
+      drops = [
+        result.current.moveWorkspaceByDrop(WORKSPACE, null),
+        result.current.moveWorkspaceByDrop(WORKSPACE, "5"),
+      ];
+    });
+
+    await act(async () => {
+      releaseRequest();
+      await Promise.all(drops);
+    });
+
+    expect(moveWorkspaceSpy).toHaveBeenCalledTimes(1);
+
+    await act(async () => {
+      await result.current.moveWorkspaceByDrop(WORKSPACE, "5");
+    });
+
+    expect(moveWorkspaceSpy).toHaveBeenCalledTimes(2);
+  });
+
+  it("다른 워크스페이스의 이동이 진행 중이어도 막지 않는다", async () => {
+    const originalmoveWorkspace = workspaceApi.moveWorkspace;
+    let releaseRequest = () => {};
+    const requestGate = new Promise<void>((resolve) => {
+      releaseRequest = resolve;
+    });
+    const moveWorkspaceSpy = vi
+      .spyOn(workspaceApi, "moveWorkspace")
+      .mockImplementation(async (...args) => {
+        await requestGate;
+        return originalmoveWorkspace(...args);
+      });
+    const { result } = renderUseMoveWorkspaceByDrop();
+
+    await act(async () => {
+      const drops = [
+        result.current.moveWorkspaceByDrop(WORKSPACE, null),
+        result.current.moveWorkspaceByDrop({ ...WORKSPACE, id: "6" }, null),
+      ];
+      releaseRequest();
+      await Promise.all(drops);
+    });
+
+    expect(moveWorkspaceSpy).toHaveBeenCalledTimes(2);
+  });
 });
