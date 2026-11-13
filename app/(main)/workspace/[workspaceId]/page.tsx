@@ -44,6 +44,7 @@ import { use, useCallback, useRef, useState } from "react";
 import { useGetTreeQuery } from "@/src/entities/tree/model/queries";
 import { useGetWorkspaceQuery } from "@/src/entities/workspace";
 import {
+  CanvasElementHint,
   CanvasOnboardingHint,
   CanvasOnboardingTour,
 } from "@/src/features/onboarding";
@@ -321,6 +322,8 @@ function LayoutFlow({ workspaceId, treeId }: LayoutFlowProps) {
   const { script: lectureScript, isGenerated: isGeneratedLecture } =
     useLectureScript();
   const [isLectureGeneratorOpen, setIsLectureGeneratorOpen] = useState(false);
+  const [lectureGenerateButton, setLectureGenerateButton] =
+    useState<HTMLButtonElement | null>(null); // 강의 만들기 안내가 가리킨다. 강의 중·종료 화면과 생성 패널이 열린 동안에는 버튼이 없어 null이다.
   const panelLayoutKey = `${isPanelOpen}:${isPanelOverlay}:${isMemoPanelOpen}:${isLectureGeneratorOpen}`;
   const { handleUserMoveStart } = usePanelCameraAlignment(panelLayoutKey);
 
@@ -466,6 +469,15 @@ function LayoutFlow({ workspaceId, treeId }: LayoutFlowProps) {
             targets={editorToolbarGroups}
             placement="bottom-end"
           />
+          {/*
+          강의 만들기 안내는 편집 도구 모음 안내 다음이다. 버튼이 있을 때만 도달하고, 생성 패널을 열면 할 일을 마친 것이라 기록한다.
+          */}
+          <CanvasElementHint
+            scenarioId="canvas-lecture"
+            anchor={lectureGenerateButton}
+            isReached={!isLectureActive}
+            isCompleted={isLectureGeneratorOpen}
+          />
 
           {isPanelOpen ? null : (
             <Panel position="top-left">
@@ -517,6 +529,7 @@ function LayoutFlow({ workspaceId, treeId }: LayoutFlowProps) {
                 onBeforeCollapseRestore={fitTreeViewAfterNextLayout}
                 panelLayoutKey={panelLayoutKey}
                 onGeneratorOpenChange={setIsLectureGeneratorOpen}
+                generateButtonRef={setLectureGenerateButton}
               />
             </Panel>
           )}

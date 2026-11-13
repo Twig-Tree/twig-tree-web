@@ -9,3 +9,4 @@ export { ResetOnboardingButton } from "./ui/ResetOnboardingButton";
 export { OnboardingHint } from "./ui/OnboardingHint";
 export { CanvasOnboardingHint } from "./ui/CanvasOnboardingHint";
 export { CanvasOnboardingTour } from "./ui/CanvasOnboardingTour";
+export { CanvasElementHint } from "./ui/CanvasElementHint";

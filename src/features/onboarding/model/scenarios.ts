@@ -90,6 +90,14 @@ export const ONBOARDING_SCENARIOS = [
       },
     ],
   },
+  {
+    id: "canvas-lecture", // 편집 도구 모음 안내 다음, 강의 플레이어의 강의 만들기 버튼
+    version: 1,
+    after: "canvas-editor-toolbar", // 강의 만들기 버튼도 캔버스를 열면 늘 있어 앞의 안내보다 먼저 뜨지 않게 한다.
+    title: "트리로 강의를 만들어요",
+    message:
+      "원하는 강의를 적으면 트리를 따라가며 설명하는 강의를 만들어 드려요.",
+  },
 ] as const satisfies readonly OnboardingScenarioDefinition[];
 
 export type OnboardingScenarioId = (typeof ONBOARDING_SCENARIOS)[number]["id"];

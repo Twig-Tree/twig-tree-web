@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type Ref } from "react";
 import {
   GraduationCap,
   Pause,
@@ -33,6 +33,7 @@ type LecturePlayerProps = {
   onBeforeCollapseRestore: () => void; // 강의가 끝나 접힘을 되돌릴 때 바뀐 배치에 맞춰 화면을 옮기도록 맡기는 함수
   panelLayoutKey: string; // 패널 배치를 나타내는 값. 강의 중에 바뀌면 카메라를 다시 맞춘다
   onGeneratorOpenChange?: (isOpen: boolean) => void; // 강의 만들기 패널의 열림 상태가 바뀔 때 시각 프레임 정렬을 위해 알린다
+  generateButtonRef?: Ref<HTMLButtonElement>; // 강의 만들기 버튼 요소. 대본이 없을 때의 글자 버튼과 있을 때의 아이콘 버튼 중 보이는 쪽이다. 기능 안내가 가리킨다
 };
 
 /*
@@ -49,6 +50,7 @@ export function LecturePlayer({
   onBeforeCollapseRestore,
   panelLayoutKey,
   onGeneratorOpenChange,
+  generateButtonRef,
 }: LecturePlayerProps) {
   const status = useLectureStore((state) => state.status);
   const activeScript = useLectureStore((state) => state.script);
@@ -119,6 +121,7 @@ export function LecturePlayer({
     if (script === null) {
       return (
         <Button
+          ref={generateButtonRef}
           className="pointer-events-auto shadow-control"
           data-camera-inset="bottom"
           onClick={() => setIsGeneratorOpen(true)}
@@ -169,6 +172,7 @@ export function LecturePlayer({
           강의 시작
         </Button>
         <IconButton
+          ref={generateButtonRef}
           aria-label={isGeneratedScript ? "강의 새로 만들기" : "강의 만들기"}
           onClick={() => setIsGeneratorOpen(true)}
         >
