@@ -48,7 +48,7 @@ export default function DashboardPage() {
         요청에 실리는 것은 파일 하나다.
         */}
         <PromptComposer
-          placeholder="예: 재생 에너지 연구"
+          placeholder="주제를 적거나 파일을 첨부하세요. 예: 재생 에너지 연구"
           isSubmitting={isCreatingWorkspaceFromPrompt}
           onSubmit={(draft) =>
             createWorkspaceFromPrompt(draft.text, draft.attachments[0]?.file)
