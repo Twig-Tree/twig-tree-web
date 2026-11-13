@@ -14,7 +14,6 @@ export { prefersReducedMotion } from "./lib/motion";
 export { useGenerateLecture } from "./model/lecture/useGenerateLecture";
 export { useLectureScript } from "./model/lecture/useLectureScript";
 export type { GenerateLectureResult } from "./model/lecture/useGenerateLecture";
-export { validateLectureRequest } from "./lib/lecture/validateLectureGeneration";
 export { useIsLectureActive } from "./model/lecture/lectureStore";
 export { NodeContextMenu } from "./ui/NodeContextMenu";
 export { NodeActionToolbar } from "./ui/NodeActionToolbar";
