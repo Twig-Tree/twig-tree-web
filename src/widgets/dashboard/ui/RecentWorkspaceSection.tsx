@@ -94,9 +94,13 @@ export function RecentWorkspaceSection({
     */
     if (isLoaded && workspaces.length === 0) {
       return (
-        <p className="mt-4 text-sm text-content-muted">
-          아직 작업한 워크스페이스가 없습니다.
-        </p>
+        <div className="mt-4 text-sm text-content-muted">
+          <p>아직 작업한 워크스페이스가 없습니다.</p>
+          <p className="mt-1">
+            아래 입력창에 주제를 적거나 파일을 첨부하면 첫 트리를 만들 수
+            있습니다.
+          </p>
+        </div>
       );
     }
 

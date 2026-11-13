@@ -5,6 +5,8 @@ import { createQueryWrapper } from "@/src/tests/helpers/createQueryWrapper";
 import { RecentWorkspaceSection } from "./RecentWorkspaceSection";
 
 const ERROR_MESSAGE = "최근 워크스페이스를 불러오지 못했습니다.";
+const EMPTY_HINT =
+  "아래 입력창에 주제를 적거나 파일을 첨부하면 첫 트리를 만들 수 있습니다.";
 const EMPTY_MESSAGE = "아직 작업한 워크스페이스가 없습니다.";
 const LOADING_MESSAGE = "목록을 불러오는 중입니다.";
 
@@ -49,6 +51,7 @@ describe("RecentWorkspaceSection", () => {
     renderSection();
 
     expect(screen.getByText(EMPTY_MESSAGE)).toBeInTheDocument();
+    expect(screen.getByText(EMPTY_HINT)).toBeInTheDocument();
   });
 
   it("조회 중이면 자리표시자를 보여준다", () => {

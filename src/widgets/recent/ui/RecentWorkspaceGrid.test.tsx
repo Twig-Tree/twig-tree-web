@@ -12,6 +12,7 @@ vi.mock("@/src/shared/ui/confirm-dialog", () => ({ requestConfirm: vi.fn() }));
 const requestConfirmMock = vi.mocked(requestConfirm);
 
 const ERROR_MESSAGE = "목록을 불러오지 못했습니다.";
+const EMPTY_HINT = "위의 새 워크스페이스 버튼으로 만들 수 있습니다.";
 const EMPTY_MESSAGE = "아직 워크스페이스가 없습니다.";
 const LOADING_MESSAGE = "목록을 불러오는 중입니다.";
 const NEXT_PAGE_ERROR_MESSAGE = "다음 목록을 불러오지 못했습니다.";
@@ -128,6 +129,7 @@ describe("RecentWorkspaceGrid", () => {
     renderGrid();
 
     expect(screen.getByText(EMPTY_MESSAGE)).toBeInTheDocument();
+    expect(screen.getByText(EMPTY_HINT)).toBeInTheDocument();
   });
 
   it("조회 중이면 자리표시자를 보여준다", () => {
