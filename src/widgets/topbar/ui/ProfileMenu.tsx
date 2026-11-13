@@ -1,8 +1,9 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useSyncExternalStore } from "react";
+import { useState, useSyncExternalStore } from "react";
 import { useLogout } from "@/src/features/auth/logout";
+import { WithdrawConfirmModal } from "@/src/features/auth/withdraw";
 import { routes } from "@/src/shared/config/routes";
 import { authSession } from "@/src/shared/lib/auth/authSession";
 import { DefaultAvatar } from "@/src/shared/ui/default-avatar";
@@ -13,7 +14,7 @@ const getServerSnapshot = () => false;
 
 /*
 함수 이름 : ProfileMenu
-기능 : 상단바의 프로필 이미지를 눌러 메뉴를 열고 설정 페이지로 이동하거나 로그아웃을 실행한다.
+기능 : 상단바의 프로필 이미지를 눌러 메뉴를 열고 설정 페이지로 이동하거나 로그아웃·회원 탈퇴를 실행한다.
 인자 : 없음
 반환값 : 로그인한 경우 프로필 메뉴, 로그인하지 않은 경우 아무것도 렌더링하지 않는다
 */
@@ -31,33 +32,47 @@ export function ProfileMenu() {
 
   const router = useRouter();
   const { logout, isLoggingOut } = useLogout();
+  const [isWithdrawModalOpen, setIsWithdrawModalOpen] = useState(false);
 
   if (!hasAccessToken) {
     return null;
   }
 
   return (
-    <KebabMenu
-      ariaLabel="프로필 메뉴"
-      triggerClassName="group flex h-8 w-8 items-center justify-center rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
-      trigger={
-        <DefaultAvatar className="h-8 w-8 ring-1 ring-line-strong transition-colors group-hover:bg-line-strong" />
-      }
-      items={[
-        {
-          id: "settings",
-          label: "설정",
-          onSelect: () => router.push(routes.settings),
-        },
-        {
-          id: "logout",
-          hasDividerBefore: true,
-          label: isLoggingOut ? "로그아웃 중..." : "로그아웃",
-          tone: "danger",
-          disabled: isLoggingOut,
-          onSelect: () => void logout(),
-        },
-      ]}
-    />
+    <>
+      <KebabMenu
+        ariaLabel="프로필 메뉴"
+        triggerClassName="group flex h-8 w-8 items-center justify-center rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+        trigger={
+          <DefaultAvatar className="h-8 w-8 ring-1 ring-line-strong transition-colors group-hover:bg-line-strong" />
+        }
+        items={[
+          {
+            id: "settings",
+            label: "설정",
+            onSelect: () => router.push(routes.settings),
+          },
+          {
+            id: "logout",
+            hasDividerBefore: true,
+            label: isLoggingOut ? "로그아웃 중..." : "로그아웃",
+            tone: "danger",
+            disabled: isLoggingOut,
+            onSelect: () => void logout(),
+          },
+          {
+            id: "withdraw",
+            label: "회원 탈퇴",
+            tone: "danger",
+            disabled: isLoggingOut,
+            onSelect: () => setIsWithdrawModalOpen(true),
+          },
+        ]}
+      />
+      <WithdrawConfirmModal
+        isOpen={isWithdrawModalOpen}
+        onClose={() => setIsWithdrawModalOpen(false)}
+      />
+    </>
   );
 }
