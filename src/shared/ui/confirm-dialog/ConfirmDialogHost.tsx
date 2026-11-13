@@ -36,7 +36,7 @@ export function ConfirmDialogHost() {
               {request.title}
             </h2>
             {request.description ? (
-              <p className="mt-2 text-sm leading-relaxed whitespace-pre-line text-content-secondary">
+              <p className="mt-2 text-sm leading-relaxed break-keep whitespace-pre-line text-content-secondary">
                 {request.description}
               </p>
             ) : null}

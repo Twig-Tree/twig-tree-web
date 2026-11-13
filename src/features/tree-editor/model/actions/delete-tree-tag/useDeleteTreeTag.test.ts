@@ -4,7 +4,12 @@ import { tagApi, treeQueryKeys, type TreeTag } from "@/src/entities/tree";
 import { createQueryWrapper } from "@/src/tests/helpers/createQueryWrapper";
 import { createEditorNode } from "../../../lib/add-node/createEditorNode";
 import { useTreeStore } from "../../treeStore";
+import { requestConfirm } from "@/src/shared/ui/confirm-dialog";
 import { useDeleteTreeTag } from "./useDeleteTreeTag";
+
+vi.mock("@/src/shared/ui/confirm-dialog", () => ({ requestConfirm: vi.fn() }));
+
+const requestConfirmMock = vi.mocked(requestConfirm);
 
 const createNode = (index: number, tagIds: string[]) => {
   const node = createEditorNode({
@@ -54,36 +59,43 @@ describe("useDeleteTreeTag", () => {
 
   afterEach(() => {
     vi.restoreAllMocks();
+    requestConfirmMock.mockReset();
     useTreeStore.getState().resetTree();
   });
 
   it("붙은 노드 수를 알리고, 확인하면 서버에서 지운 뒤 트리 태그와 모든 노드에서 그 태그를 뺀다", async () => {
-    const confirmSpy = vi.spyOn(window, "confirm").mockReturnValue(true);
+    requestConfirmMock.mockResolvedValue(true);
     const { result, getTreeTagIds } = await renderDeleteTreeTag();
 
     await act(() => result.current.handleDeleteTreeTag("1"));
 
-    expect(confirmSpy).toHaveBeenCalledExactlyOnceWith(
-      '"React" 태그를 삭제하면 관련된 노드 2개에서도 제거됩니다.\n삭제하시겠습니까?',
-    );
+    expect(requestConfirmMock).toHaveBeenCalledExactlyOnceWith({
+      title: '"React" 태그를 삭제할까요?',
+      description: "관련된 노드 2개에서도 제거됩니다.",
+      confirmLabel: "삭제",
+      tone: "danger",
+    });
     expect(getTreeTagIds()).toEqual(["2"]);
     expect(getTagIdsByClientId()).toEqual({ c1: [], c2: [], c3: [] });
   });
 
   it("붙은 노드가 없으면 노드 수 없이 묻는다", async () => {
-    const confirmSpy = vi.spyOn(window, "confirm").mockReturnValue(true);
+    requestConfirmMock.mockResolvedValue(true);
     const { result, getTreeTagIds } = await renderDeleteTreeTag();
 
     await act(() => result.current.handleDeleteTreeTag("2"));
 
-    expect(confirmSpy).toHaveBeenCalledExactlyOnceWith(
-      '"TypeScript" 태그를 삭제하시겠습니까?',
-    );
+    expect(requestConfirmMock).toHaveBeenCalledExactlyOnceWith({
+      title: '"TypeScript" 태그를 삭제할까요?',
+      description: undefined,
+      confirmLabel: "삭제",
+      tone: "danger",
+    });
     expect(getTreeTagIds()).toEqual(["1"]);
   });
 
   it("확인을 취소하면 요청하지 않고 아무것도 바꾸지 않는다", async () => {
-    vi.spyOn(window, "confirm").mockReturnValue(false);
+    requestConfirmMock.mockResolvedValue(false);
     const deleteTreeTagSpy = vi.spyOn(tagApi, "deleteTreeTag");
     const { result, getTreeTagIds } = await renderDeleteTreeTag();
 
@@ -95,7 +107,7 @@ describe("useDeleteTreeTag", () => {
   });
 
   it("같은 태그의 삭제 요청 중에 다시 누르면 묻지도 요청하지도 않는다", async () => {
-    const confirmSpy = vi.spyOn(window, "confirm").mockReturnValue(true);
+    requestConfirmMock.mockResolvedValue(true);
     const deleteTreeTagSpy = vi.spyOn(tagApi, "deleteTreeTag");
     const alertSpy = vi.spyOn(window, "alert").mockImplementation(() => {});
     const { result, getTreeTagIds } = await renderDeleteTreeTag();
@@ -107,14 +119,14 @@ describe("useDeleteTreeTag", () => {
       ]),
     );
 
-    expect(confirmSpy).toHaveBeenCalledOnce();
+    expect(requestConfirmMock).toHaveBeenCalledOnce();
     expect(deleteTreeTagSpy).toHaveBeenCalledOnce();
     expect(alertSpy).not.toHaveBeenCalled();
     expect(getTreeTagIds()).toEqual(["2"]);
   });
 
   it("삭제 요청이 끝나면 다른 삭제를 다시 받는다", async () => {
-    vi.spyOn(window, "confirm").mockReturnValue(true);
+    requestConfirmMock.mockResolvedValue(true);
     vi.spyOn(tagApi, "deleteTreeTag").mockRejectedValueOnce(new Error());
     vi.spyOn(window, "alert").mockImplementation(() => {});
     const { result, getTreeTagIds } = await renderDeleteTreeTag();
@@ -126,7 +138,7 @@ describe("useDeleteTreeTag", () => {
   });
 
   it("삭제 요청이 실패하면 알리고 트리 태그와 노드를 그대로 둔다", async () => {
-    vi.spyOn(window, "confirm").mockReturnValue(true);
+    requestConfirmMock.mockResolvedValue(true);
     vi.spyOn(tagApi, "deleteTreeTag").mockRejectedValueOnce(new Error());
     const alertSpy = vi.spyOn(window, "alert").mockImplementation(() => {});
     const { result, getTreeTagIds } = await renderDeleteTreeTag();
