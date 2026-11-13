@@ -12,10 +12,18 @@ import {
 
 export type CoachmarkSide = "top" | "right" | "bottom" | "left";
 
+export interface CoachmarkStep {
+  current: number; // 지금 단계. 1부터 센다
+  total: number; // 전체 단계 수
+}
+
 export interface CoachmarkCardProps {
   title?: ReactNode; // 안내 제목. 생략하면 본문만 그린다
   children: ReactNode; // 안내 문구
-  onDismiss: () => void; // 닫기 버튼이나 Escape로 안내를 닫을 때 부른다
+  onDismiss: () => void; // 닫기 버튼, Escape, 마지막 단계의 완료 버튼으로 안내를 닫을 때 부른다
+  step?: CoachmarkStep; // 여러 단계로 이어지는 안내의 지금 위치. 생략하면 번호와 이동 버튼을 그리지 않는다
+  onPrevious?: () => void; // 이전 단계로 갈 때 부른다. 첫 단계에서는 넘기지 않는다
+  onNext?: () => void; // 다음 단계로 갈 때 부른다. 마지막 단계에서는 넘기지 않으며, 그러면 완료 버튼을 그린다
   arrowSide?: CoachmarkSide; // 꼬리가 붙을 카드의 변. 기준 요소가 있는 쪽이다. 생략하면 꼬리를 그리지 않는다
   arrowRef?: Ref<HTMLSpanElement>; // 꼬리 위치를 계산하는 쪽에 꼬리 요소를 넘긴다
   arrowStyle?: CSSProperties; // 계산된 꼬리 위치. 생략하면 변의 가운데에 둔다
@@ -50,12 +58,18 @@ const ARROW_CENTER_CLASS_NAMES: Record<CoachmarkSide, string> = {
 
 화면을 막지 않는 안내라 나타날 때 focus를 옮기지 않고, 모달 대신 note 영역으로 읽힌다. 닫기 버튼은 Tab으로 닿는다.
 Escape는 focus가 카드 안에 있을 때만 닫는다. 노드 툴바·메모 패널·모달이 이미 전역에서 Escape를 쓴다.
-카드 본문은 클릭을 아래로 흘려보내고 닫기 버튼만 받는다. 안내가 가리키는 노드나 입력창을 덮어도 그 자리를 그대로 누를 수 있다.
+카드 본문은 클릭을 아래로 흘려보내고 버튼만 받는다. 안내가 가리키는 노드나 입력창을 덮어도 그 자리를 그대로 누를 수 있다.
+
+step을 받으면 제목 위에 번호를, 아래에 이전·다음 버튼을 그린다. 마지막 단계에서는 다음 자리에 완료가 오고, 완료는 닫기와 같다.
+다음과 완료는 같은 버튼 요소라, 다음을 눌러 마지막 단계에 와도 focus가 그 자리에 남는다.
 */
 export function CoachmarkCard({
   title,
   children,
   onDismiss,
+  step,
+  onPrevious,
+  onNext,
   arrowSide,
   arrowRef,
   arrowStyle,
@@ -67,6 +81,7 @@ export function CoachmarkCard({
   카드로 focus가 들어오기 직전에 focus가 있던 요소. 카드 안에서 닫으면 focus가 body로 떨어지지 않게 여기로 돌려준다.
   */
   const focusOriginRef = useRef<HTMLElement | null>(null);
+  const primaryButtonRef = useRef<HTMLButtonElement>(null);
 
   const handleFocus = (event: FocusEvent<HTMLDivElement>) => {
     const origin = event.relatedTarget;
@@ -92,6 +107,21 @@ export function CoachmarkCard({
     onDismiss();
   };
 
+  /*
+  두 번째 단계에서 이전을 누르면 첫 단계에는 이전 버튼이 없어 focus가 갈 곳을 잃는다. 다음 버튼으로 옮긴다.
+  버튼이 사라지는 것은 상위가 단계를 바꿔 다시 그린 뒤이므로 다음 프레임에 옮긴다.
+  */
+  const handlePrevious = () => {
+    if (!onPrevious) return;
+
+    const isLeavingSecondStep = step?.current === 2;
+    onPrevious();
+
+    if (isLeavingSecondStep) {
+      window.requestAnimationFrame(() => primaryButtonRef.current?.focus());
+    }
+  };
+
   const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
     if (event.key !== "Escape") return;
 
@@ -112,10 +142,54 @@ export function CoachmarkCard({
       className={`pointer-events-none relative flex w-max max-w-[min(18rem,calc(100vw-2rem))] items-start gap-2 rounded-card bg-inverse py-2.5 pr-2 pl-3.5 text-sm text-on-inverse shadow-overlay ${className ?? ""}`}
     >
       <div className="min-w-0 flex-1 py-0.5 break-keep">
+        {step ? (
+          <p className="mb-1 text-xs opacity-70">
+            <span aria-hidden>
+              {step.current}/{step.total}
+            </span>
+            {/*
+            "1/4"를 그대로 읽으면 "4분의 1"로 들린다.
+            */}
+            <span className="sr-only">
+              {step.total}단계 중 {step.current}단계
+            </span>
+          </p>
+        ) : null}
         {title ? <p className="font-semibold leading-snug">{title}</p> : null}
         <p className={`${title ? "mt-1" : ""} leading-relaxed opacity-90`}>
           {children}
         </p>
+
+        {step ? (
+          <div className="mt-3 flex justify-end gap-1">
+            {onPrevious ? (
+              <button
+                type="button"
+                onClick={handlePrevious}
+                className="pointer-events-auto h-7 rounded-control px-2.5 text-xs font-semibold opacity-80 hover:opacity-100 focus-visible:opacity-100 focus-visible:outline-2 focus-visible:outline-focus"
+              >
+                이전
+              </button>
+            ) : null}
+            <button
+              ref={primaryButtonRef}
+              type="button"
+              onClick={(event) => {
+                if (onNext) {
+                  onNext();
+                  return;
+                }
+
+                const card =
+                  event.currentTarget.closest<HTMLElement>('[role="note"]');
+                if (card) dismiss(card);
+              }}
+              className="pointer-events-auto h-7 rounded-control bg-accent px-3 text-xs font-semibold text-on-accent hover:bg-accent-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
+            >
+              {onNext ? "다음" : "완료"}
+            </button>
+          </div>
+        ) : null}
       </div>
 
       <button

@@ -13,7 +13,11 @@ import {
 } from "@floating-ui/react-dom";
 import { useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
-import { CoachmarkCard, type CoachmarkSide } from "./CoachmarkCard";
+import {
+  CoachmarkCard,
+  type CoachmarkSide,
+  type CoachmarkStep,
+} from "./CoachmarkCard";
 
 /*
 기준 요소와 카드 사이 간격(px). 꼬리가 반쯤 내민 만큼을 더한다.
@@ -45,6 +49,9 @@ interface CoachmarkProps {
   title?: ReactNode; // 안내 제목. 생략하면 본문만 그린다
   children: ReactNode; // 안내 문구
   onDismiss: () => void; // 안내를 닫을 때 부른다
+  step?: CoachmarkStep; // 여러 단계로 이어지는 안내의 지금 위치. CoachmarkCard에 그대로 넘긴다
+  onPrevious?: () => void; // 이전 단계로 갈 때 부른다. 첫 단계에서는 넘기지 않는다
+  onNext?: () => void; // 다음 단계로 갈 때 부른다. 마지막 단계에서는 넘기지 않는다
   placement?: Placement; // 기준 요소의 어느 쪽과 정렬에 띄울지. 자리가 모자라면 반대쪽으로 뒤집는다. 생략하면 위
   container?: HTMLElement | null; // 카드를 그릴 요소이자 카드가 벗어나지 않을 영역. 생략하면 body와 화면 전체
 }
@@ -69,6 +76,9 @@ export function Coachmark({
   title,
   children,
   onDismiss,
+  step,
+  onPrevious,
+  onNext,
   placement = "top",
   container,
 }: CoachmarkProps) {
@@ -110,6 +120,9 @@ export function Coachmark({
       ref={setFloatingElement}
       title={title}
       onDismiss={onDismiss}
+      step={step}
+      onPrevious={onPrevious}
+      onNext={onNext}
       arrowSide={ARROW_SIDE_BY_PLACEMENT[side]}
       arrowRef={setArrowElement}
       arrowStyle={

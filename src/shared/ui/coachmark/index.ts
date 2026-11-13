@@ -3,4 +3,5 @@ export {
   CoachmarkCard,
   type CoachmarkCardProps,
   type CoachmarkSide,
+  type CoachmarkStep,
 } from "./CoachmarkCard";
