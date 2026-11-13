@@ -511,6 +511,10 @@ function LayoutFlow({ workspaceId, treeId }: LayoutFlowProps) {
           {/*
           지금 트리에서 만든 강의를, 없으면 트리에 맞는 데모 대본을 재생한다. 서버가 강의를 저장하게 되면 조회 결과로 바꾼다.
           노드가 없으면 강의로 설명할 대상이 없으므로 그리지 않는다. 빈 트리 안내가 그 자리의 시작점을 맡는다.
+
+          좌우 패널을 뺀 캔버스 폭 안에서 가운데에 두려고 left·right를 정하고 mx-auto로 맞춘다.
+          React Flow의 가운데 패널 CSS(left 50%와 transform, margin 15px)는 CSS layer 밖이라 Tailwind 유틸리티보다 앞서므로 !로 덮는다.
+          translate-x-0은 transform이 아니라 translate 속성을 바꿔 React Flow의 transform을 지우지 못한다.
           */}
           {nodes.length === 0 ? null : (
             <Panel
@@ -519,7 +523,7 @@ function LayoutFlow({ workspaceId, treeId }: LayoutFlowProps) {
                 left: hasLeftPanelOffset ? 256 : 0,
                 right: hasRightPanelOffset ? 360 : 0,
               }}
-              className="!pointer-events-none !translate-x-0 mx-auto flex w-auto max-w-2xl justify-center px-4"
+              className="!pointer-events-none ![transform:none] !mx-auto flex w-auto max-w-2xl justify-center px-4"
             >
               <LecturePlayer
                 script={lectureScript}
