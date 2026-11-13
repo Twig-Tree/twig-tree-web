@@ -37,6 +37,13 @@ export { useTreeTags } from "./model/tag/useTreeTags";
 export { getTaggedNodeResults } from "./lib/tag/getTaggedNodeResults";
 export { useReactFlowStoreSetters } from "./model/react-flow/useReactFlowStoreSetters";
 export { useTreeStore } from "./model/treeStore";
+export { useCollapseStore } from "./model/collapse/collapseStore";
+export { createEditorNode } from "./lib/add-node/createEditorNode";
+export { createEditorEdge } from "./lib/add-node/createEditorEdge";
+export { createClientNodeId } from "./lib/createClientNodeId";
+export { getNextOrderIndex } from "./lib/node";
+export { getSubtreeClientIds } from "./lib/getSubtreeClientIds";
+export { validateNodeName } from "./lib/update-node-name/validateNodeName";
 export type {
   CustomEditorEdge,
   CustomEditorNode,
