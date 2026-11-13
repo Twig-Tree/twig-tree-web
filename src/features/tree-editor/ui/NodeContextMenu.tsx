@@ -6,74 +6,45 @@ import {
   useRef,
   useState,
 } from "react";
-import { Plus, StickyNote, Trash2, type LucideIcon } from "lucide-react";
+import { NODE_ACTION_LABELS } from "../constants/nodeActions";
+import {
+  getNodeActionShortcuts,
+  NODE_ACTION_IDS,
+  type NodeActionId,
+} from "../lib/shortcuts/nodeActionShortcuts";
+import { useDevicePlatform } from "../model/shortcuts/useDevicePlatform";
+import { NODE_ACTION_ICONS } from "./nodeActionIcons";
 
 const MENU_EDGE_GAP = 8; // 메뉴가 캔버스 가장자리에 붙지 않도록 남기는 여백(px)
 
 type NodeContextMenuProps = {
   x: number; // 캔버스 왼쪽 위를 기준으로 한 우클릭 위치
   y: number;
-  onOpenMemo: () => void; // 선택한 노드의 메모 패널을 연다.
-  onAddNode: () => void; // 선택한 노드에 자식 노드를 추가한다.
-  onDeleteNode: () => void; // 선택한 노드를 삭제한다.
+  blockReasons: Record<NodeActionId, string | null>; // 동작별 막힌 이유. 막힌 항목은 고를 수 없다
+  onRunAction: (actionId: NodeActionId) => void; // 고른 동작을 실행한다. useNodeActions의 runNodeAction
   onClose: () => void; // 메뉴를 닫는다.
   onEscape: () => void; // Escape로 닫는다. 메뉴를 열기 전의 자리로 focus를 돌려준다.
-  isOpenMemoDisabled: boolean;
-  isAddNodeDisabled: boolean;
-  isDeleteNodeDisabled: boolean;
-};
-
-type MenuItem = {
-  label: string;
-  icon: LucideIcon;
-  onSelect: () => void;
-  isDisabled: boolean;
-  isDanger?: boolean;
 };
 
 /*
 함수 이름 : NodeContextMenu
 기능 : 우클릭한 위치에 노드 메뉴를 그린다. 메뉴 밖을 누르거나 Escape를 누르거나 focus가 메뉴 밖으로 나가면 닫히고,
 항목을 고르면 그 동작을 실행한 뒤 닫힌다. 캔버스 밖으로 넘치면 안쪽으로 당겨 놓는다.
+항목은 노드 아래 버튼과 같은 이름·아이콘을 쓰고, 옆에 이 기기의 단축키를 적어 메뉴를 쓰다가 단축키를 익히게 한다.
 인자 : NodeContextMenuProps
 반환값 : 노드 메뉴
 */
 export function NodeContextMenu({
   x,
   y,
-  onOpenMemo,
-  onAddNode,
-  onDeleteNode,
+  blockReasons,
+  onRunAction,
   onClose,
   onEscape,
-  isOpenMemoDisabled,
-  isAddNodeDisabled,
-  isDeleteNodeDisabled,
 }: NodeContextMenuProps) {
   const menuRef = useRef<HTMLDivElement>(null);
   const [position, setPosition] = useState({ left: x, top: y });
-
-  const items: MenuItem[] = [
-    {
-      label: "메모 열기",
-      icon: StickyNote,
-      onSelect: onOpenMemo,
-      isDisabled: isOpenMemoDisabled,
-    },
-    {
-      label: "노드 추가",
-      icon: Plus,
-      onSelect: onAddNode,
-      isDisabled: isAddNodeDisabled,
-    },
-    {
-      label: "노드 삭제",
-      icon: Trash2,
-      onSelect: onDeleteNode,
-      isDisabled: isDeleteNodeDisabled,
-      isDanger: true,
-    },
-  ];
+  const shortcuts = getNodeActionShortcuts(useDevicePlatform());
 
   /*
   메뉴 크기는 그려진 뒤에야 알 수 있으므로, 화면에 보이기 전에 재서 캔버스 안쪽으로 위치를 보정한다.
@@ -93,12 +64,11 @@ export function NodeContextMenu({
   }, [x, y]);
 
   /*
-  키보드로도 바로 고를 수 있도록 열리면 첫 번째 사용 가능한 항목에 focus를 둔다.
+  열리면 메뉴 자체에 focus를 둔다. 마우스로 연 뒤 첫 항목에 focus를 두면 브라우저가 focus 표시를 그리지 않아,
+  보이지 않는 첫 항목에서 Tab이 둘째 항목으로 넘어간다. 메뉴에 두면 Tab·↓가 첫 항목으로, ↑가 마지막 항목으로 간다.
   */
   useEffect(() => {
-    menuRef.current
-      ?.querySelector<HTMLButtonElement>('[role="menuitem"]:not(:disabled)')
-      ?.focus();
+    menuRef.current?.focus();
   }, []);
 
   /*
@@ -145,8 +115,15 @@ export function NodeContextMenu({
       document.activeElement as HTMLButtonElement,
     );
     const step = event.key === "ArrowDown" ? 1 : -1;
+    /*
+    메뉴 자체에 focus가 있으면 아직 고른 항목이 없으므로 ↓는 첫 항목, ↑는 마지막 항목으로 간다.
+    */
     const nextIndex =
-      (currentIndex + step + enabledItems.length) % enabledItems.length;
+      currentIndex === -1
+        ? step === 1
+          ? 0
+          : enabledItems.length - 1
+        : (currentIndex + step + enabledItems.length) % enabledItems.length;
 
     enabledItems[nextIndex].focus();
   };
@@ -168,32 +145,52 @@ export function NodeContextMenu({
       ref={menuRef}
       role="menu"
       aria-label="노드 메뉴"
+      tabIndex={-1}
       onKeyDown={handleKeyDown}
       onBlur={handleBlur}
       onContextMenu={(event) => event.preventDefault()}
       style={{ left: position.left, top: position.top }}
-      className="absolute z-20 min-w-40 rounded-control border border-line bg-surface p-1 shadow-overlay"
+      className="absolute z-20 min-w-48 rounded-control border border-line bg-surface p-1 shadow-overlay outline-none"
     >
-      {items.map(({ label, icon: Icon, onSelect, isDisabled, isDanger }) => (
-        <button
-          key={label}
-          type="button"
-          role="menuitem"
-          disabled={isDisabled}
-          onClick={() => {
-            onClose();
-            onSelect();
-          }}
-          className={`flex w-full items-center gap-2.5 whitespace-nowrap rounded-control px-3 py-2 text-left text-sm transition-colors focus-visible:outline-none disabled:pointer-events-none disabled:text-content-disabled ${
-            isDanger
-              ? "text-danger hover:bg-danger-subtle focus-visible:bg-danger-subtle"
-              : "text-content-secondary hover:bg-surface-hover focus-visible:bg-surface-hover"
-          }`}
-        >
-          <Icon aria-hidden className="size-4" strokeWidth={2} />
-          {label}
-        </button>
-      ))}
+      {NODE_ACTION_IDS.map((actionId) => {
+        const Icon = NODE_ACTION_ICONS[actionId];
+        const shortcut = shortcuts[actionId];
+
+        return (
+          <button
+            key={actionId}
+            type="button"
+            role="menuitem"
+            disabled={blockReasons[actionId] !== null}
+            aria-keyshortcuts={shortcut.keys
+              .map((key) => (key === " " ? "Space" : key))
+              .join(" ")}
+            onClick={() => {
+              onClose();
+              onRunAction(actionId);
+            }}
+            className={`group flex w-full items-center gap-2.5 whitespace-nowrap rounded-control px-3 py-2 text-left text-sm transition-colors focus-visible:outline-none disabled:pointer-events-none disabled:text-content-disabled ${
+              actionId === "delete"
+                ? "text-danger hover:bg-danger-subtle focus-visible:bg-danger-subtle"
+                : "text-content-secondary hover:bg-surface-hover focus-visible:bg-surface-hover"
+            }`}
+          >
+            <Icon aria-hidden className="size-4" strokeWidth={2} />
+            {NODE_ACTION_LABELS[actionId]}
+            {/*
+            삭제 항목은 hover 바탕이 danger-subtle이라 짝인 danger를 그대로 쓴다. 막힌 항목은 이름과 같이 흐리게 한다.
+            */}
+            <kbd
+              aria-hidden
+              className={`ml-auto pl-4 font-sans text-xs group-disabled:text-content-disabled ${
+                actionId === "delete" ? "" : "text-content-muted"
+              }`}
+            >
+              {shortcut.label}
+            </kbd>
+          </button>
+        );
+      })}
     </div>
   );
 }

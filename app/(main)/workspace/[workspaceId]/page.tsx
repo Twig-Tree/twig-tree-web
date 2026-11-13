@@ -249,27 +249,24 @@ function LayoutFlow({ workspaceId, treeId }: LayoutFlowProps) {
     onRunAction: runNodeAction,
     onToggleGuide: toggleShortcutGuide,
   });
+  /*
+  강의 중에는 방향키가 강의 이동에 쓰이므로 React Flow의 방향키 노드 이동을 끈다. 켜 두면 선택한 노드가 함께 움직인다.
+  강의는 재생 순서가 지금 트리에 맞춰져 있어, 노드 아래 버튼·단축키와 같이 우클릭 메뉴도 열지 않는다.
+  */
+  const isLectureActive = useIsLectureActive();
+
   const {
     contextMenu,
     handleNodeContextMenu,
     closeContextMenu,
     closeContextMenuAndFocusNode,
-  } = useNodeContextMenu({ containerRef: canvasRef, isDisabled: isMutating });
-
-  /*
-  루트는 삭제할 수 없으므로 메뉴에서 처음부터 막는다. 편집기에서 구조는 엣지가 들고 있어, 들어오는 엣지가 없는 노드가 루트다.
-  */
-  const isSelectedNodeRoot =
-    selectedNode !== undefined &&
-    !edges.some((edge) => edge.target === selectedNode.id);
+  } = useNodeContextMenu({
+    containerRef: canvasRef,
+    isDisabled: isMutating || isLectureActive,
+  });
 
   const { script: lectureScript, isGenerated: isGeneratedLecture } =
     useLectureScript();
-
-  /*
-  강의 중에는 방향키가 강의 이동에 쓰이므로 React Flow의 방향키 노드 이동을 끈다. 켜 두면 선택한 노드가 함께 움직인다.
-  */
-  const isLectureActive = useIsLectureActive();
 
   /*
   선택했던 노드가 다른 곳에서 지워지면 그 노드를 가리키던 메모 패널과 우클릭 메뉴가 갈 곳을 잃으므로 닫는다.
@@ -460,23 +457,18 @@ function LayoutFlow({ workspaceId, treeId }: LayoutFlowProps) {
         ) : null}
 
         {/*
-        노드 추가·삭제·메모는 우클릭한 노드를 대상으로 한다. 메뉴를 열 때 그 노드를 선택해 두므로 handler는 선택된 노드를 기준으로 동작한다.
+        메뉴는 우클릭한 노드를 대상으로 한다. 메뉴를 열 때 그 노드만 선택해 두므로 노드 아래 버튼과 같은 useNodeActions의 대상이 된다.
+        강의가 시작되는 등 대상이 바뀌면 메뉴 항목이 다른 노드에 실행되지 않도록 메뉴를 그리지 않는다.
         */}
-        {contextMenu ? (
+        {contextMenu && contextMenu.clientId === nodeActionTargetClientId ? (
           <NodeContextMenu
             key={contextMenu.clientId}
             x={contextMenu.x}
             y={contextMenu.y}
-            onOpenMemo={openMemoPanel}
-            onAddNode={handleAddNode}
-            onDeleteNode={handleDeleteNode}
+            blockReasons={nodeActionBlockReasons}
+            onRunAction={runNodeAction}
             onClose={closeContextMenu}
             onEscape={closeContextMenuAndFocusNode}
-            isOpenMemoDisabled={!selectedNode}
-            isAddNodeDisabled={!isAddNodeEnabled || isMutating}
-            isDeleteNodeDisabled={
-              !selectedNode || isSelectedNodeRoot || isMutating
-            }
           />
         ) : null}
       </div>
