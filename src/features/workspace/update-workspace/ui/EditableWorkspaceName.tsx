@@ -1,11 +1,14 @@
 "use client";
 
 import type { WorkspaceItem } from "@/src/entities/workspace";
-import { useWorkspaceNameEditing } from "../model/useWorkspaceNameEditing";
+import {
+  type WorkspaceNameEditingEndReason,
+  useWorkspaceNameEditing,
+} from "../model/useWorkspaceNameEditing";
 
 interface EditableWorkspaceNameProps {
   workspace: WorkspaceItem; // 이름을 수정할 워크스페이스. 속한 폴더의 형제 목록으로 이름 중복을 검사한다
-  onEditingEnd: () => void; // 저장 또는 취소 후 편집 상태를 종료하는 callback
+  onEditingEnd: (reason: WorkspaceNameEditingEndReason) => void; // 저장 또는 취소 후 편집 상태를 종료하는 callback. 원인에 따라 focus를 되돌릴지 정한다
 }
 
 /*

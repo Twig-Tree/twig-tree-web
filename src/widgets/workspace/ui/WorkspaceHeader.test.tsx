@@ -112,6 +112,23 @@ describe("WorkspaceHeader", () => {
     await waitFor(() => expect(titleButton).toHaveFocus());
   });
 
+  /*
+  focus를 받지 않는 빈 곳을 눌러도 activeElement는 body가 된다. 이때 제목 버튼으로 focus를 되돌리면
+  사용자가 편집을 떠난 곳에서 focus를 빼앗는다.
+  */
+  it("입력창을 벗어나 편집이 끝나면 제목 버튼으로 focus를 옮기지 않는다", async () => {
+    const { queryClient } = renderHeader({ workspace: WORKSPACE });
+    const user = await startEditing(queryClient);
+
+    await user.click(document.body);
+
+    const titleButton = await screen.findByRole("button", {
+      name: WORKSPACE.name,
+    });
+    await new Promise((resolve) => requestAnimationFrame(resolve));
+    expect(titleButton).not.toHaveFocus();
+  });
+
   it("편집 중에도 제목은 화면 구조에 남는다", async () => {
     const { queryClient } = renderHeader({ workspace: WORKSPACE });
     await startEditing(queryClient);

@@ -12,9 +12,15 @@ import type { WorkspaceItem } from "@/src/entities/workspace";
 import { useIsMounted } from "@/src/shared/lib/react/useIsMounted";
 import { useUpdateWorkspace } from "./useUpdateWorkspace";
 
+/*
+편집이 끝난 원인. Enter·Escape는 사용자가 입력창 안에서 끝낸 것이고, blur는 다른 곳으로 옮겨 가며 끝난 것이다.
+호출부는 이 값으로 focus를 되돌릴지 정한다. blur로 끝났다면 사용자가 옮긴 곳이 있으므로 되돌리지 않는다.
+*/
+export type WorkspaceNameEditingEndReason = "keyboard" | "blur";
+
 interface UseWorkspaceNameEditingParams {
   workspace: WorkspaceItem; // 이름을 수정할 워크스페이스. 속한 폴더의 형제 목록으로 이름 중복을 검사한다
-  onEditingEnd: () => void; // 저장 또는 취소 후 편집 상태를 종료하는 callback
+  onEditingEnd: (reason: WorkspaceNameEditingEndReason) => void; // 저장 또는 취소 후 편집 상태를 종료하는 callback
 }
 
 /*
@@ -57,59 +63,62 @@ export function useWorkspaceNameEditing({
   현재 입력값을 검증한 뒤 워크스페이스 이름 수정 요청을 보낸다.
   검증 또는 요청이 실패하면 편집 상태를 유지하고 입력창으로 focus를 되돌린다.
   */
-  const commitName = useCallback(async () => {
-    if (isCommittingRef.current || isCancellingRef.current) return;
+  const commitName = useCallback(
+    async (reason: WorkspaceNameEditingEndReason) => {
+      if (isCommittingRef.current || isCancellingRef.current) return;
 
-    const trimmedName = name.trim();
+      const trimmedName = name.trim();
 
-    if (trimmedName === workspace.name) {
-      onEditingEnd();
-      return;
-    }
+      if (trimmedName === workspace.name) {
+        onEditingEnd(reason);
+        return;
+      }
 
-    const validationError = getWorkspaceNameError({
-      workspaceId: workspace.id,
-      name,
-    });
+      const validationError = getWorkspaceNameError({
+        workspaceId: workspace.id,
+        name,
+      });
 
-    if (validationError) {
-      setErrorMessage(validationError);
-      focusInput();
-      return;
-    }
+      if (validationError) {
+        setErrorMessage(validationError);
+        focusInput();
+        return;
+      }
 
-    isCommittingRef.current = true; // Enter와 blur가 연속으로 발생해도 요청은 한 번만 보낸다.
-    setErrorMessage(null);
+      isCommittingRef.current = true; // Enter와 blur가 연속으로 발생해도 요청은 한 번만 보낸다.
+      setErrorMessage(null);
 
-    const isUpdated = await updateWorkspace({
-      workspaceId: workspace.id,
-      name,
-    });
+      const isUpdated = await updateWorkspace({
+        workspaceId: workspace.id,
+        name,
+      });
 
-    isCommittingRef.current = false;
+      isCommittingRef.current = false;
 
-    /*
+      /*
     요청을 기다리는 동안 다른 편집이 시작되면 이 편집 UI는 사라진다. 그때 onEditingEnd를 부르면
     사용자가 방금 연 편집이 닫히므로, 사라진 편집 UI의 요청 결과는 화면에 반영하지 않는다.
     */
-    if (!isMounted()) return;
+      if (!isMounted()) return;
 
-    if (isUpdated) {
-      onEditingEnd();
-      return;
-    }
+      if (isUpdated) {
+        onEditingEnd(reason);
+        return;
+      }
 
-    focusInput();
-  }, [
-    focusInput,
-    getWorkspaceNameError,
-    isMounted,
-    name,
-    onEditingEnd,
-    updateWorkspace,
-    workspace.id,
-    workspace.name,
-  ]);
+      focusInput();
+    },
+    [
+      focusInput,
+      getWorkspaceNameError,
+      isMounted,
+      name,
+      onEditingEnd,
+      updateWorkspace,
+      workspace.id,
+      workspace.name,
+    ],
+  );
 
   const handleChange = useCallback((event: ChangeEvent<HTMLInputElement>) => {
     setName(event.target.value);
@@ -117,7 +126,7 @@ export function useWorkspaceNameEditing({
   }, []);
 
   const handleBlur = useCallback(() => {
-    void commitName();
+    void commitName("blur");
   }, [commitName]);
 
   /*
@@ -130,14 +139,14 @@ export function useWorkspaceNameEditing({
         isCancellingRef.current = true; // 편집 종료 과정에서 발생하는 blur 저장을 막는다.
         setName(workspace.name);
         setErrorMessage(null);
-        onEditingEnd();
+        onEditingEnd("keyboard");
         return;
       }
 
       if (event.key !== "Enter" || event.nativeEvent.isComposing) return;
 
       event.preventDefault();
-      void commitName();
+      void commitName("keyboard");
     },
     [commitName, onEditingEnd, workspace.name],
   );

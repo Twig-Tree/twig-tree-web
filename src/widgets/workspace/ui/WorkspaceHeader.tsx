@@ -3,7 +3,10 @@
 import { Pencil } from "lucide-react";
 import { useCallback, useRef, useState } from "react";
 import type { WorkspaceItem } from "@/src/entities/workspace";
-import { EditableWorkspaceName } from "@/src/features/workspace/update-workspace";
+import {
+  EditableWorkspaceName,
+  type WorkspaceNameEditingEndReason,
+} from "@/src/features/workspace/update-workspace";
 
 export interface WorkspaceHeaderProps {
   workspace: WorkspaceItem | undefined; // 조회가 끝나기 전에는 undefined. 이름을 보여주고, 이름 수정 시 속한 폴더로 중복을 검사한다
@@ -29,19 +32,26 @@ export function WorkspaceHeader({
 
   /*
   Enter나 Escape로 끝나면 focus를 가진 입력창이 사라져 focus가 문서 처음으로 떨어지므로 제목 버튼으로 되돌린다.
-  다른 곳을 눌러 끝났다면 사용자가 옮긴 focus를 빼앗지 않는다.
+  blur로 끝났다면 사용자가 다른 곳으로 옮긴 것이므로 되돌리지 않는다. focus를 받지 않는 빈 곳을 눌러도
+  activeElement는 body가 되어, focus 위치만으로는 두 경우를 가를 수 없다.
+  Enter 저장은 요청이 끝난 뒤에 끝나므로, 그 사이 사용자가 다른 요소로 focus를 옮겼다면 그대로 둔다.
   */
-  const handleEditingEnd = useCallback(() => {
-    setIsEditing(false);
+  const handleEditingEnd = useCallback(
+    (reason: WorkspaceNameEditingEndReason) => {
+      setIsEditing(false);
 
-    requestAnimationFrame(() => {
-      const { activeElement } = document;
+      if (reason === "blur") return;
 
-      if (activeElement === null || activeElement === document.body) {
-        titleButtonRef.current?.focus();
-      }
-    });
-  }, []);
+      requestAnimationFrame(() => {
+        const { activeElement } = document;
+
+        if (activeElement === null || activeElement === document.body) {
+          titleButtonRef.current?.focus();
+        }
+      });
+    },
+    [],
+  );
 
   const renderTitle = () => {
     if (isNameLoading || !workspace) {
