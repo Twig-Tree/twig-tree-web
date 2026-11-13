@@ -12,7 +12,9 @@ import {
   EmptyTreeGuide,
   LecturePlayer,
   MemoSidePanel,
+  NodeActionToolbar,
   NodeContextMenu,
+  ShortcutGuide,
   edgeTypes,
   MIN_ZOOM,
   nodeTypes,
@@ -21,6 +23,8 @@ import {
   useInitializeTree,
   useIsLectureActive,
   useLectureScript,
+  useNodeActions,
+  useNodeActionShortcuts,
   useNodeContextMenu,
   useMoveNodeByDrag,
   useReactFlowStoreSetters,
@@ -187,6 +191,20 @@ function LayoutFlow({ workspaceId, treeId }: LayoutFlowProps) {
   const isMutating =
     isAddingNode || isDeletingNode || isMovingNode || isUndoingOrRedoing;
 
+  /*
+  노드 옆 버튼과 단축키는 우클릭 메뉴와 같은 handler를 부른다. 막힌 동작은 handler의 alert 대신 툴팁으로 이유를 미리 보여 준다.
+  */
+  const {
+    targetClientId: nodeActionTargetClientId,
+    blockReasons: nodeActionBlockReasons,
+    runNodeAction,
+  } = useNodeActions({
+    isMutating,
+    onOpenMemo: openMemoPanel,
+    onAddChild: handleAddNode,
+    onDelete: handleDeleteNode,
+  });
+
   const { isPanelOpen, isPanelOverlay, openPanel, closePanel } =
     useResponsivePanelVisibility();
 
@@ -211,27 +229,44 @@ function LayoutFlow({ workspaceId, treeId }: LayoutFlowProps) {
   };
 
   const canvasRef = useRef<HTMLDivElement>(null);
+
+  /*
+  단축키 안내는 단축키를 막지 않는 참고 패널이라, 연 채로 노드를 골라 단축키를 써 볼 수 있다.
+  */
+  const [isShortcutGuideOpen, setIsShortcutGuideOpen] = useState(false);
+  const toggleShortcutGuide = useCallback(
+    () => setIsShortcutGuideOpen((isOpen) => !isOpen),
+    [],
+  );
+  const closeShortcutGuide = useCallback(
+    () => setIsShortcutGuideOpen(false),
+    [],
+  );
+
+  useNodeActionShortcuts({
+    canvasRef,
+    targetClientId: nodeActionTargetClientId,
+    onRunAction: runNodeAction,
+    onToggleGuide: toggleShortcutGuide,
+  });
+  /*
+  강의 중에는 방향키가 강의 이동에 쓰이므로 React Flow의 방향키 노드 이동을 끈다. 켜 두면 선택한 노드가 함께 움직인다.
+  강의는 재생 순서가 지금 트리에 맞춰져 있어, 노드 아래 버튼·단축키와 같이 우클릭 메뉴도 열지 않는다.
+  */
+  const isLectureActive = useIsLectureActive();
+
   const {
     contextMenu,
     handleNodeContextMenu,
     closeContextMenu,
     closeContextMenuAndFocusNode,
-  } = useNodeContextMenu({ containerRef: canvasRef, isDisabled: isMutating });
-
-  /*
-  루트는 삭제할 수 없으므로 메뉴에서 처음부터 막는다. 편집기에서 구조는 엣지가 들고 있어, 들어오는 엣지가 없는 노드가 루트다.
-  */
-  const isSelectedNodeRoot =
-    selectedNode !== undefined &&
-    !edges.some((edge) => edge.target === selectedNode.id);
+  } = useNodeContextMenu({
+    containerRef: canvasRef,
+    isDisabled: isMutating || isLectureActive,
+  });
 
   const { script: lectureScript, isGenerated: isGeneratedLecture } =
     useLectureScript();
-
-  /*
-  강의 중에는 방향키가 강의 이동에 쓰이므로 React Flow의 방향키 노드 이동을 끈다. 켜 두면 선택한 노드가 함께 움직인다.
-  */
-  const isLectureActive = useIsLectureActive();
 
   /*
   선택했던 노드가 다른 곳에서 지워지면 그 노드를 가리키던 메모 패널과 우클릭 메뉴가 갈 곳을 잃으므로 닫는다.
@@ -298,8 +333,8 @@ function LayoutFlow({ workspaceId, treeId }: LayoutFlowProps) {
           onNodeDrag={onNodeDrag}
           onNodeDragStop={onNodeDragStop}
           /*
-          React Flow의 기본 삭제 키(Backspace)는 서버 요청 없이 화면에서만 노드를 지운다. 삭제는 컨텍스트 메뉴의
-          handleDeleteNode가 맡고, 키보드 삭제는 #170에서 같은 handler에 연결한다.
+          React Flow의 기본 삭제 키(Backspace)는 서버 요청 없이 화면에서만 노드를 지운다. 삭제 키는
+          useNodeActionShortcuts가 받아 우클릭 메뉴·노드 아래 버튼과 같은 handleDeleteNode에 잇는다.
           */
           deleteKeyCode={null}
           disableKeyboardA11y={isMutating || isLectureActive}
@@ -326,6 +361,14 @@ function LayoutFlow({ workspaceId, treeId }: LayoutFlowProps) {
             bgColor="transparent"
           />
           <DropIndicatorOverlay indicator={dropIndicator} />
+
+          {nodeActionTargetClientId !== null ? (
+            <NodeActionToolbar
+              clientId={nodeActionTargetClientId}
+              blockReasons={nodeActionBlockReasons}
+              onRunAction={runNodeAction}
+            />
+          ) : null}
 
           {isPanelOpen ? null : (
             <Panel position="top-left">
@@ -409,24 +452,23 @@ function LayoutFlow({ workspaceId, treeId }: LayoutFlowProps) {
           </div>
         ) : null}
 
+        {isShortcutGuideOpen ? (
+          <ShortcutGuide onClose={closeShortcutGuide} />
+        ) : null}
+
         {/*
-        노드 추가·삭제·메모는 우클릭한 노드를 대상으로 한다. 메뉴를 열 때 그 노드를 선택해 두므로 handler는 선택된 노드를 기준으로 동작한다.
+        메뉴는 우클릭한 노드를 대상으로 한다. 메뉴를 열 때 그 노드만 선택해 두므로 노드 아래 버튼과 같은 useNodeActions의 대상이 된다.
+        강의가 시작되는 등 대상이 바뀌면 메뉴 항목이 다른 노드에 실행되지 않도록 메뉴를 그리지 않는다.
         */}
-        {contextMenu ? (
+        {contextMenu && contextMenu.clientId === nodeActionTargetClientId ? (
           <NodeContextMenu
             key={contextMenu.clientId}
             x={contextMenu.x}
             y={contextMenu.y}
-            onOpenMemo={openMemoPanel}
-            onAddNode={handleAddNode}
-            onDeleteNode={handleDeleteNode}
+            blockReasons={nodeActionBlockReasons}
+            onRunAction={runNodeAction}
             onClose={closeContextMenu}
             onEscape={closeContextMenuAndFocusNode}
-            isOpenMemoDisabled={!selectedNode}
-            isAddNodeDisabled={!isAddNodeEnabled || isMutating}
-            isDeleteNodeDisabled={
-              !selectedNode || isSelectedNodeRoot || isMutating
-            }
           />
         ) : null}
       </div>
