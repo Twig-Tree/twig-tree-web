@@ -1,5 +1,9 @@
+"use client";
+
 import Link from "next/link";
 import { WorkspaceCard, type WorkspaceItem } from "@/src/entities/workspace";
+import { useDeleteWorkspace } from "@/src/features/workspace/delete-workspace";
+import { EditableWorkspaceCard } from "@/src/features/workspace/update-workspace";
 import { CardGridSkeleton } from "@/src/shared/ui/card-grid-skeleton";
 
 /*
@@ -20,9 +24,12 @@ const RECENT_WORKSPACE_CARD_HEIGHT_CLASS_NAME =
   "min-h-[clamp(5.5rem,16vh,9rem)]";
 
 interface RecentWorkspaceSectionProps {
+  editingWorkspaceId: string | null; // 이름을 수정 중인 워크스페이스 ID
   isError: boolean; // 최신순 목록 조회에 실패했는지 여부
   isLoading: boolean; // 최신순 목록을 처음 조회하는 중인지 여부
   isLoaded: boolean; // 최신순 목록이 도착했는지 여부. 빈 상태 안내를 언제 보여줄지 정한다
+  onEditingEnd: () => void; // 이름 저장 또는 취소 후 편집을 끝낼 때 부른다
+  onWorkspaceEditingStart: (workspaceId: string) => void; // 카드 메뉴에서 이름 수정을 고르면 부른다
   viewAllHref: string; // 전체 목록으로 이동할 경로
   workspaces: WorkspaceItem[]; // 보여줄 워크스페이스. RECENT_WORKSPACE_DISPLAY_COUNT개까지만 조회해서 넘긴다
 }
@@ -36,18 +43,24 @@ interface RecentWorkspaceSectionProps {
 카드는 디렉터리 화면과 같은 WorkspaceCard를 사용한다.
 다만 여기서는 섹션 제목 아래에 놓이므로 카드 제목을 h3으로 낮춘다.
 
-카드에 이름 수정·삭제 메뉴는 붙이지 않는다. 최근 몇 개만 보여주는 요약 영역이라 편집은 전체 보기로
-연결된 최신순 화면에 맡긴다. 붙이려면 대시보드 페이지도 편집 상태를 가져야 한다.
+카드 메뉴는 최신순 화면과 같게 이름 수정과 삭제를 둔다. 요약 영역이라도 같은 카드에서 메뉴가 사라지면
+메뉴를 찾는 사용자에게 화면마다 다르게 보인다. 이동 항목은 최신순 화면에도 없으므로 두지 않는다.
+편집 중인 카드는 페이지가 정하고, 이 섹션은 그 카드를 편집 카드로 바꿔 그린다.
 
 제목과 전체 보기 링크는 상태와 무관하게 둔다. 조회에 실패해도 최신순 화면으로 이동할 길은 남긴다.
 */
 export function RecentWorkspaceSection({
+  editingWorkspaceId,
   isError,
   isLoaded,
   isLoading,
+  onEditingEnd,
+  onWorkspaceEditingStart,
   viewAllHref,
   workspaces,
 }: RecentWorkspaceSectionProps) {
+  const { deleteWorkspace, isDeletingWorkspace } = useDeleteWorkspace();
+
   const renderContents = () => {
     /*
     재조회에 실패해도 이전 목록이 남아 있지만 그리지 않는다. 옛 목록을 그리면 조회가 실패한 사실이 화면에서 사라진다.
@@ -91,11 +104,22 @@ export function RecentWorkspaceSection({
       <ul className={`mt-4 ${RECENT_WORKSPACE_GRID_CLASS_NAME}`}>
         {workspaces.map((workspace) => (
           <li key={workspace.id}>
-            <WorkspaceCard
-              workspace={workspace}
-              headingLevel={3}
-              heightClassName={RECENT_WORKSPACE_CARD_HEIGHT_CLASS_NAME}
-            />
+            {workspace.id === editingWorkspaceId ? (
+              <EditableWorkspaceCard
+                workspace={workspace}
+                heightClassName={RECENT_WORKSPACE_CARD_HEIGHT_CLASS_NAME}
+                onEditingEnd={onEditingEnd}
+              />
+            ) : (
+              <WorkspaceCard
+                workspace={workspace}
+                headingLevel={3}
+                heightClassName={RECENT_WORKSPACE_CARD_HEIGHT_CLASS_NAME}
+                isDeleteDisabled={isDeletingWorkspace}
+                onDelete={() => void deleteWorkspace(workspace)}
+                onRename={() => onWorkspaceEditingStart(workspace.id)}
+              />
+            )}
           </li>
         ))}
       </ul>

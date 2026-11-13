@@ -4,6 +4,7 @@ import type { WorkspaceItem } from "@/src/entities/workspace";
 import { useWorkspaceNameEditing } from "../model/useWorkspaceNameEditing";
 
 interface EditableWorkspaceCardProps {
+  heightClassName?: string; // 카드 최소 높이. 편집 전 WorkspaceCard와 같은 값을 넘겨 편집을 시작해도 카드 높이가 바뀌지 않게 한다
   workspace: WorkspaceItem; // 이름을 수정할 워크스페이스. 속한 폴더의 형제 목록으로 이름 중복을 검사한다
   onEditingEnd: () => void; // 저장 또는 취소 후 편집 상태를 종료하는 callback
 }
@@ -17,6 +18,7 @@ interface EditableWorkspaceCardProps {
 입력 처리는 EditableFolderCard와 같다. 카드 모양이 달라 공통 컴포넌트로 뽑지 않고 같은 흐름을 따른다.
 */
 export function EditableWorkspaceCard({
+  heightClassName = "min-h-36",
   workspace,
   onEditingEnd,
 }: EditableWorkspaceCardProps) {
@@ -31,7 +33,9 @@ export function EditableWorkspaceCard({
   } = useWorkspaceNameEditing({ workspace, onEditingEnd });
 
   return (
-    <article className="flex min-h-36 flex-col justify-between rounded-card border border-accent-line bg-surface p-5 shadow-card ring-2 ring-accent-subtle">
+    <article
+      className={`flex ${heightClassName} flex-col justify-between rounded-card border border-accent-line bg-surface p-5 shadow-card ring-2 ring-accent-subtle`}
+    >
       <div>
         <input
           ref={inputRef}
