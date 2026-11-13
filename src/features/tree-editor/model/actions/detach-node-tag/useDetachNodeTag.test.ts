@@ -78,7 +78,7 @@ describe("useDetachNodeTag", () => {
     await act(() => result.current.handleDetachNodeTag("1"));
 
     expect(alertSpy).toHaveBeenCalledExactlyOnceWith(
-      "아직 서버에 저장되지 않은 노드입니다. 잠시 후 다시 시도해주세요.",
+      "아직 서버에 저장되지 않은 노드입니다. 잠시 후 다시 시도해 주세요.",
     );
     expect(removeNodeTagSpy).not.toHaveBeenCalled();
     expect(getNodeTagIds()).toEqual(["1", "2"]);

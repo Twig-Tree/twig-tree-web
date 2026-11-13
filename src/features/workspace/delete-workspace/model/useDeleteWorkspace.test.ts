@@ -8,7 +8,12 @@ import {
 } from "@/src/entities/workspace";
 import { createQueryWrapper } from "@/src/tests/helpers/createQueryWrapper";
 import { server } from "@/src/tests/mocks/server";
+import { requestConfirm } from "@/src/shared/ui/confirm-dialog";
 import { useDeleteWorkspace } from "./useDeleteWorkspace";
+
+vi.mock("@/src/shared/ui/confirm-dialog", () => ({ requestConfirm: vi.fn() }));
+
+const requestConfirmMock = vi.mocked(requestConfirm);
 
 const WORKSPACE_IN_FOLDER: WorkspaceItem = {
   id: "2",
@@ -34,24 +39,29 @@ const renderUseDeleteWorkspace = () => {
 describe("useDeleteWorkspace", () => {
   afterEach(() => {
     vi.restoreAllMocks();
+    requestConfirmMock.mockReset();
   });
 
   /*
   트리까지 함께 사라지는 작업이라, 이름만 묻지 않고 되돌릴 수 없다는 사실까지 알린다.
   */
   it("이름과 트리 삭제 안내를 담아 확인받는다", async () => {
-    const confirmSpy = vi.spyOn(window, "confirm").mockReturnValue(false);
+    requestConfirmMock.mockResolvedValue(false);
     const { result } = renderUseDeleteWorkspace();
 
     await result.current.deleteWorkspace(WORKSPACE_IN_FOLDER);
 
-    expect(confirmSpy).toHaveBeenCalledWith(
-      '"Workspace In Folder" 워크스페이스를 삭제하시겠습니까?\n워크스페이스 안의 트리와 노드도 함께 삭제되며 되돌릴 수 없습니다.',
-    );
+    expect(requestConfirmMock).toHaveBeenCalledWith({
+      title: '"Workspace In Folder" 워크스페이스를 삭제할까요?',
+      description:
+        "워크스페이스 안의 트리와 노드도 함께 삭제되며 되돌릴 수 없습니다.",
+      confirmLabel: "삭제",
+      tone: "danger",
+    });
   });
 
   it("확인에서 취소하면 요청하지 않고 false를 돌려준다", async () => {
-    vi.spyOn(window, "confirm").mockReturnValue(false);
+    requestConfirmMock.mockResolvedValue(false);
     const deleteWorkspaceSpy = vi.spyOn(workspaceApi, "deleteWorkspace");
     const { result } = renderUseDeleteWorkspace();
 
@@ -62,7 +72,7 @@ describe("useDeleteWorkspace", () => {
   });
 
   it("확인하면 숫자 ID로 요청하고 true를 돌려준다", async () => {
-    vi.spyOn(window, "confirm").mockReturnValue(true);
+    requestConfirmMock.mockResolvedValue(true);
     const deleteWorkspaceSpy = vi.spyOn(workspaceApi, "deleteWorkspace");
     const { result } = renderUseDeleteWorkspace();
 
@@ -77,7 +87,7 @@ describe("useDeleteWorkspace", () => {
   다른 폴더의 항목을 지웠을 때 엉뚱한 폴더의 목록이 갱신된다.
   */
   it("항목마다 그 항목이 속한 폴더의 목록 캐시를 갱신한다", async () => {
-    vi.spyOn(window, "confirm").mockReturnValue(true);
+    requestConfirmMock.mockResolvedValue(true);
     const { result, queryClient } = renderUseDeleteWorkspace();
     const invalidateSpy = vi.spyOn(queryClient, "invalidateQueries");
 
@@ -93,7 +103,6 @@ describe("useDeleteWorkspace", () => {
   });
 
   it("속한 폴더 ID가 유효하지 않으면 확인 없이 false를 돌려준다", async () => {
-    const confirmSpy = vi.spyOn(window, "confirm");
     const deleteWorkspaceSpy = vi.spyOn(workspaceApi, "deleteWorkspace");
     const { result } = renderUseDeleteWorkspace();
 
@@ -103,12 +112,12 @@ describe("useDeleteWorkspace", () => {
     });
 
     expect(isDeleted).toBe(false);
-    expect(confirmSpy).not.toHaveBeenCalled();
+    expect(requestConfirmMock).not.toHaveBeenCalled();
     expect(deleteWorkspaceSpy).not.toHaveBeenCalled();
   });
 
   it("요청이 실패하면 알리고 false를 돌려준다", async () => {
-    vi.spyOn(window, "confirm").mockReturnValue(true);
+    requestConfirmMock.mockResolvedValue(true);
     const alertSpy = vi.spyOn(window, "alert").mockImplementation(() => {});
     vi.spyOn(console, "error").mockImplementation(() => {});
     server.use(

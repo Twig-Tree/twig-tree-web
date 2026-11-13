@@ -86,7 +86,9 @@ export const useSaveMemo = ({
     보낼 요청이 없는 경우를 먼저 걸러야 새 노드에서 빈 메모를 저장할 때 불필요한 알림이 뜨지 않는다.
     */
     if (serverId === null) {
-      alert("아직 서버에 저장되지 않은 노드입니다. 잠시 후 다시 시도해주세요.");
+      alert(
+        "아직 서버에 저장되지 않은 노드입니다. 잠시 후 다시 시도해 주세요.",
+      );
       return;
     }
 
@@ -152,7 +154,7 @@ export const useSaveMemo = ({
       alert(
         isNodeRemoved
           ? "다른 곳에서 삭제된 노드입니다."
-          : "메모 저장에 실패했습니다. 다시 시도해주세요.",
+          : "메모 저장에 실패했습니다. 다시 시도해 주세요.",
       );
 
       if (isNodeRemoved) {

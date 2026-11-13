@@ -6,10 +6,11 @@ const variantStyles = {
   secondary:
     "bg-surface-hover text-content-secondary hover:bg-surface-strong disabled:text-content-disabled",
   /*
-  되돌릴 수 없는 작업에 쓴다. 채운 빨강은 다크 테마에서 흰 글자 대비가 모자라므로 옅은 바탕에 빨간 글자를 쓴다.
+  되돌릴 수 없는 동작의 확인 버튼. 진한 위험색 바탕 토큰이 없어 연한 바탕과 위험색 글자 짝을 쓰고,
+  hover에는 테두리를 진하게 해 눌리는 곳임을 알린다.
   */
   danger:
-    "border border-danger-line bg-danger-subtle text-danger hover:border-danger disabled:border-line disabled:bg-surface-hover disabled:text-content-disabled",
+    "border border-danger-line bg-danger-subtle text-danger hover:border-danger disabled:text-content-disabled",
 } as const;
 
 export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {

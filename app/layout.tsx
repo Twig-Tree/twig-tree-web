@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Network } from "lucide-react";
 import { routes } from "@/src/shared/config/routes";
 import { QueryProvider } from "@/src/shared/lib/react-query/QueryProvider";
+import { ConfirmDialogHost } from "@/src/shared/ui/confirm-dialog";
 import { Toaster } from "@/src/shared/ui/toast";
 import {
   DEFAULT_THEME,
@@ -60,6 +61,7 @@ export default function RootLayout({
             <div className="min-h-0 flex-1">{children}</div>
           </div>
           <Toaster />
+          <ConfirmDialogHost />
           <ReactQueryDevtools initialIsOpen={false} />
         </QueryProvider>
       </body>

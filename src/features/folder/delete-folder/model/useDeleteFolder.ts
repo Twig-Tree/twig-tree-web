@@ -6,6 +6,7 @@ import {
   useDeleteFolderMutation,
 } from "@/src/entities/folder";
 import { useInvalidateRecentWorkspaceList } from "@/src/entities/workspace";
+import { requestConfirm } from "@/src/shared/ui/confirm-dialog";
 
 interface UseDeleteFolderParams {
   folderParentId: string | null;
@@ -26,7 +27,17 @@ export function useDeleteFolder({ folderParentId }: UseDeleteFolderParams) {
         return false;
       }
 
-      const shouldDelete = window.confirm(`"${name}" 폴더를 삭제하시겠습니까?`);
+      /*
+      폴더를 지우면 하위 폴더와 그 안의 워크스페이스·트리·노드까지 서버에서 함께 지워지고 되돌릴 수 없어,
+      그 사실까지 확인받는다. 비어 보이는 폴더라도 하위 폴더 안에 내용이 있을 수 있어 항상 알린다.
+      */
+      const shouldDelete = await requestConfirm({
+        title: `"${name}" 폴더를 삭제할까요?`,
+        description:
+          "폴더 안의 하위 폴더와 워크스페이스, 그 안의 트리와 노드도 모두 함께 삭제되며 되돌릴 수 없습니다.",
+        confirmLabel: "삭제",
+        tone: "danger",
+      });
 
       if (!shouldDelete) {
         return false;

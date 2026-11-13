@@ -6,6 +6,7 @@ import { DirectoryContentsGrid } from "./DirectoryContentsGrid";
 import { DirectoryDragMoveProvider } from "./DirectoryDragMoveProvider";
 
 const ERROR_MESSAGE = "목록을 불러오지 못했습니다.";
+const EMPTY_HINT = "위의 새 폴더나 새 워크스페이스 버튼으로 만들 수 있습니다.";
 const EMPTY_MESSAGE = "아직 폴더나 워크스페이스가 없습니다.";
 const LOADING_MESSAGE = "목록을 불러오는 중입니다.";
 
@@ -75,6 +76,7 @@ describe("DirectoryContentsGrid", () => {
     renderGrid();
 
     expect(screen.getByText(EMPTY_MESSAGE)).toBeInTheDocument();
+    expect(screen.getByText(EMPTY_HINT)).toBeInTheDocument();
   });
 
   /*

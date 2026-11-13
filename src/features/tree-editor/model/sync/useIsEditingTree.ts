@@ -19,7 +19,7 @@ export const useIsEditingTree = ({
   isStructureEditing,
 }: UseIsEditingTreeParams): boolean => {
   const isEditingNodeName = useEditingStore(
-    (state) => state.nameEditingClientIds.size > 0,
+    (state) => state.nameEditors.size > 0,
   );
   const isMemoDirty = useEditingStore((state) => state.isMemoDirty);
   const isDraggingNode = useTreeStore((state) =>
