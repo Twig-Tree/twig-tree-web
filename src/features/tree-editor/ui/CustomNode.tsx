@@ -1,14 +1,7 @@
-import {
-  type ChangeEvent,
-  type KeyboardEvent,
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-} from "react";
+import { type KeyboardEvent, useCallback, useEffect } from "react";
 import { Handle, NodeProps, Position } from "@xyflow/react";
 import { CustomEditorNode } from "@/src/features/tree-editor/model/types";
-import { useUpdateNodeName } from "@/src/features/tree-editor/model/actions/update-node-name/useUpdateNodeName";
+import { useNodeNameInput } from "@/src/features/tree-editor/model/actions/update-node-name/useNodeNameInput";
 import { useTreeStore } from "@/src/features/tree-editor/model/treeStore";
 import { useHighlightStore } from "@/src/features/tree-editor/model/highlight/highlightStore";
 import { useEditingStore } from "@/src/features/tree-editor/model/sync/editingStore";
@@ -27,9 +20,6 @@ import {
 } from "@/src/features/tree-editor/model/lecture/lectureAnimationStore";
 import { CollapseToggleButton } from "./CollapseToggleButton";
 
-const NAME_CONFLICT_MESSAGE =
-  "다른 곳에서 수정되었습니다. Enter로 덮어쓰거나 Esc로 취소하세요.";
-
 export function CustomNode({
   id,
   data,
@@ -38,9 +28,6 @@ export function CustomNode({
   isConnectable,
 }: NodeProps<CustomEditorNode>) {
   const treeId = useTreeStore((state) => state.treeId);
-  const setNodeNameEditing = useEditingStore(
-    (state) => state.setNodeNameEditing,
-  );
 
   /*
   트리 구조는 React Flow의 parentId가 아니라 엣지로 표현하므로, 들어오는 엣지가 없는 노드가 루트다.
@@ -78,56 +65,22 @@ export function CustomNode({
     isLectureNodeDimmed(state, id),
   );
 
-  const [isEditing, setIsEditing] = useState(false);
-  const [name, setName] = useState(data.label);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [hasConflict, setHasConflict] = useState(false); // 다른 곳의 수정과 충돌해 사용자의 결정을 기다리는 중인지
-  const inputRef = useRef<HTMLInputElement>(null);
-  const isCommittingRef = useRef(false);
-  const isCancellingRef = useRef(false);
-
-  const { getNodeNameError, updateNodeName, isUpdatingNodeName } =
-    useUpdateNodeName({
-      treeId: treeId ?? "",
-      clientId: id,
-      serverId: data.serverId,
-    });
-
-  /*
-  편집을 시작하면 기존 제목을 바로 덮어쓸 수 있도록 입력값 전체를 선택한다.
-  */
-  useEffect(() => {
-    if (!isEditing) return;
-
-    inputRef.current?.focus();
-    inputRef.current?.select();
-  }, [isEditing]);
-
-  /*
-  입력 중에 다른 곳의 변경을 반영하지 않도록 알린다. 입력 중인 노드가 접혀서 사라져도 cleanup이 해제한다.
-  */
-  useEffect(() => {
-    if (!isEditing) return;
-
-    setNodeNameEditing(id, true);
-
-    return () => setNodeNameEditing(id, false);
-  }, [id, isEditing, setNodeNameEditing]);
-
-  const focusInput = useCallback(() => {
-    requestAnimationFrame(() => {
-      inputRef.current?.focus();
-    });
-  }, []);
-
-  const startEditing = useCallback(() => {
-    if (!treeId) return;
-
-    setName(data.label);
-    setErrorMessage(null);
-    setHasConflict(false);
-    setIsEditing(true);
-  }, [data.label, treeId]);
+  const {
+    inputRef,
+    isEditing,
+    name,
+    errorMessage,
+    isUpdatingNodeName,
+    startEditing,
+    handleBlur,
+    handleChange,
+    handleKeyDown: handleNameInputKeyDown,
+  } = useNodeNameInput({
+    treeId,
+    clientId: id,
+    serverId: data.serverId,
+    label: data.label,
+  });
 
   /*
   노드 밖에서 보낸 이름 편집 요청을 받아 입력창을 연다. 요청이 바뀐 순간에만 반응하므로, 이 노드가 나중에 그려져도 지난 요청으로 열리지 않는다.
@@ -146,100 +99,15 @@ export function CustomNode({
     });
   }, [id, isEditing, startEditing]);
 
-  const endEditing = useCallback(() => {
-    setIsEditing(false);
-    setErrorMessage(null);
-    setHasConflict(false);
-    isCancellingRef.current = false;
-  }, []);
-
   /*
-  현재 입력값을 검증한 뒤 제목 수정을 요청한다.
-  검증이나 요청이 실패하면 편집 상태를 유지하고 입력창으로 focus를 되돌린다.
-  */
-  const commitName = useCallback(async () => {
-    if (isCommittingRef.current || isCancellingRef.current) return;
-
-    const validationError = getNodeNameError(name);
-
-    if (validationError) {
-      setErrorMessage(validationError);
-      focusInput();
-      return;
-    }
-
-    isCommittingRef.current = true; // Enter와 blur가 연속으로 발생해도 요청은 한 번만 보낸다.
-    setErrorMessage(null);
-    setHasConflict(false);
-
-    const result = await updateNodeName(name);
-
-    isCommittingRef.current = false;
-
-    if (result === "saved") {
-      endEditing();
-      return;
-    }
-
-    if (result === "notFound") {
-      alert("다른 곳에서 삭제된 노드입니다.");
-      endEditing();
-      return;
-    }
-
-    if (result === "conflict") {
-      setHasConflict(true);
-      setErrorMessage(NAME_CONFLICT_MESSAGE);
-      focusInput();
-      return;
-    }
-
-    setErrorMessage("제목을 저장하지 못했습니다. 다시 시도해 주세요.");
-    focusInput();
-  }, [endEditing, focusInput, getNodeNameError, name, updateNodeName]);
-
-  /*
-  충돌 안내는 입력을 고쳐도 남긴다. 사용자가 Enter나 Esc로 정할 때까지 알아야 하는 내용이다.
-  */
-  const handleChange = useCallback(
-    (event: ChangeEvent<HTMLInputElement>) => {
-      setName(event.target.value);
-      if (!hasConflict) setErrorMessage(null);
-    },
-    [hasConflict],
-  );
-
-  /*
-  충돌 뒤에는 version이 최신으로 맞춰져 있어, 다른 곳을 누른 것만으로 저장하면 사용자의 결정 없이 덮어쓴다.
-  */
-  const handleBlur = useCallback(() => {
-    if (hasConflict) return;
-
-    void commitName();
-  }, [commitName, hasConflict]);
-
-  /*
-  Escape는 서버 요청 없이 원래 제목으로 되돌리고, Enter는 한글 조합이 끝난 경우에만 저장한다.
-  나머지 키는 React Flow의 노드 삭제·이동 단축키로 넘어가지 않도록 여기서 막는다.
+  입력창의 키가 React Flow의 노드 삭제·이동 단축키로 넘어가지 않도록 여기서 막는다.
   */
   const handleKeyDown = useCallback(
     (event: KeyboardEvent<HTMLInputElement>) => {
       event.stopPropagation();
-
-      if (event.key === "Escape") {
-        event.preventDefault();
-        isCancellingRef.current = true; // 편집 종료 과정에서 발생하는 blur 저장을 막는다.
-        setName(data.label);
-        endEditing();
-        return;
-      }
-
-      if (event.key !== "Enter" || event.nativeEvent.isComposing) return;
-
-      event.preventDefault();
-      void commitName();
+      handleNameInputKeyDown(event);
     },
-    [commitName, data.label, endEditing],
+    [handleNameInputKeyDown],
   );
 
   /*
