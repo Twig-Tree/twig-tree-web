@@ -56,6 +56,20 @@ describe("useDeleteFolder", () => {
     expect(isRecentInvalidated()).toBe(false);
   });
 
+  /*
+  하위 폴더와 워크스페이스·트리·노드까지 함께 사라지는 작업이라, 이름만 묻지 않고 되돌릴 수 없다는 사실까지 알린다.
+  */
+  it("이름과 함께 삭제되는 대상을 담아 확인받는다", async () => {
+    const confirmSpy = vi.spyOn(window, "confirm").mockReturnValue(false);
+    const { result } = renderUseDeleteFolder();
+
+    await result.current.deleteFolder({ folderId: "3", name: "Root Folder" });
+
+    expect(confirmSpy).toHaveBeenCalledWith(
+      '"Root Folder" 폴더를 삭제하시겠습니까?\n폴더 안의 하위 폴더와 워크스페이스, 그 안의 트리와 노드도 모두 함께 삭제되며 되돌릴 수 없습니다.',
+    );
+  });
+
   it("확인에서 취소하면 최신순 목록을 건드리지 않는다", async () => {
     vi.spyOn(window, "confirm").mockReturnValue(false);
     const { isRecentInvalidated, result } = renderUseDeleteFolder();
