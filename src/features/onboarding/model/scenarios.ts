@@ -10,6 +10,7 @@ interface OnboardingScenarioDefinition {
   title?: string; // 카드 한 장으로 안내할 때의 제목. steps가 있으면 두지 않는다
   message?: string; // 카드 한 장으로 안내할 때의 문구. steps가 있으면 두지 않는다
   steps?: readonly OnboardingTourStep[]; // 여러 요소를 차례로 가리키는 안내의 단계. 배열 순서가 단계 순서다
+  after?: string; // 이 상황보다 먼저 지금 version으로 닫아야 하는 상황 ID. 앞의 상황에 도달하지 않아 순서가 건너뛰어지는 것을 막는다
 }
 
 /*
@@ -65,6 +66,7 @@ export const ONBOARDING_SCENARIOS = [
   {
     id: "canvas-editor-toolbar", // 노드 동작 안내 다음, 캔버스 오른쪽 위 편집 도구 모음
     version: 1,
+    after: "canvas-node-actions", // 도구 모음은 캔버스를 열면 늘 있어, 노드를 고르지 않은 동안 노드 동작 안내보다 먼저 뜨지 않게 한다.
     /*
     target은 도구 모음의 버튼 묶음 ID와 같다. 짝인 버튼(되돌리기·다시 실행, 접기·펼치기)은 묶음 하나로 설명한다.
     접고 펼칠 트리가 없으면 계층 묶음이 없어 그 단계는 건너뛴다. 단축키는 기기마다 달라 문구에 넣지 않는다.

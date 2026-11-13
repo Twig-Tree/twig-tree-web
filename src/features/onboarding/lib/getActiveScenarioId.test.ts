@@ -38,4 +38,22 @@ describe("getActiveScenarioId", () => {
       getActiveScenarioId({ [first.id]: first.version - 1 }, reached(first.id)),
     ).toBe(first.id);
   });
+
+  it("after가 있는 상황은 먼저 닫아야 하는 상황을 닫기 전까지 고르지 않는다", () => {
+    const later = ONBOARDING_SCENARIOS.find((scenario) => "after" in scenario)!;
+    const earlier = ONBOARDING_SCENARIOS.find(
+      ({ id }) => "after" in later && id === later.after,
+    )!;
+
+    expect(getActiveScenarioId({}, reached(later.id))).toBeNull();
+    expect(
+      getActiveScenarioId(
+        { [earlier.id]: earlier.version - 1 },
+        reached(later.id),
+      ),
+    ).toBeNull();
+    expect(
+      getActiveScenarioId({ [earlier.id]: earlier.version }, reached(later.id)),
+    ).toBe(later.id);
+  });
 });
