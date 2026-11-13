@@ -7,6 +7,13 @@ export const MAX_LECTURE_REQUEST_LENGTH = 500;
 export const MAX_LECTURE_TREE_OUTLINE_LENGTH = 20_000;
 
 /*
+강의 생성 요청의 request에 늘 넣는 문장. 사용자는 요청 문장을 적지 않고 지금 트리로 강의를 만든다.
+백엔드가 request를 @NotBlank로 받으므로 비울 수 없고, MAX_LECTURE_REQUEST_LENGTH를 넘지 않아야 한다.
+*/
+export const LECTURE_GENERATION_REQUEST =
+  "트리 전체를 뿌리에서 가지 순서로 설명하는 강의를 만들어 줘.";
+
+/*
 강의 생성 요청에서 분기에 필요한 백엔드 에러 코드. 백엔드 LectureErrorCode.java가 출처다.
 502와 504는 백엔드가 한 번 다시 부른 뒤에도 실패한 경우다.
 */

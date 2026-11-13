@@ -3,6 +3,7 @@ import {
   createLectureGenerationLogEvent,
   getLectureGenerationResult,
   getLectureRepairRequest,
+  LECTURE_GENERATION_REQUEST,
   logLectureEvent,
   useGenerateLectureScenarioMutation,
   type LectureCompilerTree,
@@ -15,10 +16,7 @@ import {
 } from "@/src/entities/lecture";
 import { createEditorLectureCompilerTree } from "../../lib/lecture/compileEditorLectureScenario";
 import { getEditorLectureTreeOutline } from "../../lib/lecture/getEditorLectureTreeNodes";
-import {
-  validateLectureRequest,
-  validateLectureTreeOutline,
-} from "../../lib/lecture/validateLectureGeneration";
+import { validateLectureTreeOutline } from "../../lib/lecture/validateLectureGeneration";
 import { useTreeStore } from "../treeStore";
 import { useGeneratedLectureStore } from "./generatedLectureStore";
 
@@ -47,7 +45,7 @@ export type GenerateLectureResult =
 
 /*
 함수 이름 : useGenerateLecture
-기능 : 지금 편집기 트리로 강의 시나리오를 요청하고, 응답을 대본으로 컴파일한다. 고칠 수 있는 문제가 있으면 repair를 정해진 횟수까지 보낸다.
+기능 : 지금 편집기 트리로 고정 요청 문장의 강의 시나리오를 요청하고, 응답을 대본으로 컴파일한다. 고칠 수 있는 문제가 있으면 repair를 정해진 횟수까지 보낸다.
 인자 : 없음
 반환값 : 강의 생성 핸들러와 생성 중 여부
 
@@ -68,7 +66,6 @@ export const useGenerateLecture = () => {
   */
   const requestLecture = async (
     treeId: string,
-    request: string,
     treeOutline: string,
     tree: LectureCompilerTree,
   ): Promise<GenerateLectureResult> => {
@@ -84,7 +81,12 @@ export const useGenerateLecture = () => {
       let response;
 
       try {
-        response = await mutateAsync({ treeId, request, treeOutline, repair });
+        response = await mutateAsync({
+          treeId,
+          request: LECTURE_GENERATION_REQUEST,
+          treeOutline,
+          repair,
+        });
       } catch (error) {
         return { status: "request-error", error };
       }
@@ -137,11 +139,9 @@ export const useGenerateLecture = () => {
   };
 
   /*
-  요청 문장과 지금 트리를 검사한 뒤 강의를 만든다. 생성 중에 다시 부르면 아무것도 하지 않는다.
+  지금 트리를 검사한 뒤 강의를 만든다. 생성 중에 다시 부르면 아무것도 하지 않는다.
   */
-  const generateLecture = async (
-    request: string,
-  ): Promise<GenerateLectureResult | null> => {
+  const generateLecture = async (): Promise<GenerateLectureResult | null> => {
     if (isGeneratingRef.current) return null;
 
     const { treeId, nodes, edges } = useTreeStore.getState();
@@ -150,11 +150,6 @@ export const useGenerateLecture = () => {
         status: "invalid",
         message: "트리를 불러온 뒤에 다시 시도해 주세요.",
       };
-    }
-
-    const requestMessage = validateLectureRequest(request);
-    if (requestMessage !== null) {
-      return { status: "invalid", message: requestMessage };
     }
 
     const treeOutline = getEditorLectureTreeOutline(nodes, edges);
@@ -169,7 +164,6 @@ export const useGenerateLecture = () => {
     try {
       return await requestLecture(
         treeId,
-        request.trim(),
         treeOutline,
         createEditorLectureCompilerTree(nodes, edges),
       );

@@ -2,6 +2,7 @@ import { http, HttpResponse } from "msw";
 import { act, renderHook } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import {
+  LECTURE_GENERATION_REQUEST,
   setLectureLogSink,
   type LectureLogEvent,
   type LectureScenario,
@@ -109,18 +110,16 @@ afterEach(() => {
 });
 
 describe("useGenerateLecture", () => {
-  it("편집기 트리의 outline으로 요청하고 서버 ID 대본을 돌려준다", async () => {
+  it("편집기 트리의 outline을 고정 요청 문장과 함께 보내고 서버 ID 대본을 돌려준다", async () => {
     const bodies = mockResponses([VALID_RESPONSE]);
     const result = renderGenerateLecture();
 
-    const generated = await act(() =>
-      result.current.generateLecture("  자식 노드를 소개해 줘  "),
-    );
+    const generated = await act(() => result.current.generateLecture());
 
     expect(bodies).toEqual([
       {
         treeId: 12,
-        request: "자식 노드를 소개해 줘",
+        request: LECTURE_GENERATION_REQUEST,
         treeOutline: "- [1] c1\n  - [2] c2\n  - [3] c3",
         scenarioSchemaVersion: 1,
         repair: null,
@@ -142,9 +141,7 @@ describe("useGenerateLecture", () => {
     const bodies = mockResponses([MISSING_NODE_RESPONSE, VALID_RESPONSE]);
     const result = renderGenerateLecture();
 
-    const generated = await act(() =>
-      result.current.generateLecture("자식 노드를 소개해 줘"),
-    );
+    const generated = await act(() => result.current.generateLecture());
 
     expect(bodies).toHaveLength(2);
     expect(bodies[1].repair).toEqual({
@@ -177,9 +174,7 @@ describe("useGenerateLecture", () => {
     ]);
     const result = renderGenerateLecture();
 
-    const generated = await act(() =>
-      result.current.generateLecture("자식 노드를 소개해 줘"),
-    );
+    const generated = await act(() => result.current.generateLecture());
 
     expect(bodies).toHaveLength(2);
     expect(generated).toMatchObject({
@@ -193,9 +188,7 @@ describe("useGenerateLecture", () => {
     const bodies = mockResponses([BROKEN_JSON_RESPONSE, VALID_RESPONSE]);
     const result = renderGenerateLecture();
 
-    const generated = await act(() =>
-      result.current.generateLecture("자식 노드를 소개해 줘"),
-    );
+    const generated = await act(() => result.current.generateLecture());
 
     expect(bodies).toHaveLength(1);
     expect(generated).toMatchObject({ status: "failure", failedStep: "json" });
@@ -212,25 +205,19 @@ describe("useGenerateLecture", () => {
     );
     const result = renderGenerateLecture();
 
-    const generated = await act(() =>
-      result.current.generateLecture("자식 노드를 소개해 줘"),
-    );
+    const generated = await act(() => result.current.generateLecture());
 
     expect(generated).toMatchObject({ status: "request-error" });
     expect(result.current.isGenerating).toBe(false);
   });
 
-  it("요청 문장이 비었거나 저장된 노드가 없으면 요청하지 않는다", async () => {
+  it("저장된 노드가 없으면 요청하지 않는다", async () => {
     const bodies = mockResponses([VALID_RESPONSE]);
     const result = renderGenerateLecture();
 
-    const emptyRequest = await act(() => result.current.generateLecture("   "));
     useTreeStore.setState({ nodes: [createNode("c9", null)], edges: [] });
-    const emptyTree = await act(() =>
-      result.current.generateLecture("자식 노드를 소개해 줘"),
-    );
+    const emptyTree = await act(() => result.current.generateLecture());
 
-    expect(emptyRequest).toMatchObject({ status: "invalid" });
     expect(emptyTree).toMatchObject({
       status: "invalid",
       message: "저장된 노드가 없어 강의를 만들 수 없습니다.",
@@ -244,8 +231,8 @@ describe("useGenerateLecture", () => {
 
     const [first, second] = await act(() =>
       Promise.all([
-        result.current.generateLecture("자식 노드를 소개해 줘"),
-        result.current.generateLecture("자식 노드를 소개해 줘"),
+        result.current.generateLecture(),
+        result.current.generateLecture(),
       ]),
     );
 

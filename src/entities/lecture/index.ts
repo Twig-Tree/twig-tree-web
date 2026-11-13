@@ -172,6 +172,7 @@ export { logLectureEvent, setLectureLogSink } from "./model/telemetry/logSink";
 export type { LectureGenerationResponse } from "./model/generation/generationResponse";
 export {
   LECTURE_ERROR_CODE,
+  LECTURE_GENERATION_REQUEST,
   MAX_LECTURE_REQUEST_LENGTH,
   MAX_LECTURE_TREE_OUTLINE_LENGTH,
 } from "./model/constants";
