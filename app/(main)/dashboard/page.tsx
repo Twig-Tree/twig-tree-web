@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { useGetRecentWorkspaceFirstPageQuery } from "@/src/entities/workspace";
 import { PromptComposer } from "@/src/features/prompt/compose-prompt";
 import { useCreateWorkspaceFromPrompt } from "@/src/features/prompt/create-workspace-from-prompt";
@@ -12,6 +13,9 @@ import {
 } from "@/src/widgets/dashboard";
 
 export default function DashboardPage() {
+  const [editingWorkspaceId, setEditingWorkspaceId] = useState<string | null>(
+    null,
+  );
   const recentWorkspaceListQuery = useGetRecentWorkspaceFirstPageQuery(
     RECENT_WORKSPACE_DISPLAY_COUNT,
   );
@@ -25,9 +29,12 @@ export default function DashboardPage() {
         <DashboardHero />
 
         <RecentWorkspaceSection
+          editingWorkspaceId={editingWorkspaceId}
           isError={recentWorkspaceListQuery.isError}
           isLoaded={recentWorkspaceListQuery.isSuccess}
           isLoading={recentWorkspaceListQuery.isLoading}
+          onEditingEnd={() => setEditingWorkspaceId(null)}
+          onWorkspaceEditingStart={setEditingWorkspaceId}
           viewAllHref={routes.recent}
           workspaces={recentWorkspaceListQuery.data ?? []}
         />
