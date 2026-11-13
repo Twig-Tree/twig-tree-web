@@ -1,5 +1,13 @@
-import type { ComponentProps, ReactNode } from "react";
+import { useMemo, type ComponentProps, type ReactNode, type Ref } from "react";
 import { Minus, Plus, Redo2, Scan, Undo2, type LucideIcon } from "lucide-react";
+
+export type EditorToolbarGroupId = "history" | "view" | "level";
+
+const EDITOR_TOOLBAR_GROUP_IDS: readonly EditorToolbarGroupId[] = [
+  "history",
+  "view",
+  "level",
+];
 
 type EditorToolbarProps = {
   onUndo: () => void; // 직전 편집을 되돌린다.
@@ -12,6 +20,15 @@ type EditorToolbarProps = {
   onExpandLevel: () => void; // 보이는 계층을 한 단계 늘린다.
   isCollapseLevelDisabled: boolean;
   isExpandLevelDisabled: boolean;
+  toolbarRef?: Ref<HTMLDivElement>; // 도구 모음 요소. 기능 안내가 카드를 여기에 맞춘다
+  /*
+  버튼 묶음 요소가 붙거나 떨어질 때 부른다. 기능 안내처럼 묶음을 가리켜야 하는 쪽이 요소를 받는다.
+  렌더마다 바뀌면 묶음 ref가 매번 다시 불리므로 고정된 함수를 넘긴다.
+  */
+  onGroupElementChange?: (
+    groupId: EditorToolbarGroupId,
+    element: HTMLDivElement | null,
+  ) => void;
 };
 
 type ToolbarButtonProps = ComponentProps<"button"> & {
@@ -46,8 +63,18 @@ function ToolbarButton({
   );
 }
 
-function ToolbarGroup({ children }: { children: ReactNode }) {
-  return <div className="flex items-center gap-0.5">{children}</div>;
+function ToolbarGroup({
+  children,
+  ref,
+}: {
+  children: ReactNode;
+  ref?: Ref<HTMLDivElement>;
+}) {
+  return (
+    <div ref={ref} className="flex items-center gap-0.5">
+      {children}
+    </div>
+  );
 }
 
 function ToolbarDivider() {
@@ -71,15 +98,41 @@ export function EditorToolbar({
   onExpandLevel,
   isCollapseLevelDisabled,
   isExpandLevelDisabled,
+  toolbarRef,
+  onGroupElementChange,
 }: EditorToolbarProps) {
+  /*
+  묶음별 ref 콜백을 한 번만 만든다. 렌더마다 새 함수가 되면 React가 null과 요소로 다시 부르고, 받는 쪽이 state를 바꾸면 다시 렌더된다.
+  묶음마다 따로 꺼내 둔다. 객체의 속성으로 ref에 넘기면 lint가 그 객체를 ref로 보고 다음 속성 읽기를 render 중 ref 접근으로 잡는다.
+  */
+  const {
+    history: setHistoryGroupElement,
+    view: setViewGroupElement,
+    level: setLevelGroupElement,
+  } = useMemo(
+    () =>
+      Object.fromEntries(
+        EDITOR_TOOLBAR_GROUP_IDS.map((groupId) => [
+          groupId,
+          (element: HTMLDivElement | null) =>
+            onGroupElementChange?.(groupId, element),
+        ]),
+      ) as Record<
+        EditorToolbarGroupId,
+        (element: HTMLDivElement | null) => void
+      >,
+    [onGroupElementChange],
+  );
+
   return (
     <div
+      ref={toolbarRef}
       role="toolbar"
       aria-label="트리 편집 도구"
       data-camera-inset="top"
       className="flex items-center rounded-card border border-line bg-surface p-1 shadow-control"
     >
-      <ToolbarGroup>
+      <ToolbarGroup ref={setHistoryGroupElement}>
         <ToolbarButton
           icon={Undo2}
           label="되돌리기"
@@ -98,7 +151,7 @@ export function EditorToolbar({
 
       <ToolbarDivider />
 
-      <ToolbarGroup>
+      <ToolbarGroup ref={setViewGroupElement}>
         <ToolbarButton icon={Scan} label="전체 보기" onClick={onFitView} />
       </ToolbarGroup>
 
@@ -106,7 +159,7 @@ export function EditorToolbar({
         <>
           <ToolbarDivider />
 
-          <ToolbarGroup>
+          <ToolbarGroup ref={setLevelGroupElement}>
             <ToolbarButton
               icon={Minus}
               label="한 계층 접기"

@@ -36,6 +36,7 @@ import {
   useTreeStore,
   useNodeTransition,
   useVisibleElements,
+  type EditorToolbarGroupId,
   type NodeActionId,
   type NodeResult,
 } from "@/src/features/tree-editor";
@@ -226,6 +227,24 @@ function LayoutFlow({ workspaceId, treeId }: LayoutFlowProps) {
         buttons[actionId] === element
           ? buttons
           : { ...buttons, [actionId]: element },
+      ),
+    [],
+  );
+
+  /*
+  편집 도구 모음 안내가 단계마다 가리킬 버튼 묶음. 안내의 단계 이름표가 묶음 ID와 같다.
+  */
+  const [editorToolbarElement, setEditorToolbarElement] =
+    useState<HTMLDivElement | null>(null);
+  const [editorToolbarGroups, setEditorToolbarGroups] = useState<
+    Partial<Record<EditorToolbarGroupId, HTMLDivElement | null>>
+  >({});
+  const handleEditorToolbarGroupChange = useCallback(
+    (groupId: EditorToolbarGroupId, element: HTMLDivElement | null) =>
+      setEditorToolbarGroups((groups) =>
+        groups[groupId] === element
+          ? groups
+          : { ...groups, [groupId]: element },
       ),
     [],
   );
@@ -436,6 +455,17 @@ function LayoutFlow({ workspaceId, treeId }: LayoutFlowProps) {
             anchor={nodeActionToolbarElement}
             targets={nodeActionButtons}
           />
+          {/*
+          편집 도구 모음 안내는 목록에서 노드 동작 안내 뒤에 있어, 그 안내를 닫은 다음에 보인다.
+          도구 모음이 캔버스 오른쪽 끝에 붙어 있어 카드도 오른쪽 끝에 맞춘다.
+          */}
+          <CanvasOnboardingTour
+            scenarioId="canvas-editor-toolbar"
+            isReached={rootClientId !== null && !isLectureActive}
+            anchor={editorToolbarElement}
+            targets={editorToolbarGroups}
+            placement="bottom-end"
+          />
 
           {isPanelOpen ? null : (
             <Panel position="top-left">
@@ -461,6 +491,8 @@ function LayoutFlow({ workspaceId, treeId }: LayoutFlowProps) {
               isExpandLevelDisabled={isExpandLevelDisabled}
               isUndoDisabled={!canUndo || isMutating}
               isRedoDisabled={!canRedo || isMutating}
+              toolbarRef={setEditorToolbarElement}
+              onGroupElementChange={handleEditorToolbarGroupChange}
             />
           </Panel>
 

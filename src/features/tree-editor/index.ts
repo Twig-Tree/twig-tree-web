@@ -1,5 +1,6 @@
 export { nodeTypes, edgeTypes, MIN_ZOOM } from "./constants/flowConfig";
 export { EditorToolbar } from "./ui/EditorToolbar";
+export type { EditorToolbarGroupId } from "./ui/EditorToolbar";
 export { EmptyTreeGuide } from "./ui/EmptyTreeGuide";
 export { MemoSidePanel } from "./ui/MemoSidePanel";
 export { LecturePlayer } from "./ui/LecturePlayer";

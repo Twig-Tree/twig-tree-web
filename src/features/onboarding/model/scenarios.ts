@@ -62,6 +62,32 @@ export const ONBOARDING_SCENARIOS = [
       },
     ],
   },
+  {
+    id: "canvas-editor-toolbar", // 노드 동작 안내 다음, 캔버스 오른쪽 위 편집 도구 모음
+    version: 1,
+    /*
+    target은 도구 모음의 버튼 묶음 ID와 같다. 짝인 버튼(되돌리기·다시 실행, 접기·펼치기)은 묶음 하나로 설명한다.
+    접고 펼칠 트리가 없으면 계층 묶음이 없어 그 단계는 건너뛴다. 단축키는 기기마다 달라 문구에 넣지 않는다.
+    */
+    steps: [
+      {
+        target: "history",
+        title: "되돌리기",
+        message: "방금 한 편집을 되돌리거나, 되돌린 편집을 다시 실행해요.",
+      },
+      {
+        target: "view",
+        title: "전체 보기",
+        message: "트리 전체가 한 화면에 들어오게 맞춰요.",
+      },
+      {
+        target: "level",
+        title: "계층 조절",
+        message:
+          "보이는 깊이를 한 단계씩 줄이거나 늘려요. 숫자는 지금 보이는 계층이에요.",
+      },
+    ],
+  },
 ] as const satisfies readonly OnboardingScenarioDefinition[];
 
 export type OnboardingScenarioId = (typeof ONBOARDING_SCENARIOS)[number]["id"];
