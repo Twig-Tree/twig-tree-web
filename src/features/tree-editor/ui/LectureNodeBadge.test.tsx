@@ -64,4 +64,24 @@ describe("LectureNodeBadge", () => {
     expect(screen.getByText("②")).toBeInTheDocument();
     expect(screen.queryByText("①")).toBeNull();
   });
+
+  it.each([
+    ["★", "glyph"],
+    ["1", "glyph"],
+    ["X", "glyph"],
+    ["정답", "text"],
+    ["12", "text"],
+  ])("꼬리표 %s는 %s 모양으로 그린다", (label, shape) => {
+    useLectureAnimationStore.getState().setLayer({
+      id: "badge",
+      type: "badge",
+      clientIds: new Set(["c1"]),
+      label,
+      tone: "accent",
+    });
+
+    render(<LectureNodeBadge clientId="c1" />);
+
+    expect(screen.getByText(label)).toHaveAttribute("data-shape", shape);
+  });
 });

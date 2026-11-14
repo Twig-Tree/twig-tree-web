@@ -53,7 +53,7 @@ export const LAB_ACTIONS: {
     createDefault: () => ({
       type: "badge",
       targetNodeIds: [],
-      label: "핵심",
+      label: "★",
       tone: "accent",
       durationMs: 1600,
     }),

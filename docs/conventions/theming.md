@@ -55,6 +55,9 @@ Tailwind 기본 팔레트와 색 값을 직접 쓰지 않는다.
 | `inverse`        | `on-inverse`                                    |
 | `danger-subtle`  | `danger`                                        |
 | `warning-subtle` | `warning`, `warning-strong`                     |
+| `success`        | `on-success`                                    |
+| `warning`        | `on-warning`                                    |
+| `danger`         | `on-danger`                                     |
 | `node`, `root`   | `node-content`, `root-content`                  |
 
 패널처럼 바탕이 `surface-muted`인 곳에서는 hover에 같은 색을 쓰면 보이지 않는다. 한 단계 진한 `surface-hover`를 쓴다.

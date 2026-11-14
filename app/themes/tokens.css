@@ -43,6 +43,9 @@ inline이어야 유틸리티가 var(--theme-*)를 그대로 참조해 data-theme
   --color-warning-line: var(--theme-warning-line);
   --color-success: var(--theme-success);
   --color-success-subtle: var(--theme-success-subtle);
+  --color-on-success: var(--theme-on-success);
+  --color-on-warning: var(--theme-on-warning);
+  --color-on-danger: var(--theme-on-danger);
   --color-info: var(--theme-info);
   --color-info-subtle: var(--theme-info-subtle);
 

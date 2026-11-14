@@ -164,7 +164,7 @@ export const SHOWCASE_DEMO_LECTURE = createDemoLecture(
                     {
                       type: "badge",
                       targetNodeIds: [nodeIds[key]],
-                      label: ["①", "②", "③"][index],
+                      label: String(index + 1),
                       durationMs: BRANCH_BADGE_MS,
                       persist: true,
                     },
@@ -242,7 +242,7 @@ export const SHOWCASE_DEMO_LECTURE = createDemoLecture(
                   {
                     type: "badge",
                     targetNodeIds: [nodeIds.tree],
-                    label: "핵심",
+                    label: "★",
                     durationMs: 3000,
                     persist: true,
                   },
@@ -322,7 +322,7 @@ export const SHOWCASE_DEMO_LECTURE = createDemoLecture(
                   {
                     type: "badge",
                     targetNodeIds: [nodeIds.search],
-                    label: "오답",
+                    label: "X",
                     tone: "danger",
                     durationMs: 1600,
                     persist: true,
@@ -355,7 +355,7 @@ export const SHOWCASE_DEMO_LECTURE = createDemoLecture(
                       {
                         type: "badge",
                         targetNodeIds: [nodeIds.sort],
-                        label: "정답",
+                        label: "O",
                         tone: "success",
                         durationMs: 1200,
                         persist: true,
