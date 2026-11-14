@@ -166,11 +166,14 @@ export function DirectoryDragMoveProvider({
   /*
   앞서 놓은 뒤의 해제 예약이 남아 있으면 취소한다. 그대로 두면 새로 끄는 도중에 click 막기가 풀린다.
   */
-  const handleDragStart = useCallback((event: DragStartEvent) => {
-    clearClickGuardTimeout();
-    window.addEventListener("click", preventClick, { capture: true });
-    setActiveItem((event.active.data.current as DragMoveItem) ?? null);
-  }, [clearClickGuardTimeout]);
+  const handleDragStart = useCallback(
+    (event: DragStartEvent) => {
+      clearClickGuardTimeout();
+      window.addEventListener("click", preventClick, { capture: true });
+      setActiveItem((event.active.data.current as DragMoveItem) ?? null);
+    },
+    [clearClickGuardTimeout],
+  );
 
   /*
   놓은 직후의 click까지 막은 뒤 풀어, 다음 클릭은 평소처럼 카드를 연다.
