@@ -285,7 +285,7 @@ export function LecturePlayer({
 
       {beat && scene && (
         <LectureSubtitle
-          key={`${scene.id}:${beat.id}:${seekId}`} // 같은 비트를 다시 재생해도 seekId가 늘어 자막을 처음부터 드러낸다
+          revealKey={`${scene.id}:${beat.id}:${seekId}`} // 같은 비트를 다시 재생해도 seekId가 늘어 자막을 처음부터 드러낸다
           text={beat.narration.text}
           narrationDurationMs={beat.narration.fallbackDurationMs}
           isPlaying={isPlaying}

@@ -30,7 +30,12 @@ describe("LectureSubtitle", () => {
 
   it("화면 읽기 도구에는 처음부터 전체 문장을 알린다", () => {
     render(
-      <LectureSubtitle text={TEXT} narrationDurationMs={2000} isPlaying />,
+      <LectureSubtitle
+        text={TEXT}
+        narrationDurationMs={2000}
+        isPlaying
+        revealKey="beat-1"
+      />,
     );
 
     expect(screen.getByText(TEXT, { selector: "[aria-live]" })).toHaveAttribute(
@@ -39,9 +44,46 @@ describe("LectureSubtitle", () => {
     );
   });
 
+  /*
+  라이브 영역은 이후 변경을 알리므로, 비트마다 새로 만들면 문장이 알려지지 않을 수 있다.
+  */
+  it("비트가 바뀌어도 라이브 영역은 그대로 두고 문장만 바꾸며, 글자는 처음부터 다시 드러낸다", () => {
+    const NEXT_TEXT = "다음 문장입니다";
+    const { container, rerender } = render(
+      <LectureSubtitle
+        text={TEXT}
+        narrationDurationMs={2000}
+        isPlaying
+        revealKey="beat-1"
+      />,
+    );
+    const liveRegion = container.querySelector("[aria-live]");
+
+    act(() => vi.advanceTimersByTime(2500));
+    expect(getVisibleText(container)).toBe(TEXT);
+
+    rerender(
+      <LectureSubtitle
+        text={NEXT_TEXT}
+        narrationDurationMs={2000}
+        isPlaying
+        revealKey="beat-2"
+      />,
+    );
+
+    expect(container.querySelector("[aria-live]")).toBe(liveRegion);
+    expect(liveRegion).toHaveTextContent(NEXT_TEXT);
+    expect(getVisibleText(container)).toBe("");
+  });
+
   it("재생하는 동안 글자를 차례로 드러내 내레이션 시간 안에 모두 보여 준다", () => {
     const { container } = render(
-      <LectureSubtitle text={TEXT} narrationDurationMs={2000} isPlaying />,
+      <LectureSubtitle
+        text={TEXT}
+        narrationDurationMs={2000}
+        isPlaying
+        revealKey="beat-1"
+      />,
     );
 
     expect(getVisibleText(container)).toBe("");
@@ -58,7 +100,12 @@ describe("LectureSubtitle", () => {
 
   it("일시정지하면 글자가 더 드러나지 않는다", () => {
     const { container, rerender } = render(
-      <LectureSubtitle text={TEXT} narrationDurationMs={2000} isPlaying />,
+      <LectureSubtitle
+        text={TEXT}
+        narrationDurationMs={2000}
+        isPlaying
+        revealKey="beat-1"
+      />,
     );
 
     act(() => vi.advanceTimersByTime(600));
@@ -67,6 +114,7 @@ describe("LectureSubtitle", () => {
         text={TEXT}
         narrationDurationMs={2000}
         isPlaying={false}
+        revealKey="beat-1"
       />,
     );
     const pausedText = getVisibleText(container);
@@ -81,7 +129,12 @@ describe("LectureSubtitle", () => {
   */
   it("재개하면 음성과 함께 처음부터 다시 드러낸다", () => {
     const { container, rerender } = render(
-      <LectureSubtitle text={TEXT} narrationDurationMs={2000} isPlaying />,
+      <LectureSubtitle
+        text={TEXT}
+        narrationDurationMs={2000}
+        isPlaying
+        revealKey="beat-1"
+      />,
     );
 
     act(() => vi.advanceTimersByTime(1000));
@@ -92,10 +145,16 @@ describe("LectureSubtitle", () => {
         text={TEXT}
         narrationDurationMs={2000}
         isPlaying={false}
+        revealKey="beat-1"
       />,
     );
     rerender(
-      <LectureSubtitle text={TEXT} narrationDurationMs={2000} isPlaying />,
+      <LectureSubtitle
+        text={TEXT}
+        narrationDurationMs={2000}
+        isPlaying
+        revealKey="beat-1"
+      />,
     );
 
     expect(getVisibleText(container)).toBe("");
@@ -105,7 +164,12 @@ describe("LectureSubtitle", () => {
     mockReducedMotion(true);
 
     const { container } = render(
-      <LectureSubtitle text={TEXT} narrationDurationMs={2000} isPlaying />,
+      <LectureSubtitle
+        text={TEXT}
+        narrationDurationMs={2000}
+        isPlaying
+        revealKey="beat-1"
+      />,
     );
 
     expect(getVisibleText(container)).toBe(TEXT);
