@@ -1,4 +1,5 @@
 import * as z from "zod/mini";
+import { MAX_LECTURE_BADGE_LABEL_LENGTH } from "./constants";
 
 /*
 플레이어가 재생하는 강의 대본(LectureScript)의 런타임 스키마.
@@ -34,7 +35,7 @@ export const lectureFocusActionSchema = z.object({
 export const lectureHighlightActionSchema = z.object({
   type: z.literal("highlight"),
   targetNodeIds: nodeIdsSchema,
-  style: z.enum(["steady", "pulse", "pop", "bounce", "shake"]),
+  style: z.enum(["steady", "pulse", "pop", "bounce", "shake", "sparkle"]),
   tone: z.optional(z.enum(["accent", "success", "warning", "danger"])),
   durationMs: durationSchema,
   persist: persistSchema,
@@ -53,7 +54,25 @@ export const lectureTraceActionSchema = z.object({
   durationMs: durationSchema,
   mode: z.optional(z.enum(["simultaneous", "progressive"])),
   direction: z.optional(z.enum(["forward", "reverse"])),
+  style: z.optional(z.enum(["dash", "comet"])),
   persist: persistSchema,
+});
+
+export const lectureBadgeActionSchema = z.object({
+  type: z.literal("badge"),
+  targetNodeIds: nodeIdsSchema,
+  label: z
+    .string()
+    .check(z.minLength(1), z.maxLength(MAX_LECTURE_BADGE_LABEL_LENGTH)),
+  tone: z.optional(z.enum(["accent", "success", "warning", "danger"])),
+  durationMs: durationSchema,
+  persist: persistSchema,
+});
+
+export const lectureGrowActionSchema = z.object({
+  type: z.literal("grow"),
+  targetNodeIds: nodeIdsSchema,
+  durationMs: durationSchema,
 });
 
 export const lectureWaitActionSchema = z.object({
@@ -83,6 +102,8 @@ const lectureAnimationActionSchemas = [
   lectureHighlightActionSchema,
   lectureDimActionSchema,
   lectureTraceActionSchema,
+  lectureBadgeActionSchema,
+  lectureGrowActionSchema,
   lectureWaitActionSchema,
   lectureCollapseActionSchema,
   lectureExpandActionSchema,

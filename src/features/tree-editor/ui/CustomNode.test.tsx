@@ -11,6 +11,7 @@ import { NODE_ERROR_CODE, nodeApi, type TreeNode } from "@/src/entities/tree";
 import { createNodeApiError } from "@/src/tests/helpers/createNodeApiError";
 import { createQueryWrapper } from "@/src/tests/helpers/createQueryWrapper";
 import { createEditorNode } from "../lib/add-node/createEditorNode";
+import { useLectureAnimationStore } from "../model/lecture/lectureAnimationStore";
 import { useEditingStore } from "../model/sync/editingStore";
 import { useTreeStore } from "../model/treeStore";
 import { type CustomEditorNode } from "../model/types";
@@ -347,6 +348,85 @@ describe("CustomNode 이름 저장", () => {
         name: "새 제목",
         version: 9,
       });
+    });
+  });
+});
+
+describe("CustomNode 강의 sparkle", () => {
+  beforeEach(() => {
+    useTreeStore
+      .getState()
+      .initializeTree({ treeId: "5", nodes: NODES, edges: [] });
+  });
+
+  afterEach(() => {
+    useTreeStore.getState().resetTree();
+    useLectureAnimationStore.getState().resetVisual();
+  });
+
+  it("sparkle로 강조한 노드에만 반짝이를 그린다", () => {
+    useLectureAnimationStore.getState().setLayer({
+      id: "sparkle",
+      type: "highlight",
+      clientIds: new Set(["c1"]),
+      style: "sparkle",
+      tone: "success",
+    });
+
+    renderNodes();
+
+    const sparkles = screen.getAllByTestId("lecture-sparkles");
+    expect(sparkles).toHaveLength(1);
+    expect(sparkles[0].closest(".custom-node")).toHaveAttribute(
+      "data-lecture-highlight-style",
+      "sparkle",
+    );
+  });
+
+  it("다른 모양의 강조에는 반짝이를 그리지 않는다", () => {
+    useLectureAnimationStore.getState().setLayer({
+      id: "pop",
+      type: "highlight",
+      clientIds: new Set(["c1"]),
+      style: "pop",
+    });
+
+    renderNodes();
+
+    expect(screen.queryByTestId("lecture-sparkles")).toBeNull();
+  });
+});
+
+describe("CustomNode 강의 grow", () => {
+  beforeEach(() => {
+    useTreeStore
+      .getState()
+      .initializeTree({ treeId: "5", nodes: NODES, edges: [] });
+  });
+
+  afterEach(() => {
+    useTreeStore.getState().resetTree();
+    useLectureAnimationStore.getState().resetVisual();
+  });
+
+  it("숨긴 노드의 입력·출력 연결점을 함께 숨긴다", () => {
+    useLectureAnimationStore.getState().setLayer({
+      id: "grow",
+      type: "grow",
+      hiddenClientIds: new Set(["c2"]),
+      enteringClientIds: new Set(),
+    });
+
+    renderNodes();
+
+    const node = screen
+      .getByRole("button", { name: "노드 제목 둘째 노드 편집" })
+      .closest(".custom-node");
+    const handles = node?.querySelectorAll<HTMLElement>(".react-flow__handle");
+
+    expect(handles).toHaveLength(2);
+    handles?.forEach((handle) => {
+      expect(handle.style.visibility).toBe("hidden");
     });
   });
 });

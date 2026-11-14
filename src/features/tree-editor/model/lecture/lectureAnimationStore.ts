@@ -5,7 +5,7 @@ export type LectureVisualLayer =
       id: string;
       type: "highlight";
       clientIds: ReadonlySet<string>;
-      style: "steady" | "pulse" | "pop" | "bounce" | "shake";
+      style: "steady" | "pulse" | "pop" | "bounce" | "shake" | "sparkle";
       tone?: "accent" | "success" | "warning" | "danger";
       motionDurationMs?: number | null; // 반복 움직임을 끝낼 시간. 유지되는 강조는 null
     }
@@ -19,6 +19,20 @@ export type LectureVisualLayer =
       type: "trace";
       edgeKeys: ReadonlySet<string>;
       direction?: "forward" | "reverse";
+      style?: "dash" | "comet";
+    }
+  | {
+      id: string;
+      type: "badge";
+      clientIds: ReadonlySet<string>;
+      label: string;
+      tone: "accent" | "success" | "warning" | "danger";
+    }
+  | {
+      id: string;
+      type: "grow";
+      hiddenClientIds: ReadonlySet<string>; // 아직 나타나지 않은 자손
+      enteringClientIds: ReadonlySet<string>; // 방금 나타나 등장 애니메이션을 보여 줄 자손
     };
 
 interface LectureAnimationState {
@@ -88,7 +102,7 @@ export const isLectureNodePulsing = (
 export const getLectureNodeHighlightStyle = (
   state: LectureAnimationState,
   clientId: string,
-): "steady" | "pulse" | "pop" | "bounce" | "shake" | null => {
+): "steady" | "pulse" | "pop" | "bounce" | "shake" | "sparkle" | null => {
   const layers = [...state.layers.values()].reverse();
   const layer = layers.find(
     (candidate) =>
@@ -132,6 +146,26 @@ export const isLectureNodeDimmed = (
     (layer) => layer.type === "dim" && !layer.exceptClientIds.has(clientId),
   );
 
+/*
+함수 이름 : isLectureEdgeDimmed
+기능 : dim 예외 경로에 완전히 속하지 않은 연결선인지 확인한다. 양 끝 노드가 모두 예외일 때만 선명하게 유지한다.
+인자 : LectureAnimationState state -> 강의 시각 상태
+string sourceClientId -> 부모 노드 clientId
+string targetClientId -> 자식 노드 clientId
+반환값 : 연결선을 흐리게 표시해야 하면 true
+*/
+export const isLectureEdgeDimmed = (
+  state: LectureAnimationState,
+  sourceClientId: string,
+  targetClientId: string,
+): boolean =>
+  [...state.layers.values()].some(
+    (layer) =>
+      layer.type === "dim" &&
+      (!layer.exceptClientIds.has(sourceClientId) ||
+        !layer.exceptClientIds.has(targetClientId)),
+  );
+
 export const isLectureEdgeTraced = (
   state: LectureAnimationState,
   sourceClientId: string,
@@ -157,4 +191,67 @@ export const getLectureEdgeTraceDirection = (
   );
 
   return layer?.type === "trace" ? (layer.direction ?? "forward") : null;
+};
+
+export const getLectureEdgeTraceStyle = (
+  state: LectureAnimationState,
+  sourceClientId: string,
+  targetClientId: string,
+): "dash" | "comet" | null => {
+  const edgeKey = getLectureEdgeKey(sourceClientId, targetClientId);
+  const layers = [...state.layers.values()].reverse();
+  const layer = layers.find(
+    (candidate) =>
+      candidate.type === "trace" && candidate.edgeKeys.has(edgeKey),
+  );
+
+  return layer?.type === "trace" ? (layer.style ?? "dash") : null;
+};
+
+/*
+함수 이름 : getLectureNodeBadge
+기능 : 노드에 붙은 강의 꼬리표를 찾는다. 여럿이면 나중에 붙인 꼬리표를 쓴다.
+인자 : LectureAnimationState state -> 강의 시각 상태
+string clientId -> 노드의 clientId
+반환값 : 꼬리표 레이어. store에 있는 객체를 그대로 돌려주므로 selector로 구독해도 매번 새 값이 되지 않는다. 없으면 null
+*/
+export const getLectureNodeBadge = (
+  state: LectureAnimationState,
+  clientId: string,
+): Extract<LectureVisualLayer, { type: "badge" }> | null => {
+  const layers = [...state.layers.values()].reverse();
+  const layer = layers.find(
+    (candidate) =>
+      candidate.type === "badge" && candidate.clientIds.has(clientId),
+  );
+
+  return layer?.type === "badge" ? layer : null;
+};
+
+/*
+함수 이름 : getLectureNodeGrowState
+기능 : grow 동작에서 노드가 아직 숨어 있는지, 방금 나타났는지 찾는다. 연결선은 자식 쪽 노드의 상태를 따른다.
+인자 : LectureAnimationState state -> 강의 시각 상태
+string clientId -> 노드의 clientId
+반환값 : 숨어 있으면 "hidden", 방금 나타났으면 "entering", grow와 관계없으면 null
+*/
+export const getLectureNodeGrowState = (
+  state: LectureAnimationState,
+  clientId: string,
+): "hidden" | "entering" | null => {
+  const layers = [...state.layers.values()];
+
+  if (
+    layers.some(
+      (layer) => layer.type === "grow" && layer.hiddenClientIds.has(clientId),
+    )
+  ) {
+    return "hidden";
+  }
+
+  return layers.some(
+    (layer) => layer.type === "grow" && layer.enteringClientIds.has(clientId),
+  )
+    ? "entering"
+    : null;
 };

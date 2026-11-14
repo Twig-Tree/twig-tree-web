@@ -48,6 +48,24 @@ export const LAB_ACTIONS: {
       durationMs: 1600,
     }),
   },
+  badge: {
+    label: "Badge",
+    createDefault: () => ({
+      type: "badge",
+      targetNodeIds: [],
+      label: "★",
+      tone: "accent",
+      durationMs: 1600,
+    }),
+  },
+  grow: {
+    label: "Grow",
+    createDefault: () => ({
+      type: "grow",
+      targetNodeIds: [],
+      durationMs: 2400,
+    }),
+  },
   wait: {
     label: "Wait",
     createDefault: () => ({ type: "wait", durationMs: 800 }),

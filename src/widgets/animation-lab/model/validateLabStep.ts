@@ -1,4 +1,7 @@
-import { type LectureAnimationAction } from "@/src/entities/lecture";
+import {
+  MAX_LECTURE_BADGE_LABEL_LENGTH,
+  type LectureAnimationAction,
+} from "@/src/entities/lecture";
 import { type TreeNode } from "@/src/entities/tree";
 import { type LabStep } from "./labTimeline";
 
@@ -32,6 +35,16 @@ export const validateLabAction = (
         return "트리에 없는 노드가 있습니다.";
       }
       return null;
+    case "badge":
+      if (action.label.trim() === "") return "꼬리표 글자를 적으세요.";
+      if (action.label.length > MAX_LECTURE_BADGE_LABEL_LENGTH) {
+        return `꼬리표는 ${MAX_LECTURE_BADGE_LABEL_LENGTH}자까지 적을 수 있습니다.`;
+      }
+      if (action.targetNodeIds.length === 0) return "대상 노드를 고르세요.";
+      if (hasUnknownNode(action.targetNodeIds)) {
+        return "트리에 없는 노드가 있습니다.";
+      }
+      return null;
     case "dim":
       return hasUnknownNode(action.exceptNodeIds)
         ? "트리에 없는 노드가 있습니다."
@@ -52,6 +65,7 @@ export const validateLabAction = (
         )
         ? null
         : "연결되지 않은 구간이 있어 일부 연결선이 보이지 않습니다. 부모에서 자식 순서로 고르세요.";
+    case "grow":
     case "collapse":
     case "expand":
       if (action.targetNodeIds.length === 0) return "대상 노드를 고르세요.";
@@ -63,7 +77,9 @@ export const validateLabAction = (
         tree.some((node) => node.parentId === nodeId),
       )
         ? null
-        : "자식이 없는 노드는 접거나 펼쳐도 보이는 변화가 없습니다.";
+        : action.type === "grow"
+          ? "자식이 없는 노드는 자라나도 보이는 변화가 없습니다."
+          : "자식이 없는 노드는 접거나 펼쳐도 보이는 변화가 없습니다.";
     case "reset":
     case "wait":
       return null;

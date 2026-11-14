@@ -5,6 +5,8 @@ import { useCollapseStore } from "../collapse/collapseStore";
 import { useTreeStore } from "../treeStore";
 import { type EditorLectureAnimation } from "../types";
 import {
+  getLectureEdgeTraceStyle,
+  getLectureNodeGrowState,
   isLectureEdgeTraced,
   isLectureNodeDimmed,
   isLectureNodeHighlighted,
@@ -269,6 +271,34 @@ describe("runLectureAnimation", () => {
       isLectureEdgeTraced(useLectureAnimationStore.getState(), "c1", "c2"),
     ).toBe(true);
   });
+
+  it("trace 모양을 동시·순차 추적 모두 레이어에 넘긴다", async () => {
+    void runLectureAnimation(
+      {
+        type: "trace",
+        clientIds: ["c1", "c2"],
+        durationMs: 300,
+        style: "comet",
+        persist: true,
+      },
+      { revealNodes },
+    );
+    void runLectureAnimation(
+      {
+        type: "trace",
+        clientIds: ["c2", "c3"],
+        durationMs: 300,
+        mode: "progressive",
+        style: "comet",
+        persist: true,
+      },
+      { revealNodes },
+    );
+
+    const state = useLectureAnimationStore.getState();
+    expect(getLectureEdgeTraceStyle(state, "c1", "c2")).toBe("comet");
+    expect(getLectureEdgeTraceStyle(state, "c2", "c3")).toBe("comet");
+  });
 });
 
 describe("runLectureAnimation 접기와 펼치기", () => {
@@ -352,5 +382,100 @@ describe("runLectureAnimation 접기와 펼치기", () => {
     );
 
     expect(getCollapsed()).toEqual([]);
+  });
+});
+
+describe("runLectureAnimation grow", () => {
+  /*
+  root ─ parent ─ leaf
+  */
+  beforeEach(() => {
+    const createNode = (clientId: string, orderIndex: number) =>
+      createEditorNode({
+        clientId,
+        serverId: `s-${clientId}`,
+        label: clientId,
+        orderIndex,
+        x: 0,
+        y: 0,
+      });
+
+    useCollapseStore.getState().resetCollapse();
+    useTreeStore.setState({
+      treeId: "t1",
+      nodes: [
+        createNode("root", 0),
+        createNode("parent", 1),
+        createNode("leaf", 2),
+      ],
+      edges: [
+        createEditorEdge({ sourceClientId: "root", targetClientId: "parent" }),
+        createEditorEdge({ sourceClientId: "parent", targetClientId: "leaf" }),
+      ],
+    });
+  });
+
+  const getGrowState = (clientId: string) =>
+    getLectureNodeGrowState(useLectureAnimationStore.getState(), clientId);
+
+  it("자손을 숨긴 채 시작해 깊이마다 한 칸씩 드러내고, 마지막 칸이 끝나면 모두 보인다", async () => {
+    let isCompleted = false;
+
+    void runLectureAnimation(
+      { type: "grow", targetClientIds: ["root"], durationMs: 900 },
+      { revealNodes },
+    ).then(() => {
+      isCompleted = true;
+    });
+
+    expect(getGrowState("root")).toBeNull();
+    expect(getGrowState("parent")).toBe("hidden");
+    expect(getGrowState("leaf")).toBe("hidden");
+
+    await vi.advanceTimersByTimeAsync(300);
+    expect(getGrowState("parent")).toBe("entering");
+    expect(getGrowState("leaf")).toBe("hidden");
+
+    await vi.advanceTimersByTimeAsync(300);
+    expect(getGrowState("parent")).toBeNull();
+    expect(getGrowState("leaf")).toBe("entering");
+
+    await vi.advanceTimersByTimeAsync(300);
+    expect(isCompleted).toBe(true);
+    expect(useLectureAnimationStore.getState().layers.size).toBe(0);
+  });
+
+  it("focus가 접힘을 풀어도 먼저 보이지 않게 현재 접힌 자손까지 단계에 넣는다", async () => {
+    useCollapseStore.getState().collapseAll("t1", ["s-parent"]);
+
+    void runLectureAnimation(
+      { type: "grow", targetClientIds: ["root"], durationMs: 900 },
+      { revealNodes },
+    );
+
+    expect(getGrowState("parent")).toBe("hidden");
+    expect(getGrowState("leaf")).toBe("hidden");
+
+    await vi.advanceTimersByTimeAsync(300);
+    expect(getGrowState("parent")).toBe("entering");
+    expect(getGrowState("leaf")).toBe("hidden");
+
+    await vi.advanceTimersByTimeAsync(300);
+    expect(getGrowState("leaf")).toBe("entering");
+  });
+
+  it("중단하면 숨긴 자손을 바로 되돌린다", async () => {
+    const controller = new AbortController();
+    const completed = runLectureAnimation(
+      { type: "grow", targetClientIds: ["root"], durationMs: 900 },
+      { revealNodes, signal: controller.signal },
+    );
+
+    expect(getGrowState("leaf")).toBe("hidden");
+
+    controller.abort();
+    await completed;
+
+    expect(useLectureAnimationStore.getState().layers.size).toBe(0);
   });
 });

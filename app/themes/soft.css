@@ -45,6 +45,9 @@ hover, 비활성, 경고, 성공, 정보 색은 Lab에 없어 제품 사용처�
   --theme-warning-line: #f6d58e;
   --theme-success: #047857;
   --theme-success-subtle: #ecfdf5;
+  --theme-on-success: #ffffff; /* 꽉 찬 success·warning·danger 바탕 위의 글자 */
+  --theme-on-warning: #ffffff;
+  --theme-on-danger: #ffffff;
   --theme-info: #2563eb;
   --theme-info-subtle: #eff6ff;
 

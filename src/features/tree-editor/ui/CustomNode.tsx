@@ -11,6 +11,7 @@ import {
   useLectureStore,
 } from "@/src/features/tree-editor/model/lecture/lectureStore";
 import {
+  getLectureNodeGrowState,
   getLectureNodeHighlightStyle,
   getLectureNodeHighlightMotionDuration,
   getLectureNodeHighlightTone,
@@ -19,6 +20,8 @@ import {
   useLectureAnimationStore,
 } from "@/src/features/tree-editor/model/lecture/lectureAnimationStore";
 import { CollapseToggleButton } from "./CollapseToggleButton";
+import { LectureNodeBadge } from "./LectureNodeBadge";
+import { LectureNodeSparkles } from "./LectureNodeSparkles";
 
 export function CustomNode({
   id,
@@ -64,6 +67,10 @@ export function CustomNode({
   const isLectureDimmed = useLectureAnimationStore((state) =>
     isLectureNodeDimmed(state, id),
   );
+  const lectureGrowState = useLectureAnimationStore((state) =>
+    getLectureNodeGrowState(state, id),
+  );
+  const isLectureGrowHidden = lectureGrowState === "hidden";
 
   const {
     inputRef,
@@ -142,6 +149,7 @@ export function CustomNode({
       data-lecture-highlight-style={lectureHighlightStyle ?? undefined}
       data-lecture-highlight-tone={lectureHighlightTone ?? undefined}
       data-lecture-dimmed={isLectureDimmed}
+      data-lecture-grow={lectureGrowState ?? undefined}
       style={getLectureHighlightMotionStyle(
         lectureHighlightStyle,
         lectureHighlightMotionDuration,
@@ -152,7 +160,9 @@ export function CustomNode({
         position={targetPosition ?? Position.Top}
         id="input"
         isConnectable={isConnectable}
-        style={{ visibility: isRoot ? "hidden" : "visible" }}
+        style={{
+          visibility: isRoot || isLectureGrowHidden ? "hidden" : "visible",
+        }}
       />
 
       {isEditing ? (
@@ -202,9 +212,12 @@ export function CustomNode({
         position={sourcePosition ?? Position.Bottom}
         id="output"
         isConnectable={isConnectable}
+        style={{ visibility: isLectureGrowHidden ? "hidden" : "visible" }}
       />
 
       <CollapseToggleButton clientId={id} serverId={data.serverId} />
+      {lectureHighlightStyle === "sparkle" ? <LectureNodeSparkles /> : null}
+      <LectureNodeBadge clientId={id} />
     </div>
   );
 }

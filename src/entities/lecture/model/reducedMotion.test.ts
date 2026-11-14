@@ -57,6 +57,34 @@ const CASES: {
       durationMs: 1200,
     },
   },
+  /*
+  꼬리표가 튀어나오는 등장은 CSS가 끄므로 대본은 그대로다. 글자와 유지 여부가 내용이다.
+  */
+  badge: {
+    input: {
+      type: "badge",
+      targetNodeIds: ["1"],
+      label: "정답",
+      tone: "success",
+      durationMs: 1200,
+      persist: true,
+    },
+    expected: {
+      type: "badge",
+      targetNodeIds: ["1"],
+      label: "정답",
+      tone: "success",
+      durationMs: 1200,
+      persist: true,
+    },
+  },
+  /*
+  자손이 깊이 순서로 나타나는 것은 내용이라 대본은 그대로다. 뻗어 나가는 연결선과 튀어나오는 노드는 CSS가 끈다.
+  */
+  grow: {
+    input: { type: "grow", targetNodeIds: ["1"], durationMs: 2400 },
+    expected: { type: "grow", targetNodeIds: ["1"], durationMs: 2400 },
+  },
   dim: {
     input: { type: "dim", exceptNodeIds: ["1"], durationMs: 1800 },
     expected: { type: "dim", exceptNodeIds: ["1"], durationMs: 1800 },

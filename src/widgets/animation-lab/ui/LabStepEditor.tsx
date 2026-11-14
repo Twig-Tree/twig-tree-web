@@ -1,5 +1,6 @@
 import { X } from "lucide-react";
 import {
+  MAX_LECTURE_BADGE_LABEL_LENGTH,
   type LectureAnimationAction,
   getLectureActionNodeIds,
   getLectureActionWithNodeIds,
@@ -22,6 +23,8 @@ const NODE_FIELD_LABELS: Record<LectureAnimationAction["type"], string> = {
   highlight: "강조할 노드",
   dim: "흐리지 않을 노드",
   trace: "따라갈 경로 (부모 → 자식)",
+  badge: "꼬리표를 붙일 노드",
+  grow: "자라기 시작할 노드",
   collapse: "자식을 접을 노드",
   expand: "자식을 펼칠 노드",
   reset: "",
@@ -134,7 +137,8 @@ export function LabStepEditor({ step, onChangeAction }: LabStepEditorProps) {
                     | "pulse"
                     | "pop"
                     | "bounce"
-                    | "shake",
+                    | "shake"
+                    | "sparkle",
                 })
               }
             >
@@ -143,11 +147,27 @@ export function LabStepEditor({ step, onChangeAction }: LabStepEditorProps) {
               <option value="pop">pop</option>
               <option value="bounce">bounce</option>
               <option value="shake">shake</option>
+              <option value="sparkle">sparkle</option>
             </select>
           </label>
         ) : null}
 
-        {action.type === "highlight" ? (
+        {action.type === "badge" ? (
+          <label className="text-xs font-semibold text-content-secondary">
+            꼬리표 글자
+            <input
+              type="text"
+              maxLength={MAX_LECTURE_BADGE_LABEL_LENGTH}
+              value={action.label}
+              className={`mt-1 ${FIELD_CLASS}`}
+              onChange={(event) =>
+                onChangeAction({ ...action, label: event.target.value })
+              }
+            />
+          </label>
+        ) : null}
+
+        {action.type === "highlight" || action.type === "badge" ? (
           <label className="text-xs font-semibold text-content-secondary">
             색상 역할
             <select
@@ -206,6 +226,22 @@ export function LabStepEditor({ step, onChangeAction }: LabStepEditorProps) {
                 <option value="reverse">자식 → 부모</option>
               </select>
             </label>
+            <label className="text-xs font-semibold text-content-secondary">
+              모양
+              <select
+                value={action.style ?? "dash"}
+                className={`mt-1 ${FIELD_CLASS}`}
+                onChange={(event) =>
+                  onChangeAction({
+                    ...action,
+                    style: event.target.value as "dash" | "comet",
+                  })
+                }
+              >
+                <option value="dash">흐르는 점선</option>
+                <option value="comet">혜성</option>
+              </select>
+            </label>
           </>
         ) : null}
 
@@ -232,7 +268,8 @@ export function LabStepEditor({ step, onChangeAction }: LabStepEditorProps) {
 
       {action.type === "highlight" ||
       action.type === "dim" ||
-      action.type === "trace" ? (
+      action.type === "trace" ||
+      action.type === "badge" ? (
         <label className="flex items-center gap-2 text-xs font-medium text-content-secondary">
           <input
             type="checkbox"

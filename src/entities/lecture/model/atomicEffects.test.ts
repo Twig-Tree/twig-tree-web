@@ -22,6 +22,13 @@ const sampleActions: Record<
   },
   dim: { type: "dim", exceptNodeIds: ["1"], durationMs: 800 },
   trace: { type: "trace", nodeIds: ["1", "2"], durationMs: 800 },
+  badge: {
+    type: "badge",
+    targetNodeIds: ["1"],
+    label: "핵심",
+    durationMs: 800,
+  },
+  grow: { type: "grow", targetNodeIds: ["1"], durationMs: 800 },
   wait: { type: "wait", durationMs: 800 },
   collapse: { type: "collapse", targetNodeIds: ["1"], durationMs: 800 },
   expand: { type: "expand", targetNodeIds: ["1"], durationMs: 800 },

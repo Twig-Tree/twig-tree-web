@@ -21,6 +21,7 @@ import { useLecturePlayback } from "../model/lecture/useLecturePlayback";
 import { useLectureKeyboard } from "../model/lecture/useLectureKeyboard";
 import { useTreeStore } from "../model/treeStore";
 import { LectureGenerator } from "./LectureGenerator";
+import { LectureSubtitle } from "./LectureSubtitle";
 
 type LecturePlayerProps = {
   script: LectureScript | null; // 지금 트리에서 재생할 수 있는 대본. 없으면 시작 화면 대신 강의 만들기 버튼을 그린다
@@ -56,6 +57,7 @@ export function LecturePlayer({
   const activeScript = useLectureStore((state) => state.script);
   const sceneIndex = useLectureStore((state) => state.sceneIndex);
   const beatIndex = useLectureStore((state) => state.beatIndex);
+  const seekId = useLectureStore((state) => state.seekId);
   const startLecture = useLectureStore((state) => state.startLecture);
   const pauseLecture = useLectureStore((state) => state.pauseLecture);
   const resumeLecture = useLectureStore((state) => state.resumeLecture);
@@ -281,12 +283,14 @@ export function LecturePlayer({
         ))}
       </div>
 
-      <p
-        aria-live="polite"
-        className="min-h-12 text-center text-base leading-relaxed text-content"
-      >
-        {beat?.narration.text}
-      </p>
+      {beat && scene && (
+        <LectureSubtitle
+          revealKey={`${scene.id}:${beat.id}:${seekId}`} // 같은 비트를 다시 재생해도 seekId가 늘어 자막을 처음부터 드러낸다
+          text={beat.narration.text}
+          narrationDurationMs={beat.narration.fallbackDurationMs}
+          isPlaying={isPlaying}
+        />
+      )}
     </section>
   );
 }

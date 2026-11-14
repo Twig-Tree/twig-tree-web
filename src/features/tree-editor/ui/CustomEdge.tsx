@@ -1,6 +1,9 @@
 import { CustomEditorEdge } from "@/src/features/tree-editor/model/types";
 import {
   getLectureEdgeTraceDirection,
+  getLectureEdgeTraceStyle,
+  getLectureNodeGrowState,
+  isLectureEdgeDimmed,
   useLectureAnimationStore,
 } from "@/src/features/tree-editor/model/lecture/lectureAnimationStore";
 import { useTheme, type ThemeId } from "@/src/shared/lib/theme";
@@ -47,7 +50,22 @@ export function CustomEdge({
   const traceDirection = useLectureAnimationStore((state) =>
     getLectureEdgeTraceDirection(state, source, target),
   );
+  const traceStyle = useLectureAnimationStore((state) =>
+    getLectureEdgeTraceStyle(state, source, target),
+  );
+  const growState = useLectureAnimationStore((state) =>
+    getLectureNodeGrowState(state, target),
+  ); // 연결선은 자식 노드와 함께 숨고 나타난다
+  const isDimmed = useLectureAnimationStore((state) =>
+    isLectureEdgeDimmed(state, source, target),
+  );
   const isTraced = traceDirection !== null;
+  const isCometTraced = isTraced && traceStyle === "comet";
+  /*
+  추적 중인 연결선은 그려 나가는 등장 효과를 건너뛴다. 등장 규칙의 dash가 추적 점선과 흐름을 덮어쓰기 때문이다.
+  숨김은 그대로 따라야 아직 나타나지 않은 자식에게 선이 먼저 닿지 않는다.
+  */
+  const edgeGrowState = growState === "entering" && isTraced ? null : growState;
 
   const [edgePath] = getSmoothStepPath({
     sourceX,
@@ -94,7 +112,7 @@ export function CustomEdge({
         인라인 굵기가 있으면 클래스의 추적 굵기가 적용되지 않으므로 추적 중에는 클래스에 맡긴다.
         */
         style={
-          isTraced
+          isTraced && !isCometTraced
             ? style
             : {
                 ...style,
@@ -102,12 +120,57 @@ export function CustomEdge({
                 strokeLinecap: "round",
               }
         }
+        /*
+        자라며 나타나는 연결선은 길이를 1로 정규화해 길이와 관계없이 같은 CSS 값으로 그려 나간다.
+        */
+        pathLength={edgeGrowState === "entering" ? 1 : undefined}
         className={
-          isTraced
-            ? `lecture-edge-traced lecture-edge-traced-${traceDirection}`
-            : undefined
+          [
+            isTraced && !isCometTraced
+              ? `lecture-edge-traced lecture-edge-traced-${traceDirection}`
+              : null,
+            isDimmed ? "lecture-edge-dimmed" : null,
+            edgeGrowState === null
+              ? null
+              : `lecture-edge-grow-${edgeGrowState}`,
+          ]
+            .filter(Boolean)
+            .join(" ") || undefined
         }
       />
+      {isCometTraced ? (
+        <LectureCometTrace path={edgePath} direction={traceDirection} />
+      ) : null}
     </>
+  );
+}
+
+type LectureCometTraceProps = {
+  path: string; // 연결선 경로
+  direction: "forward" | "reverse"; // 부모 → 자식(forward)으로 달릴지, 자식 → 부모(reverse)로 달릴지
+};
+
+/*
+함수 이름 : LectureCometTrace
+기능 : 추적 중인 연결선 위에 빛나는 선을 그려 나간 뒤, 빛 점과 꼬리가 선을 따라 반복해 달리게 한다.
+기본 연결선은 그대로 두고 위에 덧그려, 추적이 끝나면 덧그린 것만 사라진다.
+pathLength를 1로 정규화해 선 길이와 관계없이 같은 CSS 값으로 그리기와 꼬리 길이를 정한다.
+인자 : LectureCometTraceProps
+반환값 : 혜성 추적 선, 꼬리, 빛 점
+*/
+function LectureCometTrace({ path, direction }: LectureCometTraceProps) {
+  return (
+    <g
+      className={`lecture-comet lecture-comet-${direction}`}
+      pointerEvents="none"
+    >
+      <path className="lecture-comet__line" d={path} pathLength={1} />
+      <path className="lecture-comet__tail" d={path} pathLength={1} />
+      <circle
+        className="lecture-comet__head"
+        r={4}
+        style={{ offsetPath: `path("${path}")` }}
+      />
+    </g>
   );
 }

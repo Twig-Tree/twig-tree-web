@@ -48,6 +48,15 @@ React Flow가 읽는 CSS 변수에 값을 넣어야 하므로 Tailwind 유틸리
   --lecture-shake-cycle: 550ms;
   --lecture-trace-cycle: 520ms;
   --lecture-dim-opacity: 0.22;
+  --lecture-dim-filter: grayscale(0.7) blur(0.6px); /* 색과 초점을 함께 빼 강조 대상과 거리감을 만든다 */
+  --lecture-breathe-cycle: 2400ms;
+  --lecture-highlight-tint: 10%; /* 강조 노드 바탕에 섞는 강조색 비율 */
+  --lecture-comet-draw-duration: 600ms; /* 순차 추적의 연결선 하나 시간(650ms)보다 짧아야 다음 선 전에 다 그려진다 */
+  --lecture-comet-cycle: 1400ms;
+  --lecture-badge-enter-duration: 420ms;
+  --lecture-grow-edge-duration: 520ms; /* 자라는 연결선이 부모에서 자식까지 그려지는 시간 */
+  --lecture-grow-node-duration: 520ms; /* 연결선이 가까워질 때 자식이 부드럽게 나타나는 시간 */
+  --lecture-sparkle-cycle: 1600ms; /* 반짝이 하나가 나타났다 사라지는 시간 */
 }
 
 /* Customizing Default Theming */
@@ -117,8 +126,14 @@ React Flow가 읽는 CSS 변수에 값을 넣어야 하므로 Tailwind 유틸리
       color-mix(in srgb, var(--xy-theme-lecture-current) 35%, transparent);
   transition: box-shadow var(--lecture-current-duration)
     var(--lecture-ease-enter);
+  animation: lecture-node-breathe var(--lecture-breathe-cycle)
+    var(--lecture-ease-move) infinite alternate;
 }
 
+/*
+강조 중에는 숨쉬기를 멈춘다. 애니메이션의 box-shadow가 강조 링을 덮어 강조 색이 보이지 않기 때문이다.
+pulse 규칙이 이 규칙보다 뒤에 있어 pulse는 그대로 실행된다.
+*/
 .react-flow__node:has(> .custom-node[data-lecture-highlighted="true"]) {
   --lecture-highlight-color: var(--xy-theme-lecture-animation);
   box-shadow:
@@ -127,7 +142,23 @@ React Flow가 읽는 CSS 변수에 값을 넣어야 하므로 Tailwind 유틸리
       color-mix(in srgb, var(--lecture-highlight-color) 40%, transparent);
   transition:
     box-shadow var(--lecture-fade-duration) var(--lecture-ease-enter),
+    background-color var(--lecture-fade-duration) var(--lecture-ease-enter),
     opacity var(--lecture-fade-duration) var(--lecture-ease-enter);
+  animation: none;
+}
+
+/*
+강조 노드 바탕에 강조색을 옅게 섞어 링만 있을 때보다 멀리서도 눈에 띄게 한다.
+루트는 바탕색이 따로 있어 섞지 않는다.
+*/
+.react-flow__node:not(:has(> .custom-node[data-root="true"])):has(
+    > .custom-node[data-lecture-highlighted="true"]
+  ) {
+  background-color: color-mix(
+    in srgb,
+    var(--lecture-highlight-color) var(--lecture-highlight-tint),
+    var(--xy-node-background-color-default)
+  );
 }
 
 .react-flow__node:has(> .custom-node[data-lecture-highlight-tone="success"]) {
@@ -156,6 +187,25 @@ React Flow가 읽는 CSS 변수에 값을 넣어야 하므로 Tailwind 유틸리
     var(--lecture-ease-enter) both;
 }
 
+/*
+pop이 시작될 때 노드 외곽에서 링이 한 번 퍼져 나간다. 노드 상자 자체는 transform하지 않아 Handle 좌표가 그대로다.
+*/
+.react-flow__node:has(
+    > .custom-node[data-lecture-highlight-style="pop"]
+  )::after,
+.react-flow__node:has(
+    > .custom-node[data-lecture-highlight-style="sparkle"]
+  )::after {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  border: 3px solid var(--lecture-highlight-color);
+  pointer-events: none;
+  animation: lecture-node-pop-ring var(--lecture-pop-duration)
+    var(--lecture-ease-enter) both;
+}
+
 .custom-node[data-lecture-highlight-style="bounce"] > .custom-node__content {
   animation: lecture-node-bounce
     var(--lecture-highlight-cycle, var(--lecture-bounce-cycle))
@@ -168,9 +218,59 @@ React Flow가 읽는 CSS 변수에 값을 넣어야 하므로 Tailwind 유틸리
     var(--lecture-ease-move) var(--lecture-highlight-iterations, infinite);
 }
 
+/*
+sparkle. pop처럼 한 번 튀어 오른 뒤, 노드 둘레의 반짝이가 시차를 두고 계속 깜빡인다.
+반짝이는 clip-path로 별 모양을 자르므로 빛 번짐은 잘리지 않게 감싸는 요소에 준다.
+*/
+.custom-node[data-lecture-highlight-style="sparkle"] > .custom-node__content {
+  animation: lecture-node-pop var(--lecture-pop-duration)
+    var(--lecture-ease-enter) both;
+}
+
+.lecture-sparkles {
+  z-index: 1;
+  filter: drop-shadow(0 0 4px var(--lecture-highlight-color));
+}
+
+.lecture-sparkle {
+  position: absolute;
+  translate: -50% -50%;
+  background: color-mix(
+    in srgb,
+    var(--lecture-highlight-color) 75%,
+    var(--theme-on-accent)
+  );
+  clip-path: polygon(
+    50% 0%,
+    62% 38%,
+    100% 50%,
+    62% 62%,
+    50% 100%,
+    38% 62%,
+    0% 50%,
+    38% 38%
+  );
+  animation: lecture-sparkle-twinkle var(--lecture-sparkle-cycle)
+    var(--lecture-ease-move) infinite both;
+}
+
 .react-flow__node:has(> .custom-node[data-lecture-dimmed="true"]) {
   opacity: var(--lecture-dim-opacity);
-  transition: opacity var(--lecture-fade-duration) var(--lecture-ease-enter);
+  filter: var(--lecture-dim-filter);
+  transition:
+    opacity var(--lecture-fade-duration) var(--lecture-ease-enter),
+    filter var(--lecture-fade-duration) var(--lecture-ease-enter);
+}
+
+/*
+dim 예외 경로 밖의 연결선은 노드와 같은 농도와 필터로 흐린다. 그룹에 적용해 선과 화살촉, 추적 장식을 함께 처리한다.
+*/
+.react-flow__edge:has(.lecture-edge-dimmed) {
+  opacity: var(--lecture-dim-opacity);
+  filter: var(--lecture-dim-filter);
+  transition:
+    opacity var(--lecture-fade-duration) var(--lecture-ease-enter),
+    filter var(--lecture-fade-duration) var(--lecture-ease-enter);
 }
 
 .react-flow__edge-path.lecture-edge-traced {
@@ -186,31 +286,236 @@ React Flow가 읽는 CSS 변수에 값을 넣어야 하므로 Tailwind 유틸리
   animation-direction: reverse;
 }
 
+/*
+혜성 추적. 선을 출발점에서 그려 나간 뒤, 다 그리면 빛 점과 꼬리가 같은 방향으로 반복해 달린다.
+경로 길이를 1로 정규화했으므로 dash 값은 선 전체에 대한 비율이다.
+*/
+.lecture-comet__line,
+.lecture-comet__tail {
+  fill: none;
+  stroke: var(--xy-theme-lecture-animation);
+  stroke-linecap: round;
+}
+
+.lecture-comet__line {
+  stroke-width: 3;
+  stroke-dasharray: 1 1;
+  stroke-dashoffset: 1;
+  filter: drop-shadow(0 0 3px var(--xy-theme-lecture-animation));
+  animation: lecture-comet-draw var(--lecture-comet-draw-duration)
+    var(--lecture-ease-enter) forwards;
+}
+
+.lecture-comet-reverse .lecture-comet__line {
+  stroke-dashoffset: -1; /* 끝(자식)에서부터 그린다 */
+}
+
+.lecture-comet__tail {
+  stroke-width: 6;
+  stroke-dasharray: 0.16 2;
+  stroke-dashoffset: 0.16;
+  opacity: 0.75;
+  filter: blur(1.5px) drop-shadow(0 0 6px var(--xy-theme-lecture-animation));
+  animation: lecture-comet-tail var(--lecture-comet-cycle)
+    var(--lecture-ease-move) var(--lecture-comet-draw-duration) infinite
+    backwards;
+}
+
+.lecture-comet__head {
+  fill: var(--theme-on-accent);
+  stroke: var(--xy-theme-lecture-animation);
+  stroke-width: 2;
+  filter: drop-shadow(0 0 6px var(--xy-theme-lecture-animation));
+  offset-rotate: 0deg;
+  animation: lecture-comet-head var(--lecture-comet-cycle)
+    var(--lecture-ease-move) var(--lecture-comet-draw-duration) infinite
+    backwards;
+}
+
+.lecture-comet-reverse .lecture-comet__tail,
+.lecture-comet-reverse .lecture-comet__head {
+  animation-direction: reverse;
+}
+
+.react-flow__edge:has(.lecture-comet) .custom-edge__marker {
+  color: var(--xy-theme-lecture-animation);
+}
+
+/*
+grow. 숨은 자손은 자리를 지킨 채 보이지 않고, 나타날 때 연결선이 부모에서 뻗어 나간 뒤 자식이 튀어나온다.
+React Flow가 노드 위치에 transform을 쓰므로 크기 변화는 scale 속성으로 따로 준다.
+pulse와 숨쉬기 같은 노드 애니메이션보다 뒤에 두어, 나타나는 동안에는 등장 애니메이션이 이긴다.
+*/
+.react-flow__node:has(> .custom-node[data-lecture-grow="hidden"]),
+.react-flow__edge:has(.lecture-edge-grow-hidden) {
+  visibility: hidden !important; /* React Flow가 인라인으로 넣는 visible을 이겨 새로 그려질 때도 완전히 가린다 */
+  opacity: 0;
+  pointer-events: none;
+}
+
+.react-flow__node:has(> .custom-node[data-lecture-grow="entering"]) {
+  animation: lecture-node-grow var(--lecture-grow-node-duration)
+    var(--lecture-ease-enter) calc(var(--lecture-grow-edge-duration) * 0.6) both;
+}
+
+.react-flow__edge-path.lecture-edge-grow-entering {
+  stroke-dasharray: 1 1;
+  animation: lecture-edge-grow var(--lecture-grow-edge-duration)
+    var(--lecture-ease-enter) both;
+}
+
+.react-flow__edge:has(.lecture-edge-grow-entering) .custom-edge__marker {
+  animation: lecture-fade-in var(--lecture-fade-duration)
+    var(--lecture-ease-enter) var(--lecture-grow-edge-duration) both;
+}
+
+@keyframes lecture-node-grow {
+  from {
+    opacity: 0;
+    scale: 0.88;
+  }
+
+  to {
+    opacity: 1;
+    scale: 1;
+  }
+}
+
+@keyframes lecture-edge-grow {
+  from {
+    stroke-dashoffset: 1;
+  }
+
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes lecture-fade-in {
+  from {
+    opacity: 0;
+  }
+}
+
+/*
+강의 꼬리표는 노드 오른쪽 위 모서리에 걸쳐 놓는다. 자리는 translate, 등장은 scale로 나눠 등장 애니메이션이 자리를 덮어쓰지 않게 한다.
+*/
+.lecture-badge {
+  translate: 30% -60%;
+  transform-origin: bottom left;
+  animation: lecture-badge-enter var(--lecture-badge-enter-duration)
+    var(--lecture-ease-enter) both;
+}
+
+@keyframes lecture-badge-enter {
+  0% {
+    opacity: 0;
+    scale: 0.4;
+  }
+  60% {
+    opacity: 1;
+    scale: 1.15;
+  }
+  100% {
+    scale: 1;
+  }
+}
+
+@keyframes lecture-comet-draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes lecture-comet-tail {
+  from {
+    stroke-dashoffset: 0.16;
+  }
+
+  to {
+    stroke-dashoffset: -1;
+  }
+}
+
+@keyframes lecture-comet-head {
+  0% {
+    offset-distance: 0%;
+    opacity: 0;
+  }
+  12%,
+  88% {
+    opacity: 1;
+  }
+  100% {
+    offset-distance: 100%;
+    opacity: 0;
+  }
+}
+
+/*
+링 굵기는 고정하고 바깥 빛만 크게 숨쉬게 한다. 링이 함께 굵어지면 영상에서 떨리는 것처럼 보인다.
+*/
 @keyframes lecture-node-pulse {
   from {
     box-shadow:
       0 0 0 3px var(--lecture-highlight-color),
-      0 0 14px 2px
-        color-mix(in srgb, var(--lecture-highlight-color) 35%, transparent);
+      0 0 12px 2px
+        color-mix(in srgb, var(--lecture-highlight-color) 30%, transparent),
+      0 0 0 0 transparent;
   }
 
   to {
     box-shadow:
-      0 0 0 5px var(--lecture-highlight-color),
-      0 0 32px 8px
-        color-mix(in srgb, var(--lecture-highlight-color) 65%, transparent);
+      0 0 0 3px var(--lecture-highlight-color),
+      0 0 28px 6px
+        color-mix(in srgb, var(--lecture-highlight-color) 55%, transparent),
+      0 0 56px 18px
+        color-mix(in srgb, var(--lecture-highlight-color) 20%, transparent);
+  }
+}
+
+@keyframes lecture-node-breathe {
+  from {
+    box-shadow:
+      0 0 0 3px var(--xy-theme-lecture-current),
+      0 0 14px 1px
+        color-mix(in srgb, var(--xy-theme-lecture-current) 25%, transparent);
+  }
+
+  to {
+    box-shadow:
+      0 0 0 3px var(--xy-theme-lecture-current),
+      0 0 26px 5px
+        color-mix(in srgb, var(--xy-theme-lecture-current) 45%, transparent);
   }
 }
 
 @keyframes lecture-node-pop {
   0% {
-    transform: scale(0.92);
+    transform: scale(0.88);
   }
-  55% {
-    transform: scale(1.12);
+  45% {
+    transform: scale(1.14);
+  }
+  70% {
+    transform: scale(0.97);
   }
   100% {
     transform: scale(1);
+  }
+}
+
+@keyframes lecture-node-pop-ring {
+  0% {
+    opacity: 0.9;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(
+      1.35,
+      1.7
+    ); /* 노드가 가로로 길어 세로를 더 키워야 링 간격이 고르게 보인다 */
   }
 }
 
@@ -237,6 +542,25 @@ React Flow가 읽는 CSS 변수에 값을 넣어야 하므로 Tailwind 유틸리
   }
 }
 
+@keyframes lecture-sparkle-twinkle {
+  0%,
+  100% {
+    opacity: 0;
+    scale: 0;
+    rotate: 0deg;
+  }
+  35% {
+    opacity: 1;
+    scale: 1;
+    rotate: 45deg;
+  }
+  65% {
+    opacity: 0.7;
+    scale: 0.55;
+    rotate: 90deg;
+  }
+}
+
 @keyframes lecture-edge-trace {
   from {
     stroke-dashoffset: 0;
@@ -248,10 +572,48 @@ React Flow가 읽는 CSS 변수에 값을 넣어야 하므로 Tailwind 유틸리
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .lecture-sparkles {
+    display: none;
+  }
+
+  .react-flow__node:has(> .custom-node[data-lecture-current="true"]),
   .react-flow__node:has(> .custom-node[data-lecture-highlight-style]),
   .custom-node[data-lecture-highlight-style] > .custom-node__content,
   .react-flow__edge-path.lecture-edge-traced {
     animation: none;
+  }
+
+  .react-flow__node:has(
+      > .custom-node[data-lecture-highlight-style="pop"]
+    )::after,
+  .react-flow__node:has(
+      > .custom-node[data-lecture-highlight-style="sparkle"]
+    )::after {
+    content: none;
+  }
+
+  /*
+  혜성 추적은 움직이는 빛을 빼고 다 그린 선만 남긴다.
+  */
+  .lecture-comet__line {
+    stroke-dasharray: none;
+    animation: none;
+  }
+
+  .lecture-comet__tail,
+  .lecture-comet__head {
+    display: none;
+  }
+
+  .lecture-badge,
+  .react-flow__node:has(> .custom-node[data-lecture-grow="entering"]),
+  .react-flow__edge-path.lecture-edge-grow-entering,
+  .react-flow__edge:has(.lecture-edge-grow-entering) .custom-edge__marker {
+    animation: none;
+  }
+
+  .react-flow__edge-path.lecture-edge-grow-entering {
+    stroke-dasharray: none;
   }
 }
 

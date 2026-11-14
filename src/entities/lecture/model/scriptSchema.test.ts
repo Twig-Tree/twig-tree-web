@@ -1,5 +1,6 @@
 import { describe, expect, expectTypeOf, it } from "vitest";
 import type * as z from "zod/mini";
+import { MAX_LECTURE_BADGE_LABEL_LENGTH } from "./constants";
 import { DEMO_LECTURES } from "./demoLectures";
 import {
   lectureAnimationActionSchema,
@@ -68,6 +69,30 @@ describe("lectureScriptSchema", () => {
     expect(
       getIssuePaths(lectureAnimationSchema, { type: "reset", scope: "tree" }),
     ).toEqual(["scope"]);
+    expect(
+      getIssuePaths(lectureAnimationSchema, {
+        type: "trace",
+        nodeIds: ["1", "2"],
+        style: "laser",
+        durationMs: 100,
+      }),
+    ).toEqual(["style"]);
+    expect(
+      getIssuePaths(lectureAnimationSchema, {
+        type: "badge",
+        targetNodeIds: ["1"],
+        label: "",
+        durationMs: 100,
+      }),
+    ).toEqual(["label"]);
+    expect(
+      getIssuePaths(lectureAnimationSchema, {
+        type: "badge",
+        targetNodeIds: ["1"],
+        label: "꼬".repeat(MAX_LECTURE_BADGE_LABEL_LENGTH + 1),
+        durationMs: 100,
+      }),
+    ).toEqual(["label"]);
   });
 
   it("시간과 배율은 유한해야 하고, 시간은 0 이상, 배율은 0보다 커야 한다", () => {
@@ -120,6 +145,18 @@ describe("lectureScriptSchema", () => {
         type: "dim",
         exceptNodeIds: [],
         durationMs: 100,
+      }),
+    ).toEqual([]);
+  });
+
+  it("highlight의 sparkle 모양을 받는다", () => {
+    expect(
+      getIssuePaths(lectureAnimationSchema, {
+        type: "highlight",
+        targetNodeIds: ["1"],
+        style: "sparkle",
+        tone: "success",
+        durationMs: 1200,
       }),
     ).toEqual([]);
   });

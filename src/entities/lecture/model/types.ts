@@ -27,7 +27,7 @@ export interface LectureFocusAction {
 export interface LectureHighlightAction {
   type: "highlight";
   targetNodeIds: LectureNodeId[];
-  style: "steady" | "pulse" | "pop" | "bounce" | "shake";
+  style: "steady" | "pulse" | "pop" | "bounce" | "shake" | "sparkle";
   tone?: "accent" | "success" | "warning" | "danger";
   durationMs: number;
   persist?: boolean; // true이면 다음 reset 전까지 강조를 유지한다
@@ -46,7 +46,31 @@ export interface LectureTraceAction {
   durationMs: number;
   mode?: "simultaneous" | "progressive";
   direction?: "forward" | "reverse";
+  style?: "dash" | "comet"; // dash(기본): 흐르는 점선. comet: 선을 그린 뒤 빛 점이 선을 따라 달린다
   persist?: boolean;
+}
+
+/*
+노드 옆에 짧은 꼬리표(①, 핵심, 정답)를 띄운다. 한 노드에 꼬리표가 여럿 겹치면 나중에 붙인 것이 보인다.
+*/
+export interface LectureBadgeAction {
+  type: "badge";
+  targetNodeIds: LectureNodeId[]; // 꼬리표를 붙일 노드
+  label: string; // 꼬리표 글자. 비어 있으면 안 되고 MAX_LECTURE_BADGE_LABEL_LENGTH를 넘지 않는다
+  tone?: "accent" | "success" | "warning" | "danger";
+  durationMs: number;
+  persist?: boolean; // true이면 다음 reset 전까지 꼬리표를 유지한다
+}
+
+/*
+대상 노드의 자손을 숨겼다가 깊이 순서로 하나씩 드러내 트리가 자라는 모습을 보여 준다.
+배치는 바꾸지 않고 꾸밈으로만 숨기므로, 앞의 focus가 맞춘 화면에 자손이 들어갈 자리가 이미 있다.
+끝나면 모든 자손이 보이는 원래 상태로 돌아가 유지할 효과가 없다.
+*/
+export interface LectureGrowAction {
+  type: "grow";
+  targetNodeIds: LectureNodeId[]; // 자라기 시작할 노드. 이 노드는 보이고 자손이 차례로 나타난다
+  durationMs: number; // 마지막 깊이의 자손이 나타나기까지의 시간. 깊이 수로 나눈다
 }
 
 export interface LectureWaitAction {
@@ -79,6 +103,8 @@ export type LectureAnimationAction =
   | LectureHighlightAction
   | LectureDimAction
   | LectureTraceAction
+  | LectureBadgeAction
+  | LectureGrowAction
   | LectureWaitAction
   | LectureCollapseAction
   | LectureExpandAction
