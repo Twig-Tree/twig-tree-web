@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { type DemoTreeNode, GOGURYEO_DEMO_TREE } from "@/src/entities/lecture";
+import {
+  type DemoTreeNode,
+  GOGURYEO_DEMO_TREE,
+  SHOWCASE_DEMO_TREE,
+} from "@/src/entities/lecture";
 import { createEditorEdge } from "../add-node/createEditorEdge";
 import { createEditorNode } from "../add-node/createEditorNode";
 import { findDemoLectureScript } from "./findDemoLectureScript";
@@ -112,6 +116,19 @@ describe("findDemoLectureScript", () => {
     expect(script?.id).toBe("korean-history-goguryeo");
     expect(script?.scenes).toHaveLength(6);
     expect(script?.scenes.flatMap((scene) => scene.beats)).toHaveLength(18);
+    expect(script && getEditorLectureScript(script, nodes)).not.toBeNull();
+  });
+
+  it("발표 시연 트리 원본으로 만든 트리에서는 같은 루트의 기초 데모보다 발표 대본을 먼저 고른다", () => {
+    const { nodes, edges } = createTree(
+      createRowsFromDemoTree(SHOWCASE_DEMO_TREE),
+    );
+
+    const script = findDemoLectureScript(nodes, edges);
+
+    expect(script?.id).toBe("demo-showcase");
+    expect(script?.scenes).toHaveLength(5);
+    expect(script?.scenes.flatMap((scene) => scene.beats)).toHaveLength(10);
     expect(script && getEditorLectureScript(script, nodes)).not.toBeNull();
   });
 

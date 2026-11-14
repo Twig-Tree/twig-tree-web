@@ -20,6 +20,7 @@ import {
   useVisibleElements,
 } from "@/src/features/tree-editor";
 import { type LectureAnimation } from "@/src/entities/lecture";
+import { Button } from "@/src/shared/ui/button";
 import {
   ANIMATION_LAB_TREE,
   ANIMATION_LAB_TREE_ID,
@@ -37,6 +38,7 @@ import {
   getLabAnimation,
   getLabStepsFromAnimation,
 } from "../model/labTimeline";
+import { getLabShowcaseAnimation } from "../model/labShowcase";
 import { createLabPresetSteps, LAB_PRESETS } from "../model/presets";
 import { useAnimationLabPlayback } from "../model/useAnimationLabPlayback";
 import { useLabTimeline } from "../model/useLabTimeline";
@@ -74,6 +76,8 @@ const INITIAL_RECIPE_DRAFT: LabRecipeDraft = {
 const INITIAL_SCENARIO_DRAFT = createLabScenarioDraft(
   LAB_SCENARIO_FIXTURES[0].id,
 );
+
+const LAB_SHOWCASE_ANIMATION = getLabShowcaseAnimation(); // 고정 트리와 대본이 바뀌지 않으므로 한 번만 만든다
 
 const handleSelectedNodeHidden = () => {}; // 닫을 메모 패널이 없다. 렌더마다 새 함수가 되면 useVisibleElements의 effect가 매번 다시 돈다.
 
@@ -278,6 +282,30 @@ function AnimationLabCanvas() {
             onReset={handleReset}
           />
 
+          {mode === "atomic" ? (
+            <section
+              aria-label="발표 시연"
+              className="flex items-center justify-between gap-3 rounded-control border border-accent bg-surface p-3"
+            >
+              <div className="min-w-0">
+                <h3 className="text-xs font-bold text-content">발표 시연</h3>
+                <p className="mt-0.5 text-xs leading-4 text-content-secondary">
+                  발표용 데모 강의를 자막·음성 없이 처음부터 재생합니다.
+                  타임라인은 바뀌지 않습니다.
+                </p>
+              </div>
+              <Button
+                variant="primary"
+                className="shrink-0"
+                disabled={LAB_SHOWCASE_ANIMATION === null}
+                onClick={() => {
+                  if (LAB_SHOWCASE_ANIMATION) play(LAB_SHOWCASE_ANIMATION);
+                }}
+              >
+                재생
+              </Button>
+            </section>
+          ) : null}
           {mode === "atomic" ? <AnimationComposer timeline={timeline} /> : null}
           {mode === "recipe" ? (
             <LabRecipeComposer

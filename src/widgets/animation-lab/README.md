@@ -32,6 +32,10 @@
 
 복사한 JSON의 노드 ID는 고정 트리의 ID이므로, 대본에 옮길 때는 `nodeIds.xxx`처럼 그 대본의 ID로 바꾼다.
 
+### 발표 시연
+
+Atomic 모드 맨 위의 `발표 시연` 재생 버튼은 발표용 데모 강의(`SHOWCASE_DEMO_LECTURE`) 전체를 재생한다. 백엔드나 로그인 없이 영상을 녹화하기 위한 경로다. 대본은 이름 경로로 고정 트리에 연결한다. 고정 트리와 발표 트리 원본의 구조가 같은지는 `fixtureTree.test.ts`가 지킨다. 재생 흐름은 Scenario 모드와 같은 `getLabScenarioAnimation`이다. 비트마다 내레이션 시간만큼 머물고, 장면이 바뀌면 효과를 지운다. 대본이 타임라인보다 깊게 중첩되어 있어 타임라인에는 풀지 않고 그대로 재생한다. 자막, 음성, 현재 장면 표시는 플레이어의 것이라 나오지 않는다.
+
 ## Recipe
 
 recipe 하나를 고정 트리로 실행한다(`model/labRecipeRun.ts`). recipe를 고르면 `LAB_RECIPE_SAMPLE_INPUTS`의 예시 입력이 채워지고, delivery 네 가지를 고를 수 있다. 비운 값은 recipe 기본값을 쓴다. registry 버전은 프리셋과 같은 `LAB_RECIPE_REGISTRY_VERSION`이다.

@@ -22,6 +22,10 @@ export type {
 export type { DemoTreeNode } from "./model/createDemoLecture";
 export { DEMO_LECTURES, DEMO_TREES } from "./model/demoLectures";
 export { GOGURYEO_DEMO_TREE } from "./model/mockGoguryeoLectureScript";
+export {
+  SHOWCASE_DEMO_LECTURE,
+  SHOWCASE_DEMO_TREE,
+} from "./model/mockShowcaseLectureScript";
 export type {
   LectureScenario,
   ScenarioBeat,
