@@ -218,6 +218,38 @@ describe("디렉토리 드래그 이동", () => {
     expect(fireEvent.click(link)).toBe(true);
   });
 
+  it("놓은 직후에 화면을 떠나면 click 막기 해제 예약도 취소한다", () => {
+    vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] });
+    const { unmount } = renderGrid();
+
+    dragCard(folderA.name, 400);
+    dropCard();
+    unmount();
+
+    const removeEventListener = vi.spyOn(window, "removeEventListener");
+    vi.runAllTimers();
+    vi.useRealTimers();
+
+    expect(
+      removeEventListener.mock.calls.some(([type]) => type === "click"),
+    ).toBe(false);
+  });
+
+  it("놓은 직후 다시 끌기 시작하면 앞선 해제 예약이 새 끌기의 click 막기를 풀지 않는다", () => {
+    vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] });
+    renderGrid();
+
+    dragCard(folderA.name, 400);
+    dropCard();
+    const link = dragCard(folderA.name, 400);
+    vi.runAllTimers();
+    vi.useRealTimers();
+
+    expect(fireEvent.click(link)).toBe(false);
+
+    dropCard();
+  });
+
   it("브레드크럼의 상위 폴더에 놓으면 그 폴더로 옮긴다", () => {
     renderSubDirectory();
 

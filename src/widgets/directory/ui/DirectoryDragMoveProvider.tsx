@@ -17,6 +17,7 @@ import {
   useCallback,
   useContext,
   useEffect,
+  useRef,
   useState,
   type ReactNode,
 } from "react";
@@ -141,29 +142,49 @@ export function DirectoryDragMoveProvider({
     }),
   );
 
+  const clickGuardTimeoutRef = useRef<number | null>(null); // 놓은 뒤 click 막기를 풀 예약. 없으면 null
+
+  const clearClickGuardTimeout = useCallback(() => {
+    if (clickGuardTimeoutRef.current === null) return;
+
+    window.clearTimeout(clickGuardTimeoutRef.current);
+    clickGuardTimeoutRef.current = null;
+  }, []);
+
   /*
-  끄는 도중에 화면을 떠나면 해제 타이머가 돌기 전에 사라질 수 있어, 남은 click 막기를 함께 지운다.
+  끄는 도중이나 놓은 직후에 화면을 떠나면 해제 예약이 돌기 전에 사라질 수 있다.
+  남은 click 막기를 지우고 예약도 취소한다. 예약이 남으면 화면이 없어진 뒤에 돌아, 테스트에서는 jsdom이 내려간 뒤 window를 찾다 실패한다.
   */
   useEffect(
     () => () => {
+      clearClickGuardTimeout();
       window.removeEventListener("click", preventClick, { capture: true });
     },
-    [],
+    [clearClickGuardTimeout],
   );
 
-  const handleDragStart = useCallback((event: DragStartEvent) => {
-    window.addEventListener("click", preventClick, { capture: true });
-    setActiveItem((event.active.data.current as DragMoveItem) ?? null);
-  }, []);
+  /*
+  앞서 놓은 뒤의 해제 예약이 남아 있으면 취소한다. 그대로 두면 새로 끄는 도중에 click 막기가 풀린다.
+  */
+  const handleDragStart = useCallback(
+    (event: DragStartEvent) => {
+      clearClickGuardTimeout();
+      window.addEventListener("click", preventClick, { capture: true });
+      setActiveItem((event.active.data.current as DragMoveItem) ?? null);
+    },
+    [clearClickGuardTimeout],
+  );
 
   /*
   놓은 직후의 click까지 막은 뒤 풀어, 다음 클릭은 평소처럼 카드를 연다.
   */
   const releaseClickGuard = useCallback(() => {
-    window.setTimeout(() => {
+    clearClickGuardTimeout();
+    clickGuardTimeoutRef.current = window.setTimeout(() => {
+      clickGuardTimeoutRef.current = null;
       window.removeEventListener("click", preventClick, { capture: true });
     }, CLICK_GUARD_DURATION_MS);
-  }, []);
+  }, [clearClickGuardTimeout]);
 
   const handleDragEnd = useCallback(
     (event: DragEndEvent) => {
