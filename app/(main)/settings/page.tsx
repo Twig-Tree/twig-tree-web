@@ -1,3 +1,4 @@
+import { ResetOnboardingButton } from "@/src/features/onboarding";
 import { ThemeSelector } from "@/src/features/theme/select-theme";
 import { VoiceSettingsForm } from "@/src/features/voice/select-voice";
 import { SettingsSection } from "@/src/widgets/settings";
@@ -29,6 +30,13 @@ export default function SettingsPage() {
           description="강의를 읽어 주는 음성을 고릅니다."
         >
           <VoiceSettingsForm />
+        </SettingsSection>
+
+        <SettingsSection
+          title="안내"
+          description="닫은 기능 안내를 처음부터 다시 봅니다."
+        >
+          <ResetOnboardingButton className="self-start" />
         </SettingsSection>
       </div>
     </div>

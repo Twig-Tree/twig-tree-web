@@ -1,4 +1,4 @@
-import type { ButtonHTMLAttributes } from "react";
+import type { ButtonHTMLAttributes, Ref } from "react";
 
 /*
 잠긴 모습은 disabled와 aria-disabled 두 경우 모두에 걸어 준다.
@@ -30,6 +30,7 @@ export interface IconButtonProps extends Omit<
   "aria-label": string; // 아이콘만 있는 버튼이므로 스크린 리더용 이름을 반드시 지정한다
   size?: keyof typeof sizeStyles; // 버튼과 내부 아이콘의 크기. 지정하지 않으면 md 사용
   variant?: keyof typeof variantStyles; // 버튼의 색상과 상태 스타일을 선택. 지정하지 않으면 ghost 사용
+  ref?: Ref<HTMLButtonElement>; // 버튼 요소가 필요한 쪽에 넘긴다. 예: 기능 안내가 가리킬 버튼
 }
 
 /*

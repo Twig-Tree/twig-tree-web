@@ -1,4 +1,4 @@
-import type { ButtonHTMLAttributes } from "react";
+import type { ButtonHTMLAttributes, Ref } from "react";
 
 const variantStyles = {
   primary:
@@ -15,6 +15,7 @@ const variantStyles = {
 
 export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: keyof typeof variantStyles; // 버튼의 색상과 상태 스타일을 선택. 지정하지 않으면 secondary 사용
+  ref?: Ref<HTMLButtonElement>; // 버튼 요소가 필요한 쪽에 넘긴다. 예: 기능 안내가 가리킬 버튼
 }
 
 /*

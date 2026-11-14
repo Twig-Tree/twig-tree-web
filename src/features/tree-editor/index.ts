@@ -1,5 +1,6 @@
 export { nodeTypes, edgeTypes, MIN_ZOOM } from "./constants/flowConfig";
 export { EditorToolbar } from "./ui/EditorToolbar";
+export type { EditorToolbarGroupId } from "./ui/EditorToolbar";
 export { EmptyTreeGuide } from "./ui/EmptyTreeGuide";
 export { MemoSidePanel } from "./ui/MemoSidePanel";
 export { LecturePlayer } from "./ui/LecturePlayer";
@@ -17,6 +18,7 @@ export type { GenerateLectureResult } from "./model/lecture/useGenerateLecture";
 export { useIsLectureActive } from "./model/lecture/lectureStore";
 export { NodeContextMenu } from "./ui/NodeContextMenu";
 export { NodeActionToolbar } from "./ui/NodeActionToolbar";
+export type { NodeActionId } from "./lib/shortcuts/nodeActionShortcuts";
 export { ShortcutGuide } from "./ui/ShortcutGuide";
 export { useNodeActions } from "./model/node-action/useNodeActions";
 export { useNodeActionShortcuts } from "./model/node-action/useNodeActionShortcuts";

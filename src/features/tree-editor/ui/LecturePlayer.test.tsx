@@ -141,6 +141,48 @@ describe("LecturePlayer", () => {
     ).not.toBeInTheDocument();
   });
 
+  it("보이는 강의 만들기 버튼을 generateButtonRef로 넘기고, 생성 패널이 열리면 null을 넘긴다", async () => {
+    setWorldGeographyTree();
+    const generateButtonRef = vi.fn();
+    const { wrapper } = createQueryWrapper();
+
+    const { rerender } = render(
+      <LecturePlayer
+        script={null}
+        isGeneratedScript={false}
+        onRevealNodes={onRevealNodes}
+        onResetCamera={onResetCamera}
+        onBeforeCollapseRestore={onBeforeCollapseRestore}
+        panelLayoutKey="panels"
+        generateButtonRef={generateButtonRef}
+      />,
+      { wrapper },
+    );
+
+    expect(generateButtonRef).toHaveBeenLastCalledWith(
+      screen.getByRole("button", { name: "강의 만들기" }),
+    );
+
+    rerender(
+      <LecturePlayer
+        script={script}
+        isGeneratedScript={false}
+        onRevealNodes={onRevealNodes}
+        onResetCamera={onResetCamera}
+        onBeforeCollapseRestore={onBeforeCollapseRestore}
+        panelLayoutKey="panels"
+        generateButtonRef={generateButtonRef}
+      />,
+    );
+
+    const iconButton = screen.getByRole("button", { name: "강의 만들기" });
+    expect(iconButton).not.toHaveTextContent("강의 만들기");
+    expect(generateButtonRef).toHaveBeenLastCalledWith(iconButton);
+
+    await userEvent.click(iconButton);
+    expect(generateButtonRef.mock.lastCall?.[0]).toBeNull(); // React가 ref를 뗄 때 null 뒤에 인자를 더 넘기므로 첫 인자만 본다.
+  });
+
   it("강의 중 노드 이름이 바뀌어 대본이 없어져도 진행 중인 강의를 유지한다", async () => {
     setWorldGeographyTree();
     const { rerender } = renderPlayer();

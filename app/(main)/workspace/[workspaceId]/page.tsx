@@ -36,11 +36,18 @@ import {
   useTreeStore,
   useNodeTransition,
   useVisibleElements,
+  type EditorToolbarGroupId,
+  type NodeActionId,
   type NodeResult,
 } from "@/src/features/tree-editor";
 import { use, useCallback, useRef, useState } from "react";
 import { useGetTreeQuery } from "@/src/entities/tree/model/queries";
 import { useGetWorkspaceQuery } from "@/src/entities/workspace";
+import {
+  CanvasElementHint,
+  CanvasOnboardingHint,
+  CanvasOnboardingTour,
+} from "@/src/features/onboarding";
 import { PromptComposer } from "@/src/features/prompt/compose-prompt";
 import { useFillWorkspaceTree } from "@/src/features/prompt/fill-workspace-tree";
 import { isClientError } from "@/src/shared/api/httpErrors";
@@ -206,6 +213,43 @@ function LayoutFlow({ workspaceId, treeId }: LayoutFlowProps) {
     onDelete: handleDeleteNode,
   });
 
+  /*
+  노드 동작 안내가 단계마다 가리킬 툴바 버튼. 안내의 단계 이름표가 동작 ID와 같다.
+  툴바가 다른 노드로 옮겨 가 버튼이 다시 붙어도 요소가 같으면 state를 바꾸지 않는다.
+  */
+  const [nodeActionToolbarElement, setNodeActionToolbarElement] =
+    useState<HTMLDivElement | null>(null);
+  const [nodeActionButtons, setNodeActionButtons] = useState<
+    Partial<Record<NodeActionId, HTMLButtonElement | null>>
+  >({});
+  const handleNodeActionButtonChange = useCallback(
+    (actionId: NodeActionId, element: HTMLButtonElement | null) =>
+      setNodeActionButtons((buttons) =>
+        buttons[actionId] === element
+          ? buttons
+          : { ...buttons, [actionId]: element },
+      ),
+    [],
+  );
+
+  /*
+  편집 도구 모음 안내가 단계마다 가리킬 버튼 묶음. 안내의 단계 이름표가 묶음 ID와 같다.
+  */
+  const [editorToolbarElement, setEditorToolbarElement] =
+    useState<HTMLDivElement | null>(null);
+  const [editorToolbarGroups, setEditorToolbarGroups] = useState<
+    Partial<Record<EditorToolbarGroupId, HTMLDivElement | null>>
+  >({});
+  const handleEditorToolbarGroupChange = useCallback(
+    (groupId: EditorToolbarGroupId, element: HTMLDivElement | null) =>
+      setEditorToolbarGroups((groups) =>
+        groups[groupId] === element
+          ? groups
+          : { ...groups, [groupId]: element },
+      ),
+    [],
+  );
+
   const { isPanelOpen, isPanelOverlay, openPanel, closePanel } =
     useResponsivePanelVisibility();
 
@@ -256,6 +300,15 @@ function LayoutFlow({ workspaceId, treeId }: LayoutFlowProps) {
   */
   const isLectureActive = useIsLectureActive();
 
+  /*
+  노드를 고르기 전의 안내는 루트 노드를 가리킨다. 루트는 들어오는 엣지가 없는 노드이고 접어도 숨지 않는다.
+  */
+  const rootClientId = useTreeStore((state) => {
+    const childIds = new Set(state.edges.map((edge) => edge.target));
+
+    return state.nodes.find((node) => !childIds.has(node.id))?.id ?? null;
+  });
+
   const {
     contextMenu,
     handleNodeContextMenu,
@@ -269,6 +322,8 @@ function LayoutFlow({ workspaceId, treeId }: LayoutFlowProps) {
   const { script: lectureScript, isGenerated: isGeneratedLecture } =
     useLectureScript();
   const [isLectureGeneratorOpen, setIsLectureGeneratorOpen] = useState(false);
+  const [lectureGenerateButton, setLectureGenerateButton] =
+    useState<HTMLButtonElement | null>(null); // 강의 만들기 안내가 가리킨다. 강의 중·종료 화면과 생성 패널이 열린 동안에는 버튼이 없어 null이다.
   const panelLayoutKey = `${isPanelOpen}:${isPanelOverlay}:${isMemoPanelOpen}:${isLectureGeneratorOpen}`;
   const { handleUserMoveStart } = usePanelCameraAlignment(panelLayoutKey);
 
@@ -377,8 +432,52 @@ function LayoutFlow({ workspaceId, treeId }: LayoutFlowProps) {
               clientId={nodeActionTargetClientId}
               blockReasons={nodeActionBlockReasons}
               onRunAction={runNodeAction}
+              toolbarRef={setNodeActionToolbarElement}
+              onActionButtonChange={handleNodeActionButtonChange}
             />
           ) : null}
+
+          {/*
+          노드를 고르면 고르기 전 안내는 할 일을 마친 것이라 닫은 것으로 기록하고, 선택 툴바 안내로 넘어간다.
+          강의 중에는 노드 동작을 쓸 수 없어 둘 다 숨긴다. 선택 툴바 대상은 강의 중 이미 null이다.
+
+          루트 안내는 NodeToolbar의 기준점만 노드를 따라가고 실제 카드는 캔버스 안으로 보정한다.
+          고른 뒤 안내는 툴바 아래에 띄우고 꼬리로 툴바 버튼을 하나씩 가리킨다. 선택을 풀면 숨고, 다시 고르면 처음부터 보인다.
+          */}
+          <CanvasOnboardingHint
+            scenarioId="canvas-root-node"
+            nodeId={rootClientId}
+            isReached={nodeActionTargetClientId === null && !isLectureActive}
+            placement="bottom"
+            align="start"
+            isCompleted={nodeActionTargetClientId !== null}
+          />
+          <CanvasOnboardingTour
+            scenarioId="canvas-node-actions"
+            isReached={nodeActionTargetClientId !== null}
+            anchor={nodeActionToolbarElement}
+            targets={nodeActionButtons}
+          />
+          {/*
+          편집 도구 모음 안내는 목록에서 노드 동작 안내 뒤에 있어, 그 안내를 닫은 다음에 보인다.
+          도구 모음이 캔버스 오른쪽 끝에 붙어 있어 카드도 오른쪽 끝에 맞춘다.
+          */}
+          <CanvasOnboardingTour
+            scenarioId="canvas-editor-toolbar"
+            isReached={rootClientId !== null && !isLectureActive}
+            anchor={editorToolbarElement}
+            targets={editorToolbarGroups}
+            placement="bottom-end"
+          />
+          {/*
+          강의 만들기 안내는 편집 도구 모음 안내 다음이다. 버튼이 있을 때만 도달하고, 생성 패널을 열면 할 일을 마친 것이라 기록한다.
+          */}
+          <CanvasElementHint
+            scenarioId="canvas-lecture"
+            anchor={lectureGenerateButton}
+            isReached={!isLectureActive}
+            isCompleted={isLectureGeneratorOpen}
+          />
 
           {isPanelOpen ? null : (
             <Panel position="top-left">
@@ -404,12 +503,18 @@ function LayoutFlow({ workspaceId, treeId }: LayoutFlowProps) {
               isExpandLevelDisabled={isExpandLevelDisabled}
               isUndoDisabled={!canUndo || isMutating}
               isRedoDisabled={!canRedo || isMutating}
+              toolbarRef={setEditorToolbarElement}
+              onGroupElementChange={handleEditorToolbarGroupChange}
             />
           </Panel>
 
           {/*
           지금 트리에서 만든 강의를, 없으면 트리에 맞는 데모 대본을 재생한다. 서버가 강의를 저장하게 되면 조회 결과로 바꾼다.
           노드가 없으면 강의로 설명할 대상이 없으므로 그리지 않는다. 빈 트리 안내가 그 자리의 시작점을 맡는다.
+
+          좌우 패널을 뺀 캔버스 폭 안에서 가운데에 두려고 left·right를 정하고 mx-auto로 맞춘다.
+          React Flow의 가운데 패널 CSS(left 50%와 transform, margin 15px)는 CSS layer 밖이라 Tailwind 유틸리티보다 앞서므로 !로 덮는다.
+          translate-x-0은 transform이 아니라 translate 속성을 바꿔 React Flow의 transform을 지우지 못한다.
           */}
           {nodes.length === 0 ? null : (
             <Panel
@@ -418,7 +523,7 @@ function LayoutFlow({ workspaceId, treeId }: LayoutFlowProps) {
                 left: hasLeftPanelOffset ? 256 : 0,
                 right: hasRightPanelOffset ? 360 : 0,
               }}
-              className="!pointer-events-none !translate-x-0 mx-auto flex w-auto max-w-2xl justify-center px-4"
+              className="!pointer-events-none ![transform:none] !mx-auto flex w-auto max-w-2xl justify-center px-4"
             >
               <LecturePlayer
                 script={lectureScript}
@@ -428,6 +533,7 @@ function LayoutFlow({ workspaceId, treeId }: LayoutFlowProps) {
                 onBeforeCollapseRestore={fitTreeViewAfterNextLayout}
                 panelLayoutKey={panelLayoutKey}
                 onGeneratorOpenChange={setIsLectureGeneratorOpen}
+                generateButtonRef={setLectureGenerateButton}
               />
             </Panel>
           )}
