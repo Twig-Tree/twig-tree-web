@@ -159,6 +159,40 @@ describe("useOnboardingHint", () => {
     expect(result.current.isVisible).toBe(false);
   });
 
+  it("저장에 실패한 닫기는 화면을 떠났다 다시 와도 이 탭에서 유지된다", async () => {
+    vi.spyOn(Storage.prototype, "setItem").mockImplementation(() => {
+      throw new Error("quota");
+    });
+    const { useOnboardingHint } = await loadModules();
+
+    const firstView = renderHook(() => useOnboardingHint(first.id, true));
+    act(() => firstView.result.current.dismiss());
+    firstView.unmount();
+
+    const { result } = renderHook(() => useOnboardingHint(first.id, true));
+
+    expect(result.current.isVisible).toBe(false);
+  });
+
+  it("저장소에서 지우지 못한 초기화도 화면을 떠났다 다시 와도 이 탭에서 유지된다", async () => {
+    window.localStorage.setItem(
+      ONBOARDING_STORAGE_KEY,
+      JSON.stringify({ [first.id]: first.version }),
+    );
+    vi.spyOn(Storage.prototype, "removeItem").mockImplementation(() => {
+      throw new Error("blocked");
+    });
+    const { useOnboardingHint, resetSeenScenarios } = await loadModules();
+
+    const firstView = renderHook(() => useOnboardingHint(first.id, true));
+    act(() => resetSeenScenarios());
+    firstView.unmount();
+
+    const { result } = renderHook(() => useOnboardingHint(first.id, true));
+
+    expect(result.current.isVisible).toBe(true);
+  });
+
   it("권한 동작을 해 보면 닫은 것으로 기록한다", async () => {
     const { useOnboardingHint } = await loadModules();
 

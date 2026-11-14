@@ -12,6 +12,7 @@ import {
 도달한 상황은 화면이 마운트된 동안의 사실이라 저장하지 않는다.
 */
 let seenRecord: OnboardingSeenRecord | null = null; // 아직 저장소를 읽지 않았으면 null
+let hasUnsavedSeenRecord = false; // 사본의 마지막 변경을 저장소에 쓰지 못했으면 true
 let reachedScenarioIds: ReadonlySet<OnboardingScenarioId> = new Set();
 const listeners = new Set<() => void>();
 
@@ -77,7 +78,7 @@ const loadSeenRecordFromStorage = (): void => {
 
 /*
 함수 이름 : writeSeenRecord
-기능 : 본 기록을 바꾸고 저장한 뒤 구독자에게 알린다. 저장에 실패해도 사본은 바뀐다.
+기능 : 본 기록을 바꾸고 저장한 뒤 구독자에게 알린다. 저장에 실패해도 사본은 바뀌고, 저장하지 못했다는 표시를 남긴다.
 인자 : OnboardingSeenRecord record -> 새 본 기록
 반환값 : 없음
 */
@@ -93,8 +94,10 @@ const writeSeenRecord = (record: OnboardingSeenRecord): void => {
         JSON.stringify(record),
       );
     }
+
+    hasUnsavedSeenRecord = false;
   } catch {
-    // 저장에 실패하면 새로고침 뒤 안내가 다시 보일 뿐 지금 탭은 영향받지 않는다.
+    hasUnsavedSeenRecord = true; // 새로고침 뒤에는 안내가 다시 보이지만, 지금 탭은 사본을 지킨다.
   }
 
   notifyListeners();
@@ -200,6 +203,7 @@ const handleStorageEvent = (event: StorageEvent): void => {
 
   if (!isClearAll && event.key !== ONBOARDING_STORAGE_KEY) return;
 
+  hasUnsavedSeenRecord = false; // 다른 탭이 저장한 값이 더 새롭다.
   loadSeenRecordFromStorage();
   notifyListeners();
 };
@@ -208,6 +212,7 @@ const handleStorageEvent = (event: StorageEvent): void => {
 함수 이름 : subscribeOnboarding
 기능 : 본 기록이나 도달한 상황이 바뀔 때 호출할 함수를 등록한다. 구독자가 있는 동안만 다른 탭의 변경을 듣는다.
 듣지 않던 동안 다른 탭이 바꾼 값은 이벤트로 받지 못하므로, 첫 구독자가 생길 때 저장소를 다시 읽는다.
+사본의 변경을 저장하지 못했으면 다시 읽지 않는다. 저장소에는 그 전 값이 남아 있어, 읽으면 이 탭에서 닫은 안내가 다시 뜬다.
 인자 : () => void onStoreChange -> 바뀌면 호출할 함수
 반환값 : 구독 해제 함수
 */
@@ -216,7 +221,9 @@ export const subscribeOnboarding = (
 ): (() => void) => {
   if (listeners.size === 0) {
     window.addEventListener("storage", handleStorageEvent);
-    if (seenRecord !== null) loadSeenRecordFromStorage();
+    if (seenRecord !== null && !hasUnsavedSeenRecord) {
+      loadSeenRecordFromStorage();
+    }
   }
 
   listeners.add(onStoreChange);
