@@ -5,6 +5,7 @@ import { MAX_PROMPT_MESSAGE_LENGTH } from "@/src/entities/tree";
 import { ChatInput } from "@/src/shared/ui/chat-input";
 import type { PromptDraft } from "../model/types";
 import { useComposePrompt } from "../model/useComposePrompt";
+import { useFileDropZone } from "../model/useFileDropZone";
 import { AttachFileButton } from "./AttachFileButton";
 import { RejectedFilesNotice } from "./RejectedFilesNotice";
 
@@ -16,7 +17,7 @@ interface PromptComposerProps {
 
 /*
 함수 이름 : PromptComposer
-기능 : 첨부 파일 목록, 안내 문구, 채팅 입력 바를 하나의 입력 영역으로 조합한다.
+기능 : 첨부 파일 목록, 안내 문구, 채팅 입력 바를 하나의 입력 영역으로 조합하고, 영역 전체를 파일 드롭 대상으로 만든다.
 인자 : PromptComposerProps
 반환값 : 프롬프트 작성 영역
 
@@ -42,8 +43,17 @@ export function PromptComposer({
     text,
   } = useComposePrompt({ isSubmitting, onSubmit });
 
+  /*
+  드롭은 클립 버튼과 같은 addFiles로 보낸다. 확장자·크기·개수 검사와 생성 중 잠금이
+  한곳에 있어 첨부 경로가 늘어도 규칙이 갈리지 않는다.
+  */
+  const { dropZoneProps, isDraggingOver } = useFileDropZone({
+    isDisabled: isAttachDisabled,
+    onDrop: addFiles,
+  });
+
   return (
-    <div className="flex flex-col gap-2">
+    <div className="relative flex flex-col gap-2" {...dropZoneProps}>
       {attachments.length > 0 ? (
         <ul className="flex flex-wrap gap-2">
           {attachments.map((attachment) => (
@@ -95,6 +105,27 @@ export function PromptComposer({
           지시문은 최대 {MAX_PROMPT_MESSAGE_LENGTH}자까지 보낼 수 있습니다. 현재{" "}
           {text.trim().length}자입니다.
         </p>
+      ) : null}
+
+      {/*
+      끄는 동안 영역 전체를 덮어 어디에 놓아도 첨부된다는 것을 보여 준다. 잠겨 있으면
+      첨부 버튼과 같은 이유를 띄워, 놓기 전에 받지 않는다는 것을 알 수 있게 한다.
+
+      pointer-events-none으로 두어 덮개가 drag 이벤트의 대상이 되지 않게 한다. 대상이 되면
+      덮개가 나타나는 순간 아래 요소에서 dragleave가 발생해 강조가 깜빡인다.
+      마우스로만 일어나는 일이라 스크린 리더에는 알리지 않는다.
+      */}
+      {isDraggingOver ? (
+        <div
+          aria-hidden
+          className={`pointer-events-none absolute inset-0 flex items-center justify-center rounded-card border-2 border-dashed bg-surface px-4 text-center text-sm ${
+            isAttachDisabled
+              ? "border-line-strong text-content-muted"
+              : "border-accent-line text-content-secondary"
+          }`}
+        >
+          {isAttachDisabled ? attachDisabledReason : "여기에 놓아 파일 첨부"}
+        </div>
       ) : null}
     </div>
   );

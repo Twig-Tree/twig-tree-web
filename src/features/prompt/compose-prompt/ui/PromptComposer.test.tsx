@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, it, expect, vi } from "vitest";
 import { MAX_ATTACHMENT_SIZE_BYTES } from "@/src/entities/attachment";
@@ -34,6 +34,29 @@ const renderPromptComposer = ({
     onSubmit,
     user: userEvent.setup({ applyAccept }),
   };
+};
+
+/*
+jsdom에는 DataTransfer가 없어 드래그 이벤트에 필요한 필드만 흉내 낸다.
+파일 탐색기에서 끌어온 경우에만 types에 "Files"가 들어 있다.
+*/
+const createFileTransfer = (files: File[]) => ({
+  dropEffect: "none",
+  files,
+  types: ["Files"],
+});
+
+/*
+드롭 영역은 입력창을 감싼 요소다. 입력창에서 이벤트를 보내 버블링으로 닿게 해,
+사용자가 영역 안의 아무 곳에나 놓는 상황을 재현한다.
+*/
+const dropFiles = (files: File[]) => {
+  const target = screen.getByRole("textbox");
+  const dataTransfer = createFileTransfer(files);
+
+  fireEvent.dragEnter(target, { dataTransfer });
+  fireEvent.dragOver(target, { dataTransfer });
+  fireEvent.drop(target, { dataTransfer });
 };
 
 const getAttachButton = () => screen.getByRole("button", { name: "파일 첨부" });
@@ -216,5 +239,104 @@ describe("PromptComposer", () => {
 
     expect(screen.queryByText(/지시문은 최대/)).not.toBeInTheDocument();
     expect(getSubmitButton()).toBeEnabled();
+  });
+
+  describe("파일 드롭", () => {
+    it("입력 영역에 놓은 파일이 첨부 목록에 보인다", () => {
+      renderPromptComposer();
+
+      dropFiles([createFile("보고서.hwp")]);
+
+      expect(screen.getByText("보고서.hwp")).toBeInTheDocument();
+      expect(getAttachButton()).toHaveAttribute("aria-disabled", "true");
+    });
+
+    it("파일을 끌어 올리면 안내 덮개가 나타나고, 벗어나면 사라진다", () => {
+      renderPromptComposer();
+      const target = screen.getByRole("textbox");
+      const dataTransfer = createFileTransfer([createFile("보고서.hwp")]);
+
+      fireEvent.dragEnter(target, { dataTransfer });
+      expect(screen.getByText("여기에 놓아 파일 첨부")).toBeInTheDocument();
+
+      fireEvent.dragLeave(target, { dataTransfer });
+      expect(
+        screen.queryByText("여기에 놓아 파일 첨부"),
+      ).not.toBeInTheDocument();
+    });
+
+    /*
+    영역 안의 자식 요소를 지날 때마다 dragenter와 dragleave가 짝지어 발생한다.
+    한 번 나갔다고 강조를 끄면 버튼 위를 지날 때마다 깜빡인다.
+    */
+    it("영역 안의 다른 요소로 옮겨 가도 덮개가 유지된다", () => {
+      renderPromptComposer();
+      const dataTransfer = createFileTransfer([createFile("보고서.hwp")]);
+
+      fireEvent.dragEnter(screen.getByRole("textbox"), { dataTransfer });
+      fireEvent.dragEnter(getAttachButton(), { dataTransfer });
+      fireEvent.dragLeave(screen.getByRole("textbox"), { dataTransfer });
+
+      expect(screen.getByText("여기에 놓아 파일 첨부")).toBeInTheDocument();
+    });
+
+    it("파일이 아닌 항목을 끌면 반응하지 않는다", () => {
+      renderPromptComposer();
+
+      fireEvent.dragEnter(screen.getByRole("textbox"), {
+        dataTransfer: { files: [], types: ["text/plain"] },
+      });
+
+      expect(
+        screen.queryByText("여기에 놓아 파일 첨부"),
+      ).not.toBeInTheDocument();
+    });
+
+    it("여러 파일을 놓으면 하나만 첨부하고 나머지는 개수 안내로 알린다", () => {
+      renderPromptComposer();
+
+      dropFiles([createFile("보고서.hwp"), createFile("요약.pdf")]);
+
+      expect(screen.getByText("보고서.hwp")).toBeInTheDocument();
+
+      const notice = screen.getByRole("alert");
+      expect(notice).toHaveTextContent("첨부하지 않은 파일: 요약.pdf");
+      expect(notice).toHaveTextContent("첨부는 1개까지 가능합니다.");
+    });
+
+    it("지원하지 않는 형식을 놓으면 확장자 안내가 뜬다", () => {
+      renderPromptComposer();
+
+      dropFiles([createFile("shot.png")]);
+
+      expect(screen.getByRole("alert")).toHaveTextContent(
+        "첨부할 수 없는 형식입니다: shot.png",
+      );
+    });
+
+    it("첨부가 잠겨 있으면 덮개에 이유를 띄우고 놓아도 받지 않는다", () => {
+      renderPromptComposer();
+      dropFiles([createFile("보고서.hwp")]);
+
+      const dataTransfer = createFileTransfer([createFile("요약.pdf")]);
+      fireEvent.dragEnter(screen.getByRole("textbox"), { dataTransfer });
+
+      expect(
+        screen.getByText("첨부는 1개까지 가능합니다."),
+      ).toBeInTheDocument();
+
+      fireEvent.drop(screen.getByRole("textbox"), { dataTransfer });
+
+      expect(screen.queryByText("요약.pdf")).not.toBeInTheDocument();
+      expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+    });
+
+    it("생성 중에는 놓아도 받지 않는다", () => {
+      renderPromptComposer({ isSubmitting: true });
+
+      dropFiles([createFile("보고서.hwp")]);
+
+      expect(screen.queryByText("보고서.hwp")).not.toBeInTheDocument();
+    });
   });
 });
