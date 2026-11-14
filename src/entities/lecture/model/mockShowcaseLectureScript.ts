@@ -70,12 +70,12 @@ type ShowcaseNodeKey = keyof typeof NODE_PATHS;
 const BRANCH_BADGE_MS = 900; // 갈래 하나에 번호를 붙이고 다음 갈래로 넘어가기까지의 시간
 
 /*
-발표 시연용 강의. 강의 연출을 모두 한 번씩 보여 주도록 짰다.
-- 시작: 루트에서 트리가 자라고(grow), 내레이션이 한 글자씩 자막으로 나온다
-- 갈래 소개: 큰 갈래마다 튀어 오르며(pop) 번호 꼬리표(badge)가 붙는다
-- 자료구조: 나머지를 흐리고(dim) 혜성(trace comet)이 깊은 경로를 따라 내려간 뒤 핵심 노드를 숨쉬게(pulse) 한다
-- 퀴즈: 오답은 흔들고(shake) 정답은 반짝인다(sparkle)
-- 마무리: 혜성이 리프에서 루트로 거슬러 오르고 루트가 반짝인다
+발표 시연용 강의. 보편적인 컴퓨터 사이언스 해설을 따라가면서 강의 연출을 모두 한 번씩 보여 준다.
+- 시작: 전체 개념이 나타나고(grow), 컴퓨터 사이언스의 공통 목표를 강조한다(pulse)
+- 핵심 영역: 세 분야를 차례로 소개하며(pop) 번호 꼬리표(badge)를 붙인다
+- 자료구조: 관련 개념만 남기고(dim) 트리에서 힙으로 이어지는 포함 관계를 따라간다(trace comet)
+- 퀴즈: 오답은 흔들고(shake) 정답은 반짝인 뒤(sparkle), 퀵 정렬까지 연결한다(trace comet)
+- 마무리: 힙에서 컴퓨터 사이언스까지 개념의 포함 관계를 거슬러 올라가고 루트를 강조한다
 
 같은 루트 이름의 컴퓨터 사이언스 데모보다 노드가 많아, 이 트리의 노드가 모두 있을 때만 연결된다.
 그래서 DEMO_LECTURES에서 그 데모보다 앞에 둔다.
@@ -100,8 +100,8 @@ export const SHOWCASE_DEMO_LECTURE = createDemoLecture(
             {
               id: "showcase-intro-grow",
               narration: {
-                text: "오늘은 컴퓨터 사이언스라는 큰 나무가 어떻게 뻗어 나가는지 함께 보겠습니다.",
-                fallbackDurationMs: 4600,
+                text: "컴퓨터 사이언스는 정보를 어떻게 저장하고 처리할지 연구합니다. 먼저 전체 구성을 살펴보겠습니다.",
+                fallbackDurationMs: 5000,
               },
               animation: {
                 type: "group",
@@ -124,8 +124,8 @@ export const SHOWCASE_DEMO_LECTURE = createDemoLecture(
             {
               id: "showcase-intro-root",
               narration: {
-                text: "뿌리에서 시작한 지식은 가지를 따라 점점 구체적인 개념으로 나뉩니다.",
-                fallbackDurationMs: 4400,
+                text: "그 중심에는 문제를 정확하고 효율적으로 해결한다는 공통 목표가 있습니다.",
+                fallbackDurationMs: 4200,
               },
               animation: {
                 type: "highlight",
@@ -143,8 +143,8 @@ export const SHOWCASE_DEMO_LECTURE = createDemoLecture(
             {
               id: "showcase-branches-number",
               narration: {
-                text: "큰 가지는 세 개입니다. 자료구조, 알고리즘, 그리고 운영체제입니다.",
-                fallbackDurationMs: 4600,
+                text: "핵심 영역은 세 가지입니다. 데이터를 정리하는 자료구조, 해법을 설계하는 알고리즘, 실행 환경을 관리하는 운영체제입니다.",
+                fallbackDurationMs: 6500,
               },
               animation: {
                 type: "group",
@@ -181,8 +181,8 @@ export const SHOWCASE_DEMO_LECTURE = createDemoLecture(
             {
               id: "showcase-data-structure-path",
               narration: {
-                text: "먼저 자료구조 가지를 따라 깊이 내려가 보겠습니다.",
-                fallbackDurationMs: 3600,
+                text: "자료구조 가운데 트리는 계층 관계를 표현하고, 힙은 그 구조를 활용해 우선순위를 빠르게 다룹니다.",
+                fallbackDurationMs: 5400,
               },
               animation: {
                 type: "group",
@@ -226,8 +226,8 @@ export const SHOWCASE_DEMO_LECTURE = createDemoLecture(
             {
               id: "showcase-data-structure-tree",
               narration: {
-                text: "트리는 데이터를 부모와 자식의 계층으로 담는 구조입니다.",
-                fallbackDurationMs: 4000,
+                text: "트리의 핵심은 각 데이터가 부모와 자식의 관계로 연결된다는 점입니다.",
+                fallbackDurationMs: 4200,
               },
               animation: {
                 type: "group",
@@ -258,8 +258,8 @@ export const SHOWCASE_DEMO_LECTURE = createDemoLecture(
             {
               id: "showcase-quiz-question",
               narration: {
-                text: "그렇다면 값을 정해진 순서로 늘어놓는 일은 어느 쪽일까요?",
-                fallbackDurationMs: 3800,
+                text: "이번에는 알고리즘입니다. 여러 값을 기준에 맞춰 배치하려면 정렬과 탐색 중 무엇을 사용해야 할까요?",
+                fallbackDurationMs: 5700,
               },
               animation: {
                 type: "group",
@@ -305,8 +305,8 @@ export const SHOWCASE_DEMO_LECTURE = createDemoLecture(
             {
               id: "showcase-quiz-wrong",
               narration: {
-                text: "탐색은 원하는 값을 찾아내는 일이라 정답이 아닙니다.",
-                fallbackDurationMs: 3600,
+                text: "탐색은 필요한 값을 찾는 방법입니다. 값을 순서대로 배치하는 답은 아닙니다.",
+                fallbackDurationMs: 4400,
               },
               animation: {
                 type: "group",
@@ -333,8 +333,8 @@ export const SHOWCASE_DEMO_LECTURE = createDemoLecture(
             {
               id: "showcase-quiz-right",
               narration: {
-                text: "정답은 정렬입니다. 퀵 정렬이 대표적인 방법입니다.",
-                fallbackDurationMs: 3800,
+                text: "정답은 정렬입니다. 퀵 정렬은 기준값을 중심으로 데이터를 나누며 정렬을 반복합니다.",
+                fallbackDurationMs: 5200,
               },
               animation: {
                 type: "group",
@@ -385,8 +385,8 @@ export const SHOWCASE_DEMO_LECTURE = createDemoLecture(
             {
               id: "showcase-outro-review",
               narration: {
-                text: "마지막으로 힙에서 뿌리까지 거슬러 올라가며 정리해 보겠습니다.",
-                fallbackDurationMs: 4200,
+                text: "지금 본 힙은 트리라는 자료구조에 속하고, 자료구조는 컴퓨터 사이언스의 주요 영역으로 이어집니다.",
+                fallbackDurationMs: 5400,
               },
               animation: {
                 type: "group",
@@ -413,8 +413,8 @@ export const SHOWCASE_DEMO_LECTURE = createDemoLecture(
             {
               id: "showcase-outro-end",
               narration: {
-                text: "가지를 따라가면 복잡한 지식도 한눈에 보입니다. 감사합니다.",
-                fallbackDurationMs: 4000,
+                text: "개념 사이의 관계를 함께 보면, 복잡한 내용도 더 빠르고 선명하게 이해할 수 있습니다.",
+                fallbackDurationMs: 4800,
               },
               animation: {
                 type: "highlight",
