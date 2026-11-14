@@ -60,10 +60,10 @@ const ARROW_CENTER_CLASS_NAMES: Record<CoachmarkSide, string> = {
 Escape는 focus가 카드 안에 있을 때만 닫는다. 노드 툴바·메모 패널·모달이 이미 전역에서 Escape를 쓴다.
 카드 본문은 클릭을 아래로 흘려보내고 버튼만 받는다. 안내가 가리키는 노드나 입력창을 덮어도 그 자리를 그대로 누를 수 있다.
 
-step을 받으면 제목 위에 번호를, 아래에 이전·다음 버튼을 그린다. 마지막 단계에서는 다음 자리에 완료가 오고, 완료는 닫기와 같다.
+step을 받으면 제목 위에 번호를, 제목 오른쪽에 이전·다음 버튼을 그린다. 마지막 단계에서는 다음 자리에 완료가 오고, 완료는 닫기와 같다.
 다음과 완료는 같은 버튼 요소라, 다음을 눌러 마지막 단계에 와도 focus가 그 자리에 남는다.
-단계마다 문구 길이가 달라도 버튼이 같은 자리에 오도록 폭과 문구 높이를 고정한다. 다음을 연달아 누르는 마우스가 빗나가지 않게 하기 위해서다.
-버튼 줄은 빈 곳도 클릭을 받는다. 버튼을 살짝 빗나간 클릭이 아래 노드를 누르지 않게 한다.
+단계마다 문구 길이가 달라도 버튼이 같은 자리에 오도록 폭을 고정하고 버튼을 문구 위에 둔다. 다음을 연달아 누르는 마우스가 빗나가지 않게 하기 위해서다.
+버튼 묶음은 빈 틈도 클릭을 받는다. 버튼을 살짝 빗나간 클릭이 아래 노드를 누르지 않게 한다.
 */
 export function CoachmarkCard({
   title,
@@ -162,47 +162,49 @@ export function CoachmarkCard({
             </span>
           </p>
         ) : null}
-        {title ? (
-          <p className={`${step ? "" : "pr-6"} font-semibold leading-snug`}>
-            {title}
-          </p>
+        {step ? (
+          /*
+          이전·다음은 문구 위인 제목 줄에 둔다. 문구 줄 수가 단계마다 달라도 버튼 자리가 움직이지 않는다.
+          */
+          <div className="flex items-center justify-between gap-2">
+            <p className="min-w-0 font-semibold leading-snug">{title}</p>
+            <div className="pointer-events-auto flex shrink-0 gap-1">
+              {onPrevious ? (
+                <button
+                  type="button"
+                  onClick={handlePrevious}
+                  className="pointer-events-auto h-7 rounded-control px-2.5 text-xs font-semibold opacity-80 hover:opacity-100 focus-visible:opacity-100 focus-visible:outline-2 focus-visible:outline-focus"
+                >
+                  이전
+                </button>
+              ) : null}
+              <button
+                ref={primaryButtonRef}
+                type="button"
+                onClick={(event) => {
+                  if (onNext) {
+                    onNext();
+                    return;
+                  }
+
+                  const card =
+                    event.currentTarget.closest<HTMLElement>('[role="note"]');
+                  if (card) dismiss(card);
+                }}
+                className="pointer-events-auto h-7 rounded-control bg-accent px-3 text-xs font-semibold text-on-accent hover:bg-accent-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
+              >
+                {onNext ? "다음" : "완료"}
+              </button>
+            </div>
+          </div>
+        ) : title ? (
+          <p className="pr-6 font-semibold leading-snug">{title}</p>
         ) : null}
         <p
-          className={`${title ? "mt-1" : ""} ${title || step ? "" : "pr-6"} ${step ? "min-h-[2lh]" : ""} leading-relaxed opacity-90`}
+          className={`${title || step ? "mt-1" : ""} ${title || step ? "" : "pr-6"} leading-relaxed opacity-90`}
         >
           {children}
         </p>
-
-        {step ? (
-          <div className="pointer-events-auto mt-3 flex justify-end gap-1">
-            {onPrevious ? (
-              <button
-                type="button"
-                onClick={handlePrevious}
-                className="pointer-events-auto h-7 rounded-control px-2.5 text-xs font-semibold opacity-80 hover:opacity-100 focus-visible:opacity-100 focus-visible:outline-2 focus-visible:outline-focus"
-              >
-                이전
-              </button>
-            ) : null}
-            <button
-              ref={primaryButtonRef}
-              type="button"
-              onClick={(event) => {
-                if (onNext) {
-                  onNext();
-                  return;
-                }
-
-                const card =
-                  event.currentTarget.closest<HTMLElement>('[role="note"]');
-                if (card) dismiss(card);
-              }}
-              className="pointer-events-auto h-7 rounded-control bg-accent px-3 text-xs font-semibold text-on-accent hover:bg-accent-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
-            >
-              {onNext ? "다음" : "완료"}
-            </button>
-          </div>
-        ) : null}
       </div>
 
       <button
