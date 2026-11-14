@@ -69,7 +69,7 @@ pnpm exec vitest run src/entities/lecture/model/generation/vocabulary.test.ts -u
 
 ## 백엔드가 할 일
 
-- outline, 어휘, 사용자 요청을 프롬프트에 싣는다. 어휘 파일은 이 저장소의 파일을 그대로 읽거나 복사한다.
+- outline, 어휘, 요청 문장을 프롬프트에 싣는다. 어휘 파일은 이 저장소의 파일을 그대로 읽거나 복사한다.
 - 모델 응답을 그대로 프론트엔드에 넘긴다. 시나리오 검사와 컴파일은 프론트엔드가 한다.
 
 ## 생성 요청
@@ -79,7 +79,7 @@ pnpm exec vitest run src/entities/lecture/model/generation/vocabulary.test.ts -u
 | 요청                    | 내용                                                                |
 | ----------------------- | ------------------------------------------------------------------- |
 | `treeId`                | 강의를 만들 트리                                                    |
-| `request`               | 사용자 요청 문장. 최대 500자                                        |
+| `request`               | 요청 문장. 최대 500자. 프론트는 고정 문장을 보낸다                  |
 | `treeOutline`           | [트리 outline](#트리-outline). 최대 20,000자                        |
 | `scenarioSchemaVersion` | 프론트가 쓰는 시나리오 스키마 버전. 서버와 다르면 400(LECTURE400-2) |
 | `repair`                | [repair](#repair) 요청. 처음 요청이면 `null`                        |
@@ -90,8 +90,10 @@ pnpm exec vitest run src/entities/lecture/model/generation/vocabulary.test.ts -u
 entities/lecture   lectureApi.generateLectureScenario, useGenerateLectureScenarioMutation
 features/tree-editor
   useGenerateLecture   편집기 트리 → outline → 요청 → 응답 처리 → repair 1회 → 대본
-  LectureGenerator     요청 문장 입력, 생성 중 안내, 실패 안내
+  LectureGenerator     생성 버튼, 생성 중 안내, 실패 안내
 ```
+
+사용자는 요청 문장을 적지 않는다. 프론트가 `entities/lecture`의 `LECTURE_GENERATION_REQUEST`를 `request`에 넣는다. 백엔드가 `request`를 `@NotBlank`로 받기 때문이다.
 
 `useGenerateLecture`는 요청을 보내기 전에 편집기 트리를 한 번 읽어, 같은 트리로 outline과 컴파일러 트리를 만든다. repair도 같은 트리를 쓰므로 생성 중에 트리를 고쳐도 모델이 본 노드와 컴파일 기준이 어긋나지 않는다. 응답마다 [`lecture-generation` 로그](./lecture-operations.md#로그-이벤트)를 남긴다.
 

@@ -103,12 +103,11 @@ afterEach(() => {
 });
 
 describe("LectureGenerator", () => {
-  it("요청 문장으로 강의를 만들면 시작 화면에 만든 강의가 보인다", async () => {
+  it("패널의 버튼으로 강의를 만들면 시작 화면에 만든 강의가 보인다", async () => {
     mockResponse(() => createSuccessResponse(VALID_RESPONSE));
     renderPlayer();
 
     await userEvent.click(screen.getByRole("button", { name: "강의 만들기" }));
-    await userEvent.type(screen.getByRole("textbox"), "자식 노드를 소개해 줘");
     await userEvent.click(screen.getByRole("button", { name: "강의 만들기" }));
 
     expect(await screen.findByText("만든 강의")).toBeVisible();
@@ -121,7 +120,7 @@ describe("LectureGenerator", () => {
     ).toBeDefined();
   });
 
-  it("만드는 동안 생성 중 안내를 보여 주고 입력을 닫지 못하게 한다", async () => {
+  it("만드는 동안 생성 중 안내를 보여 주고 패널을 닫거나 다시 누르지 못하게 한다", async () => {
     let respond: () => void = () => {};
     server.use(
       http.post(
@@ -135,7 +134,6 @@ describe("LectureGenerator", () => {
     renderPlayer();
 
     await userEvent.click(screen.getByRole("button", { name: "강의 만들기" }));
-    await userEvent.type(screen.getByRole("textbox"), "자식 노드를 소개해 줘");
     await userEvent.click(screen.getByRole("button", { name: "강의 만들기" }));
 
     expect(await screen.findByRole("status")).toHaveTextContent(
@@ -144,13 +142,14 @@ describe("LectureGenerator", () => {
     expect(
       screen.getByRole("button", { name: "강의 만들기 닫기" }),
     ).toBeDisabled();
+    expect(screen.getByRole("button", { name: "강의 만들기" })).toBeDisabled();
 
     respond();
     expect(await screen.findByText("만든 강의")).toBeVisible();
   });
 
   /*
-  화면을 떠나면 입력 카드의 중복 요청 방지도 함께 사라져, 같은 트리의 요청이 동시에 진행될 수 있다.
+  화면을 떠나면 패널의 중복 요청 방지도 함께 사라져, 같은 트리의 요청이 동시에 진행될 수 있다.
   */
   it("화면에 돌아와 다시 만들면 늦게 끝난 이전 요청이 새 강의를 덮지 않는다", async () => {
     const responders: Array<(title: string) => void> = [];
@@ -177,7 +176,6 @@ describe("LectureGenerator", () => {
       await userEvent.click(
         screen.getByRole("button", { name: "강의 만들기" }),
       );
-      await userEvent.type(screen.getByRole("textbox"), "소개해 줘");
       await userEvent.click(
         screen.getByRole("button", { name: "강의 만들기" }),
       );
@@ -204,7 +202,7 @@ describe("LectureGenerator", () => {
     expect(screen.getByText("새 강의")).toBeVisible();
   });
 
-  it("백엔드 오류 코드에 맞는 안내를 보여 주고 입력을 유지한다", async () => {
+  it("백엔드 오류 코드에 맞는 안내를 보여 주고 패널을 유지한다", async () => {
     mockResponse(() =>
       HttpResponse.json(
         {
@@ -219,16 +217,15 @@ describe("LectureGenerator", () => {
     renderPlayer();
 
     await userEvent.click(screen.getByRole("button", { name: "강의 만들기" }));
-    await userEvent.type(screen.getByRole("textbox"), "자식 노드를 소개해 줘");
     await userEvent.click(screen.getByRole("button", { name: "강의 만들기" }));
 
     expect(await screen.findByRole("alert")).toHaveTextContent(
-      "범위를 좁혀 다시 요청해 주세요",
+      "트리의 노드를 줄여 다시 시도해 주세요",
     );
-    expect(screen.getByRole("textbox")).toHaveValue("자식 노드를 소개해 줘");
+    expect(screen.getByRole("button", { name: "강의 만들기" })).toBeEnabled();
   });
 
-  it("repair 뒤에도 트리와 맞지 않으면 요청을 바꾸라고 안내한다", async () => {
+  it("repair 뒤에도 트리와 맞지 않으면 다시 시도하라고 안내한다", async () => {
     mockResponse(() =>
       createSuccessResponse(
         VALID_RESPONSE.replace('"subject":"2"', '"subject":"999"'),
@@ -237,7 +234,6 @@ describe("LectureGenerator", () => {
     renderPlayer();
 
     await userEvent.click(screen.getByRole("button", { name: "강의 만들기" }));
-    await userEvent.type(screen.getByRole("textbox"), "자식 노드를 소개해 줘");
     await userEvent.click(screen.getByRole("button", { name: "강의 만들기" }));
 
     await waitFor(() =>

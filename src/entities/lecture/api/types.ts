@@ -21,7 +21,7 @@ provider는 생략하면 백엔드가 OPENAI를 쓰므로 싣지 않는다.
 */
 export interface GenerateLectureScenarioRequest {
   treeId: number;
-  request: string; // 사용자 요청 문장
+  request: string; // 요청 문장. 백엔드가 @NotBlank로 받는다
   treeOutline: string; // 프론트가 만든 트리 outline
   scenarioSchemaVersion: number; // 서버의 버전과 다르면 400 LECTURE400-2
   repair: LectureRepairDTO | null; // 처음 요청이면 null
