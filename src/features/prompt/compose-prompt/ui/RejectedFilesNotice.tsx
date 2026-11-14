@@ -2,6 +2,7 @@ import { X } from "lucide-react";
 import {
   ACCEPTED_FILE_EXTENSIONS,
   formatFileSize,
+  MAX_ATTACHMENT_COUNT,
   MAX_ATTACHMENT_SIZE_BYTES,
 } from "@/src/entities/attachment";
 import { IconButton } from "@/src/shared/ui/icon-button";
@@ -35,6 +36,10 @@ export function RejectedFilesNotice({
     .filter((file) => file.reason === "size")
     .map((file) => file.name);
 
+  const namesByCount = files
+    .filter((file) => file.reason === "count")
+    .map((file) => file.name);
+
   return (
     <div
       role="alert"
@@ -60,6 +65,17 @@ export function RejectedFilesNotice({
             <p className="mt-0.5 text-warning">
               {formatFileSize(MAX_ATTACHMENT_SIZE_BYTES)}까지 첨부할 수
               있습니다.
+            </p>
+          </div>
+        ) : null}
+
+        {namesByCount.length > 0 ? (
+          <div>
+            <p className="font-medium">
+              첨부하지 않은 파일: {namesByCount.join(", ")}
+            </p>
+            <p className="mt-0.5 text-warning">
+              첨부는 {MAX_ATTACHMENT_COUNT}개까지 가능합니다.
             </p>
           </div>
         ) : null}

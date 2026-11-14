@@ -63,33 +63,39 @@ export function useComposePrompt({
   /*
   파일을 새로 선택할 때마다 이전 안내를 지운다. 방금 선택한 파일에 대한 안내만 남기기 위해서다.
 
-  생성 중에는 받지 않는다. 화면에서는 첨부 버튼이 잠겨 여기까지 오지 않지만, 드래그 앤 드롭처럼
-  다른 경로가 생겨도 요청에 실리지 않을 파일이 목록에 들어오지 않게 한다.
+  생성 중에는 받지 않는다. 화면에서는 첨부가 잠겨 여기까지 오지 않지만, 잠금 조건을 아는 곳이
+  여기뿐이므로 어느 경로로 들어오든 요청에 실리지 않을 파일이 목록에 들어오지 않게 한다.
   */
   const addFiles = useCallback(
     (files: File[]) => {
       if (isSubmitting) return;
 
-      const { acceptedFiles, rejectedFiles: rejected } =
+      const { acceptedFiles, rejectedFiles: rejectedByFile } =
         splitAcceptedFiles(files);
 
-      setRejectedFiles(rejected);
-
-      if (acceptedFiles.length === 0) return;
-
       /*
-      요청 하나에 파일 하나만 보낼 수 있으므로 개수를 넘기지 않도록 자른다.
-      첨부가 이미 있으면 첨부 버튼이 잠기기 때문에 화면에서는 여기까지 오지 않지만,
-      드래그 앤 드롭처럼 다른 경로가 생겨도 개수 제약이 깨지지 않도록 남겨 둔다.
+      요청 하나에 실을 수 있는 개수를 넘는 파일은 거부 안내로 돌린다. 드래그 앤 드롭은 여러 파일을
+      한 번에 놓을 수 있어, 조용히 버리면 사용자는 어떤 파일이 빠졌는지 알 수 없다.
       */
-      setAttachments((current) =>
-        [...current, ...acceptedFiles.map(createAttachmentFromFile)].slice(
-          0,
-          MAX_ATTACHMENT_COUNT,
-        ),
+      const remainingCount = Math.max(
+        MAX_ATTACHMENT_COUNT - attachments.length,
+        0,
       );
+      const rejectedByCount = acceptedFiles
+        .slice(remainingCount)
+        .map((file): RejectedFile => ({ name: file.name, reason: "count" }));
+
+      setRejectedFiles([...rejectedByFile, ...rejectedByCount]);
+
+      const addedFiles = acceptedFiles.slice(0, remainingCount);
+      if (addedFiles.length === 0) return;
+
+      setAttachments((current) => [
+        ...current,
+        ...addedFiles.map(createAttachmentFromFile),
+      ]);
     },
-    [isSubmitting],
+    [attachments.length, isSubmitting],
   );
 
   const removeAttachment = useCallback((attachmentId: string) => {

@@ -34,6 +34,33 @@ describe("useComposePrompt", () => {
 
     expect(result.current.attachments).toHaveLength(1);
     expect(result.current.attachments[0].name).toBe("보고서.hwp");
+    expect(result.current.rejectedFiles).toEqual([
+      { name: "요약.pdf", reason: "count" },
+    ]);
+  });
+
+  /*
+  드래그 앤 드롭은 여러 파일을 한 번에 놓을 수 있다. 형식이 틀린 파일과 개수를 넘긴 파일이
+  섞여 있어도 각각의 사유로 알려야 사용자가 무엇을 바꿔야 하는지 안다.
+  */
+  it("형식 거부와 개수 초과가 섞이면 둘 다 사유와 함께 남는다", () => {
+    const { result } = renderComposePrompt();
+
+    act(() =>
+      result.current.addFiles([
+        createFile("shot.png"),
+        createFile("보고서.hwp"),
+        createFile("요약.pdf"),
+      ]),
+    );
+
+    expect(result.current.attachments.map(({ name }) => name)).toEqual([
+      "보고서.hwp",
+    ]);
+    expect(result.current.rejectedFiles).toEqual([
+      { name: "shot.png", reason: "extension" },
+      { name: "요약.pdf", reason: "count" },
+    ]);
   });
 
   /*
@@ -75,6 +102,9 @@ describe("useComposePrompt", () => {
 
     expect(result.current.attachments).toHaveLength(1);
     expect(result.current.attachments[0].name).toBe("보고서.hwp");
+    expect(result.current.rejectedFiles).toEqual([
+      { name: "요약.pdf", reason: "count" },
+    ]);
   });
 
   it("거부된 파일이 사유와 함께 rejectedFiles에 남는다", () => {
