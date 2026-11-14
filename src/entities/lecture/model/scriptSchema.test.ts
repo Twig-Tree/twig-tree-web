@@ -1,5 +1,6 @@
 import { describe, expect, expectTypeOf, it } from "vitest";
 import type * as z from "zod/mini";
+import { MAX_LECTURE_BADGE_LABEL_LENGTH } from "./constants";
 import { DEMO_LECTURES } from "./demoLectures";
 import {
   lectureAnimationActionSchema,
@@ -76,6 +77,22 @@ describe("lectureScriptSchema", () => {
         durationMs: 100,
       }),
     ).toEqual(["style"]);
+    expect(
+      getIssuePaths(lectureAnimationSchema, {
+        type: "badge",
+        targetNodeIds: ["1"],
+        label: "",
+        durationMs: 100,
+      }),
+    ).toEqual(["label"]);
+    expect(
+      getIssuePaths(lectureAnimationSchema, {
+        type: "badge",
+        targetNodeIds: ["1"],
+        label: "꼬".repeat(MAX_LECTURE_BADGE_LABEL_LENGTH + 1),
+        durationMs: 100,
+      }),
+    ).toEqual(["label"]);
   });
 
   it("시간과 배율은 유한해야 하고, 시간은 0 이상, 배율은 0보다 커야 한다", () => {

@@ -179,7 +179,8 @@ export const getLectureSeekState = ({
         break;
       case "highlight":
       case "dim":
-      case "trace": {
+      case "trace":
+      case "badge": {
         const isPersistent = "persist" in action && action.persist;
 
         if (!isPersistent && !isPreviewBeat) break;

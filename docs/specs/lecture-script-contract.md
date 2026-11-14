@@ -26,6 +26,7 @@ LectureScript
 | `highlight` | 대상 노드를 `style`과 `tone`으로 강조한다     | `targetNodeIds` |
 | `dim`       | 예외 노드 이외를 흐리게 한다                  | `exceptNodeIds` |
 | `trace`     | 나열한 노드 사이의 연결선을 순서대로 강조한다 | `nodeIds`       |
+| `badge`     | 대상 노드 옆에 짧은 꼬리표를 띄운다           | `targetNodeIds` |
 | `wait`      | 시각 상태를 바꾸지 않고 시간만 보낸다         | 없음            |
 | `collapse`  | 대상 노드의 자식을 접는다                     | `targetNodeIds` |
 | `expand`    | 대상 노드의 자식과 접힌 조상을 펼친다         | `targetNodeIds` |
@@ -45,9 +46,11 @@ LectureScript
 
 `trace`의 `style`은 연결선을 강조하는 모양이다. 기본값 `dash`는 흐르는 점선이고, `comet`은 선을 출발점에서 그려 나간 뒤 빛 점이 선을 따라 반복해 달린다. 그리기와 달리기의 시간은 대본이 아니라 CSS 변수가 정한다([motion token](./lecture-motion-tokens.md#css-변수)). 레시피는 아직 `comet`을 고르지 않아, 손으로 쓴 대본과 애니메이션 랩에서만 쓰인다.
 
+`badge`는 대상 노드의 오른쪽 위 모서리에 `label`을 꼬리표로 띄운다. `label`은 비어 있으면 안 되고 `MAX_LECTURE_BADGE_LABEL_LENGTH`(12자)를 넘지 않는다. 노드 폭을 넘지 않게 하려는 화면의 제약이라 `entities/lecture`의 상수로 둔다. `tone`은 `highlight`와 같은 네 가지이고 기본값은 `accent`다. 한 노드에 꼬리표가 겹치면 나중에 붙인 것이 보인다. 레시피는 아직 `badge`를 고르지 않아, 손으로 쓴 대본과 애니메이션 랩에서만 쓰인다.
+
 ## persist 생명주기
 
-`highlight`, `dim`, `trace`는 `persist: true`일 때 지정한 `durationMs`를 기다리지 않고 다음 동작으로 진행하면서
+`highlight`, `dim`, `trace`, `badge`는 `persist: true`일 때 지정한 `durationMs`를 기다리지 않고 다음 동작으로 진행하면서
 시각 레이어를 유지한다. 단, `progressive` trace는 경로를 다 그릴 때까지 기다린 뒤 유지한다.
 
 자동 정리 경계는 다음과 같다.

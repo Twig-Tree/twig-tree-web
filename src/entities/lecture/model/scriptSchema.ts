@@ -1,4 +1,5 @@
 import * as z from "zod/mini";
+import { MAX_LECTURE_BADGE_LABEL_LENGTH } from "./constants";
 
 /*
 플레이어가 재생하는 강의 대본(LectureScript)의 런타임 스키마.
@@ -57,6 +58,17 @@ export const lectureTraceActionSchema = z.object({
   persist: persistSchema,
 });
 
+export const lectureBadgeActionSchema = z.object({
+  type: z.literal("badge"),
+  targetNodeIds: nodeIdsSchema,
+  label: z
+    .string()
+    .check(z.minLength(1), z.maxLength(MAX_LECTURE_BADGE_LABEL_LENGTH)),
+  tone: z.optional(z.enum(["accent", "success", "warning", "danger"])),
+  durationMs: durationSchema,
+  persist: persistSchema,
+});
+
 export const lectureWaitActionSchema = z.object({
   type: z.literal("wait"),
   durationMs: durationSchema,
@@ -84,6 +96,7 @@ const lectureAnimationActionSchemas = [
   lectureHighlightActionSchema,
   lectureDimActionSchema,
   lectureTraceActionSchema,
+  lectureBadgeActionSchema,
   lectureWaitActionSchema,
   lectureCollapseActionSchema,
   lectureExpandActionSchema,

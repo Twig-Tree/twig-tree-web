@@ -57,6 +57,27 @@ const CASES: {
       durationMs: 1200,
     },
   },
+  /*
+  꼬리표가 튀어나오는 등장은 CSS가 끄므로 대본은 그대로다. 글자와 유지 여부가 내용이다.
+  */
+  badge: {
+    input: {
+      type: "badge",
+      targetNodeIds: ["1"],
+      label: "정답",
+      tone: "success",
+      durationMs: 1200,
+      persist: true,
+    },
+    expected: {
+      type: "badge",
+      targetNodeIds: ["1"],
+      label: "정답",
+      tone: "success",
+      durationMs: 1200,
+      persist: true,
+    },
+  },
   dim: {
     input: { type: "dim", exceptNodeIds: ["1"], durationMs: 1800 },
     expected: { type: "dim", exceptNodeIds: ["1"], durationMs: 1800 },

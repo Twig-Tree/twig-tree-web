@@ -50,6 +50,18 @@ export interface LectureTraceAction {
   persist?: boolean;
 }
 
+/*
+노드 옆에 짧은 꼬리표(①, 핵심, 정답)를 띄운다. 한 노드에 꼬리표가 여럿 겹치면 나중에 붙인 것이 보인다.
+*/
+export interface LectureBadgeAction {
+  type: "badge";
+  targetNodeIds: LectureNodeId[]; // 꼬리표를 붙일 노드
+  label: string; // 꼬리표 글자. 비어 있으면 안 되고 MAX_LECTURE_BADGE_LABEL_LENGTH를 넘지 않는다
+  tone?: "accent" | "success" | "warning" | "danger";
+  durationMs: number;
+  persist?: boolean; // true이면 다음 reset 전까지 꼬리표를 유지한다
+}
+
 export interface LectureWaitAction {
   type: "wait";
   durationMs: number;
@@ -80,6 +92,7 @@ export type LectureAnimationAction =
   | LectureHighlightAction
   | LectureDimAction
   | LectureTraceAction
+  | LectureBadgeAction
   | LectureWaitAction
   | LectureCollapseAction
   | LectureExpandAction

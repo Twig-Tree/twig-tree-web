@@ -103,13 +103,13 @@ const runProgressiveTrace = async (
 /*
 함수 이름 : createLectureVisualLayer
 기능 : 시각 효과 동작으로 표시할 레이어를 만든다.
-인자 : Extract<EditorLectureAnimationAction, { type: "highlight" | "dim" | "trace" }> animation -> 시각 효과 동작
+인자 : Extract<EditorLectureAnimationAction, { type: "highlight" | "dim" | "trace" | "badge" }> animation -> 시각 효과 동작
 반환값 : 새 레이어
 */
 export const createLectureVisualLayer = (
   animation: Extract<
     EditorLectureAnimationAction,
-    { type: "highlight" | "dim" | "trace" }
+    { type: "highlight" | "dim" | "trace" | "badge" }
   >,
 ): LectureVisualLayer => {
   const id = createLayerId();
@@ -137,6 +137,14 @@ export const createLectureVisualLayer = (
         edgeKeys: new Set(getTraceEdgeKeys(animation.clientIds)),
         direction: animation.direction ?? "forward",
         style: animation.style,
+      };
+    case "badge":
+      return {
+        id,
+        type: animation.type,
+        clientIds: new Set(animation.targetClientIds),
+        label: animation.label,
+        tone: animation.tone ?? "accent",
       };
   }
 };

@@ -1,4 +1,7 @@
-import { type LectureAnimationAction } from "@/src/entities/lecture";
+import {
+  MAX_LECTURE_BADGE_LABEL_LENGTH,
+  type LectureAnimationAction,
+} from "@/src/entities/lecture";
 import { type TreeNode } from "@/src/entities/tree";
 import { type LabStep } from "./labTimeline";
 
@@ -26,6 +29,16 @@ export const validateLabAction = (
         !(Number.isFinite(action.maxZoom) && action.maxZoom > 0)
       ) {
         return "최대 배율은 0보다 커야 합니다.";
+      }
+      if (action.targetNodeIds.length === 0) return "대상 노드를 고르세요.";
+      if (hasUnknownNode(action.targetNodeIds)) {
+        return "트리에 없는 노드가 있습니다.";
+      }
+      return null;
+    case "badge":
+      if (action.label.trim() === "") return "꼬리표 글자를 적으세요.";
+      if (action.label.length > MAX_LECTURE_BADGE_LABEL_LENGTH) {
+        return `꼬리표는 ${MAX_LECTURE_BADGE_LABEL_LENGTH}자까지 적을 수 있습니다.`;
       }
       if (action.targetNodeIds.length === 0) return "대상 노드를 고르세요.";
       if (hasUnknownNode(action.targetNodeIds)) {

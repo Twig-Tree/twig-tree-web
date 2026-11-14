@@ -1,4 +1,10 @@
 /*
+강의 꼬리표(badge) 글자 수 상한. 백엔드 계약이 아니라 화면의 제약이다.
+꼬리표가 노드 폭(168px)을 넘지 않도록 한 줄에 들어가는 길이로 정했다. 대본 스키마가 이 값으로 검사한다.
+*/
+export const MAX_LECTURE_BADGE_LABEL_LENGTH = 12;
+
+/*
 강의 생성 요청의 길이 상한. 백엔드 LectureReqDTO의 REQUEST_MAX_LENGTH, TREE_OUTLINE_MAX_LENGTH가 출처다.
 넘기면 백엔드가 400을 반환한다. 글자 수는 Java String 길이(UTF-16 코드 단위) 기준이라 String.length와 같은 단위다.
 */

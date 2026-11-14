@@ -65,6 +65,12 @@ type EditorLectureNodeAction =
       clientIds: string[];
     })
   | (Omit<
+      Extract<LectureAnimationAction, { type: "badge" }>,
+      "targetNodeIds"
+    > & {
+      targetClientIds: string[];
+    })
+  | (Omit<
       Extract<LectureAnimationAction, { type: "collapse" }>,
       "targetNodeIds"
     > & {

@@ -53,6 +53,7 @@ React Flow가 읽는 CSS 변수에 값을 넣어야 하므로 Tailwind 유틸리
   --lecture-highlight-tint: 10%; /* 강조 노드 바탕에 섞는 강조색 비율 */
   --lecture-comet-draw-duration: 600ms; /* 순차 추적의 연결선 하나 시간(650ms)보다 짧아야 다음 선 전에 다 그려진다 */
   --lecture-comet-cycle: 1400ms;
+  --lecture-badge-enter-duration: 420ms;
 }
 
 /* Customizing Default Theming */
@@ -287,6 +288,30 @@ pop이 시작될 때 노드 외곽에서 링이 한 번 퍼져 나간다. 노드
   color: var(--xy-theme-lecture-animation);
 }
 
+/*
+강의 꼬리표는 노드 오른쪽 위 모서리에 걸쳐 놓는다. 자리는 translate, 등장은 scale로 나눠 등장 애니메이션이 자리를 덮어쓰지 않게 한다.
+*/
+.lecture-badge {
+  translate: 30% -60%;
+  transform-origin: bottom left;
+  animation: lecture-badge-enter var(--lecture-badge-enter-duration)
+    var(--lecture-ease-enter) both;
+}
+
+@keyframes lecture-badge-enter {
+  0% {
+    opacity: 0;
+    scale: 0.4;
+  }
+  60% {
+    opacity: 1;
+    scale: 1.15;
+  }
+  100% {
+    scale: 1;
+  }
+}
+
 @keyframes lecture-comet-draw {
   to {
     stroke-dashoffset: 0;
@@ -443,6 +468,10 @@ pop이 시작될 때 노드 외곽에서 링이 한 번 퍼져 나간다. 노드
   .lecture-comet__tail,
   .lecture-comet__head {
     display: none;
+  }
+
+  .lecture-badge {
+    animation: none;
   }
 }
 

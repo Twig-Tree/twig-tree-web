@@ -1,5 +1,6 @@
 import type * as z from "zod/mini";
 import {
+  lectureBadgeActionSchema,
   lectureCollapseActionSchema,
   lectureDimActionSchema,
   lectureExpandActionSchema,
@@ -107,6 +108,13 @@ export const LECTURE_ATOMIC_EFFECTS: {
     isPersistable: true,
     durationMeaning: "effect",
     motion: "decoration",
+  },
+  badge: {
+    schema: lectureBadgeActionSchema,
+    target: { family: "node", field: "targetNodeIds" },
+    isPersistable: true,
+    durationMeaning: "effect",
+    motion: "decoration", // 튀어나오는 등장은 CSS가 그리고, 동작 줄이기에서는 CSS가 끈다
   },
   wait: {
     schema: lectureWaitActionSchema,

@@ -20,6 +20,13 @@ export type LectureVisualLayer =
       edgeKeys: ReadonlySet<string>;
       direction?: "forward" | "reverse";
       style?: "dash" | "comet";
+    }
+  | {
+      id: string;
+      type: "badge";
+      clientIds: ReadonlySet<string>;
+      label: string;
+      tone: "accent" | "success" | "warning" | "danger";
     };
 
 interface LectureAnimationState {
@@ -173,4 +180,24 @@ export const getLectureEdgeTraceStyle = (
   );
 
   return layer?.type === "trace" ? (layer.style ?? "dash") : null;
+};
+
+/*
+함수 이름 : getLectureNodeBadge
+기능 : 노드에 붙은 강의 꼬리표를 찾는다. 여럿이면 나중에 붙인 꼬리표를 쓴다.
+인자 : LectureAnimationState state -> 강의 시각 상태
+string clientId -> 노드의 clientId
+반환값 : 꼬리표 레이어. store에 있는 객체를 그대로 돌려주므로 selector로 구독해도 매번 새 값이 되지 않는다. 없으면 null
+*/
+export const getLectureNodeBadge = (
+  state: LectureAnimationState,
+  clientId: string,
+): Extract<LectureVisualLayer, { type: "badge" }> | null => {
+  const layers = [...state.layers.values()].reverse();
+  const layer = layers.find(
+    (candidate) =>
+      candidate.type === "badge" && candidate.clientIds.has(clientId),
+  );
+
+  return layer?.type === "badge" ? layer : null;
 };

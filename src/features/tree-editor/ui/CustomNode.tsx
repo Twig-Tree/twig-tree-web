@@ -19,6 +19,7 @@ import {
   useLectureAnimationStore,
 } from "@/src/features/tree-editor/model/lecture/lectureAnimationStore";
 import { CollapseToggleButton } from "./CollapseToggleButton";
+import { LectureNodeBadge } from "./LectureNodeBadge";
 
 export function CustomNode({
   id,
@@ -205,6 +206,7 @@ export function CustomNode({
       />
 
       <CollapseToggleButton clientId={id} serverId={data.serverId} />
+      <LectureNodeBadge clientId={id} />
     </div>
   );
 }

@@ -15,6 +15,7 @@ export type {
   LectureScene,
   LectureScript,
   LectureTraceAction,
+  LectureBadgeAction,
   LectureWaitAction,
 } from "./model/types";
 export type { DemoTreeNode } from "./model/createDemoLecture";
@@ -173,6 +174,7 @@ export type { LectureGenerationResponse } from "./model/generation/generationRes
 export {
   LECTURE_ERROR_CODE,
   LECTURE_GENERATION_REQUEST,
+  MAX_LECTURE_BADGE_LABEL_LENGTH,
   MAX_LECTURE_REQUEST_LENGTH,
   MAX_LECTURE_TREE_OUTLINE_LENGTH,
 } from "./model/constants";
