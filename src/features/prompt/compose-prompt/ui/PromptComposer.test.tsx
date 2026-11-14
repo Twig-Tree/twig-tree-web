@@ -338,5 +338,39 @@ describe("PromptComposer", () => {
 
       expect(screen.queryByText("보고서.hwp")).not.toBeInTheDocument();
     });
+
+    /*
+    입력창을 빗나가 놓으면 브라우저가 파일을 열어 작성 중인 페이지를 벗어난다.
+    */
+    it("입력 영역 밖에 놓아도 브라우저 기본 동작을 막는다", () => {
+      renderPromptComposer();
+      const dataTransfer = createFileTransfer([createFile("보고서.hwp")]);
+
+      const isDropAllowed = fireEvent.drop(document.body, { dataTransfer });
+
+      expect(isDropAllowed).toBe(false); // preventDefault가 호출되면 false다
+      expect(screen.queryByText("보고서.hwp")).not.toBeInTheDocument();
+    });
+
+    it("입력 영역이 사라지면 페이지의 드롭을 막지 않는다", () => {
+      const { unmount } = renderPromptComposer();
+      unmount();
+
+      const isDropAllowed = fireEvent.drop(document.body, {
+        dataTransfer: createFileTransfer([createFile("보고서.hwp")]),
+      });
+
+      expect(isDropAllowed).toBe(true);
+    });
+
+    it("파일이 아닌 항목은 영역 밖에서도 막지 않는다", () => {
+      renderPromptComposer();
+
+      const isDropAllowed = fireEvent.drop(document.body, {
+        dataTransfer: { files: [], types: ["text/plain"] },
+      });
+
+      expect(isDropAllowed).toBe(true);
+    });
   });
 });
