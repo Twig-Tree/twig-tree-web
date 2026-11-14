@@ -125,18 +125,23 @@
 
 반복 애니메이션의 주기, 곡선, 흐림 투명도는 `app/xy-theme.css`의 `.react-flow` 블록에 `--lecture-*` 변수로 둔다. 대본의 `durationMs`는 효과가 보이는 전체 시간이고, 이 변수는 그 안에서 한 번 움직이는 주기다.
 
-| 변수                         | 값            | 쓰는 곳                       |
-| ---------------------------- | ------------- | ----------------------------- |
-| `--lecture-ease-enter`       | `ease-out`    | 나타나는 전환, pop            |
-| `--lecture-ease-move`        | `ease-in-out` | pulse, bounce, shake          |
-| `--lecture-fade-duration`    | 240ms         | 강조·흐림이 켜지는 전환       |
-| `--lecture-current-duration` | 260ms         | 현재 장면 노드 표시 전환      |
-| `--lecture-pulse-cycle`      | 900ms         | pulse 한 번                   |
-| `--lecture-pop-duration`     | 650ms         | pop                           |
-| `--lecture-bounce-cycle`     | 800ms         | bounce 한 번                  |
-| `--lecture-shake-cycle`      | 550ms         | shake 한 번                   |
-| `--lecture-trace-cycle`      | 520ms         | 추적 점선이 한 칸 흐르는 시간 |
-| `--lecture-dim-opacity`      | 0.22          | 흐린 노드의 투명도            |
+| 변수                         | 값                   | 쓰는 곳                       |
+| ---------------------------- | -------------------- | ----------------------------- |
+| `--lecture-ease-enter`       | `ease-out`           | 나타나는 전환, pop            |
+| `--lecture-ease-move`        | `ease-in-out`        | pulse, bounce, shake          |
+| `--lecture-fade-duration`    | 240ms                | 강조·흐림이 켜지는 전환       |
+| `--lecture-current-duration` | 260ms                | 현재 장면 노드 표시 전환      |
+| `--lecture-pulse-cycle`      | 900ms                | pulse 한 번                   |
+| `--lecture-pop-duration`     | 650ms                | pop과 퍼지는 링               |
+| `--lecture-bounce-cycle`     | 800ms                | bounce 한 번                  |
+| `--lecture-shake-cycle`      | 550ms                | shake 한 번                   |
+| `--lecture-trace-cycle`      | 520ms                | 추적 점선이 한 칸 흐르는 시간 |
+| `--lecture-breathe-cycle`    | 2400ms               | 현재 장면 노드 숨쉬기 한 번   |
+| `--lecture-dim-opacity`      | 0.22                 | 흐린 노드의 투명도            |
+| `--lecture-dim-filter`       | 흑백 0.7, 흐림 0.6px | 흐린 노드의 색과 초점         |
+| `--lecture-highlight-tint`   | 10%                  | 강조 노드 바탕에 섞는 강조색  |
+
+현재 장면 노드는 강조되지 않은 동안 링 바깥 빛이 천천히 숨쉰다. 강조되면 숨쉬기를 멈춰 강조 링이 보이게 한다. 동작 줄이기에서는 숨쉬기와 pop의 퍼지는 링을 끈다. 흐림의 필터는 움직임이 아니라 그대로 둔다.
 
 추적 점선은 끊김 없이 흐르려면 등속이어야 해서 곡선을 변수로 두지 않고 `linear`로 고정한다.
 

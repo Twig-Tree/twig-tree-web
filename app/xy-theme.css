@@ -48,6 +48,9 @@ React Flow가 읽는 CSS 변수에 값을 넣어야 하므로 Tailwind 유틸리
   --lecture-shake-cycle: 550ms;
   --lecture-trace-cycle: 520ms;
   --lecture-dim-opacity: 0.22;
+  --lecture-dim-filter: grayscale(0.7) blur(0.6px); /* 색과 초점을 함께 빼 강조 대상과 거리감을 만든다 */
+  --lecture-breathe-cycle: 2400ms;
+  --lecture-highlight-tint: 10%; /* 강조 노드 바탕에 섞는 강조색 비율 */
 }
 
 /* Customizing Default Theming */
@@ -117,8 +120,14 @@ React Flow가 읽는 CSS 변수에 값을 넣어야 하므로 Tailwind 유틸리
       color-mix(in srgb, var(--xy-theme-lecture-current) 35%, transparent);
   transition: box-shadow var(--lecture-current-duration)
     var(--lecture-ease-enter);
+  animation: lecture-node-breathe var(--lecture-breathe-cycle)
+    var(--lecture-ease-move) infinite alternate;
 }
 
+/*
+강조 중에는 숨쉬기를 멈춘다. 애니메이션의 box-shadow가 강조 링을 덮어 강조 색이 보이지 않기 때문이다.
+pulse 규칙이 이 규칙보다 뒤에 있어 pulse는 그대로 실행된다.
+*/
 .react-flow__node:has(> .custom-node[data-lecture-highlighted="true"]) {
   --lecture-highlight-color: var(--xy-theme-lecture-animation);
   box-shadow:
@@ -127,7 +136,23 @@ React Flow가 읽는 CSS 변수에 값을 넣어야 하므로 Tailwind 유틸리
       color-mix(in srgb, var(--lecture-highlight-color) 40%, transparent);
   transition:
     box-shadow var(--lecture-fade-duration) var(--lecture-ease-enter),
+    background-color var(--lecture-fade-duration) var(--lecture-ease-enter),
     opacity var(--lecture-fade-duration) var(--lecture-ease-enter);
+  animation: none;
+}
+
+/*
+강조 노드 바탕에 강조색을 옅게 섞어 링만 있을 때보다 멀리서도 눈에 띄게 한다.
+루트는 바탕색이 따로 있어 섞지 않는다.
+*/
+.react-flow__node:not(:has(> .custom-node[data-root="true"])):has(
+    > .custom-node[data-lecture-highlighted="true"]
+  ) {
+  background-color: color-mix(
+    in srgb,
+    var(--lecture-highlight-color) var(--lecture-highlight-tint),
+    var(--xy-node-background-color-default)
+  );
 }
 
 .react-flow__node:has(> .custom-node[data-lecture-highlight-tone="success"]) {
@@ -156,6 +181,22 @@ React Flow가 읽는 CSS 변수에 값을 넣어야 하므로 Tailwind 유틸리
     var(--lecture-ease-enter) both;
 }
 
+/*
+pop이 시작될 때 노드 외곽에서 링이 한 번 퍼져 나간다. 노드 상자 자체는 transform하지 않아 Handle 좌표가 그대로다.
+*/
+.react-flow__node:has(
+    > .custom-node[data-lecture-highlight-style="pop"]
+  )::after {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  border: 3px solid var(--lecture-highlight-color);
+  pointer-events: none;
+  animation: lecture-node-pop-ring var(--lecture-pop-duration)
+    var(--lecture-ease-enter) both;
+}
+
 .custom-node[data-lecture-highlight-style="bounce"] > .custom-node__content {
   animation: lecture-node-bounce
     var(--lecture-highlight-cycle, var(--lecture-bounce-cycle))
@@ -170,7 +211,10 @@ React Flow가 읽는 CSS 변수에 값을 넣어야 하므로 Tailwind 유틸리
 
 .react-flow__node:has(> .custom-node[data-lecture-dimmed="true"]) {
   opacity: var(--lecture-dim-opacity);
-  transition: opacity var(--lecture-fade-duration) var(--lecture-ease-enter);
+  filter: var(--lecture-dim-filter);
+  transition:
+    opacity var(--lecture-fade-duration) var(--lecture-ease-enter),
+    filter var(--lecture-fade-duration) var(--lecture-ease-enter);
 }
 
 .react-flow__edge-path.lecture-edge-traced {
@@ -186,31 +230,70 @@ React Flow가 읽는 CSS 변수에 값을 넣어야 하므로 Tailwind 유틸리
   animation-direction: reverse;
 }
 
+/*
+링 굵기는 고정하고 바깥 빛만 크게 숨쉬게 한다. 링이 함께 굵어지면 영상에서 떨리는 것처럼 보인다.
+*/
 @keyframes lecture-node-pulse {
   from {
     box-shadow:
       0 0 0 3px var(--lecture-highlight-color),
-      0 0 14px 2px
-        color-mix(in srgb, var(--lecture-highlight-color) 35%, transparent);
+      0 0 12px 2px
+        color-mix(in srgb, var(--lecture-highlight-color) 30%, transparent),
+      0 0 0 0 transparent;
   }
 
   to {
     box-shadow:
-      0 0 0 5px var(--lecture-highlight-color),
-      0 0 32px 8px
-        color-mix(in srgb, var(--lecture-highlight-color) 65%, transparent);
+      0 0 0 3px var(--lecture-highlight-color),
+      0 0 28px 6px
+        color-mix(in srgb, var(--lecture-highlight-color) 55%, transparent),
+      0 0 56px 18px
+        color-mix(in srgb, var(--lecture-highlight-color) 20%, transparent);
+  }
+}
+
+@keyframes lecture-node-breathe {
+  from {
+    box-shadow:
+      0 0 0 3px var(--xy-theme-lecture-current),
+      0 0 14px 1px
+        color-mix(in srgb, var(--xy-theme-lecture-current) 25%, transparent);
+  }
+
+  to {
+    box-shadow:
+      0 0 0 3px var(--xy-theme-lecture-current),
+      0 0 26px 5px
+        color-mix(in srgb, var(--xy-theme-lecture-current) 45%, transparent);
   }
 }
 
 @keyframes lecture-node-pop {
   0% {
-    transform: scale(0.92);
+    transform: scale(0.88);
   }
-  55% {
-    transform: scale(1.12);
+  45% {
+    transform: scale(1.14);
+  }
+  70% {
+    transform: scale(0.97);
   }
   100% {
     transform: scale(1);
+  }
+}
+
+@keyframes lecture-node-pop-ring {
+  0% {
+    opacity: 0.9;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(
+      1.35,
+      1.7
+    ); /* 노드가 가로로 길어 세로를 더 키워야 링 간격이 고르게 보인다 */
   }
 }
 
@@ -248,10 +331,17 @@ React Flow가 읽는 CSS 변수에 값을 넣어야 하므로 Tailwind 유틸리
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .react-flow__node:has(> .custom-node[data-lecture-current="true"]),
   .react-flow__node:has(> .custom-node[data-lecture-highlight-style]),
   .custom-node[data-lecture-highlight-style] > .custom-node__content,
   .react-flow__edge-path.lecture-edge-traced {
     animation: none;
+  }
+
+  .react-flow__node:has(
+      > .custom-node[data-lecture-highlight-style="pop"]
+    )::after {
+    content: none;
   }
 }
 
