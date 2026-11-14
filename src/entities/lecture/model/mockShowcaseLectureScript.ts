@@ -116,7 +116,7 @@ export const SHOWCASE_DEMO_LECTURE = createDemoLecture(
                   {
                     type: "grow",
                     targetNodeIds: [nodeIds.root],
-                    durationMs: 3200,
+                    durationMs: 4800,
                   },
                 ],
               },
@@ -413,8 +413,8 @@ export const SHOWCASE_DEMO_LECTURE = createDemoLecture(
             {
               id: "showcase-outro-end",
               narration: {
-                text: "개념 사이의 관계를 함께 보면, 복잡한 내용도 더 빠르고 선명하게 이해할 수 있습니다.",
-                fallbackDurationMs: 4800,
+                text: "자료구조와 알고리즘은 데이터를 효율적으로 저장하고 처리하기 위해 함께 사용됩니다.",
+                fallbackDurationMs: 4400,
               },
               animation: {
                 type: "highlight",

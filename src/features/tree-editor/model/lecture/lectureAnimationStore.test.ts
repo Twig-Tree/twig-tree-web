@@ -5,6 +5,7 @@ import {
   getLectureEdgeKey,
   getLectureNodeHighlightStyle,
   getLectureNodeHighlightTone,
+  isLectureEdgeDimmed,
   isLectureEdgeTraced,
   isLectureNodeDimmed,
   isLectureNodeHighlighted,
@@ -53,6 +54,20 @@ describe("lectureAnimationStore", () => {
     const state = useLectureAnimationStore.getState();
     expect(isLectureNodeDimmed(state, "c1")).toBe(false);
     expect(isLectureNodeDimmed(state, "c3")).toBe(true);
+  });
+
+  it("dim 예외 노드끼리 잇는 연결선만 선명하게 유지한다", () => {
+    useLectureAnimationStore.getState().setLayer({
+      id: "dim",
+      type: "dim",
+      exceptClientIds: new Set(["parent", "child"]),
+    });
+
+    const state = useLectureAnimationStore.getState();
+
+    expect(isLectureEdgeDimmed(state, "parent", "child")).toBe(false);
+    expect(isLectureEdgeDimmed(state, "parent", "other-child")).toBe(true);
+    expect(isLectureEdgeDimmed(state, "other-parent", "child")).toBe(true);
   });
 
   it("trace 레이어가 방향이 같은 연결선만 표시한다", () => {

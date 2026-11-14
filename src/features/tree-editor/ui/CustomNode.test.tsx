@@ -396,3 +396,37 @@ describe("CustomNode 강의 sparkle", () => {
     expect(screen.queryByTestId("lecture-sparkles")).toBeNull();
   });
 });
+
+describe("CustomNode 강의 grow", () => {
+  beforeEach(() => {
+    useTreeStore
+      .getState()
+      .initializeTree({ treeId: "5", nodes: NODES, edges: [] });
+  });
+
+  afterEach(() => {
+    useTreeStore.getState().resetTree();
+    useLectureAnimationStore.getState().resetVisual();
+  });
+
+  it("숨긴 노드의 입력·출력 연결점을 함께 숨긴다", () => {
+    useLectureAnimationStore.getState().setLayer({
+      id: "grow",
+      type: "grow",
+      hiddenClientIds: new Set(["c2"]),
+      enteringClientIds: new Set(),
+    });
+
+    renderNodes();
+
+    const node = screen
+      .getByRole("button", { name: "노드 제목 둘째 노드 편집" })
+      .closest(".custom-node");
+    const handles = node?.querySelectorAll<HTMLElement>(".react-flow__handle");
+
+    expect(handles).toHaveLength(2);
+    handles?.forEach((handle) => {
+      expect(handle.style.visibility).toBe("hidden");
+    });
+  });
+});

@@ -3,6 +3,7 @@ import {
   getLectureEdgeTraceDirection,
   getLectureEdgeTraceStyle,
   getLectureNodeGrowState,
+  isLectureEdgeDimmed,
   useLectureAnimationStore,
 } from "@/src/features/tree-editor/model/lecture/lectureAnimationStore";
 import { useTheme, type ThemeId } from "@/src/shared/lib/theme";
@@ -55,6 +56,9 @@ export function CustomEdge({
   const growState = useLectureAnimationStore((state) =>
     getLectureNodeGrowState(state, target),
   ); // 연결선은 자식 노드와 함께 숨고 나타난다
+  const isDimmed = useLectureAnimationStore((state) =>
+    isLectureEdgeDimmed(state, source, target),
+  );
   const isTraced = traceDirection !== null;
   const isCometTraced = isTraced && traceStyle === "comet";
 
@@ -121,6 +125,7 @@ export function CustomEdge({
             isTraced && !isCometTraced
               ? `lecture-edge-traced lecture-edge-traced-${traceDirection}`
               : null,
+            isDimmed ? "lecture-edge-dimmed" : null,
             growState === null ? null : `lecture-edge-grow-${growState}`,
           ]
             .filter(Boolean)

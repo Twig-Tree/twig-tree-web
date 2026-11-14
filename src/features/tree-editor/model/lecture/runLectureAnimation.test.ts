@@ -445,19 +445,23 @@ describe("runLectureAnimation grow", () => {
     expect(useLectureAnimationStore.getState().layers.size).toBe(0);
   });
 
-  it("접혀서 화면에 없는 자손은 드러낼 단계에 넣지 않는다", async () => {
+  it("focus가 접힘을 풀어도 먼저 보이지 않게 현재 접힌 자손까지 단계에 넣는다", async () => {
     useCollapseStore.getState().collapseAll("t1", ["s-parent"]);
 
     void runLectureAnimation(
-      { type: "grow", targetClientIds: ["root"], durationMs: 600 },
+      { type: "grow", targetClientIds: ["root"], durationMs: 900 },
       { revealNodes },
     );
 
     expect(getGrowState("parent")).toBe("hidden");
-    expect(getGrowState("leaf")).toBeNull();
+    expect(getGrowState("leaf")).toBe("hidden");
 
     await vi.advanceTimersByTimeAsync(300);
     expect(getGrowState("parent")).toBe("entering");
+    expect(getGrowState("leaf")).toBe("hidden");
+
+    await vi.advanceTimersByTimeAsync(300);
+    expect(getGrowState("leaf")).toBe("entering");
   });
 
   it("중단하면 숨긴 자손을 바로 되돌린다", async () => {

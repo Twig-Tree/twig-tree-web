@@ -1,4 +1,3 @@
-import { getHiddenClientIds } from "../../lib/collapse/getHiddenClientIds";
 import { getAncestorClientIds } from "../../lib/getAncestorClientIds";
 import { getLectureGrowStages } from "../../lib/lecture/getLectureGrowStages";
 import { useCollapseStore } from "../collapse/collapseStore";
@@ -116,17 +115,8 @@ const runLectureGrow = async (
   durationMs: number,
   signal: AbortSignal | undefined,
 ): Promise<void> => {
-  const { treeId, nodes, edges } = useTreeStore.getState();
-  const collapse = useCollapseStore.getState();
-  const collapsedServerIds =
-    collapse.treeId === treeId
-      ? collapse.collapsedServerIds
-      : new Set<string>();
-  const stages = getLectureGrowStages(
-    targetClientIds,
-    edges,
-    getHiddenClientIds(nodes, edges, collapsedServerIds),
-  );
+  const { edges } = useTreeStore.getState();
+  const stages = getLectureGrowStages(targetClientIds, edges);
 
   if (stages.length === 0) {
     await waitForLectureAnimation(durationMs, signal);

@@ -54,8 +54,8 @@ React Flow가 읽는 CSS 변수에 값을 넣어야 하므로 Tailwind 유틸리
   --lecture-comet-draw-duration: 600ms; /* 순차 추적의 연결선 하나 시간(650ms)보다 짧아야 다음 선 전에 다 그려진다 */
   --lecture-comet-cycle: 1400ms;
   --lecture-badge-enter-duration: 420ms;
-  --lecture-grow-edge-duration: 360ms; /* 자라는 연결선이 부모에서 자식까지 그려지는 시간 */
-  --lecture-grow-node-duration: 420ms; /* 연결선이 거의 닿을 때 자식이 튀어나오는 시간 */
+  --lecture-grow-edge-duration: 520ms; /* 자라는 연결선이 부모에서 자식까지 그려지는 시간 */
+  --lecture-grow-node-duration: 520ms; /* 연결선이 가까워질 때 자식이 부드럽게 나타나는 시간 */
   --lecture-sparkle-cycle: 1600ms; /* 반짝이 하나가 나타났다 사라지는 시간 */
 }
 
@@ -262,6 +262,17 @@ sparkle. pop처럼 한 번 튀어 오른 뒤, 노드 둘레의 반짝이가 시�
     filter var(--lecture-fade-duration) var(--lecture-ease-enter);
 }
 
+/*
+dim 예외 경로 밖의 연결선은 노드와 같은 농도와 필터로 흐린다. 그룹에 적용해 선과 화살촉, 추적 장식을 함께 처리한다.
+*/
+.react-flow__edge:has(.lecture-edge-dimmed) {
+  opacity: var(--lecture-dim-opacity);
+  filter: var(--lecture-dim-filter);
+  transition:
+    opacity var(--lecture-fade-duration) var(--lecture-ease-enter),
+    filter var(--lecture-fade-duration) var(--lecture-ease-enter);
+}
+
 .react-flow__edge-path.lecture-edge-traced {
   stroke: var(--xy-theme-lecture-animation);
   stroke-width: 4;
@@ -337,13 +348,14 @@ pulse와 숨쉬기 같은 노드 애니메이션보다 뒤에 두어, 나타나�
 */
 .react-flow__node:has(> .custom-node[data-lecture-grow="hidden"]),
 .react-flow__edge:has(.lecture-edge-grow-hidden) {
+  visibility: hidden !important; /* React Flow가 인라인으로 넣는 visible을 이겨 새로 그려질 때도 완전히 가린다 */
   opacity: 0;
   pointer-events: none;
 }
 
 .react-flow__node:has(> .custom-node[data-lecture-grow="entering"]) {
   animation: lecture-node-grow var(--lecture-grow-node-duration)
-    var(--lecture-ease-enter) calc(var(--lecture-grow-edge-duration) * 0.7) both;
+    var(--lecture-ease-enter) calc(var(--lecture-grow-edge-duration) * 0.6) both;
 }
 
 .react-flow__edge-path.lecture-edge-grow-entering {
@@ -358,15 +370,13 @@ pulse와 숨쉬기 같은 노드 애니메이션보다 뒤에 두어, 나타나�
 }
 
 @keyframes lecture-node-grow {
-  0% {
+  from {
     opacity: 0;
-    scale: 0.5;
+    scale: 0.88;
   }
-  60% {
+
+  to {
     opacity: 1;
-    scale: 1.08;
-  }
-  100% {
     scale: 1;
   }
 }

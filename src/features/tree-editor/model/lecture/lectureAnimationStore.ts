@@ -146,6 +146,26 @@ export const isLectureNodeDimmed = (
     (layer) => layer.type === "dim" && !layer.exceptClientIds.has(clientId),
   );
 
+/*
+함수 이름 : isLectureEdgeDimmed
+기능 : dim 예외 경로에 완전히 속하지 않은 연결선인지 확인한다. 양 끝 노드가 모두 예외일 때만 선명하게 유지한다.
+인자 : LectureAnimationState state -> 강의 시각 상태
+string sourceClientId -> 부모 노드 clientId
+string targetClientId -> 자식 노드 clientId
+반환값 : 연결선을 흐리게 표시해야 하면 true
+*/
+export const isLectureEdgeDimmed = (
+  state: LectureAnimationState,
+  sourceClientId: string,
+  targetClientId: string,
+): boolean =>
+  [...state.layers.values()].some(
+    (layer) =>
+      layer.type === "dim" &&
+      (!layer.exceptClientIds.has(sourceClientId) ||
+        !layer.exceptClientIds.has(targetClientId)),
+  );
+
 export const isLectureEdgeTraced = (
   state: LectureAnimationState,
   sourceClientId: string,

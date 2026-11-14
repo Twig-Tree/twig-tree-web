@@ -19,24 +19,18 @@ const edges = [
 
 describe("getLectureGrowStages", () => {
   it("대상에서 떨어진 깊이별로 자손을 묶는다", () => {
-    expect(getLectureGrowStages(["root"], edges, new Set())).toEqual([
+    expect(getLectureGrowStages(["root"], edges)).toEqual([
       ["a", "b"],
       ["a1", "b1", "b2"],
     ]);
   });
 
   it("자손이 없으면 빈 목록을 돌려준다", () => {
-    expect(getLectureGrowStages(["a1"], edges, new Set())).toEqual([]);
-  });
-
-  it("접혀서 화면에 없는 노드와 그 아래는 빼고 묶는다", () => {
-    expect(
-      getLectureGrowStages(["root"], edges, new Set(["b1", "b2"])),
-    ).toEqual([["a", "b"], ["a1"]]);
+    expect(getLectureGrowStages(["a1"], edges)).toEqual([]);
   });
 
   it("대상끼리 조상·자손 사이면 자손 쪽 대상은 숨기지 않는다", () => {
-    expect(getLectureGrowStages(["root", "b"], edges, new Set())).toEqual([
+    expect(getLectureGrowStages(["root", "b"], edges)).toEqual([
       ["a", "b1", "b2"],
       ["a1"],
     ]);

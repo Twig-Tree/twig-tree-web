@@ -126,4 +126,36 @@ describe("CustomEdge", () => {
 
     expect(container.querySelector(".lecture-edge-traced")).toBeNull();
   });
+
+  it("dim 예외 경로 밖의 연결선에 흐림 클래스를 적용한다", () => {
+    useLectureAnimationStore.getState().setLayer({
+      id: "dim",
+      type: "dim",
+      exceptClientIds: new Set(["parent"]),
+    });
+
+    const { container } = render(
+      <svg>
+        <CustomEdge {...edgeProps} />
+      </svg>,
+    );
+
+    expect(container.querySelector(".lecture-edge-dimmed")).not.toBeNull();
+  });
+
+  it("양 끝 노드가 모두 dim 예외면 연결선을 선명하게 유지한다", () => {
+    useLectureAnimationStore.getState().setLayer({
+      id: "dim",
+      type: "dim",
+      exceptClientIds: new Set(["parent", "child"]),
+    });
+
+    const { container } = render(
+      <svg>
+        <CustomEdge {...edgeProps} />
+      </svg>,
+    );
+
+    expect(container.querySelector(".lecture-edge-dimmed")).toBeNull();
+  });
 });
