@@ -129,12 +129,12 @@
 
 | 변수                             | 값                   | 쓰는 곳                                                 |
 | -------------------------------- | -------------------- | ------------------------------------------------------- |
-| `--lecture-ease-enter`           | `ease-out`           | 나타나는 전환, pop                                      |
-| `--lecture-ease-move`            | `ease-in-out`        | pulse, bounce, shake                                    |
+| `--lecture-ease-enter`           | `ease-out`           | 나타나는 전환, pop, sparkle                             |
+| `--lecture-ease-move`            | `ease-in-out`        | pulse, bounce, shake, 반짝이                            |
 | `--lecture-fade-duration`        | 240ms                | 강조·흐림이 켜지는 전환                                 |
 | `--lecture-current-duration`     | 260ms                | 현재 장면 노드 표시 전환                                |
 | `--lecture-pulse-cycle`          | 900ms                | pulse 한 번                                             |
-| `--lecture-pop-duration`         | 650ms                | pop과 퍼지는 링                                         |
+| `--lecture-pop-duration`         | 650ms                | pop·sparkle과 퍼지는 링                                 |
 | `--lecture-bounce-cycle`         | 800ms                | bounce 한 번                                            |
 | `--lecture-shake-cycle`          | 550ms                | shake 한 번                                             |
 | `--lecture-trace-cycle`          | 520ms                | 추적 점선이 한 칸 흐르는 시간                           |
@@ -147,10 +147,11 @@
 | `--lecture-badge-enter-duration` | 420ms                | 꼬리표가 튀어나오는 시간                                |
 | `--lecture-grow-edge-duration`   | 360ms                | grow 연결선이 부모에서 자식까지 그려지는 시간           |
 | `--lecture-grow-node-duration`   | 420ms                | grow 자식이 튀어나오는 시간. 연결선의 70% 지점에서 시작 |
+| `--lecture-sparkle-cycle`        | 1600ms               | sparkle 반짝이 하나가 나타났다 사라지는 시간            |
 
 현재 장면 노드는 강조되지 않은 동안 링 바깥 빛이 천천히 숨쉰다. 강조되면 숨쉬기를 멈춰 강조 링이 보이게 한다. 동작 줄이기에서는 숨쉬기와 pop의 퍼지는 링을 끈다. 흐림의 필터는 움직임이 아니라 그대로 둔다.
 
-혜성 추적의 그리기 시간은 순차 추적이 연결선 하나에 쓰는 시간(`traceSegment`의 quick 450ms)보다 길 수 있다. 그때는 앞 선을 다 그리기 전에 다음 선이 시작해, 겹쳐 그려지는 것처럼 보인다. 동작 줄이기에서는 그리기와 빛 점을 빼고 다 그린 선만 남긴다. 꼬리표도 튀어나오지 않고 바로 보인다.
+혜성 추적의 그리기 시간은 순차 추적이 연결선 하나에 쓰는 시간(`traceSegment`의 quick 450ms)보다 길 수 있다. 그때는 앞 선을 다 그리기 전에 다음 선이 시작해, 겹쳐 그려지는 것처럼 보인다. 동작 줄이기에서는 그리기와 빛 점을 빼고 다 그린 선만 남긴다. 꼬리표도 튀어나오지 않고 바로 보인다. sparkle은 대본 단계에서 steady로 바뀌고, CSS도 반짝이를 숨긴다.
 
 추적 점선은 끊김 없이 흐르려면 등속이어야 해서 곡선을 변수로 두지 않고 `linear`로 고정한다.
 

@@ -56,6 +56,7 @@ React Flow가 읽는 CSS 변수에 값을 넣어야 하므로 Tailwind 유틸리
   --lecture-badge-enter-duration: 420ms;
   --lecture-grow-edge-duration: 360ms; /* 자라는 연결선이 부모에서 자식까지 그려지는 시간 */
   --lecture-grow-node-duration: 420ms; /* 연결선이 거의 닿을 때 자식이 튀어나오는 시간 */
+  --lecture-sparkle-cycle: 1600ms; /* 반짝이 하나가 나타났다 사라지는 시간 */
 }
 
 /* Customizing Default Theming */
@@ -191,6 +192,9 @@ pop이 시작될 때 노드 외곽에서 링이 한 번 퍼져 나간다. 노드
 */
 .react-flow__node:has(
     > .custom-node[data-lecture-highlight-style="pop"]
+  )::after,
+.react-flow__node:has(
+    > .custom-node[data-lecture-highlight-style="sparkle"]
   )::after {
   content: "";
   position: absolute;
@@ -212,6 +216,42 @@ pop이 시작될 때 노드 외곽에서 링이 한 번 퍼져 나간다. 노드
   animation: lecture-node-shake
     var(--lecture-highlight-cycle, var(--lecture-shake-cycle))
     var(--lecture-ease-move) var(--lecture-highlight-iterations, infinite);
+}
+
+/*
+sparkle. pop처럼 한 번 튀어 오른 뒤, 노드 둘레의 반짝이가 시차를 두고 계속 깜빡인다.
+반짝이는 clip-path로 별 모양을 자르므로 빛 번짐은 잘리지 않게 감싸는 요소에 준다.
+*/
+.custom-node[data-lecture-highlight-style="sparkle"] > .custom-node__content {
+  animation: lecture-node-pop var(--lecture-pop-duration)
+    var(--lecture-ease-enter) both;
+}
+
+.lecture-sparkles {
+  z-index: 1;
+  filter: drop-shadow(0 0 4px var(--lecture-highlight-color));
+}
+
+.lecture-sparkle {
+  position: absolute;
+  translate: -50% -50%;
+  background: color-mix(
+    in srgb,
+    var(--lecture-highlight-color) 75%,
+    var(--theme-on-accent)
+  );
+  clip-path: polygon(
+    50% 0%,
+    62% 38%,
+    100% 50%,
+    62% 62%,
+    50% 100%,
+    38% 62%,
+    0% 50%,
+    38% 38%
+  );
+  animation: lecture-sparkle-twinkle var(--lecture-sparkle-cycle)
+    var(--lecture-ease-move) infinite both;
 }
 
 .react-flow__node:has(> .custom-node[data-lecture-dimmed="true"]) {
@@ -492,6 +532,25 @@ pulse와 숨쉬기 같은 노드 애니메이션보다 뒤에 두어, 나타나�
   }
 }
 
+@keyframes lecture-sparkle-twinkle {
+  0%,
+  100% {
+    opacity: 0;
+    scale: 0;
+    rotate: 0deg;
+  }
+  35% {
+    opacity: 1;
+    scale: 1;
+    rotate: 45deg;
+  }
+  65% {
+    opacity: 0.7;
+    scale: 0.55;
+    rotate: 90deg;
+  }
+}
+
 @keyframes lecture-edge-trace {
   from {
     stroke-dashoffset: 0;
@@ -503,6 +562,10 @@ pulse와 숨쉬기 같은 노드 애니메이션보다 뒤에 두어, 나타나�
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .lecture-sparkles {
+    display: none;
+  }
+
   .react-flow__node:has(> .custom-node[data-lecture-current="true"]),
   .react-flow__node:has(> .custom-node[data-lecture-highlight-style]),
   .custom-node[data-lecture-highlight-style] > .custom-node__content,
@@ -512,6 +575,9 @@ pulse와 숨쉬기 같은 노드 애니메이션보다 뒤에 두어, 나타나�
 
   .react-flow__node:has(
       > .custom-node[data-lecture-highlight-style="pop"]
+    )::after,
+  .react-flow__node:has(
+      > .custom-node[data-lecture-highlight-style="sparkle"]
     )::after {
     content: none;
   }

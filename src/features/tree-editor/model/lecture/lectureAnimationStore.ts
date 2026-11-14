@@ -5,7 +5,7 @@ export type LectureVisualLayer =
       id: string;
       type: "highlight";
       clientIds: ReadonlySet<string>;
-      style: "steady" | "pulse" | "pop" | "bounce" | "shake";
+      style: "steady" | "pulse" | "pop" | "bounce" | "shake" | "sparkle";
       tone?: "accent" | "success" | "warning" | "danger";
       motionDurationMs?: number | null; // 반복 움직임을 끝낼 시간. 유지되는 강조는 null
     }
@@ -102,7 +102,7 @@ export const isLectureNodePulsing = (
 export const getLectureNodeHighlightStyle = (
   state: LectureAnimationState,
   clientId: string,
-): "steady" | "pulse" | "pop" | "bounce" | "shake" | null => {
+): "steady" | "pulse" | "pop" | "bounce" | "shake" | "sparkle" | null => {
   const layers = [...state.layers.values()].reverse();
   const layer = layers.find(
     (candidate) =>

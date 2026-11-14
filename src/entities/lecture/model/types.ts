@@ -27,7 +27,7 @@ export interface LectureFocusAction {
 export interface LectureHighlightAction {
   type: "highlight";
   targetNodeIds: LectureNodeId[];
-  style: "steady" | "pulse" | "pop" | "bounce" | "shake";
+  style: "steady" | "pulse" | "pop" | "bounce" | "shake" | "sparkle";
   tone?: "accent" | "success" | "warning" | "danger";
   durationMs: number;
   persist?: boolean; // true이면 다음 reset 전까지 강조를 유지한다

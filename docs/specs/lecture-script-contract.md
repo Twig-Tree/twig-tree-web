@@ -41,7 +41,9 @@ LectureScript
 다음 동작까지 기다리는 시간이다. 접고 펼치면 배치가 달라지므로, 바뀐 트리로 카메라를 옮기려면 `focus`를 같은 병렬 그룹이 아니라 순차 그룹의 다음 동작으로 둔다.
 `reset`은 접힘을 되돌리지 않으므로, 강의 중에 되돌리려면 대본에 반대 동작을 둔다. 강의가 끝나면 플레이어가 시작할 때의 접힘 상태로 되돌린다.
 
-`highlight`의 `style`은 `steady`, `pulse`, `pop`, `bounce`, `shake`이고 `tone`은 `accent`(기본), `success`, `warning`, `danger`다.
+`highlight`의 `style`은 `steady`, `pulse`, `pop`, `bounce`, `shake`, `sparkle`이고 `tone`은 `accent`(기본), `success`, `warning`, `danger`다.
+
+`sparkle`은 pop처럼 한 번 튀어 오른 뒤 노드 둘레에 반짝이가 시차를 두고 깜빡인다. 반짝이 색은 `tone`을 따르므로 정답을 축하할 때는 `success`와 함께 쓴다. 레시피는 아직 `sparkle`을 고르지 않아, 손으로 쓴 대본과 애니메이션 랩에서만 쓰인다.
 
 `trace`의 `mode`가 `progressive`이면 `durationMs`를 연결선 수로 나눠 하나씩 그린다. 기본값 `simultaneous`는 모두 함께 그린다. `direction`이 `reverse`이면 끝에서부터 강조한다.
 

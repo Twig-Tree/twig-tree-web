@@ -21,6 +21,7 @@ import {
 } from "@/src/features/tree-editor/model/lecture/lectureAnimationStore";
 import { CollapseToggleButton } from "./CollapseToggleButton";
 import { LectureNodeBadge } from "./LectureNodeBadge";
+import { LectureNodeSparkles } from "./LectureNodeSparkles";
 
 export function CustomNode({
   id,
@@ -211,6 +212,7 @@ export function CustomNode({
       />
 
       <CollapseToggleButton clientId={id} serverId={data.serverId} />
+      {lectureHighlightStyle === "sparkle" ? <LectureNodeSparkles /> : null}
       <LectureNodeBadge clientId={id} />
     </div>
   );

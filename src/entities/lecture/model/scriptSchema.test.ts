@@ -148,4 +148,16 @@ describe("lectureScriptSchema", () => {
       }),
     ).toEqual([]);
   });
+
+  it("highlight의 sparkle 모양을 받는다", () => {
+    expect(
+      getIssuePaths(lectureAnimationSchema, {
+        type: "highlight",
+        targetNodeIds: ["1"],
+        style: "sparkle",
+        tone: "success",
+        durationMs: 1200,
+      }),
+    ).toEqual([]);
+  });
 });

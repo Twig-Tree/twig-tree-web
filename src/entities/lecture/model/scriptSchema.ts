@@ -35,7 +35,7 @@ export const lectureFocusActionSchema = z.object({
 export const lectureHighlightActionSchema = z.object({
   type: z.literal("highlight"),
   targetNodeIds: nodeIdsSchema,
-  style: z.enum(["steady", "pulse", "pop", "bounce", "shake"]),
+  style: z.enum(["steady", "pulse", "pop", "bounce", "shake", "sparkle"]),
   tone: z.optional(z.enum(["accent", "success", "warning", "danger"])),
   durationMs: durationSchema,
   persist: persistSchema,

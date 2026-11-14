@@ -137,7 +137,8 @@ export function LabStepEditor({ step, onChangeAction }: LabStepEditorProps) {
                     | "pulse"
                     | "pop"
                     | "bounce"
-                    | "shake",
+                    | "shake"
+                    | "sparkle",
                 })
               }
             >
@@ -146,6 +147,7 @@ export function LabStepEditor({ step, onChangeAction }: LabStepEditorProps) {
               <option value="pop">pop</option>
               <option value="bounce">bounce</option>
               <option value="shake">shake</option>
+              <option value="sparkle">sparkle</option>
             </select>
           </label>
         ) : null}
