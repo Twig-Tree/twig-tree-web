@@ -1,4 +1,6 @@
+import { getHiddenClientIds } from "../../lib/collapse/getHiddenClientIds";
 import { getAncestorClientIds } from "../../lib/getAncestorClientIds";
+import { getLectureGrowStages } from "../../lib/lecture/getLectureGrowStages";
 import { useCollapseStore } from "../collapse/collapseStore";
 import { useTreeStore } from "../treeStore";
 import {
@@ -98,6 +100,68 @@ const runProgressiveTrace = async (
   }
 
   return true;
+};
+
+/*
+함수 이름 : runLectureGrow
+기능 : 대상 노드의 자손을 숨긴 뒤 깊이 순서로 하나씩 드러낸다. 시간을 깊이 수보다 한 칸 많게 나눠,
+대상만 보이는 칸으로 시작하고 마지막 깊이가 나타난 뒤 한 칸 머문다. 끝나거나 중단되면 레이어를 지워 모든 자손이 보인다.
+인자 : string[] targetClientIds -> 자라기 시작할 노드
+number durationMs -> 전체 시간
+AbortSignal | undefined signal -> 재생 중단 신호
+반환값 : 없음
+*/
+const runLectureGrow = async (
+  targetClientIds: string[],
+  durationMs: number,
+  signal: AbortSignal | undefined,
+): Promise<void> => {
+  const { treeId, nodes, edges } = useTreeStore.getState();
+  const collapse = useCollapseStore.getState();
+  const collapsedServerIds =
+    collapse.treeId === treeId
+      ? collapse.collapsedServerIds
+      : new Set<string>();
+  const stages = getLectureGrowStages(
+    targetClientIds,
+    edges,
+    getHiddenClientIds(nodes, edges, collapsedServerIds),
+  );
+
+  if (stages.length === 0) {
+    await waitForLectureAnimation(durationMs, signal);
+    return;
+  }
+
+  const layerId = createLayerId();
+  const stepDurationMs = durationMs / (stages.length + 1);
+  const hiddenClientIds = new Set(stages.flat());
+  const { setLayer, removeLayer } = useLectureAnimationStore.getState();
+
+  setLayer({
+    id: layerId,
+    type: "grow",
+    hiddenClientIds: new Set(hiddenClientIds),
+    enteringClientIds: new Set(),
+  });
+
+  for (const stage of stages) {
+    if (!(await waitForLectureAnimation(stepDurationMs, signal))) {
+      removeLayer(layerId);
+      return;
+    }
+
+    stage.forEach((clientId) => hiddenClientIds.delete(clientId));
+    setLayer({
+      id: layerId,
+      type: "grow",
+      hiddenClientIds: new Set(hiddenClientIds),
+      enteringClientIds: new Set(stage),
+    });
+  }
+
+  await waitForLectureAnimation(stepDurationMs, signal);
+  removeLayer(layerId);
 };
 
 /*
@@ -251,6 +315,15 @@ const runLectureAnimationAction = async (
     if (animation.scope === "camera" || animation.scope === "all") {
       context.resetCamera?.();
     }
+    return;
+  }
+
+  if (animation.type === "grow") {
+    await runLectureGrow(
+      animation.targetClientIds,
+      animation.durationMs,
+      context.signal,
+    );
     return;
   }
 

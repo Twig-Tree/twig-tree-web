@@ -69,6 +69,12 @@ export const lectureBadgeActionSchema = z.object({
   persist: persistSchema,
 });
 
+export const lectureGrowActionSchema = z.object({
+  type: z.literal("grow"),
+  targetNodeIds: nodeIdsSchema,
+  durationMs: durationSchema,
+});
+
 export const lectureWaitActionSchema = z.object({
   type: z.literal("wait"),
   durationMs: durationSchema,
@@ -97,6 +103,7 @@ const lectureAnimationActionSchemas = [
   lectureDimActionSchema,
   lectureTraceActionSchema,
   lectureBadgeActionSchema,
+  lectureGrowActionSchema,
   lectureWaitActionSchema,
   lectureCollapseActionSchema,
   lectureExpandActionSchema,

@@ -62,6 +62,17 @@ export interface LectureBadgeAction {
   persist?: boolean; // true이면 다음 reset 전까지 꼬리표를 유지한다
 }
 
+/*
+대상 노드의 자손을 숨겼다가 깊이 순서로 하나씩 드러내 트리가 자라는 모습을 보여 준다.
+배치는 바꾸지 않고 꾸밈으로만 숨기므로, 앞의 focus가 맞춘 화면에 자손이 들어갈 자리가 이미 있다.
+끝나면 모든 자손이 보이는 원래 상태로 돌아가 유지할 효과가 없다.
+*/
+export interface LectureGrowAction {
+  type: "grow";
+  targetNodeIds: LectureNodeId[]; // 자라기 시작할 노드. 이 노드는 보이고 자손이 차례로 나타난다
+  durationMs: number; // 마지막 깊이의 자손이 나타나기까지의 시간. 깊이 수로 나눈다
+}
+
 export interface LectureWaitAction {
   type: "wait";
   durationMs: number;
@@ -93,6 +104,7 @@ export type LectureAnimationAction =
   | LectureDimAction
   | LectureTraceAction
   | LectureBadgeAction
+  | LectureGrowAction
   | LectureWaitAction
   | LectureCollapseAction
   | LectureExpandAction

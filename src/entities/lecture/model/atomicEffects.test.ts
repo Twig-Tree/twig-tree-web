@@ -28,6 +28,7 @@ const sampleActions: Record<
     label: "핵심",
     durationMs: 800,
   },
+  grow: { type: "grow", targetNodeIds: ["1"], durationMs: 800 },
   wait: { type: "wait", durationMs: 800 },
   collapse: { type: "collapse", targetNodeIds: ["1"], durationMs: 800 },
   expand: { type: "expand", targetNodeIds: ["1"], durationMs: 800 },

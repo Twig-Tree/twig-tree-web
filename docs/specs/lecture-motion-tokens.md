@@ -89,16 +89,17 @@
 
 `getReducedMotionAnimation`은 동작 줄이기를 켠 사용자에게 보낼 대본을 만든다. 무엇을 바꿀지는 [atomic effect registry](./lecture-script-contract.md#atomic-effect-registry)의 `motion`과 `durationMeaning` 값이 정한다.
 
-| `motion`     | 동작                 | 바꾸는 것                                            |
-| ------------ | -------------------- | ---------------------------------------------------- |
-| `camera`     | `focus`              | `durationMs`를 0으로. 바로 도착한다                  |
-| `camera`     | `reset`              | 없음. 시간 필드가 없다                               |
-| `layout`     | `collapse`, `expand` | 없음. `durationMs`는 전환 시간이 아니라 hold다       |
-| `decoration` | `highlight`          | 움직이는 `style`을 `steady`로                        |
-| `decoration` | `trace`              | `progressive`를 `simultaneous`로. 전체 시간은 그대로 |
-| `decoration` | `dim`                | 없음. 흐림 자체가 내용이다                           |
-| `decoration` | `badge`              | 없음. 튀어나오는 등장은 CSS가 끈다. 글자가 내용이다  |
-| `none`       | `wait`               | 없음. 쉬는 시간은 움직임이 아니라 말의 호흡이다      |
+| `motion`     | 동작                 | 바꾸는 것                                                                                   |
+| ------------ | -------------------- | ------------------------------------------------------------------------------------------- |
+| `camera`     | `focus`              | `durationMs`를 0으로. 바로 도착한다                                                         |
+| `camera`     | `reset`              | 없음. 시간 필드가 없다                                                                      |
+| `layout`     | `collapse`, `expand` | 없음. `durationMs`는 전환 시간이 아니라 hold다                                              |
+| `decoration` | `highlight`          | 움직이는 `style`을 `steady`로                                                               |
+| `decoration` | `trace`              | `progressive`를 `simultaneous`로. 전체 시간은 그대로                                        |
+| `decoration` | `dim`                | 없음. 흐림 자체가 내용이다                                                                  |
+| `decoration` | `badge`              | 없음. 튀어나오는 등장은 CSS가 끈다. 글자가 내용이다                                         |
+| `decoration` | `grow`               | 없음. 자손은 깊이 순서로 그대로 나타나고, 뻗어 나가는 연결선과 튀어나오는 노드만 CSS가 끈다 |
+| `none`       | `wait`               | 없음. 쉬는 시간은 움직임이 아니라 말의 호흡이다                                             |
 
 그룹의 순서와 병렬 구조는 바꾸지 않는다.
 
@@ -126,24 +127,26 @@
 
 반복 애니메이션의 주기, 곡선, 흐림 투명도는 `app/xy-theme.css`의 `.react-flow` 블록에 `--lecture-*` 변수로 둔다. 대본의 `durationMs`는 효과가 보이는 전체 시간이고, 이 변수는 그 안에서 한 번 움직이는 주기다.
 
-| 변수                             | 값                   | 쓰는 곳                             |
-| -------------------------------- | -------------------- | ----------------------------------- |
-| `--lecture-ease-enter`           | `ease-out`           | 나타나는 전환, pop                  |
-| `--lecture-ease-move`            | `ease-in-out`        | pulse, bounce, shake                |
-| `--lecture-fade-duration`        | 240ms                | 강조·흐림이 켜지는 전환             |
-| `--lecture-current-duration`     | 260ms                | 현재 장면 노드 표시 전환            |
-| `--lecture-pulse-cycle`          | 900ms                | pulse 한 번                         |
-| `--lecture-pop-duration`         | 650ms                | pop과 퍼지는 링                     |
-| `--lecture-bounce-cycle`         | 800ms                | bounce 한 번                        |
-| `--lecture-shake-cycle`          | 550ms                | shake 한 번                         |
-| `--lecture-trace-cycle`          | 520ms                | 추적 점선이 한 칸 흐르는 시간       |
-| `--lecture-breathe-cycle`        | 2400ms               | 현재 장면 노드 숨쉬기 한 번         |
-| `--lecture-dim-opacity`          | 0.22                 | 흐린 노드의 투명도                  |
-| `--lecture-dim-filter`           | 흑백 0.7, 흐림 0.6px | 흐린 노드의 색과 초점               |
-| `--lecture-highlight-tint`       | 10%                  | 강조 노드 바탕에 섞는 강조색        |
-| `--lecture-comet-draw-duration`  | 600ms                | 혜성 추적이 선을 다 그리는 시간     |
-| `--lecture-comet-cycle`          | 1400ms               | 혜성 빛 점이 선을 한 번 달리는 시간 |
-| `--lecture-badge-enter-duration` | 420ms                | 꼬리표가 튀어나오는 시간            |
+| 변수                             | 값                   | 쓰는 곳                                                 |
+| -------------------------------- | -------------------- | ------------------------------------------------------- |
+| `--lecture-ease-enter`           | `ease-out`           | 나타나는 전환, pop                                      |
+| `--lecture-ease-move`            | `ease-in-out`        | pulse, bounce, shake                                    |
+| `--lecture-fade-duration`        | 240ms                | 강조·흐림이 켜지는 전환                                 |
+| `--lecture-current-duration`     | 260ms                | 현재 장면 노드 표시 전환                                |
+| `--lecture-pulse-cycle`          | 900ms                | pulse 한 번                                             |
+| `--lecture-pop-duration`         | 650ms                | pop과 퍼지는 링                                         |
+| `--lecture-bounce-cycle`         | 800ms                | bounce 한 번                                            |
+| `--lecture-shake-cycle`          | 550ms                | shake 한 번                                             |
+| `--lecture-trace-cycle`          | 520ms                | 추적 점선이 한 칸 흐르는 시간                           |
+| `--lecture-breathe-cycle`        | 2400ms               | 현재 장면 노드 숨쉬기 한 번                             |
+| `--lecture-dim-opacity`          | 0.22                 | 흐린 노드의 투명도                                      |
+| `--lecture-dim-filter`           | 흑백 0.7, 흐림 0.6px | 흐린 노드의 색과 초점                                   |
+| `--lecture-highlight-tint`       | 10%                  | 강조 노드 바탕에 섞는 강조색                            |
+| `--lecture-comet-draw-duration`  | 600ms                | 혜성 추적이 선을 다 그리는 시간                         |
+| `--lecture-comet-cycle`          | 1400ms               | 혜성 빛 점이 선을 한 번 달리는 시간                     |
+| `--lecture-badge-enter-duration` | 420ms                | 꼬리표가 튀어나오는 시간                                |
+| `--lecture-grow-edge-duration`   | 360ms                | grow 연결선이 부모에서 자식까지 그려지는 시간           |
+| `--lecture-grow-node-duration`   | 420ms                | grow 자식이 튀어나오는 시간. 연결선의 70% 지점에서 시작 |
 
 현재 장면 노드는 강조되지 않은 동안 링 바깥 빛이 천천히 숨쉰다. 강조되면 숨쉬기를 멈춰 강조 링이 보이게 한다. 동작 줄이기에서는 숨쉬기와 pop의 퍼지는 링을 끈다. 흐림의 필터는 움직임이 아니라 그대로 둔다.
 

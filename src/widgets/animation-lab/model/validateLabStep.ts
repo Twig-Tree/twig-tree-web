@@ -65,6 +65,7 @@ export const validateLabAction = (
         )
         ? null
         : "연결되지 않은 구간이 있어 일부 연결선이 보이지 않습니다. 부모에서 자식 순서로 고르세요.";
+    case "grow":
     case "collapse":
     case "expand":
       if (action.targetNodeIds.length === 0) return "대상 노드를 고르세요.";
@@ -76,7 +77,9 @@ export const validateLabAction = (
         tree.some((node) => node.parentId === nodeId),
       )
         ? null
-        : "자식이 없는 노드는 접거나 펼쳐도 보이는 변화가 없습니다.";
+        : action.type === "grow"
+          ? "자식이 없는 노드는 자라나도 보이는 변화가 없습니다."
+          : "자식이 없는 노드는 접거나 펼쳐도 보이는 변화가 없습니다.";
     case "reset":
     case "wait":
       return null;

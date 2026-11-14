@@ -54,6 +54,8 @@ React Flow가 읽는 CSS 변수에 값을 넣어야 하므로 Tailwind 유틸리
   --lecture-comet-draw-duration: 600ms; /* 순차 추적의 연결선 하나 시간(650ms)보다 짧아야 다음 선 전에 다 그려진다 */
   --lecture-comet-cycle: 1400ms;
   --lecture-badge-enter-duration: 420ms;
+  --lecture-grow-edge-duration: 360ms; /* 자라는 연결선이 부모에서 자식까지 그려지는 시간 */
+  --lecture-grow-node-duration: 420ms; /* 연결선이 거의 닿을 때 자식이 튀어나오는 시간 */
 }
 
 /* Customizing Default Theming */
@@ -289,6 +291,63 @@ pop이 시작될 때 노드 외곽에서 링이 한 번 퍼져 나간다. 노드
 }
 
 /*
+grow. 숨은 자손은 자리를 지킨 채 보이지 않고, 나타날 때 연결선이 부모에서 뻗어 나간 뒤 자식이 튀어나온다.
+React Flow가 노드 위치에 transform을 쓰므로 크기 변화는 scale 속성으로 따로 준다.
+pulse와 숨쉬기 같은 노드 애니메이션보다 뒤에 두어, 나타나는 동안에는 등장 애니메이션이 이긴다.
+*/
+.react-flow__node:has(> .custom-node[data-lecture-grow="hidden"]),
+.react-flow__edge:has(.lecture-edge-grow-hidden) {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.react-flow__node:has(> .custom-node[data-lecture-grow="entering"]) {
+  animation: lecture-node-grow var(--lecture-grow-node-duration)
+    var(--lecture-ease-enter) calc(var(--lecture-grow-edge-duration) * 0.7) both;
+}
+
+.react-flow__edge-path.lecture-edge-grow-entering {
+  stroke-dasharray: 1 1;
+  animation: lecture-edge-grow var(--lecture-grow-edge-duration)
+    var(--lecture-ease-enter) both;
+}
+
+.react-flow__edge:has(.lecture-edge-grow-entering) .custom-edge__marker {
+  animation: lecture-fade-in var(--lecture-fade-duration)
+    var(--lecture-ease-enter) var(--lecture-grow-edge-duration) both;
+}
+
+@keyframes lecture-node-grow {
+  0% {
+    opacity: 0;
+    scale: 0.5;
+  }
+  60% {
+    opacity: 1;
+    scale: 1.08;
+  }
+  100% {
+    scale: 1;
+  }
+}
+
+@keyframes lecture-edge-grow {
+  from {
+    stroke-dashoffset: 1;
+  }
+
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes lecture-fade-in {
+  from {
+    opacity: 0;
+  }
+}
+
+/*
 강의 꼬리표는 노드 오른쪽 위 모서리에 걸쳐 놓는다. 자리는 translate, 등장은 scale로 나눠 등장 애니메이션이 자리를 덮어쓰지 않게 한다.
 */
 .lecture-badge {
@@ -470,8 +529,15 @@ pop이 시작될 때 노드 외곽에서 링이 한 번 퍼져 나간다. 노드
     display: none;
   }
 
-  .lecture-badge {
+  .lecture-badge,
+  .react-flow__node:has(> .custom-node[data-lecture-grow="entering"]),
+  .react-flow__edge-path.lecture-edge-grow-entering,
+  .react-flow__edge:has(.lecture-edge-grow-entering) .custom-edge__marker {
     animation: none;
+  }
+
+  .react-flow__edge-path.lecture-edge-grow-entering {
+    stroke-dasharray: none;
   }
 }
 

@@ -2,6 +2,7 @@ import { CustomEditorEdge } from "@/src/features/tree-editor/model/types";
 import {
   getLectureEdgeTraceDirection,
   getLectureEdgeTraceStyle,
+  getLectureNodeGrowState,
   useLectureAnimationStore,
 } from "@/src/features/tree-editor/model/lecture/lectureAnimationStore";
 import { useTheme, type ThemeId } from "@/src/shared/lib/theme";
@@ -51,6 +52,9 @@ export function CustomEdge({
   const traceStyle = useLectureAnimationStore((state) =>
     getLectureEdgeTraceStyle(state, source, target),
   );
+  const growState = useLectureAnimationStore((state) =>
+    getLectureNodeGrowState(state, target),
+  ); // 연결선은 자식 노드와 함께 숨고 나타난다
   const isTraced = traceDirection !== null;
   const isCometTraced = isTraced && traceStyle === "comet";
 
@@ -107,10 +111,20 @@ export function CustomEdge({
                 strokeLinecap: "round",
               }
         }
+        /*
+        자라며 나타나는 연결선은 길이를 1로 정규화해 길이와 관계없이 같은 CSS 값으로 그려 나간다.
+        추적 점선은 픽셀 단위 간격을 쓰므로 그때는 정규화하지 않는다.
+        */
+        pathLength={growState === "entering" && !isTraced ? 1 : undefined}
         className={
-          isTraced && !isCometTraced
-            ? `lecture-edge-traced lecture-edge-traced-${traceDirection}`
-            : undefined
+          [
+            isTraced && !isCometTraced
+              ? `lecture-edge-traced lecture-edge-traced-${traceDirection}`
+              : null,
+            growState === null ? null : `lecture-edge-grow-${growState}`,
+          ]
+            .filter(Boolean)
+            .join(" ") || undefined
         }
       />
       {isCometTraced ? (

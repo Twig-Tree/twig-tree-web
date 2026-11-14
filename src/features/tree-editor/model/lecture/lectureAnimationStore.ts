@@ -27,6 +27,12 @@ export type LectureVisualLayer =
       clientIds: ReadonlySet<string>;
       label: string;
       tone: "accent" | "success" | "warning" | "danger";
+    }
+  | {
+      id: string;
+      type: "grow";
+      hiddenClientIds: ReadonlySet<string>; // 아직 나타나지 않은 자손
+      enteringClientIds: ReadonlySet<string>; // 방금 나타나 등장 애니메이션을 보여 줄 자손
     };
 
 interface LectureAnimationState {
@@ -200,4 +206,32 @@ export const getLectureNodeBadge = (
   );
 
   return layer?.type === "badge" ? layer : null;
+};
+
+/*
+함수 이름 : getLectureNodeGrowState
+기능 : grow 동작에서 노드가 아직 숨어 있는지, 방금 나타났는지 찾는다. 연결선은 자식 쪽 노드의 상태를 따른다.
+인자 : LectureAnimationState state -> 강의 시각 상태
+string clientId -> 노드의 clientId
+반환값 : 숨어 있으면 "hidden", 방금 나타났으면 "entering", grow와 관계없으면 null
+*/
+export const getLectureNodeGrowState = (
+  state: LectureAnimationState,
+  clientId: string,
+): "hidden" | "entering" | null => {
+  const layers = [...state.layers.values()];
+
+  if (
+    layers.some(
+      (layer) => layer.type === "grow" && layer.hiddenClientIds.has(clientId),
+    )
+  ) {
+    return "hidden";
+  }
+
+  return layers.some(
+    (layer) => layer.type === "grow" && layer.enteringClientIds.has(clientId),
+  )
+    ? "entering"
+    : null;
 };

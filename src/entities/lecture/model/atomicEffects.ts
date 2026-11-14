@@ -5,6 +5,7 @@ import {
   lectureDimActionSchema,
   lectureExpandActionSchema,
   lectureFocusActionSchema,
+  lectureGrowActionSchema,
   lectureHighlightActionSchema,
   lectureResetActionSchema,
   lectureTraceActionSchema,
@@ -115,6 +116,13 @@ export const LECTURE_ATOMIC_EFFECTS: {
     isPersistable: true,
     durationMeaning: "effect",
     motion: "decoration", // 튀어나오는 등장은 CSS가 그리고, 동작 줄이기에서는 CSS가 끈다
+  },
+  grow: {
+    schema: lectureGrowActionSchema,
+    target: { family: "node", field: "targetNodeIds" },
+    isPersistable: false,
+    durationMeaning: "effect",
+    motion: "decoration", // 배치는 그대로 두고 꾸밈으로만 숨긴다. 나타나는 움직임은 CSS가 그리고 동작 줄이기에서 끈다
   },
   wait: {
     schema: lectureWaitActionSchema,

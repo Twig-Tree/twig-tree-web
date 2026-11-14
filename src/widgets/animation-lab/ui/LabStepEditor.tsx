@@ -24,6 +24,7 @@ const NODE_FIELD_LABELS: Record<LectureAnimationAction["type"], string> = {
   dim: "흐리지 않을 노드",
   trace: "따라갈 경로 (부모 → 자식)",
   badge: "꼬리표를 붙일 노드",
+  grow: "자라기 시작할 노드",
   collapse: "자식을 접을 노드",
   expand: "자식을 펼칠 노드",
   reset: "",

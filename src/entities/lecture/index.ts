@@ -16,6 +16,7 @@ export type {
   LectureScript,
   LectureTraceAction,
   LectureBadgeAction,
+  LectureGrowAction,
   LectureWaitAction,
 } from "./model/types";
 export type { DemoTreeNode } from "./model/createDemoLecture";

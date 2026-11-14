@@ -11,6 +11,7 @@ import {
   useLectureStore,
 } from "@/src/features/tree-editor/model/lecture/lectureStore";
 import {
+  getLectureNodeGrowState,
   getLectureNodeHighlightStyle,
   getLectureNodeHighlightMotionDuration,
   getLectureNodeHighlightTone,
@@ -64,6 +65,9 @@ export function CustomNode({
   );
   const isLectureDimmed = useLectureAnimationStore((state) =>
     isLectureNodeDimmed(state, id),
+  );
+  const lectureGrowState = useLectureAnimationStore((state) =>
+    getLectureNodeGrowState(state, id),
   );
 
   const {
@@ -143,6 +147,7 @@ export function CustomNode({
       data-lecture-highlight-style={lectureHighlightStyle ?? undefined}
       data-lecture-highlight-tone={lectureHighlightTone ?? undefined}
       data-lecture-dimmed={isLectureDimmed}
+      data-lecture-grow={lectureGrowState ?? undefined}
       style={getLectureHighlightMotionStyle(
         lectureHighlightStyle,
         lectureHighlightMotionDuration,
