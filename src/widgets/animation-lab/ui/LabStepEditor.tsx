@@ -206,6 +206,22 @@ export function LabStepEditor({ step, onChangeAction }: LabStepEditorProps) {
                 <option value="reverse">자식 → 부모</option>
               </select>
             </label>
+            <label className="text-xs font-semibold text-content-secondary">
+              모양
+              <select
+                value={action.style ?? "dash"}
+                className={`mt-1 ${FIELD_CLASS}`}
+                onChange={(event) =>
+                  onChangeAction({
+                    ...action,
+                    style: event.target.value as "dash" | "comet",
+                  })
+                }
+              >
+                <option value="dash">흐르는 점선</option>
+                <option value="comet">혜성</option>
+              </select>
+            </label>
           </>
         ) : null}
 

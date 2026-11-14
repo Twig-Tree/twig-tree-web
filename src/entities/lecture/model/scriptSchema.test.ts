@@ -68,6 +68,14 @@ describe("lectureScriptSchema", () => {
     expect(
       getIssuePaths(lectureAnimationSchema, { type: "reset", scope: "tree" }),
     ).toEqual(["scope"]);
+    expect(
+      getIssuePaths(lectureAnimationSchema, {
+        type: "trace",
+        nodeIds: ["1", "2"],
+        style: "laser",
+        durationMs: 100,
+      }),
+    ).toEqual(["style"]);
   });
 
   it("시간과 배율은 유한해야 하고, 시간은 0 이상, 배율은 0보다 커야 한다", () => {

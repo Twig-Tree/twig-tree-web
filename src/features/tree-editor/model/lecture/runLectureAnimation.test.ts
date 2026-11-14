@@ -5,6 +5,7 @@ import { useCollapseStore } from "../collapse/collapseStore";
 import { useTreeStore } from "../treeStore";
 import { type EditorLectureAnimation } from "../types";
 import {
+  getLectureEdgeTraceStyle,
   isLectureEdgeTraced,
   isLectureNodeDimmed,
   isLectureNodeHighlighted,
@@ -268,6 +269,34 @@ describe("runLectureAnimation", () => {
     expect(
       isLectureEdgeTraced(useLectureAnimationStore.getState(), "c1", "c2"),
     ).toBe(true);
+  });
+
+  it("trace 모양을 동시·순차 추적 모두 레이어에 넘긴다", async () => {
+    void runLectureAnimation(
+      {
+        type: "trace",
+        clientIds: ["c1", "c2"],
+        durationMs: 300,
+        style: "comet",
+        persist: true,
+      },
+      { revealNodes },
+    );
+    void runLectureAnimation(
+      {
+        type: "trace",
+        clientIds: ["c2", "c3"],
+        durationMs: 300,
+        mode: "progressive",
+        style: "comet",
+        persist: true,
+      },
+      { revealNodes },
+    );
+
+    const state = useLectureAnimationStore.getState();
+    expect(getLectureEdgeTraceStyle(state, "c1", "c2")).toBe("comet");
+    expect(getLectureEdgeTraceStyle(state, "c2", "c3")).toBe("comet");
   });
 });
 

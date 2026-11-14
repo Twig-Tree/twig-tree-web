@@ -53,6 +53,7 @@ export const lectureTraceActionSchema = z.object({
   durationMs: durationSchema,
   mode: z.optional(z.enum(["simultaneous", "progressive"])),
   direction: z.optional(z.enum(["forward", "reverse"])),
+  style: z.optional(z.enum(["dash", "comet"])),
   persist: persistSchema,
 });
 

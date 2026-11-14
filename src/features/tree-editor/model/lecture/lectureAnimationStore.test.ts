@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it } from "vitest";
 import {
   getLectureEdgeTraceDirection,
+  getLectureEdgeTraceStyle,
   getLectureEdgeKey,
   getLectureNodeHighlightStyle,
   getLectureNodeHighlightTone,
@@ -66,6 +67,28 @@ describe("lectureAnimationStore", () => {
     expect(isLectureEdgeTraced(state, "c1", "c2")).toBe(true);
     expect(isLectureEdgeTraced(state, "c2", "c1")).toBe(false);
     expect(getLectureEdgeTraceDirection(state, "c1", "c2")).toBe("reverse");
+  });
+
+  it("trace 모양을 고르지 않으면 점선으로, 고르면 마지막 레이어의 모양으로 표시한다", () => {
+    const edgeKey = getLectureEdgeKey("c1", "c2");
+    const store = useLectureAnimationStore.getState();
+
+    expect(getLectureEdgeTraceStyle(store, "c1", "c2")).toBeNull();
+
+    store.setLayer({ id: "dash", type: "trace", edgeKeys: new Set([edgeKey]) });
+    expect(
+      getLectureEdgeTraceStyle(useLectureAnimationStore.getState(), "c1", "c2"),
+    ).toBe("dash");
+
+    store.setLayer({
+      id: "comet",
+      type: "trace",
+      edgeKeys: new Set([edgeKey]),
+      style: "comet",
+    });
+    expect(
+      getLectureEdgeTraceStyle(useLectureAnimationStore.getState(), "c1", "c2"),
+    ).toBe("comet");
   });
 
   it("레이어 하나를 제거하거나 전체 시각 상태를 초기화한다", () => {

@@ -43,6 +43,8 @@ LectureScript
 
 `trace`의 `mode`가 `progressive`이면 `durationMs`를 연결선 수로 나눠 하나씩 그린다. 기본값 `simultaneous`는 모두 함께 그린다. `direction`이 `reverse`이면 끝에서부터 강조한다.
 
+`trace`의 `style`은 연결선을 강조하는 모양이다. 기본값 `dash`는 흐르는 점선이고, `comet`은 선을 출발점에서 그려 나간 뒤 빛 점이 선을 따라 반복해 달린다. 그리기와 달리기의 시간은 대본이 아니라 CSS 변수가 정한다([motion token](./lecture-motion-tokens.md#css-변수)). 레시피는 아직 `comet`을 고르지 않아, 손으로 쓴 대본과 애니메이션 랩에서만 쓰인다.
+
 ## persist 생명주기
 
 `highlight`, `dim`, `trace`는 `persist: true`일 때 지정한 `durationMs`를 기다리지 않고 다음 동작으로 진행하면서

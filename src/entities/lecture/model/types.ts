@@ -46,6 +46,7 @@ export interface LectureTraceAction {
   durationMs: number;
   mode?: "simultaneous" | "progressive";
   direction?: "forward" | "reverse";
+  style?: "dash" | "comet"; // dash(기본): 흐르는 점선. comet: 선을 그린 뒤 빛 점이 선을 따라 달린다
   persist?: boolean;
 }
 

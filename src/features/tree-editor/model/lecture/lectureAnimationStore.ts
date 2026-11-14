@@ -19,6 +19,7 @@ export type LectureVisualLayer =
       type: "trace";
       edgeKeys: ReadonlySet<string>;
       direction?: "forward" | "reverse";
+      style?: "dash" | "comet";
     };
 
 interface LectureAnimationState {
@@ -157,4 +158,19 @@ export const getLectureEdgeTraceDirection = (
   );
 
   return layer?.type === "trace" ? (layer.direction ?? "forward") : null;
+};
+
+export const getLectureEdgeTraceStyle = (
+  state: LectureAnimationState,
+  sourceClientId: string,
+  targetClientId: string,
+): "dash" | "comet" | null => {
+  const edgeKey = getLectureEdgeKey(sourceClientId, targetClientId);
+  const layers = [...state.layers.values()].reverse();
+  const layer = layers.find(
+    (candidate) =>
+      candidate.type === "trace" && candidate.edgeKeys.has(edgeKey),
+  );
+
+  return layer?.type === "trace" ? (layer.style ?? "dash") : null;
 };

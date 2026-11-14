@@ -72,6 +72,7 @@ const runProgressiveTrace = async (
   layerId: string,
   edgeKeys: string[],
   direction: "forward" | "reverse",
+  style: "dash" | "comet" | undefined,
   durationMs: number,
   signal: AbortSignal | undefined,
 ): Promise<boolean> => {
@@ -89,6 +90,7 @@ const runProgressiveTrace = async (
       type: "trace",
       edgeKeys: new Set(visibleEdgeKeys),
       direction,
+      style,
     });
 
     const completed = await waitForLectureAnimation(stepDurationMs, signal);
@@ -134,6 +136,7 @@ export const createLectureVisualLayer = (
         type: animation.type,
         edgeKeys: new Set(getTraceEdgeKeys(animation.clientIds)),
         direction: animation.direction ?? "forward",
+        style: animation.style,
       };
   }
 };
@@ -249,6 +252,7 @@ const runLectureAnimationAction = async (
       layerId,
       getTraceEdgeKeys(animation.clientIds),
       animation.direction ?? "forward",
+      animation.style,
       animation.durationMs,
       context.signal,
     );
