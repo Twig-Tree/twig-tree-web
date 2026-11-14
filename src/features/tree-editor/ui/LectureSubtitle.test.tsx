@@ -76,6 +76,31 @@ describe("LectureSubtitle", () => {
     expect(pausedText).not.toBe(TEXT);
   });
 
+  /*
+  재개하면 강의 플레이어가 문장을 처음부터 다시 읽으므로, 자막이 멈춘 지점부터 이어 가면 음성과 어긋난다.
+  */
+  it("재개하면 음성과 함께 처음부터 다시 드러낸다", () => {
+    const { container, rerender } = render(
+      <LectureSubtitle text={TEXT} narrationDurationMs={2000} isPlaying />,
+    );
+
+    act(() => vi.advanceTimersByTime(1000));
+    expect(getVisibleText(container)).not.toBe("");
+
+    rerender(
+      <LectureSubtitle
+        text={TEXT}
+        narrationDurationMs={2000}
+        isPlaying={false}
+      />,
+    );
+    rerender(
+      <LectureSubtitle text={TEXT} narrationDurationMs={2000} isPlaying />,
+    );
+
+    expect(getVisibleText(container)).toBe("");
+  });
+
   it("동작 줄이기를 켰으면 처음부터 모두 보여 준다", () => {
     mockReducedMotion(true);
 

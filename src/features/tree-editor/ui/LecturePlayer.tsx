@@ -57,6 +57,7 @@ export function LecturePlayer({
   const activeScript = useLectureStore((state) => state.script);
   const sceneIndex = useLectureStore((state) => state.sceneIndex);
   const beatIndex = useLectureStore((state) => state.beatIndex);
+  const seekId = useLectureStore((state) => state.seekId);
   const startLecture = useLectureStore((state) => state.startLecture);
   const pauseLecture = useLectureStore((state) => state.pauseLecture);
   const resumeLecture = useLectureStore((state) => state.resumeLecture);
@@ -284,7 +285,7 @@ export function LecturePlayer({
 
       {beat && scene && (
         <LectureSubtitle
-          key={`${scene.id}:${beat.id}`}
+          key={`${scene.id}:${beat.id}:${seekId}`} // 같은 비트를 다시 재생해도 seekId가 늘어 자막을 처음부터 드러낸다
           text={beat.narration.text}
           narrationDurationMs={beat.narration.fallbackDurationMs}
           isPlaying={isPlaying}

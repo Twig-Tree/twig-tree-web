@@ -10,8 +10,8 @@ type UseNarrationTypewriterParams = {
 
 /*
 함수 이름 : useNarrationTypewriter
-기능 : 자막을 내레이션 시간에 맞춰 한 글자씩 드러낼 글자 수를 구한다. 일시정지한 시간은 세지 않고,
-동작 줄이기를 켰으면 처음부터 모두 보여 준다. 비트가 바뀌면 부르는 쪽이 key로 새로 마운트한다.
+기능 : 자막을 내레이션 시간에 맞춰 한 글자씩 드러낼 글자 수를 구한다. 재개하면 처음부터 다시 드러내고,
+동작 줄이기를 켰으면 처음부터 모두 보여 준다. 비트가 바뀌거나 같은 비트를 다시 재생하면 부르는 쪽이 key로 새로 마운트한다.
 인자 : UseNarrationTypewriterParams
 반환값 : 지금 보여 줄 글자 수
 */
@@ -22,6 +22,16 @@ export const useNarrationTypewriter = ({
 }: UseNarrationTypewriterParams): number => {
   const [isReducedMotion] = useState(prefersReducedMotion);
   const [elapsedMs, setElapsedMs] = useState(0);
+  const [wasPlaying, setWasPlaying] = useState(isPlaying);
+
+  /*
+  재개하면 강의 플레이어가 지금 문장을 처음부터 다시 읽으므로, 자막도 처음부터 다시 드러낸다.
+  멈춘 지점부터 이어 가면 음성은 문장 처음을, 자막은 문장 중간을 보여 주게 된다.
+  */
+  if (isPlaying !== wasPlaying) {
+    setWasPlaying(isPlaying);
+    if (isPlaying) setElapsedMs(0);
+  }
 
   const revealedLength = isReducedMotion
     ? characterCount
