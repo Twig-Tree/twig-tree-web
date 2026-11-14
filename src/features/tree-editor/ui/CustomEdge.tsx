@@ -61,6 +61,11 @@ export function CustomEdge({
   );
   const isTraced = traceDirection !== null;
   const isCometTraced = isTraced && traceStyle === "comet";
+  /*
+  추적 중인 연결선은 그려 나가는 등장 효과를 건너뛴다. 등장 규칙의 dash가 추적 점선과 흐름을 덮어쓰기 때문이다.
+  숨김은 그대로 따라야 아직 나타나지 않은 자식에게 선이 먼저 닿지 않는다.
+  */
+  const edgeGrowState = growState === "entering" && isTraced ? null : growState;
 
   const [edgePath] = getSmoothStepPath({
     sourceX,
@@ -117,16 +122,17 @@ export function CustomEdge({
         }
         /*
         자라며 나타나는 연결선은 길이를 1로 정규화해 길이와 관계없이 같은 CSS 값으로 그려 나간다.
-        추적 점선은 픽셀 단위 간격을 쓰므로 그때는 정규화하지 않는다.
         */
-        pathLength={growState === "entering" && !isTraced ? 1 : undefined}
+        pathLength={edgeGrowState === "entering" ? 1 : undefined}
         className={
           [
             isTraced && !isCometTraced
               ? `lecture-edge-traced lecture-edge-traced-${traceDirection}`
               : null,
             isDimmed ? "lecture-edge-dimmed" : null,
-            growState === null ? null : `lecture-edge-grow-${growState}`,
+            edgeGrowState === null
+              ? null
+              : `lecture-edge-grow-${edgeGrowState}`,
           ]
             .filter(Boolean)
             .join(" ") || undefined
