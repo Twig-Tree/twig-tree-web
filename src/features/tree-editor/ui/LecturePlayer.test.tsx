@@ -211,7 +211,9 @@ describe("LecturePlayer", () => {
     await userEvent.click(screen.getByRole("button", { name: "강의 시작" }));
 
     expect(
-      screen.getByText(script.scenes[0].beats[0].narration.text),
+      screen.getByText(script.scenes[0].beats[0].narration.text, {
+        selector: "[aria-live]",
+      }),
     ).toBeInTheDocument();
     expect(screen.getByText("장면 1 / 4 · 비트 1 / 2")).toBeInTheDocument();
     expect(screen.getByText("음성 없음 · 자막만 재생")).toBeInTheDocument();
@@ -229,7 +231,9 @@ describe("LecturePlayer", () => {
     await userEvent.click(screen.getByRole("button", { name: "다음 장면" }));
 
     expect(
-      screen.getByText(script.scenes[1].beats[0].narration.text),
+      screen.getByText(script.scenes[1].beats[0].narration.text, {
+        selector: "[aria-live]",
+      }),
     ).toBeInTheDocument();
     expect(screen.getByText("장면 2 / 4 · 비트 1 / 4")).toBeInTheDocument();
     await waitFor(() =>

@@ -21,6 +21,7 @@ import { useLecturePlayback } from "../model/lecture/useLecturePlayback";
 import { useLectureKeyboard } from "../model/lecture/useLectureKeyboard";
 import { useTreeStore } from "../model/treeStore";
 import { LectureGenerator } from "./LectureGenerator";
+import { LectureSubtitle } from "./LectureSubtitle";
 
 type LecturePlayerProps = {
   script: LectureScript | null; // 지금 트리에서 재생할 수 있는 대본. 없으면 시작 화면 대신 강의 만들기 버튼을 그린다
@@ -281,12 +282,14 @@ export function LecturePlayer({
         ))}
       </div>
 
-      <p
-        aria-live="polite"
-        className="min-h-12 text-center text-base leading-relaxed text-content"
-      >
-        {beat?.narration.text}
-      </p>
+      {beat && scene && (
+        <LectureSubtitle
+          key={`${scene.id}:${beat.id}`}
+          text={beat.narration.text}
+          narrationDurationMs={beat.narration.fallbackDurationMs}
+          isPlaying={isPlaying}
+        />
+      )}
     </section>
   );
 }
