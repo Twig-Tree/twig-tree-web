@@ -1,8 +1,10 @@
 import { describe, expect, it } from "vitest";
 import {
+  ANIMAL_CLASSIFICATION_DEMO_TREE,
   type DemoTreeNode,
   GOGURYEO_DEMO_TREE,
   SHOWCASE_DEMO_TREE,
+  SOLAR_SYSTEM_DEMO_TREE,
 } from "@/src/entities/lecture";
 import { createEditorEdge } from "../add-node/createEditorEdge";
 import { createEditorNode } from "../add-node/createEditorNode";
@@ -127,6 +129,32 @@ describe("findDemoLectureScript", () => {
     const script = findDemoLectureScript(nodes, edges);
 
     expect(script?.id).toBe("demo-showcase");
+    expect(script?.scenes).toHaveLength(5);
+    expect(script?.scenes.flatMap((scene) => scene.beats)).toHaveLength(10);
+    expect(script && getEditorLectureScript(script, nodes)).not.toBeNull();
+  });
+
+  it("동물 분류 트리 원본으로 만든 트리에서 발표 대본을 만든다", () => {
+    const { nodes, edges } = createTree(
+      createRowsFromDemoTree(ANIMAL_CLASSIFICATION_DEMO_TREE),
+    );
+
+    const script = findDemoLectureScript(nodes, edges);
+
+    expect(script?.id).toBe("demo-animal-classification");
+    expect(script?.scenes).toHaveLength(5);
+    expect(script?.scenes.flatMap((scene) => scene.beats)).toHaveLength(10);
+    expect(script && getEditorLectureScript(script, nodes)).not.toBeNull();
+  });
+
+  it("태양계 트리 원본으로 만든 트리에서 발표 대본을 만든다", () => {
+    const { nodes, edges } = createTree(
+      createRowsFromDemoTree(SOLAR_SYSTEM_DEMO_TREE),
+    );
+
+    const script = findDemoLectureScript(nodes, edges);
+
+    expect(script?.id).toBe("demo-solar-system");
     expect(script?.scenes).toHaveLength(5);
     expect(script?.scenes.flatMap((scene) => scene.beats)).toHaveLength(10);
     expect(script && getEditorLectureScript(script, nodes)).not.toBeNull();

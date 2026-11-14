@@ -21,11 +21,19 @@ export type {
 } from "./model/types";
 export type { DemoTreeNode } from "./model/createDemoLecture";
 export { DEMO_LECTURES, DEMO_TREES } from "./model/demoLectures";
+export {
+  ANIMAL_CLASSIFICATION_DEMO_LECTURE,
+  ANIMAL_CLASSIFICATION_DEMO_TREE,
+} from "./model/mockAnimalClassificationLectureScript";
 export { GOGURYEO_DEMO_TREE } from "./model/mockGoguryeoLectureScript";
 export {
   SHOWCASE_DEMO_LECTURE,
   SHOWCASE_DEMO_TREE,
 } from "./model/mockShowcaseLectureScript";
+export {
+  SOLAR_SYSTEM_DEMO_LECTURE,
+  SOLAR_SYSTEM_DEMO_TREE,
+} from "./model/mockSolarSystemLectureScript";
 export type {
   LectureScenario,
   ScenarioBeat,
