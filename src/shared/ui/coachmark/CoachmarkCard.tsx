@@ -141,11 +141,16 @@ export function CoachmarkCard({
       onFocus={handleFocus}
       onKeyDown={handleKeyDown}
       style={style}
-      className={`pointer-events-none relative flex ${step ? "w-[min(18rem,calc(100vw-2rem))]" : "w-max max-w-[min(18rem,calc(100vw-2rem))]"} items-start gap-2 rounded-card bg-inverse py-2.5 pr-2 pl-3.5 text-sm text-on-inverse shadow-overlay ${className ?? ""}`}
+      className={`pointer-events-none relative ${step ? "w-[min(18rem,calc(100vw-2rem))]" : "w-max max-w-[min(18rem,calc(100vw-2rem))]"} rounded-card bg-inverse px-3.5 py-2.5 text-sm text-on-inverse shadow-overlay ${className ?? ""}`}
     >
-      <div className="min-w-0 flex-1 py-0.5 break-keep">
+      {/*
+      닫기 버튼은 오른쪽 위 모서리에 띄우고, 맨 위 한 줄만 그 자리를 비운다. 아래 줄은 카드 폭을 다 쓴다.
+      맨 위 줄은 단계 안내면 번호, 아니면 제목이다. 둘 다 없으면 문구 전체가 자리를 비운다.
+      버튼은 DOM에서는 맨 뒤에 두어 Tab이 이전·다음을 먼저 지나게 한다.
+      */}
+      <div className="py-0.5 break-keep">
         {step ? (
-          <p className="mb-1 text-xs opacity-70">
+          <p className="mb-1 pr-6 text-xs opacity-70">
             <span aria-hidden>
               {step.current}/{step.total}
             </span>
@@ -157,9 +162,13 @@ export function CoachmarkCard({
             </span>
           </p>
         ) : null}
-        {title ? <p className="font-semibold leading-snug">{title}</p> : null}
+        {title ? (
+          <p className={`${step ? "" : "pr-6"} font-semibold leading-snug`}>
+            {title}
+          </p>
+        ) : null}
         <p
-          className={`${title ? "mt-1" : ""} ${step ? "min-h-[2lh]" : ""} leading-relaxed opacity-90`}
+          className={`${title ? "mt-1" : ""} ${title || step ? "" : "pr-6"} ${step ? "min-h-[2lh]" : ""} leading-relaxed opacity-90`}
         >
           {children}
         </p>
@@ -204,7 +213,7 @@ export function CoachmarkCard({
             event.currentTarget.closest<HTMLElement>('[role="note"]');
           if (card) dismiss(card);
         }}
-        className="pointer-events-auto flex size-6 shrink-0 items-center justify-center rounded-control opacity-70 hover:opacity-100 focus-visible:opacity-100 focus-visible:outline-2 focus-visible:outline-focus"
+        className="pointer-events-auto absolute top-2 right-2 flex size-6 items-center justify-center rounded-control opacity-70 hover:opacity-100 focus-visible:opacity-100 focus-visible:outline-2 focus-visible:outline-focus"
       >
         <X aria-hidden className="size-4" strokeWidth={2} />
       </button>
