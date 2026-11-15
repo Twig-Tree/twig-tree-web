@@ -17,11 +17,15 @@ vi.mock("next/navigation", () => ({
 /*
 실패 응답을 상태 코드와 문구까지 지정해 끼운다. 4xx와 5xx에서 안내 문구가 갈리는지 확인하는 데 쓴다.
 */
-const respondWithError = (status: number, message: string) => {
+const respondWithError = (
+  status: number,
+  message: string,
+  code = "CHAT400-5",
+) => {
   server.use(
     http.post("*/api/tree-request", () =>
       HttpResponse.json(
-        { isSuccess: false, code: "CHAT400-5", message, data: null },
+        { isSuccess: false, code, message, data: null },
         { status },
       ),
     ),
@@ -150,6 +154,39 @@ describe("useCreateWorkspaceFromPrompt", () => {
       "트리를 만들지 못했습니다. 잠시 후 다시 시도해 주세요.",
     );
   });
+
+  it.each([
+    {
+      status: 504,
+      code: "CHAT504-1",
+      expected:
+        "AI 응답이 늦어 트리를 만들지 못했습니다. 잠시 후 다시 시도해 주세요.",
+    },
+    {
+      status: 502,
+      code: "CHAT502-1",
+      expected:
+        "AI가 트리를 제대로 만들지 못했습니다. 다시 시도하거나, 내용을 줄이거나 바꿔서 시도해 주세요.",
+    },
+  ])(
+    "$code는 원인에 맞는 문구로 안내한다",
+    async ({ status, code, expected }) => {
+      const alertSpy = vi.spyOn(window, "alert").mockImplementation(() => {});
+      vi.spyOn(console, "error").mockImplementation(() => {});
+      respondWithError(status, "서버 문구", code);
+
+      const { wrapper } = createQueryWrapper();
+      const { result } = renderHook(() => useCreateWorkspaceFromPrompt(), {
+        wrapper,
+      });
+
+      await expect(
+        result.current.createWorkspaceFromPrompt("트리 만들어줘"),
+      ).rejects.toThrow();
+
+      expect(alertSpy).toHaveBeenCalledWith(expected);
+    },
+  );
 
   /*
   서버가 뒤늦게 워크스페이스를 저장할 수 있어 실패로 단정하지 않고, 다시 보내 하나 더 생기지 않게 다시 시도를 권하지 않는다.

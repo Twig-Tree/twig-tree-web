@@ -92,7 +92,7 @@ describe("useFillWorkspaceTree", () => {
   });
 
   it("5xx는 다시 시도를 권하는 문구로 안내한다", async () => {
-    respondWithError(504, "CHAT504-1", "LLM 응답 시간이 초과되었습니다.");
+    respondWithError(500, "CHAT500-1", "AI 모델 호출에 실패했습니다.");
 
     const { wrapper } = createQueryWrapper();
     const { result } = renderHook(
@@ -108,6 +108,38 @@ describe("useFillWorkspaceTree", () => {
       "트리를 만들지 못했습니다. 잠시 후 다시 시도해 주세요.",
     );
   });
+
+  it.each([
+    {
+      status: 504,
+      code: "CHAT504-1",
+      expected:
+        "AI 응답이 늦어 트리를 만들지 못했습니다. 잠시 후 다시 시도해 주세요.",
+    },
+    {
+      status: 502,
+      code: "CHAT502-1",
+      expected:
+        "AI가 트리를 제대로 만들지 못했습니다. 다시 시도하거나, 내용을 줄이거나 바꿔서 시도해 주세요.",
+    },
+  ])(
+    "$code는 원인에 맞는 문구로 안내한다",
+    async ({ status, code, expected }) => {
+      respondWithError(status, code, "서버 문구");
+
+      const { wrapper } = createQueryWrapper();
+      const { result } = renderHook(
+        () => useFillWorkspaceTree({ workspaceId: "9" }),
+        { wrapper },
+      );
+
+      await expect(
+        result.current.fillWorkspaceTree("자료구조 트리 만들어줘"),
+      ).rejects.toThrow();
+
+      expect(alertSpy).toHaveBeenCalledWith(expected);
+    },
+  );
 
   /*
   서버가 뒤늦게 트리를 저장할 수 있어 실패로 단정하지 않는다.

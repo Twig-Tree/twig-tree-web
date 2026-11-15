@@ -2,8 +2,14 @@
 
 import { useRouter } from "next/navigation";
 import { useCallback, useRef, useState } from "react";
-import { useCreateTreeFromPromptMutation } from "@/src/entities/tree";
-import { getApiErrorMessage } from "@/src/shared/api/authErrorCodes";
+import {
+  TREE_REQUEST_ERROR_CODE,
+  useCreateTreeFromPromptMutation,
+} from "@/src/entities/tree";
+import {
+  getApiErrorCode,
+  getApiErrorMessage,
+} from "@/src/shared/api/authErrorCodes";
 import { isClientError, isRequestTimeout } from "@/src/shared/api/httpErrors";
 import { routes } from "@/src/shared/config/routes";
 
@@ -23,6 +29,17 @@ const CREATE_TREE_TIMEOUT_MESSAGE =
   "트리를 만드는 데 오래 걸리고 있습니다. 잠시 후 워크스페이스 목록을 확인해 주세요.";
 
 /*
+서버가 저장하지 않았다고 확정한 5xx 가운데 원인에 따라 할 일이 다른 경우의 문구.
+LLM_TIMEOUT은 기다렸다 다시 보내면 된다. LLM_RESPONSE_INVALID는 서버가 이미 한 번 다시 생성한 뒤라,
+내용이 많아 상한을 넘었거나 모델이 거절했을 수 있어 입력을 바꾸는 방법도 알린다. 어느 쪽인지는 코드가 같아 알 수 없다.
+*/
+const CREATE_TREE_LLM_TIMEOUT_MESSAGE =
+  "AI 응답이 늦어 트리를 만들지 못했습니다. 잠시 후 다시 시도해 주세요.";
+
+const CREATE_TREE_LLM_RESPONSE_INVALID_MESSAGE =
+  "AI가 트리를 제대로 만들지 못했습니다. 다시 시도하거나, 내용을 줄이거나 바꿔서 시도해 주세요.";
+
+/*
 함수 이름 : getCreateTreeErrorMessage
 기능 : 트리 생성 요청이 실패한 원인을 사용자에게 보여줄 안내 문구로 바꾼다.
 인자 : unknown error -> 트리 생성 요청이 reject한 오류
@@ -32,10 +49,18 @@ const CREATE_TREE_TIMEOUT_MESSAGE =
 이 요청의 4xx는 확장자 6종·파일 크기·본문 50,000자·지시문 500자처럼 제약값이 전부 백엔드 계약에서 온다.
 같은 문구를 프론트에 복제하면 백엔드가 제약을 바꿀 때마다 따라가야 하고, 특히 본문 길이는
 파일을 파싱하지 않는 프론트가 알 수 없는 값이다. 그래서 4xx만 서버 문구를 그대로 쓴다.
+5xx는 사용자가 할 일이 달라지는 CHAT504-1, CHAT502-1만 나눈다.
 */
 const getCreateTreeErrorMessage = (error: unknown): string => {
   if (isRequestTimeout(error)) {
     return CREATE_TREE_TIMEOUT_MESSAGE;
+  }
+
+  switch (getApiErrorCode(error)) {
+    case TREE_REQUEST_ERROR_CODE.LLM_TIMEOUT:
+      return CREATE_TREE_LLM_TIMEOUT_MESSAGE;
+    case TREE_REQUEST_ERROR_CODE.LLM_RESPONSE_INVALID:
+      return CREATE_TREE_LLM_RESPONSE_INVALID_MESSAGE;
   }
 
   if (!isClientError(error)) {
