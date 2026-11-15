@@ -35,6 +35,7 @@ import {
   useTreeLevelControl,
   useTreeStore,
   useNodeTransition,
+  useUndoRedoShortcuts,
   useVisibleElements,
   type EditorToolbarGroupId,
   type NodeActionId,
@@ -200,6 +201,16 @@ function LayoutFlow({ workspaceId, treeId }: LayoutFlowProps) {
     isAddingNode || isDeletingNode || isMovingNode || isUndoingOrRedoing;
 
   /*
+  강의는 재생 순서가 지금 트리에 맞춰져 있어, 강의 중에는 트리를 바꾸는 진입점을 모두 막는다.
+  노드 아래 버튼·단축키와 같이 우클릭 메뉴도 열지 않고, 툴바의 되돌리기·다시 실행도 막는다.
+  방향키는 강의 이동에 쓰이므로 React Flow의 방향키 노드 이동도 끈다. 켜 두면 선택한 노드가 함께 움직인다.
+  */
+  const isLectureActive = useIsLectureActive();
+
+  const isUndoDisabled = !canUndo || isMutating || isLectureActive; // 툴바 버튼과 단축키가 같은 조건으로 막는다
+  const isRedoDisabled = !canRedo || isMutating || isLectureActive;
+
+  /*
   노드 옆 버튼과 단축키는 우클릭 메뉴와 같은 handler를 부른다. 막힌 동작은 handler의 alert 대신 툴팁으로 이유를 미리 보여 준다.
   */
   const {
@@ -294,11 +305,12 @@ function LayoutFlow({ workspaceId, treeId }: LayoutFlowProps) {
     onRunAction: runNodeAction,
     onToggleGuide: toggleShortcutGuide,
   });
-  /*
-  강의 중에는 방향키가 강의 이동에 쓰이므로 React Flow의 방향키 노드 이동을 끈다. 켜 두면 선택한 노드가 함께 움직인다.
-  강의는 재생 순서가 지금 트리에 맞춰져 있어, 노드 아래 버튼·단축키와 같이 우클릭 메뉴도 열지 않는다.
-  */
-  const isLectureActive = useIsLectureActive();
+  useUndoRedoShortcuts({
+    onUndo: handleUndo,
+    onRedo: handleRedo,
+    isUndoDisabled,
+    isRedoDisabled,
+  });
 
   /*
   노드를 고르기 전의 안내는 루트 노드를 가리킨다. 루트는 들어오는 엣지가 없는 노드이고 접어도 숨지 않는다.
@@ -501,8 +513,8 @@ function LayoutFlow({ workspaceId, treeId }: LayoutFlowProps) {
               onExpandLevel={handleExpandLevel}
               isCollapseLevelDisabled={isCollapseLevelDisabled}
               isExpandLevelDisabled={isExpandLevelDisabled}
-              isUndoDisabled={!canUndo || isMutating}
-              isRedoDisabled={!canRedo || isMutating}
+              isUndoDisabled={isUndoDisabled}
+              isRedoDisabled={isRedoDisabled}
               toolbarRef={setEditorToolbarElement}
               onGroupElementChange={handleEditorToolbarGroupChange}
             />

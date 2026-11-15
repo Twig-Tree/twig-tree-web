@@ -22,6 +22,7 @@ export type { NodeActionId } from "./lib/shortcuts/nodeActionShortcuts";
 export { ShortcutGuide } from "./ui/ShortcutGuide";
 export { useNodeActions } from "./model/node-action/useNodeActions";
 export { useNodeActionShortcuts } from "./model/node-action/useNodeActionShortcuts";
+export { useUndoRedoShortcuts } from "./model/shortcuts/useUndoRedoShortcuts";
 export { DropIndicatorOverlay } from "./ui/DropIndicatorOverlay";
 export { useTreeEditorActions } from "./model/actions/useTreeEditorActions";
 export { useDeleteTreeTag } from "./model/actions/delete-tree-tag/useDeleteTreeTag";

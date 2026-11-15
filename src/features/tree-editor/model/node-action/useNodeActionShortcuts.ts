@@ -1,5 +1,11 @@
 import { type RefObject, useEffect, useEffectEvent } from "react";
 import {
+  ACTIVATABLE_SELECTOR,
+  isClosestMatch,
+  OPEN_OVERLAY_SELECTOR,
+  TEXT_INPUT_SELECTOR,
+} from "../../lib/shortcuts/keyboardTargets";
+import {
   getNodeActionForKey,
   getNodeActionShortcuts,
   type NodeActionId,
@@ -8,14 +14,6 @@ import { useIsLectureActive } from "../lecture/lectureStore";
 import { useDevicePlatform } from "../shortcuts/useDevicePlatform";
 import { useTreeStore } from "../treeStore";
 
-const TEXT_INPUT_SELECTOR = "input, textarea, select, [contenteditable]";
-const ACTIVATABLE_SELECTOR = 'button, a[href], summary, [role="button"]';
-/*
-5단계의 단축키 안내처럼 화면 한쪽에 떠 있는 참고 패널은 data-non-blocking을 붙여 단축키를 막지 않는다.
-막으면 안내를 연 채 노드를 누른 뒤 모든 단축키가 동작하지 않는다.
-*/
-const OPEN_OVERLAY_SELECTOR =
-  '[role="menu"], [role="dialog"]:not([data-non-blocking]), [role="alertdialog"], dialog[open]';
 const NODE_TITLE_SELECTOR = ".custom-node__content"; // 노드 제목 버튼. 노드를 누르면 여기에 focus가 간다
 
 type UseNodeActionShortcutsParams = {
@@ -24,16 +22,6 @@ type UseNodeActionShortcutsParams = {
   onRunAction: (actionId: NodeActionId) => void; // useNodeActions의 runNodeAction. 막힌 동작은 그쪽에서 거른다
   onToggleGuide: () => void; // 단축키 안내를 열거나 닫는다
 };
-
-/*
-함수 이름 : isClosestMatch
-기능 : 이벤트가 일어난 요소나 그 조상이 선택자에 맞는지 확인한다.
-인자 : EventTarget | null target -> 키 이벤트의 대상
-string selector -> 확인할 선택자
-반환값 : 맞으면 true
-*/
-const isClosestMatch = (target: EventTarget | null, selector: string) =>
-  target instanceof Element && target.closest(selector) !== null;
 
 /*
 함수 이름 : useNodeActionShortcuts

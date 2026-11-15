@@ -1,5 +1,5 @@
 import { fireEvent, render, screen } from "@testing-library/react";
-import { describe, it, expect, vi } from "vitest";
+import { afterEach, describe, it, expect, vi } from "vitest";
 import { EditorToolbar } from "./EditorToolbar";
 
 const baseProps = {
@@ -53,5 +53,40 @@ describe("EditorToolbar 계층 조절", () => {
 
     expect(screen.queryByRole("status")).toBeNull();
     expect(screen.queryByRole("button", { name: "한 계층 접기" })).toBeNull();
+  });
+});
+
+/*
+jsdom의 navigator.platform은 빈 문자열이라 Windows 표로 판단한다.
+*/
+describe("EditorToolbar 실행 취소 단축키", () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it("Windows는 Ctrl 계열 단축키를 툴팁과 aria-keyshortcuts로 알린다", () => {
+    render(<EditorToolbar {...baseProps} treeLevel={null} />);
+
+    const undoButton = screen.getByRole("button", { name: "되돌리기" });
+    const redoButton = screen.getByRole("button", { name: "다시 실행" });
+
+    expect(undoButton.title).toBe("되돌리기 (Ctrl+Z)");
+    expect(undoButton.getAttribute("aria-keyshortcuts")).toBe("Control+Z");
+    expect(redoButton.title).toBe("다시 실행 (Ctrl+Shift+Z)");
+    expect(redoButton.getAttribute("aria-keyshortcuts")).toBe(
+      "Control+Shift+Z Control+Y",
+    );
+  });
+
+  it("맥은 ⌘ 계열 단축키를 알린다", () => {
+    vi.spyOn(Navigator.prototype, "platform", "get").mockReturnValue(
+      "MacIntel",
+    );
+    render(<EditorToolbar {...baseProps} treeLevel={null} />);
+
+    const undoButton = screen.getByRole("button", { name: "되돌리기" });
+
+    expect(undoButton.title).toBe("되돌리기 (⌘Z)");
+    expect(undoButton.getAttribute("aria-keyshortcuts")).toBe("Meta+Z");
   });
 });
