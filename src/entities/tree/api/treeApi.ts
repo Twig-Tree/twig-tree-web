@@ -26,11 +26,13 @@ interface CreateTreeFromPromptParams {
 }
 
 /*
-LLM 응답을 기다리는 시간. 백엔드가 LLM 호출을 65초에서 끊으므로(ChatService.LLM_TIMEOUT)
-그보다 짧으면 프론트가 항상 먼저 끊는다. 파싱·검증·저장에 드는 시간을 더해 잡는다.
+트리 생성 응답을 기다리는 시간. 백엔드는 유효하지 않은 응답이면 한 번 더 생성하고(ChatService.MAX_GENERATION_ATTEMPTS),
+재생성까지 합친 LLM 대기를 90초에서 끊는다(ChatService.GENERATION_BUDGET).
+그 앞의 파일 텍스트 추출과 뒤의 파싱·검증·저장에는 상한이 없어 여유를 넉넉히 더해 잡는다.
+이보다 짧으면 서버가 트리를 저장하는데도 프론트가 먼저 끊어 실패로 안내한다.
 axiosInstance 기본값(10초)은 다른 요청을 위해 그대로 둔다.
 */
-const CREATE_TREE_FROM_PROMPT_TIMEOUT_MS = 90_000;
+const CREATE_TREE_FROM_PROMPT_TIMEOUT_MS = 180_000;
 
 /*
 함수 이름 : postTreeRequest
