@@ -1,6 +1,8 @@
 import { renderHook, waitFor } from "@testing-library/react";
+import { AxiosError } from "axios";
 import { delay, http, HttpResponse } from "msw";
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { treeApi } from "@/src/entities/tree";
 import { createQueryWrapper } from "@/src/tests/helpers/createQueryWrapper";
 import { RAW_CREATED_TREE_DATA } from "@/src/tests/mocks/data";
 import { server } from "@/src/tests/mocks/server";
@@ -29,6 +31,10 @@ const respondWithError = (status: number, message: string) => {
 describe("useCreateWorkspaceFromPrompt", () => {
   beforeEach(() => {
     push.mockClear();
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
   });
 
   it("성공하면 만들어진 워크스페이스로 이동한다", async () => {
@@ -130,6 +136,52 @@ describe("useCreateWorkspaceFromPrompt", () => {
   it("5xx는 프론트 문구로 덮는다", async () => {
     const alertSpy = vi.spyOn(window, "alert").mockImplementation(() => {});
     respondWithError(500, "AI 모델 호출에 실패했습니다.");
+
+    const { wrapper } = createQueryWrapper();
+    const { result } = renderHook(() => useCreateWorkspaceFromPrompt(), {
+      wrapper,
+    });
+
+    await expect(
+      result.current.createWorkspaceFromPrompt("트리 만들어줘"),
+    ).rejects.toThrow();
+
+    expect(alertSpy).toHaveBeenCalledWith(
+      "트리를 만들지 못했습니다. 잠시 후 다시 시도해 주세요.",
+    );
+  });
+
+  /*
+  서버가 뒤늦게 워크스페이스를 저장할 수 있어 실패로 단정하지 않고, 다시 보내 하나 더 생기지 않게 다시 시도를 권하지 않는다.
+  msw는 XMLHttpRequest의 timeout을 흉내 내지 않아 API 함수가 timeout 오류로 reject하게 한다.
+  */
+  it("응답을 기다리다 끊기면 잠시 후 목록을 확인하라고 안내한다", async () => {
+    const alertSpy = vi.spyOn(window, "alert").mockImplementation(() => {});
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    vi.spyOn(treeApi, "createTreeFromPrompt").mockRejectedValue(
+      new AxiosError("timeout of 180000ms exceeded", AxiosError.ETIMEDOUT),
+    );
+
+    const { wrapper } = createQueryWrapper();
+    const { result } = renderHook(() => useCreateWorkspaceFromPrompt(), {
+      wrapper,
+    });
+
+    await expect(
+      result.current.createWorkspaceFromPrompt("트리 만들어줘"),
+    ).rejects.toThrow();
+
+    expect(alertSpy).toHaveBeenCalledWith(
+      "트리를 만드는 데 오래 걸리고 있습니다. 잠시 후 워크스페이스 목록을 확인해 주세요.",
+    );
+  });
+
+  it("브라우저가 요청을 중단하면 실패로 안내한다", async () => {
+    const alertSpy = vi.spyOn(window, "alert").mockImplementation(() => {});
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    vi.spyOn(treeApi, "createTreeFromPrompt").mockRejectedValue(
+      new AxiosError("Request aborted", AxiosError.ECONNABORTED),
+    );
 
     const { wrapper } = createQueryWrapper();
     const { result } = renderHook(() => useCreateWorkspaceFromPrompt(), {

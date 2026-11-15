@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { useCallback, useRef, useState } from "react";
 import { useCreateTreeFromPromptMutation } from "@/src/entities/tree";
 import { getApiErrorMessage } from "@/src/shared/api/authErrorCodes";
-import { isClientError } from "@/src/shared/api/httpErrors";
+import { isClientError, isRequestTimeout } from "@/src/shared/api/httpErrors";
 import { routes } from "@/src/shared/config/routes";
 
 /*
@@ -13,6 +13,14 @@ import { routes } from "@/src/shared/config/routes";
 */
 const CREATE_TREE_FAILURE_MESSAGE =
   "트리를 만들지 못했습니다. 잠시 후 다시 시도해 주세요.";
+
+/*
+응답을 기다리다 프론트가 끊었을 때의 문구. 서버가 뒤늦게 워크스페이스를 저장할 수 있어 실패로 단정하지 않는다.
+다시 시도를 권하지 않는다. 이 요청은 중복돼도 서버가 거절하지 않아, 바로 다시 보내면 워크스페이스가 하나 더 생길 수 있다.
+목록 캐시는 mutation이 낡음으로 표시해 두어 다시 볼 때 새로 받는다.
+*/
+const CREATE_TREE_TIMEOUT_MESSAGE =
+  "트리를 만드는 데 오래 걸리고 있습니다. 잠시 후 워크스페이스 목록을 확인해 주세요.";
 
 /*
 함수 이름 : getCreateTreeErrorMessage
@@ -26,6 +34,10 @@ const CREATE_TREE_FAILURE_MESSAGE =
 파일을 파싱하지 않는 프론트가 알 수 없는 값이다. 그래서 4xx만 서버 문구를 그대로 쓴다.
 */
 const getCreateTreeErrorMessage = (error: unknown): string => {
+  if (isRequestTimeout(error)) {
+    return CREATE_TREE_TIMEOUT_MESSAGE;
+  }
+
   if (!isClientError(error)) {
     return CREATE_TREE_FAILURE_MESSAGE;
   }

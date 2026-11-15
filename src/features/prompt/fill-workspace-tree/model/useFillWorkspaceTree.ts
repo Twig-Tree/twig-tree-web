@@ -10,7 +10,7 @@ import {
   getApiErrorCode,
   getApiErrorMessage,
 } from "@/src/shared/api/authErrorCodes";
-import { isClientError } from "@/src/shared/api/httpErrors";
+import { isClientError, isRequestTimeout } from "@/src/shared/api/httpErrors";
 
 interface UseFillWorkspaceTreeParams {
   workspaceId: string; // 채울 워크스페이스 ID. 라우트 파라미터라 페이지가 형식을 검사한 값이다
@@ -30,6 +30,13 @@ const WORKSPACE_TREE_NOT_EMPTY_MESSAGE =
   "다른 곳에서 이미 트리를 만들었습니다. 만들어진 트리를 불러옵니다.";
 
 /*
+응답을 기다리다 프론트가 끊었을 때의 문구. 서버가 뒤늦게 트리를 저장할 수 있어 실패로 단정하지 않는다.
+다시 시도를 권하지 않는다. 바로 다시 보내면 서버가 CHAT409-1로 거절하더라도 LLM 응답을 기다린 뒤라 대기와 과금이 겹친다.
+*/
+const FILL_TREE_TIMEOUT_MESSAGE =
+  "트리를 만드는 데 오래 걸리고 있습니다. 잠시 후 새로고침해 확인해 주세요.";
+
+/*
 함수 이름 : getFillTreeErrorMessage
 기능 : 워크스페이스 트리 채우기 요청이 실패한 원인을 사용자에게 보여줄 안내 문구로 바꾼다.
 인자 : unknown error -> 트리 채우기 요청이 reject한 오류
@@ -39,6 +46,10 @@ const WORKSPACE_TREE_NOT_EMPTY_MESSAGE =
 CHAT409-1만 분기하는 이유는 위 WORKSPACE_TREE_NOT_EMPTY_MESSAGE를 참고한다.
 */
 const getFillTreeErrorMessage = (error: unknown): string => {
+  if (isRequestTimeout(error)) {
+    return FILL_TREE_TIMEOUT_MESSAGE;
+  }
+
   if (
     getApiErrorCode(error) === TREE_REQUEST_ERROR_CODE.WORKSPACE_TREE_NOT_EMPTY
   ) {
