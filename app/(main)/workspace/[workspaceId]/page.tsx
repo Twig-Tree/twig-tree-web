@@ -35,6 +35,7 @@ import {
   useTreeLevelControl,
   useTreeStore,
   useNodeTransition,
+  useUndoRedoShortcuts,
   useVisibleElements,
   type EditorToolbarGroupId,
   type NodeActionId,
@@ -198,6 +199,8 @@ function LayoutFlow({ workspaceId, treeId }: LayoutFlowProps) {
 
   const isMutating =
     isAddingNode || isDeletingNode || isMovingNode || isUndoingOrRedoing;
+  const isUndoDisabled = !canUndo || isMutating; // 툴바 버튼과 단축키가 같은 조건으로 막는다
+  const isRedoDisabled = !canRedo || isMutating;
 
   /*
   노드 옆 버튼과 단축키는 우클릭 메뉴와 같은 handler를 부른다. 막힌 동작은 handler의 alert 대신 툴팁으로 이유를 미리 보여 준다.
@@ -293,6 +296,12 @@ function LayoutFlow({ workspaceId, treeId }: LayoutFlowProps) {
     targetClientId: nodeActionTargetClientId,
     onRunAction: runNodeAction,
     onToggleGuide: toggleShortcutGuide,
+  });
+  useUndoRedoShortcuts({
+    onUndo: handleUndo,
+    onRedo: handleRedo,
+    isUndoDisabled,
+    isRedoDisabled,
   });
   /*
   강의 중에는 방향키가 강의 이동에 쓰이므로 React Flow의 방향키 노드 이동을 끈다. 켜 두면 선택한 노드가 함께 움직인다.
@@ -501,8 +510,8 @@ function LayoutFlow({ workspaceId, treeId }: LayoutFlowProps) {
               onExpandLevel={handleExpandLevel}
               isCollapseLevelDisabled={isCollapseLevelDisabled}
               isExpandLevelDisabled={isExpandLevelDisabled}
-              isUndoDisabled={!canUndo || isMutating}
-              isRedoDisabled={!canRedo || isMutating}
+              isUndoDisabled={isUndoDisabled}
+              isRedoDisabled={isRedoDisabled}
               toolbarRef={setEditorToolbarElement}
               onGroupElementChange={handleEditorToolbarGroupChange}
             />
