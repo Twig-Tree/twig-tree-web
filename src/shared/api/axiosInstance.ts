@@ -10,6 +10,11 @@ export const axiosInstance = axios.create({
   baseURL: apiBaseUrl,
   timeout: 10000,
   withCredentials: true, // refresh token이 HttpOnly 쿠키로 오가므로 크로스 오리진 요청에도 쿠키를 싣는다.
+  /*
+  xhr 어댑터는 기본으로 timeout과 브라우저의 요청 중단을 같은 ECONNABORTED로 알린다.
+  timeout을 ETIMEDOUT으로 바꿔 isRequestTimeout이 두 경우를 나눌 수 있게 한다. 나머지 transitional 기본값은 axios가 병합해 유지한다.
+  */
+  transitional: { clarifyTimeoutError: true },
   headers: {
     "Content-Type": "application/json",
   },

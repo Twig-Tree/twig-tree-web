@@ -52,9 +52,15 @@ describe("getLectureGenerationErrorMessage", () => {
     expect(
       getLectureGenerationErrorMessage({
         status: "request-error",
-        error: new AxiosError("timeout", "ECONNABORTED"),
+        error: new AxiosError("timeout", AxiosError.ETIMEDOUT),
       }),
     ).toContain("너무 오래 걸립니다");
+    expect(
+      getLectureGenerationErrorMessage({
+        status: "request-error",
+        error: new AxiosError("Request aborted", AxiosError.ECONNABORTED),
+      }),
+    ).toBe("강의를 만들지 못했습니다. 잠시 후 다시 시도해 주세요.");
     expect(
       getLectureGenerationErrorMessage({
         status: "request-error",
