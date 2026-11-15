@@ -4,6 +4,7 @@ import {
   workspaceQueryKeys,
 } from "@/src/entities/workspace";
 import { getApiErrorCode } from "@/src/shared/api/authErrorCodes";
+import { isRequestTimeout } from "@/src/shared/api/httpErrors";
 import { treeApi } from "../../api/treeApi";
 import type { TreeMockScenario } from "../../api/types";
 import { TREE_REQUEST_ERROR_CODE } from "../constants";
@@ -20,6 +21,7 @@ export interface CreateWorkspaceTreeFromPromptVariables {
 함수 이름 : useCreateWorkspaceTreeFromPromptMutation
 기능 : 프롬프트로 이미 있는 빈 워크스페이스를 트리로 채우고, 워크스페이스 상세의 treeId와 낡은 트리·최신순 목록 캐시를 갱신한다.
 이미 노드가 있다고 거절되면 그 트리를 보이도록 워크스페이스 상세와 트리 조회를 무효화한다.
+응답을 기다리다 프론트가 끊으면 서버가 뒤늦게 저장할 수 있어 같은 캐시와 최신순 목록을 낡음으로만 표시한다.
 인자 : 없음
 반환값 : 워크스페이스 트리 채우기 mutation. 성공 데이터는 워크스페이스 ID, 트리 ID
 
@@ -73,6 +75,30 @@ export const useCreateWorkspaceTreeFromPromptMutation = () => {
     },
 
     onError: (error, { workspaceId }) => {
+      if (isRequestTimeout(error)) {
+        /*
+        응답을 기다리다 프론트가 끊었다. 서버는 뒤늦게 트리를 저장할 수 있지만 끊긴 시점에는 아직 저장 전일 가능성이 높아,
+        바로 다시 받으면 빈 상세가 새것으로 남는다. 낡음만 표시해 창 포커스나 화면 재진입 때 다시 받게 한다.
+        저장되면 상세의 treeId나 트리의 노드가 바뀌고, 서버가 updatedAt을 갱신해 최신순 목록도 낡는다.
+        응답이 없어 treeId를 모르므로 트리 조회는 모두 표시한다.
+        */
+        return Promise.all([
+          queryClient.invalidateQueries({
+            queryKey: workspaceQueryKeys.detail(workspaceId),
+            exact: true,
+            refetchType: "none",
+          }),
+          queryClient.invalidateQueries({
+            queryKey: treeQueryKeys.details(),
+            refetchType: "none",
+          }),
+          queryClient.invalidateQueries({
+            queryKey: workspaceQueryKeys.recent(),
+            refetchType: "none",
+          }),
+        ]);
+      }
+
       if (
         getApiErrorCode(error) !==
         TREE_REQUEST_ERROR_CODE.WORKSPACE_TREE_NOT_EMPTY

@@ -1,9 +1,12 @@
+import { useQuery } from "@tanstack/react-query";
 import { renderHook, waitFor } from "@testing-library/react";
+import { AxiosError } from "axios";
 import { delay, http, HttpResponse } from "msw";
-import { describe, it, expect } from "vitest";
+import { afterEach, describe, it, expect, vi } from "vitest";
 import { createQueryWrapper } from "@/src/tests/helpers/createQueryWrapper";
 import { server } from "@/src/tests/mocks/server";
 import { workspaceQueryKeys } from "@/src/entities/workspace";
+import { treeApi } from "../../api/treeApi";
 import { treeQueryKeys } from "../queryKeys";
 import { useCreateWorkspaceTreeFromPromptMutation } from "./useCreateWorkspaceTreeFromPromptMutation";
 
@@ -15,6 +18,10 @@ const WORKSPACE_DETAIL = {
 };
 
 describe("useCreateWorkspaceTreeFromPromptMutation", () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
   it("경로의 워크스페이스 ID를 숫자로 바꿔 지시문과 함께 보낸다", async () => {
     let requestedUrl: string | null = null;
     let requestedBody: unknown = null;
@@ -225,5 +232,116 @@ describe("useCreateWorkspaceTreeFromPromptMutation", () => {
     expect(
       queryClient.getQueryState(workspaceQueryKeys.detail("9"))?.isInvalidated,
     ).toBe(false);
+  });
+
+  /*
+  msw는 XMLHttpRequest의 timeout을 흉내 내지 않아 API 함수가 timeout 오류로 reject하게 한다.
+  */
+  describe("응답을 기다리다 프론트가 끊으면", () => {
+    const mockCreateWorkspaceTreeFromPromptError = (error: Error) =>
+      vi
+        .spyOn(treeApi, "createWorkspaceTreeFromPrompt")
+        .mockRejectedValue(error);
+
+    it("워크스페이스 상세, 트리 조회, 최신순 목록 캐시를 낡음으로 표시한다", async () => {
+      mockCreateWorkspaceTreeFromPromptError(
+        new AxiosError("timeout of 180000ms exceeded", AxiosError.ETIMEDOUT),
+      );
+
+      const { queryClient, wrapper } = createQueryWrapper();
+      queryClient.setQueryData(
+        workspaceQueryKeys.detail("9"),
+        WORKSPACE_DETAIL,
+      );
+      queryClient.setQueryData(treeQueryKeys.detail("30"), []);
+      queryClient.setQueryData(workspaceQueryKeys.recent(), []);
+
+      const { result } = renderHook(
+        () => useCreateWorkspaceTreeFromPromptMutation(),
+        { wrapper },
+      );
+
+      result.current.mutate({ workspaceId: "9", message: "자료구조 트리" });
+
+      await waitFor(() => expect(result.current.isError).toBe(true));
+
+      expect(
+        queryClient.getQueryState(workspaceQueryKeys.detail("9"))
+          ?.isInvalidated,
+      ).toBe(true);
+      expect(
+        queryClient.getQueryState(treeQueryKeys.detail("30"))?.isInvalidated,
+      ).toBe(true);
+      expect(
+        queryClient.getQueryState(workspaceQueryKeys.recent())?.isInvalidated,
+      ).toBe(true);
+    });
+
+    /*
+    끊긴 시점에는 서버가 아직 저장 전일 가능성이 높다. 바로 다시 받으면 빈 상세가 새것으로 남는다.
+    */
+    it("화면에 걸린 워크스페이스 상세도 바로 다시 조회하지 않는다", async () => {
+      mockCreateWorkspaceTreeFromPromptError(
+        new AxiosError("timeout of 180000ms exceeded", AxiosError.ETIMEDOUT),
+      );
+
+      const { queryClient, wrapper } = createQueryWrapper();
+      queryClient.setQueryData(
+        workspaceQueryKeys.detail("9"),
+        WORKSPACE_DETAIL,
+      );
+      const getWorkspaceDetail = vi.fn().mockResolvedValue(WORKSPACE_DETAIL);
+
+      const { result } = renderHook(
+        () => ({
+          mutation: useCreateWorkspaceTreeFromPromptMutation(),
+          detail: useQuery({
+            queryKey: workspaceQueryKeys.detail("9"),
+            queryFn: getWorkspaceDetail,
+            staleTime: Infinity,
+          }),
+        }),
+        { wrapper },
+      );
+
+      result.current.mutation.mutate({
+        workspaceId: "9",
+        message: "자료구조 트리",
+      });
+
+      await waitFor(() => expect(result.current.mutation.isError).toBe(true));
+
+      expect(
+        queryClient.getQueryState(workspaceQueryKeys.detail("9"))
+          ?.isInvalidated,
+      ).toBe(true);
+      expect(getWorkspaceDetail).not.toHaveBeenCalled();
+    });
+
+    it("브라우저가 요청을 중단한 경우는 캐시를 건드리지 않는다", async () => {
+      mockCreateWorkspaceTreeFromPromptError(
+        new AxiosError("Request aborted", AxiosError.ECONNABORTED),
+      );
+
+      const { queryClient, wrapper } = createQueryWrapper();
+      queryClient.setQueryData(
+        workspaceQueryKeys.detail("9"),
+        WORKSPACE_DETAIL,
+      );
+
+      const { result } = renderHook(
+        () => useCreateWorkspaceTreeFromPromptMutation(),
+        { wrapper },
+      );
+
+      result.current.mutate({ workspaceId: "9", message: "자료구조 트리" });
+
+      await waitFor(() => expect(result.current.isError).toBe(true));
+
+      expect(
+        queryClient.getQueryState(workspaceQueryKeys.detail("9"))
+          ?.isInvalidated,
+      ).toBe(false);
+    });
   });
 });
