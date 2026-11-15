@@ -1,5 +1,5 @@
-import { fireEvent, render, screen } from "@testing-library/react";
-import { describe, expect, it, vi } from "vitest";
+import { fireEvent, render, screen, within } from "@testing-library/react";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { ShortcutGuide } from "./ShortcutGuide";
 
 /*
@@ -51,5 +51,41 @@ describe("ShortcutGuide", () => {
 
     expect(node).toHaveFocus();
     expect(previous).not.toHaveFocus();
+  });
+
+  /*
+  실행 취소는 노드를 고르지 않아도 동작하므로 "노드를 하나 선택했을 때" 묶음과 나눠 적는다.
+  */
+  describe("단축키 묶음", () => {
+    afterEach(() => {
+      vi.restoreAllMocks();
+    });
+
+    const getSection = (name: string) => screen.getByRole("region", { name });
+
+    it("되돌리기·다시 실행은 편집 묶음에, 노드 동작은 노드 묶음에 적는다", () => {
+      render(<ShortcutGuide onClose={vi.fn()} />);
+
+      const editor = within(getSection("편집"));
+      const node = within(getSection("노드 (하나 선택했을 때)"));
+
+      expect(editor.getByText("Ctrl+Z")).toBeTruthy();
+      expect(editor.getByText("Ctrl+Shift+Z")).toBeTruthy();
+      expect(editor.getByText("?")).toBeTruthy();
+      expect(node.getByText("F2")).toBeTruthy();
+      expect(node.queryByText("Ctrl+Z")).toBeNull();
+    });
+
+    it("맥은 ⌘ 표기로 적는다", () => {
+      vi.spyOn(Navigator.prototype, "platform", "get").mockReturnValue(
+        "MacIntel",
+      );
+      render(<ShortcutGuide onClose={vi.fn()} />);
+
+      const editor = within(getSection("편집"));
+
+      expect(editor.getByText("⌘Z")).toBeTruthy();
+      expect(editor.getByText("⌘⇧Z")).toBeTruthy();
+    });
   });
 });

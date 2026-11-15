@@ -1,5 +1,10 @@
 import { useMemo, type ComponentProps, type ReactNode, type Ref } from "react";
 import { Minus, Plus, Redo2, Scan, Undo2, type LucideIcon } from "lucide-react";
+import {
+  getUndoRedoShortcuts,
+  type UndoRedoShortcut,
+} from "../lib/shortcuts/undoRedoShortcuts";
+import { useDevicePlatform } from "../model/shortcuts/useDevicePlatform";
 
 export type EditorToolbarGroupId = "history" | "view" | "level";
 
@@ -35,12 +40,14 @@ type ToolbarButtonProps = ComponentProps<"button"> & {
   icon: LucideIcon;
   label: string; // 버튼 이름. 글자가 숨겨져도 aria-label과 툴팁으로 남는다.
   isIconOnly?: boolean;
+  shortcut?: UndoRedoShortcut; // 같은 동작의 단축키. 툴팁에 적고 aria-keyshortcuts로 알린다
 };
 
 function ToolbarButton({
   icon: Icon,
   label,
   isIconOnly = false,
+  shortcut,
   className,
   ...buttonProps
 }: ToolbarButtonProps) {
@@ -48,7 +55,8 @@ function ToolbarButton({
     <button
       type="button"
       aria-label={label}
-      title={label}
+      aria-keyshortcuts={shortcut?.ariaKeyShortcuts}
+      title={shortcut ? `${label} (${shortcut.label})` : label}
       className={`flex h-8 shrink-0 items-center justify-center gap-1.5 rounded-control text-[13px] font-medium whitespace-nowrap transition-colors focus-visible:ring-2 focus-visible:ring-focus focus-visible:outline-none disabled:pointer-events-none ${
         isIconOnly ? "w-8" : "min-w-8 px-2"
       } text-content-secondary hover:bg-surface-hover hover:text-content disabled:text-content-disabled ${className ?? ""}`}
@@ -101,6 +109,8 @@ export function EditorToolbar({
   toolbarRef,
   onGroupElementChange,
 }: EditorToolbarProps) {
+  const undoRedoShortcuts = getUndoRedoShortcuts(useDevicePlatform());
+
   /*
   묶음별 ref 콜백을 한 번만 만든다. 렌더마다 새 함수가 되면 React가 null과 요소로 다시 부르고, 받는 쪽이 state를 바꾸면 다시 렌더된다.
   묶음마다 따로 꺼내 둔다. 객체의 속성으로 ref에 넘기면 lint가 그 객체를 ref로 보고 다음 속성 읽기를 render 중 ref 접근으로 잡는다.
@@ -137,6 +147,7 @@ export function EditorToolbar({
           icon={Undo2}
           label="되돌리기"
           isIconOnly
+          shortcut={undoRedoShortcuts.undo}
           onClick={onUndo}
           disabled={isUndoDisabled}
         />
@@ -144,6 +155,7 @@ export function EditorToolbar({
           icon={Redo2}
           label="다시 실행"
           isIconOnly
+          shortcut={undoRedoShortcuts.redo}
           onClick={onRedo}
           disabled={isRedoDisabled}
         />

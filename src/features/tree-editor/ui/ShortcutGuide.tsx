@@ -5,6 +5,7 @@ import {
   getNodeActionShortcuts,
   NODE_ACTION_IDS,
 } from "../lib/shortcuts/nodeActionShortcuts";
+import { getUndoRedoShortcuts } from "../lib/shortcuts/undoRedoShortcuts";
 import { useDevicePlatform } from "../model/shortcuts/useDevicePlatform";
 
 type ShortcutGuideProps = {
@@ -13,7 +14,8 @@ type ShortcutGuideProps = {
 
 /*
 함수 이름 : ShortcutGuide
-기능 : 이 기기의 노드 동작 단축키 전체를 목록으로 보여 준다. 열리면 닫기 버튼에 focus를 두고,
+기능 : 이 기기의 편집기 단축키 전체를 목록으로 보여 준다. 노드를 고르지 않아도 되는 편집 키와 노드를 하나 골랐을 때의 키를
+나눠 적는다. 열리면 닫기 버튼에 focus를 두고,
 닫힐 때 안내 안에 focus가 있었으면 열기 전 자리로 돌려준다.
 인자 : ShortcutGuideProps
 반환값 : 단축키 안내 패널
@@ -25,6 +27,7 @@ focus를 안내 안에 있었을 때만 돌려주는 이유는, 노드를 누른
 export function ShortcutGuide({ onClose }: ShortcutGuideProps) {
   const platform = useDevicePlatform();
   const shortcuts = getNodeActionShortcuts(platform);
+  const undoRedoShortcuts = getUndoRedoShortcuts(platform);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
   const hasFocusRef = useRef(false); // 안내 안에 focus가 있는지. 요소가 사라질 때는 blur가 오지 않을 수 있어 직접 기억한다
 
@@ -54,14 +57,28 @@ export function ShortcutGuide({ onClose }: ShortcutGuideProps) {
     hasFocusRef.current = false;
   };
 
-  const rows = [
-    ...NODE_ACTION_IDS.map((actionId) => ({
-      label: NODE_ACTION_LABELS[actionId],
-      keys: shortcuts[actionId].label,
-    })),
-    { label: "선택 해제", keys: "Esc" },
-    { label: "노드 아래 버튼으로 이동", keys: "Tab" },
-    { label: "단축키 안내 열고 닫기", keys: "?" },
+  const sections = [
+    {
+      id: "editor",
+      title: "편집",
+      rows: [
+        { label: "되돌리기", keys: undoRedoShortcuts.undo.label },
+        { label: "다시 실행", keys: undoRedoShortcuts.redo.label },
+        { label: "단축키 안내 열고 닫기", keys: "?" },
+      ],
+    },
+    {
+      id: "node",
+      title: "노드 (하나 선택했을 때)",
+      rows: [
+        ...NODE_ACTION_IDS.map((actionId) => ({
+          label: NODE_ACTION_LABELS[actionId],
+          keys: shortcuts[actionId].label,
+        })),
+        { label: "선택 해제", keys: "Esc" },
+        { label: "노드 아래 버튼으로 이동", keys: "Tab" },
+      ],
+    },
   ];
 
   return (
@@ -93,24 +110,36 @@ export function ShortcutGuide({ onClose }: ShortcutGuideProps) {
           <X aria-hidden className="size-4" />
         </button>
       </div>
-      <dl className="flex flex-col gap-2 text-sm">
-        {rows.map((row) => (
-          <div
-            key={row.label}
-            className="flex items-center justify-between gap-3"
+      <div className="flex flex-col gap-4">
+        {sections.map((section) => (
+          <section
+            key={section.id}
+            aria-labelledby={`shortcut-guide-${section.id}`}
           >
-            <dt className="text-content-secondary">{row.label}</dt>
-            <dd>
-              <kbd className="rounded-control border border-line px-1.5 py-0.5 font-sans text-xs text-content">
-                {row.keys}
-              </kbd>
-            </dd>
-          </div>
+            <h3
+              id={`shortcut-guide-${section.id}`}
+              className="mb-2 text-xs font-semibold text-content-muted"
+            >
+              {section.title}
+            </h3>
+            <dl className="flex flex-col gap-2 text-sm">
+              {section.rows.map((row) => (
+                <div
+                  key={row.label}
+                  className="flex items-center justify-between gap-3"
+                >
+                  <dt className="text-content-secondary">{row.label}</dt>
+                  <dd>
+                    <kbd className="rounded-control border border-line px-1.5 py-0.5 font-sans text-xs text-content">
+                      {row.keys}
+                    </kbd>
+                  </dd>
+                </div>
+              ))}
+            </dl>
+          </section>
         ))}
-      </dl>
-      <p className="mt-3 text-xs text-content-muted">
-        노드를 하나 선택했을 때 동작합니다.
-      </p>
+      </div>
     </div>
   );
 }
