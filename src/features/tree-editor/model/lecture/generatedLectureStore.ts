@@ -40,7 +40,7 @@ export const useGeneratedLectureStore = create<GeneratedLectureState>()(
     LectureScript script -> 생성한 대본
     반환값 : 없음
 
-    입력 카드의 중복 요청 방지는 화면을 떠나면 사라져, 같은 트리의 요청이 겹칠 수 있다. 이때 응답 순서가 아니라 요청 순서로 정한다.
+    생성 중 여부는 화면을 떠나면 사라져, 같은 트리의 요청이 겹칠 수 있다. 이때 응답 순서가 아니라 요청 순서로 정한다.
     */
     setGeneratedLecture: (treeId, script) =>
       set((state) =>

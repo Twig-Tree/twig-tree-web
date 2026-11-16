@@ -12,7 +12,7 @@ import { getFinalNodeRect, useCameraMove } from "./useCameraMove";
 
 /*
 함수 이름 : usePanelCameraAlignment
-기능 : 검색·태그 패널, 메모 패널, 강의 만들기 패널이 열리고 닫히거나 반응형 배치가 바뀔 때,
+기능 : 검색·태그 패널이나 메모 패널이 열리고 닫히거나 반응형 배치가 바뀔 때,
 원래 보던 시각 프레임의 기준 위상(중심과 흐름 크기)을 새 시각 프레임에 맞춰 카메라를 부드럽게 옮긴다.
 강의 재생 중에는 useLectureCameraRefit이 설명 중인 노드로 다시 맞추므로 여기서는 움직이지 않는다.
 인자 : string panelLayoutKey -> 패널 배치를 나타내는 값

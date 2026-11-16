@@ -57,7 +57,7 @@ describe("useGenerateLectureScenarioMutation", () => {
   });
 
   /*
-  오프라인에서 멈춘 채로 있으면 생성 중 상태가 끝나지 않아 입력 카드를 닫을 수 없다.
+  오프라인에서 멈춘 채로 있으면 생성 중 상태가 끝나지 않아 다시 시도할 수 없다.
   */
   it("오프라인이면 멈추지 않고 실패로 끝난다", async () => {
     server.use(http.post("*/api/lecture-request", () => HttpResponse.error()));

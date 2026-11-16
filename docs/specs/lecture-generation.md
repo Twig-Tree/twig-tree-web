@@ -90,7 +90,8 @@ pnpm exec vitest run src/entities/lecture/model/generation/vocabulary.test.ts -u
 entities/lecture   lectureApi.generateLectureScenario, useGenerateLectureScenarioMutation
 features/tree-editor
   useGenerateLecture   편집기 트리 → outline → 요청 → 응답 처리 → repair 1회 → 대본
-  LectureGenerator     생성 버튼, 생성 중 안내, 실패 안내
+  useLectureGeneration 대본이 있으면 확인 → 생성 → 대본 보관 또는 실패 안내
+  LecturePlayer        강의 만들기 버튼, 생성 중 안내, 실패 안내
 ```
 
 사용자는 요청 문장을 적지 않는다. 프론트가 `entities/lecture`의 `LECTURE_GENERATION_REQUEST`를 `request`에 넣는다. 백엔드가 `request`를 `@NotBlank`로 받기 때문이다.
