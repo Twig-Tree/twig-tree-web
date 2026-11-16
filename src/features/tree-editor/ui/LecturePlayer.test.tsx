@@ -143,7 +143,7 @@ describe("LecturePlayer", () => {
     ).not.toBeInTheDocument();
   });
 
-  it("보이는 강의 만들기 버튼을 generateButtonRef로 넘긴다", () => {
+  it("보이는 강의 만들기 버튼을 generateButtonRef로 넘기고, 데모 강의에는 버튼을 두지 않는다", () => {
     setWorldGeographyTree();
     const generateButtonRef = vi.fn();
     const { wrapper } = createQueryWrapper();
@@ -177,8 +177,27 @@ describe("LecturePlayer", () => {
       />,
     );
 
-    const iconButton = screen.getByRole("button", { name: "강의 만들기" });
-    expect(iconButton).not.toHaveTextContent("강의 만들기");
+    expect(
+      screen.queryByRole("button", { name: /강의 만들기|강의 새로 만들기/ }),
+    ).not.toBeInTheDocument();
+    expect(generateButtonRef.mock.lastCall?.[0]).toBeNull(); // React가 ref를 뗄 때 null 뒤에 인자를 더 넘기므로 첫 인자만 본다.
+
+    rerender(
+      <LecturePlayer
+        script={script}
+        isGeneratedScript
+        onRevealNodes={onRevealNodes}
+        onResetCamera={onResetCamera}
+        onBeforeCollapseRestore={onBeforeCollapseRestore}
+        panelLayoutKey="panels"
+        generateButtonRef={generateButtonRef}
+      />,
+    );
+
+    const iconButton = screen.getByRole("button", {
+      name: "강의 새로 만들기",
+    });
+    expect(iconButton).not.toHaveTextContent("강의 새로 만들기");
     expect(generateButtonRef).toHaveBeenLastCalledWith(iconButton);
   });
 

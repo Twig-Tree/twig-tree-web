@@ -26,7 +26,7 @@ import { LectureSubtitle } from "./LectureSubtitle";
 
 type LecturePlayerProps = {
   script: LectureScript | null; // 지금 트리에서 재생할 수 있는 대본. 없으면 시작 화면 대신 강의 만들기 버튼을 그린다
-  isGeneratedScript: boolean; // 생성한 강의인지. 데모 강의면 "새로 만들기" 대신 "강의 만들기"로 부르고, 확인 문구도 다르다
+  isGeneratedScript: boolean; // 생성한 강의인지. 생성한 강의에만 새로 만들기 버튼을 둔다. 데모 강의는 시연용으로 배치한 것이라 바꾸지 않는다
   onRevealNodes: (
     clientIds: string[],
     options: { maxZoom: number; duration: number; keepCollapse?: boolean },
@@ -35,7 +35,7 @@ type LecturePlayerProps = {
   onBeforeCollapseRestore: () => void; // 강의가 끝나 접힘을 되돌릴 때 바뀐 배치에 맞춰 화면을 옮기도록 맡기는 함수
   panelLayoutKey: string; // 패널 배치를 나타내는 값. 강의 중에 바뀌면 카메라를 다시 맞춘다
   onGenerateClick?: () => void; // 강의 만들기 버튼을 누르면 알린다. 기능 안내가 할 일을 마친 것으로 기록한다
-  generateButtonRef?: Ref<HTMLButtonElement>; // 강의 만들기 버튼 요소. 대본이 없을 때의 글자 버튼과 있을 때의 아이콘 버튼 중 보이는 쪽이다. 기능 안내가 가리킨다
+  generateButtonRef?: Ref<HTMLButtonElement>; // 강의 만들기 버튼 요소. 대본이 없을 때의 글자 버튼과 생성한 강의의 아이콘 버튼 중 보이는 쪽이다. 데모 강의에는 없다. 기능 안내가 가리킨다
 };
 
 type LectureGenerationMessageProps = {
@@ -80,7 +80,8 @@ function LectureGenerationMessage({
 /*
 함수 이름 : LecturePlayer
 기능 : 대본을 현재 트리에 연결하고 장면·비트 단위 음성, 자막, 애니메이션을 함께 재생한다.
-시작 전에는 지금 트리로 강의를 바로 만들 수 있다. 이미 대본이 있으면 확인을 받은 뒤에 만든다.
+시작 전에는 지금 트리로 강의를 바로 만들 수 있다. 이미 생성한 강의가 있으면 확인을 받은 뒤에 새로 만든다.
+데모 강의가 배치된 트리에는 만들기 버튼을 두지 않는다.
 인자 : LecturePlayerProps
 반환값 : 강의 재생 컨트롤과 현재 내레이션
 */
@@ -107,7 +108,9 @@ export function LecturePlayer({
   const resetVisual = useLectureAnimationStore((state) => state.resetVisual);
   const nodes = useTreeStore((state) => state.nodes);
   const { handleGenerateLecture, isGenerating, errorMessage } =
-    useLectureGeneration({ hasScript: script !== null, isGeneratedScript });
+    useLectureGeneration({
+      hasGeneratedScript: script !== null && isGeneratedScript,
+    });
 
   const editorScript = useMemo(
     () => (script === null ? null : getEditorLectureScript(script, nodes)),
@@ -229,18 +232,20 @@ export function LecturePlayer({
             <Play className="size-4" aria-hidden="true" />
             강의 시작
           </Button>
-          <IconButton
-            ref={generateButtonRef}
-            aria-label={isGeneratedScript ? "강의 새로 만들기" : "강의 만들기"}
-            disabled={isGenerating}
-            onClick={handleGenerateClick}
-          >
-            {isGenerating ? (
-              <LoaderCircle className="motion-safe:animate-spin" />
-            ) : (
-              <Sparkles />
-            )}
-          </IconButton>
+          {isGeneratedScript ? (
+            <IconButton
+              ref={generateButtonRef}
+              aria-label="강의 새로 만들기"
+              disabled={isGenerating}
+              onClick={handleGenerateClick}
+            >
+              {isGenerating ? (
+                <LoaderCircle className="motion-safe:animate-spin" />
+              ) : (
+                <Sparkles />
+              )}
+            </IconButton>
+          ) : null}
         </div>
         <LectureGenerationMessage
           isGenerating={isGenerating}

@@ -60,12 +60,9 @@ afterEach(() => {
 });
 
 describe("useLectureGeneration", () => {
-  it("대본이 없으면 묻지 않고 바로 만들어 트리의 생성 강의로 보관한다", async () => {
+  it("생성한 강의가 없으면 묻지 않고 바로 만들어 트리의 생성 강의로 보관한다", async () => {
     generateLectureMock.mockResolvedValue(SUCCESS_RESULT);
-    const { result } = renderLectureGeneration({
-      hasScript: false,
-      isGeneratedScript: false,
-    });
+    const { result } = renderLectureGeneration({ hasGeneratedScript: false });
 
     await act(() => result.current.handleGenerateLecture());
 
@@ -80,10 +77,7 @@ describe("useLectureGeneration", () => {
   it("생성한 강의가 있으면 새로 만들지 확인한 뒤 만든다", async () => {
     requestConfirmMock.mockResolvedValue(true);
     generateLectureMock.mockResolvedValue(SUCCESS_RESULT);
-    const { result } = renderLectureGeneration({
-      hasScript: true,
-      isGeneratedScript: true,
-    });
+    const { result } = renderLectureGeneration({ hasGeneratedScript: true });
 
     await act(() => result.current.handleGenerateLecture());
 
@@ -96,31 +90,9 @@ describe("useLectureGeneration", () => {
     expect(generateLectureMock).toHaveBeenCalledOnce();
   });
 
-  it("데모 강의가 있으면 데모 대신 재생된다고 알리고 확인을 받는다", async () => {
-    requestConfirmMock.mockResolvedValue(true);
-    generateLectureMock.mockResolvedValue(SUCCESS_RESULT);
-    const { result } = renderLectureGeneration({
-      hasScript: true,
-      isGeneratedScript: false,
-    });
-
-    await act(() => result.current.handleGenerateLecture());
-
-    expect(requestConfirmMock).toHaveBeenCalledExactlyOnceWith({
-      title: "이 트리로 강의를 만들까요?",
-      description:
-        "만든 강의가 지금 데모 강의 대신 재생됩니다. 최대 2분쯤 걸립니다.",
-      confirmLabel: "강의 만들기",
-    });
-    expect(generateLectureMock).toHaveBeenCalledOnce();
-  });
-
   it("확인을 취소하면 요청하지 않는다", async () => {
     requestConfirmMock.mockResolvedValue(false);
-    const { result } = renderLectureGeneration({
-      hasScript: true,
-      isGeneratedScript: true,
-    });
+    const { result } = renderLectureGeneration({ hasGeneratedScript: true });
 
     await act(() => result.current.handleGenerateLecture());
 
@@ -135,10 +107,7 @@ describe("useLectureGeneration", () => {
       }),
     );
     generateLectureMock.mockResolvedValue(SUCCESS_RESULT);
-    const { result } = renderLectureGeneration({
-      hasScript: true,
-      isGeneratedScript: true,
-    });
+    const { result } = renderLectureGeneration({ hasGeneratedScript: true });
 
     await act(async () => {
       const first = result.current.handleGenerateLecture();
@@ -156,10 +125,7 @@ describe("useLectureGeneration", () => {
       generateLecture: generateLectureMock,
       isGenerating: true,
     });
-    const { result } = renderLectureGeneration({
-      hasScript: true,
-      isGeneratedScript: true,
-    });
+    const { result } = renderLectureGeneration({ hasGeneratedScript: true });
 
     await act(() => result.current.handleGenerateLecture());
 
@@ -173,10 +139,7 @@ describe("useLectureGeneration", () => {
       failedStep: "json",
       issues: [],
     });
-    const { result } = renderLectureGeneration({
-      hasScript: false,
-      isGeneratedScript: false,
-    });
+    const { result } = renderLectureGeneration({ hasGeneratedScript: false });
 
     await act(() => result.current.handleGenerateLecture());
 
@@ -195,10 +158,7 @@ describe("useLectureGeneration", () => {
       status: "invalid",
       message: "트리를 불러온 뒤에 다시 시도해 주세요.",
     });
-    const { result } = renderLectureGeneration({
-      hasScript: false,
-      isGeneratedScript: false,
-    });
+    const { result } = renderLectureGeneration({ hasGeneratedScript: false });
 
     await act(() => result.current.handleGenerateLecture());
 
