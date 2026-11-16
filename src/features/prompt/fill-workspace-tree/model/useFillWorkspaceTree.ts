@@ -10,7 +10,7 @@ import {
   getApiErrorCode,
   getApiErrorMessage,
 } from "@/src/shared/api/authErrorCodes";
-import { isClientError } from "@/src/shared/api/httpErrors";
+import { isClientError, isRequestTimeout } from "@/src/shared/api/httpErrors";
 
 interface UseFillWorkspaceTreeParams {
   workspaceId: string; // 채울 워크스페이스 ID. 라우트 파라미터라 페이지가 형식을 검사한 값이다
@@ -30,19 +30,43 @@ const WORKSPACE_TREE_NOT_EMPTY_MESSAGE =
   "다른 곳에서 이미 트리를 만들었습니다. 만들어진 트리를 불러옵니다.";
 
 /*
+응답을 기다리다 프론트가 끊었을 때의 문구. 서버가 뒤늦게 트리를 저장할 수 있어 실패로 단정하지 않는다.
+다시 시도를 권하지 않는다. 바로 다시 보내면 서버가 CHAT409-1로 거절하더라도 LLM 응답을 기다린 뒤라 대기와 과금이 겹친다.
+*/
+const FILL_TREE_TIMEOUT_MESSAGE =
+  "트리를 만드는 데 오래 걸리고 있습니다. 잠시 후 새로고침해 확인해 주세요.";
+
+/*
+서버가 저장하지 않았다고 확정한 5xx 가운데 원인에 따라 할 일이 다른 경우의 문구.
+나누는 이유는 useCreateWorkspaceFromPrompt의 같은 문구와 같다.
+*/
+const FILL_TREE_LLM_TIMEOUT_MESSAGE =
+  "AI 응답이 늦어 트리를 만들지 못했습니다. 잠시 후 다시 시도해 주세요.";
+
+const FILL_TREE_LLM_RESPONSE_INVALID_MESSAGE =
+  "AI가 트리를 제대로 만들지 못했습니다. 다시 시도하거나, 내용을 줄이거나 바꿔서 시도해 주세요.";
+
+/*
 함수 이름 : getFillTreeErrorMessage
 기능 : 워크스페이스 트리 채우기 요청이 실패한 원인을 사용자에게 보여줄 안내 문구로 바꾼다.
 인자 : unknown error -> 트리 채우기 요청이 reject한 오류
 반환값 : 안내 문구
 
 4xx는 서버 문구를 그대로 쓴다. 제약값이 백엔드 계약에서 오는 이유는 useCreateWorkspaceFromPrompt의 getCreateTreeErrorMessage와 같다.
-CHAT409-1만 분기하는 이유는 위 WORKSPACE_TREE_NOT_EMPTY_MESSAGE를 참고한다.
+CHAT409-1, CHAT504-1, CHAT502-1을 분기하는 이유는 각 문구의 주석을 참고한다.
 */
 const getFillTreeErrorMessage = (error: unknown): string => {
-  if (
-    getApiErrorCode(error) === TREE_REQUEST_ERROR_CODE.WORKSPACE_TREE_NOT_EMPTY
-  ) {
-    return WORKSPACE_TREE_NOT_EMPTY_MESSAGE;
+  if (isRequestTimeout(error)) {
+    return FILL_TREE_TIMEOUT_MESSAGE;
+  }
+
+  switch (getApiErrorCode(error)) {
+    case TREE_REQUEST_ERROR_CODE.WORKSPACE_TREE_NOT_EMPTY:
+      return WORKSPACE_TREE_NOT_EMPTY_MESSAGE;
+    case TREE_REQUEST_ERROR_CODE.LLM_TIMEOUT:
+      return FILL_TREE_LLM_TIMEOUT_MESSAGE;
+    case TREE_REQUEST_ERROR_CODE.LLM_RESPONSE_INVALID:
+      return FILL_TREE_LLM_RESPONSE_INVALID_MESSAGE;
   }
 
   if (!isClientError(error)) {

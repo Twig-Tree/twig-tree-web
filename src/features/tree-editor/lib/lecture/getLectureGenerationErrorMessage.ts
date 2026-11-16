@@ -1,6 +1,6 @@
-import axios from "axios";
 import { LECTURE_ERROR_CODE } from "@/src/entities/lecture";
 import { getApiErrorCode } from "@/src/shared/api/authErrorCodes";
+import { isRequestTimeout } from "@/src/shared/api/httpErrors";
 import { type GenerateLectureResult } from "../../model/lecture/useGenerateLecture";
 
 /*
@@ -13,7 +13,7 @@ const getRequestErrorMessage = (error: unknown): string => {
   /*
   프론트가 먼저 끊은 경우다. 백엔드가 재시도까지 마치는 시간보다 길게 잡았으므로 드물다.
   */
-  if (axios.isAxiosError(error) && error.code === "ECONNABORTED") {
+  if (isRequestTimeout(error)) {
     return "강의를 만드는 데 너무 오래 걸립니다. 잠시 후 다시 시도해 주세요.";
   }
 
