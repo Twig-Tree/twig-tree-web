@@ -1,6 +1,11 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import {
+  type QueryFilters,
+  useMutation,
+  useQueryClient,
+} from "@tanstack/react-query";
 import { workspaceQueryKeys } from "@/src/entities/workspace";
 import { isRequestTimeout } from "@/src/shared/api/httpErrors";
+import { markQueriesStale } from "@/src/shared/lib/react-query/markQueriesStale";
 import { treeApi } from "../../api/treeApi";
 
 /*
@@ -24,22 +29,20 @@ export const useCreateTreeFromPromptMutation = () => {
   응답에 folderId가 없지만 위치가 확정되어 있어 무효화 대상을 좁힐 수 있다.
   최신순 목록은 폴더를 가리지 않으므로 함께 낡는다.
   */
-  const invalidateWorkspaceLists = (refetchType: "active" | "none") =>
-    Promise.all([
-      queryClient.invalidateQueries({
-        queryKey: workspaceQueryKeys.listByFolder(null),
-        refetchType,
-      }),
-      queryClient.invalidateQueries({
-        queryKey: workspaceQueryKeys.recent(),
-        refetchType,
-      }),
-    ]);
+  const workspaceListFilters: QueryFilters[] = [
+    { queryKey: workspaceQueryKeys.listByFolder(null) },
+    { queryKey: workspaceQueryKeys.recent() },
+  ];
 
   return useMutation({
     mutationFn: treeApi.createTreeFromPrompt,
 
-    onSuccess: () => invalidateWorkspaceLists("active"),
+    onSuccess: () =>
+      Promise.all(
+        workspaceListFilters.map((filter) =>
+          queryClient.invalidateQueries(filter),
+        ),
+      ),
 
     onError: (error) => {
       if (!isRequestTimeout(error)) return;
@@ -48,7 +51,7 @@ export const useCreateTreeFromPromptMutation = () => {
       끊긴 시점에는 서버가 아직 저장 전일 가능성이 높아, 바로 다시 받으면 옛 목록이 새것으로 남는다.
       낡음만 표시해 창 포커스나 화면 재진입 때 다시 받게 한다.
       */
-      return invalidateWorkspaceLists("none");
+      return markQueriesStale(queryClient, workspaceListFilters);
     },
   });
 };

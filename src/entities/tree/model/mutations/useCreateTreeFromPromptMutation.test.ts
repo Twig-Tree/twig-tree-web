@@ -176,6 +176,53 @@ describe("useCreateTreeFromPromptMutation", () => {
       expect(getRecentWorkspaces).not.toHaveBeenCalled();
     });
 
+    /*
+    끊긴 순간 진행 중이던 목록 조회는 서버 저장 전 목록을 받는다. 그 조회가 끝나며 낡음 표시를 지우면
+    서버가 저장한 뒤에도 staleTime 동안 다시 받지 않는다.
+    */
+    it("진행 중이던 목록 조회가 늦게 끝나도 낡음 표시를 유지한다", async () => {
+      mockCreateTreeFromPromptError(
+        new AxiosError("timeout of 180000ms exceeded", AxiosError.ETIMEDOUT),
+      );
+
+      const { queryClient, wrapper } = createQueryWrapper();
+      queryClient.setQueryData(workspaceQueryKeys.recent(), []);
+
+      let resolveRecent: (value: unknown[]) => void = () => {};
+      const getRecentWorkspaces = vi.fn(
+        () =>
+          new Promise<unknown[]>((resolve) => {
+            resolveRecent = resolve;
+          }),
+      );
+
+      const { result } = renderHook(
+        () => ({
+          mutation: useCreateTreeFromPromptMutation(),
+          recent: useQuery({
+            queryKey: workspaceQueryKeys.recent(),
+            queryFn: getRecentWorkspaces,
+          }),
+        }),
+        { wrapper },
+      );
+
+      await waitFor(() => expect(result.current.recent.isFetching).toBe(true));
+
+      result.current.mutation.mutate({ message: "자료구조 트리 만들어줘" });
+
+      await waitFor(() => expect(result.current.mutation.isError).toBe(true));
+
+      resolveRecent([]);
+
+      await waitFor(() => expect(result.current.recent.isFetching).toBe(false));
+
+      expect(
+        queryClient.getQueryState(workspaceQueryKeys.recent())?.isInvalidated,
+      ).toBe(true);
+      expect(getRecentWorkspaces).toHaveBeenCalledTimes(1);
+    });
+
     it("브라우저가 요청을 중단한 경우는 캐시를 건드리지 않는다", async () => {
       mockCreateTreeFromPromptError(
         new AxiosError("Request aborted", AxiosError.ECONNABORTED),

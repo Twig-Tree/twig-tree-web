@@ -318,6 +318,60 @@ describe("useCreateWorkspaceTreeFromPromptMutation", () => {
       expect(getWorkspaceDetail).not.toHaveBeenCalled();
     });
 
+    /*
+    끊긴 순간 진행 중이던 상세 조회는 서버 저장 전 상세(treeId: null)를 받는다. 그 조회가 끝나며 낡음 표시를 지우면
+    서버가 저장한 뒤에도 staleTime 동안 다시 받지 않는다.
+    */
+    it("진행 중이던 워크스페이스 상세 조회가 늦게 끝나도 낡음 표시를 유지한다", async () => {
+      mockCreateWorkspaceTreeFromPromptError(
+        new AxiosError("timeout of 180000ms exceeded", AxiosError.ETIMEDOUT),
+      );
+
+      const { queryClient, wrapper } = createQueryWrapper();
+      queryClient.setQueryData(
+        workspaceQueryKeys.detail("9"),
+        WORKSPACE_DETAIL,
+      );
+
+      let resolveDetail: (value: typeof WORKSPACE_DETAIL) => void = () => {};
+      const getWorkspaceDetail = vi.fn(
+        () =>
+          new Promise<typeof WORKSPACE_DETAIL>((resolve) => {
+            resolveDetail = resolve;
+          }),
+      );
+
+      const { result } = renderHook(
+        () => ({
+          mutation: useCreateWorkspaceTreeFromPromptMutation(),
+          detail: useQuery({
+            queryKey: workspaceQueryKeys.detail("9"),
+            queryFn: getWorkspaceDetail,
+          }),
+        }),
+        { wrapper },
+      );
+
+      await waitFor(() => expect(result.current.detail.isFetching).toBe(true));
+
+      result.current.mutation.mutate({
+        workspaceId: "9",
+        message: "자료구조 트리",
+      });
+
+      await waitFor(() => expect(result.current.mutation.isError).toBe(true));
+
+      resolveDetail(WORKSPACE_DETAIL);
+
+      await waitFor(() => expect(result.current.detail.isFetching).toBe(false));
+
+      expect(
+        queryClient.getQueryState(workspaceQueryKeys.detail("9"))
+          ?.isInvalidated,
+      ).toBe(true);
+      expect(getWorkspaceDetail).toHaveBeenCalledTimes(1);
+    });
+
     it("브라우저가 요청을 중단한 경우는 캐시를 건드리지 않는다", async () => {
       mockCreateWorkspaceTreeFromPromptError(
         new AxiosError("Request aborted", AxiosError.ECONNABORTED),

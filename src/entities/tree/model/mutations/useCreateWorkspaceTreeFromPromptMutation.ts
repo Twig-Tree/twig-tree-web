@@ -5,6 +5,7 @@ import {
 } from "@/src/entities/workspace";
 import { getApiErrorCode } from "@/src/shared/api/authErrorCodes";
 import { isRequestTimeout } from "@/src/shared/api/httpErrors";
+import { markQueriesStale } from "@/src/shared/lib/react-query/markQueriesStale";
 import { treeApi } from "../../api/treeApi";
 import type { TreeMockScenario } from "../../api/types";
 import { TREE_REQUEST_ERROR_CODE } from "../constants";
@@ -82,20 +83,10 @@ export const useCreateWorkspaceTreeFromPromptMutation = () => {
         저장되면 상세의 treeId나 트리의 노드가 바뀌고, 서버가 updatedAt을 갱신해 최신순 목록도 낡는다.
         응답이 없어 treeId를 모르므로 트리 조회는 모두 표시한다.
         */
-        return Promise.all([
-          queryClient.invalidateQueries({
-            queryKey: workspaceQueryKeys.detail(workspaceId),
-            exact: true,
-            refetchType: "none",
-          }),
-          queryClient.invalidateQueries({
-            queryKey: treeQueryKeys.details(),
-            refetchType: "none",
-          }),
-          queryClient.invalidateQueries({
-            queryKey: workspaceQueryKeys.recent(),
-            refetchType: "none",
-          }),
+        return markQueriesStale(queryClient, [
+          { queryKey: workspaceQueryKeys.detail(workspaceId), exact: true },
+          { queryKey: treeQueryKeys.details() },
+          { queryKey: workspaceQueryKeys.recent() },
         ]);
       }
 
