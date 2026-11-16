@@ -72,6 +72,7 @@ const renderPlayer = () =>
       onBeforeCollapseRestore={onBeforeCollapseRestore}
       panelLayoutKey="panels"
     />,
+    { wrapper: createQueryWrapper().wrapper }, // 강의 만들기 버튼이 생성 mutation을 쓴다
   );
 
 beforeEach(() => {
@@ -133,6 +134,7 @@ describe("LecturePlayer", () => {
         onBeforeCollapseRestore={onBeforeCollapseRestore}
         panelLayoutKey="panels"
       />,
+      { wrapper: createQueryWrapper().wrapper },
     );
 
     expect(screen.getByRole("button", { name: "강의 만들기" })).toBeVisible();
@@ -141,7 +143,7 @@ describe("LecturePlayer", () => {
     ).not.toBeInTheDocument();
   });
 
-  it("보이는 강의 만들기 버튼을 generateButtonRef로 넘기고, 생성 패널이 열리면 null을 넘긴다", async () => {
+  it("보이는 강의 만들기 버튼을 generateButtonRef로 넘긴다", () => {
     setWorldGeographyTree();
     const generateButtonRef = vi.fn();
     const { wrapper } = createQueryWrapper();
@@ -178,9 +180,6 @@ describe("LecturePlayer", () => {
     const iconButton = screen.getByRole("button", { name: "강의 만들기" });
     expect(iconButton).not.toHaveTextContent("강의 만들기");
     expect(generateButtonRef).toHaveBeenLastCalledWith(iconButton);
-
-    await userEvent.click(iconButton);
-    expect(generateButtonRef.mock.lastCall?.[0]).toBeNull(); // React가 ref를 뗄 때 null 뒤에 인자를 더 넘기므로 첫 인자만 본다.
   });
 
   it("강의 중 노드 이름이 바뀌어 대본이 없어져도 진행 중인 강의를 유지한다", async () => {
@@ -376,8 +375,8 @@ describe("LecturePlayer", () => {
     expect(useLectureAnimationStore.getState().layers.size).toBe(0);
   });
 
-  it("강의 만들기 패널을 열고 닫으면 열림 상태 변화를 알린다", async () => {
-    const onGeneratorOpenChange = vi.fn();
+  it("강의 만들기 버튼을 누르면 누른 것을 알린다", async () => {
+    const onGenerateClick = vi.fn();
 
     render(
       <LecturePlayer
@@ -387,19 +386,14 @@ describe("LecturePlayer", () => {
         onResetCamera={onResetCamera}
         onBeforeCollapseRestore={onBeforeCollapseRestore}
         panelLayoutKey="panels"
-        onGeneratorOpenChange={onGeneratorOpenChange}
+        onGenerateClick={onGenerateClick}
       />,
       { wrapper: createQueryWrapper().wrapper },
     );
 
-    expect(onGeneratorOpenChange).toHaveBeenLastCalledWith(false);
+    expect(onGenerateClick).not.toHaveBeenCalled();
 
     await userEvent.click(screen.getByRole("button", { name: "강의 만들기" }));
-    expect(onGeneratorOpenChange).toHaveBeenLastCalledWith(true);
-
-    await userEvent.click(
-      screen.getByRole("button", { name: "강의 만들기 닫기" }),
-    );
-    expect(onGeneratorOpenChange).toHaveBeenLastCalledWith(false);
+    expect(onGenerateClick).toHaveBeenCalledOnce();
   });
 });
