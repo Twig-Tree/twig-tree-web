@@ -2,6 +2,7 @@
 
 import { usePathname } from "next/navigation";
 import { settingsSidebarItem, sidebarItems } from "../model/sidebarItems";
+import { ProfileMenu } from "./ProfileMenu";
 import { SidebarLink } from "./SidebarLink";
 
 export function Sidebar() {
@@ -16,13 +17,14 @@ export function Sidebar() {
       </nav>
 
       {/*
-      설정처럼 페이지 이동이 아닌 계정 관련 메뉴는 메뉴바 맨 아래에 붙인다.
+      설정과 프로필처럼 계정 관련 메뉴는 메뉴바 맨 아래에 붙인다.
       */}
       <nav
         className="mt-auto flex flex-col items-center gap-1"
         aria-label="계정 메뉴"
       >
         <SidebarLink item={settingsSidebarItem} pathname={pathname} />
+        <ProfileMenu />
       </nav>
     </aside>
   );
