@@ -1,3 +1,4 @@
+import { WithdrawButton } from "@/src/features/auth/withdraw";
 import { ResetOnboardingButton } from "@/src/features/onboarding";
 import { ThemeSelector } from "@/src/features/theme/select-theme";
 import { VoiceSettingsForm } from "@/src/features/voice/select-voice";
@@ -37,6 +38,13 @@ export default function SettingsPage() {
           description="닫은 기능 안내를 처음부터 다시 봅니다."
         >
           <ResetOnboardingButton className="self-start" />
+        </SettingsSection>
+
+        <SettingsSection
+          title="회원 탈퇴"
+          description="탈퇴하면 모든 폴더, 워크스페이스, 트리가 삭제되며 되돌릴 수 없습니다."
+        >
+          <WithdrawButton className="self-start" />
         </SettingsSection>
       </div>
     </div>
