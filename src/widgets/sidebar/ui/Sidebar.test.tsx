@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { Sidebar } from "./Sidebar";
 
@@ -30,7 +30,11 @@ describe("Sidebar", () => {
       "href",
       "/recent",
     );
-    expect(screen.getAllByRole("link")).toHaveLength(3);
+    expect(screen.getByRole("link", { name: "설정" })).toHaveAttribute(
+      "href",
+      "/settings",
+    );
+    expect(screen.getAllByRole("link")).toHaveLength(4);
   });
 
   it("현재 경로의 링크만 현재 페이지로 표시한다", () => {
@@ -51,6 +55,36 @@ describe("Sidebar", () => {
     render(<Sidebar />);
 
     expect(screen.getByRole("link", { name: "폴더" })).toHaveAttribute(
+      "aria-current",
+      "page",
+    );
+    expect(screen.getByRole("link", { name: "대시보드" })).not.toHaveAttribute(
+      "aria-current",
+    );
+  });
+
+  it("설정 링크는 페이지 이동 링크와 다른 메뉴 묶음에 있다", () => {
+    render(<Sidebar />);
+
+    const accountNav = screen.getByRole("navigation", { name: "계정 메뉴" });
+
+    expect(
+      within(accountNav).getByRole("link", { name: "설정" }),
+    ).toBeInTheDocument();
+    expect(
+      within(screen.getByRole("navigation", { name: "주 메뉴" })).queryByRole(
+        "link",
+        { name: "설정" },
+      ),
+    ).not.toBeInTheDocument();
+  });
+
+  it("설정 페이지에서는 설정 링크를 현재 페이지로 표시한다", () => {
+    mockUsePathname.mockReturnValue("/settings");
+
+    render(<Sidebar />);
+
+    expect(screen.getByRole("link", { name: "설정" })).toHaveAttribute(
       "aria-current",
       "page",
     );

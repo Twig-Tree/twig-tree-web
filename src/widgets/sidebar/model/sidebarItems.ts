@@ -1,4 +1,4 @@
-import { CircleStar, Clock, Copy } from "lucide-react";
+import { CircleStar, Clock, Copy, Settings } from "lucide-react";
 import { routes } from "@/src/shared/config/routes";
 import type { SidebarItem } from "./types";
 
@@ -12,3 +12,10 @@ export const sidebarItems: SidebarItem[] = [
   },
   { icon: Clock, label: "최근 항목", href: routes.recent },
 ];
+
+export const settingsSidebarItem: SidebarItem = {
+  icon: Settings,
+  label: "설정",
+  href: routes.settings,
+  activePrefix: routes.settings,
+};
