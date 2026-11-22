@@ -10,7 +10,6 @@ import {
   getThemeInitScript,
   ThemeSync,
 } from "@/src/shared/lib/theme";
-import { ProfileMenu } from "@/src/widgets/topbar";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 
 export default function RootLayout({
@@ -36,7 +35,7 @@ export default function RootLayout({
         <QueryProvider>
           <div className="flex h-dvh flex-col">
             {/* Topbar */}
-            <header className="flex h-14 shrink-0 items-center justify-between border-b border-line bg-surface px-5">
+            <header className="flex h-14 shrink-0 items-center border-b border-line bg-surface px-5">
               {/*
               로그인하지 않았으면 대시보드의 인증 확인이 로그인 화면으로 보내므로 따로 나누지 않는다.
               */}
@@ -55,7 +54,6 @@ export default function RootLayout({
                   Twig Tree
                 </span>
               </Link>
-              <ProfileMenu />
             </header>
 
             <div className="min-h-0 flex-1">{children}</div>

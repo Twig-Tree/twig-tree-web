@@ -13,15 +13,26 @@ export interface KebabMenuItem {
   tone?: "default" | "danger"; // 항목의 의미에 따른 색상
 }
 
+type KebabMenuPlacement = "bottom-end" | "right-end";
+
 interface KebabMenuProps {
   ariaLabel?: string;
   items: KebabMenuItem[];
+  placement?: KebabMenuPlacement; // 트리거 기준으로 메뉴가 열리는 위치. 생략하면 아래쪽에 오른쪽 끝을 맞춘다
   trigger?: ReactNode; // 트리거 버튼 안에 표시할 내용. 생략하면 점 3개를 표시한다
   triggerClassName?: string; // 트리거 버튼 스타일. 생략하면 아이콘 버튼 스타일을 사용한다
 }
 
 const DEFAULT_TRIGGER_CLASS_NAME =
   "flex h-8 w-8 items-center justify-center rounded-control text-content-muted transition-colors hover:bg-surface-hover hover:text-content focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus";
+
+/*
+right-end는 메뉴 아래쪽을 트리거 아래쪽에 맞춘다. 화면 맨 아래에 놓인 트리거에서 열려도 항목이 화면 밖으로 넘치지 않는다.
+*/
+const PLACEMENT_CLASS_NAMES: Record<KebabMenuPlacement, string> = {
+  "bottom-end": "right-0 top-9",
+  "right-end": "bottom-0 left-full ml-2",
+};
 
 const DEFAULT_TRIGGER = (
   <span className="flex flex-col gap-0.5" aria-hidden="true">
@@ -40,6 +51,7 @@ const DEFAULT_TRIGGER = (
 export function KebabMenu({
   ariaLabel = "더보기",
   items,
+  placement = "bottom-end",
   trigger = DEFAULT_TRIGGER,
   triggerClassName = DEFAULT_TRIGGER_CLASS_NAME,
 }: KebabMenuProps) {
@@ -127,7 +139,7 @@ export function KebabMenu({
         <div
           ref={menuRef}
           role="menu"
-          className="absolute right-0 top-9 z-30 min-w-36 rounded-control border border-line bg-surface p-1 shadow-overlay"
+          className={`absolute z-30 min-w-36 rounded-control border border-line bg-surface p-1 shadow-overlay ${PLACEMENT_CLASS_NAMES[placement]}`}
         >
           {items.map((item) => (
             <Fragment key={item.id}>
