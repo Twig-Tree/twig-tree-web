@@ -7,6 +7,7 @@ import { server } from "@/src/tests/mocks/server";
 import { createEditorEdge } from "../../../lib/add-node/createEditorEdge";
 import { createEditorNode } from "../../../lib/add-node/createEditorNode";
 import { useEditHistoryStore } from "../../history/editHistoryStore";
+import { useExternalChangeCheckStore } from "../../sync/externalChangeCheckStore";
 import { useTreeStore } from "../../treeStore";
 import { useMoveNode } from "./useMoveNode";
 
@@ -148,7 +149,7 @@ describe("useMoveNode", () => {
     );
   });
 
-  it("서버가 거절하면 이동 전 구조로 되돌리고 사유를 알린다", async () => {
+  it("서버가 거절하면 이동 전 구조로 되돌리고, 사유를 알리고, 트리를 다시 확인하도록 요청한다", async () => {
     server.use(
       http.patch("*/api/trees/:treeId/nodes/:nodeId/move", () =>
         HttpResponse.json(
@@ -163,6 +164,8 @@ describe("useMoveNode", () => {
       ),
     );
     const alertSpy = vi.spyOn(window, "alert").mockImplementation(() => {});
+    const initialCheckRequestCount =
+      useExternalChangeCheckStore.getState().requestCount;
     const { result } = renderMoveNode();
 
     act(() => {
@@ -175,12 +178,15 @@ describe("useMoveNode", () => {
 
     await waitFor(() =>
       expect(alertSpy).toHaveBeenCalledExactlyOnceWith(
-        "트리가 다른 곳에서 바뀌었습니다. 새로고침한 뒤 다시 시도해 주세요.",
+        "트리가 다른 곳에서 바뀌어 최신 상태로 맞춥니다. 다시 시도해 주세요.",
       ),
     );
     expect(getChildClientIds("c2")).toEqual(["c21", "c22", "c23"]);
     expect(getChildClientIds("c3")).toEqual([]);
     expect(useEditHistoryStore.getState().past).toHaveLength(0);
+    expect(useExternalChangeCheckStore.getState().requestCount).toBe(
+      initialCheckRequestCount + 1,
+    );
   });
 
   it("저장되지 않은 노드는 알리고 옮기지 않는다", () => {

@@ -3,6 +3,7 @@ import { useTreeStore } from "@/src/features/tree-editor/model/treeStore";
 import { getSubtreeClientIds } from "../../../lib/getSubtreeClientIds";
 import { getNodePlacement } from "../../../lib/move-node/getNodePlacement";
 import { useEditHistoryStore } from "../../history/editHistoryStore";
+import { useExternalChangeCheckStore } from "../../sync/externalChangeCheckStore";
 import { CustomEditorNode } from "@/src/features/tree-editor/model/types";
 
 interface UseDeleteNodeParams {
@@ -93,9 +94,11 @@ export const useDeleteNode = ({
         },
         /*
         서버 요청이 실패하면 삭제 전 구조로 되돌린다. 지운 노드는 삭제 전 값으로 되살아난다.
+        다른 곳에서 이미 지운 노드라면 되살린 노드가 화면에만 남으므로 트리를 다시 확인한다.
         */
         onError: () => {
           restoreStructureInStore({ nodes, edges });
+          useExternalChangeCheckStore.getState().requestExternalChangeCheck();
           alert("노드 삭제에 실패했습니다.");
         },
       },

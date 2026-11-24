@@ -5,6 +5,7 @@ import { createQueryWrapper } from "@/src/tests/helpers/createQueryWrapper";
 import { createEditorEdge } from "../../../lib/add-node/createEditorEdge";
 import { createEditorNode } from "../../../lib/add-node/createEditorNode";
 import { useEditHistoryStore } from "../../history/editHistoryStore";
+import { useExternalChangeCheckStore } from "../../sync/externalChangeCheckStore";
 import { useTreeStore } from "../../treeStore";
 import { useAddNode } from "./useAddNode";
 
@@ -85,11 +86,13 @@ describe("useAddNode", () => {
     expect(useTreeStore.getState().nodes[2].data.serverId).toBe("77");
   });
 
-  it("서버가 거절하면 추가한 노드와 엣지만 빼고, history에도 남기지 않는다", async () => {
+  it("서버가 거절하면 추가한 노드와 엣지만 빼고, history에도 남기지 않고, 트리를 다시 확인하도록 요청한다", async () => {
     vi.spyOn(treeApi, "createNode").mockRejectedValue(new Error("failed"));
     const alertSpy = vi.spyOn(window, "alert").mockImplementation(() => {});
     const { nodes: initialNodes, edges: initialEdges } =
       useTreeStore.getState();
+    const initialCheckRequestCount =
+      useExternalChangeCheckStore.getState().requestCount;
     const { result } = renderAddNode();
 
     act(() => {
@@ -107,5 +110,8 @@ describe("useAddNode", () => {
     expect(useTreeStore.getState().edges).toEqual(initialEdges);
     expect(useEditHistoryStore.getState().past).toHaveLength(0);
     expect(useEditHistoryStore.getState().future).toHaveLength(0);
+    expect(useExternalChangeCheckStore.getState().requestCount).toBe(
+      initialCheckRequestCount + 1,
+    );
   });
 });
