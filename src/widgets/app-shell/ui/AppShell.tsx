@@ -1,7 +1,7 @@
 import Link from "next/link";
-import { Network } from "lucide-react";
 import type { ReactNode } from "react";
 import { routes } from "@/src/shared/config/routes";
+import { Logo } from "@/src/shared/ui/logo";
 
 interface AppShellProps {
   children: ReactNode;
@@ -26,17 +26,12 @@ export function AppShell({ children }: AppShellProps) {
         <Link
           href={routes.dashboard}
           aria-label="Twig Tree 대시보드로 이동"
-          className="flex items-center gap-2.5 rounded-control focus-visible:ring-2 focus-visible:ring-focus focus-visible:outline-none"
+          className="-ml-2 rounded-control focus-visible:ring-2 focus-visible:ring-focus focus-visible:outline-none"
         >
-          <span
-            className="flex h-8 w-8 items-center justify-center rounded-control bg-accent text-on-accent"
-            aria-hidden="true"
-          >
-            <Network className="h-4 w-4" />
-          </span>
-          <span className="text-base font-semibold tracking-tight text-content">
-            Twig Tree
-          </span>
+          {/*
+          이미지 왼쪽의 투명 여백을 음수 margin으로 상쇄해 메뉴바 아이콘 열과 맞춘다.
+          */}
+          <Logo alt="" isEager className="h-11" />
         </Link>
       </header>
 

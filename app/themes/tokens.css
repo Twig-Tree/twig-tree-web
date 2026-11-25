@@ -79,3 +79,10 @@ inline이어야 유틸리티가 var(--theme-*)를 그대로 참조해 data-theme
   --spacing-panel: var(--theme-panel-padding);
   --spacing-panel-item: var(--theme-panel-item-padding);
 }
+
+/*
+로고는 원본 색이 정해진 PNG라 색 토큰으로 바꿀 수 없다. 테마가 필터를 정해 바탕에 맞춘다.
+*/
+@utility logo-themed {
+  filter: var(--theme-logo-filter);
+}

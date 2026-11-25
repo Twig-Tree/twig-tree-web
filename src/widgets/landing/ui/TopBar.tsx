@@ -1,8 +1,7 @@
-import Image from "next/image";
 import Link from "next/link";
 import { routes } from "@/src/shared/config/routes";
+import { Logo } from "@/src/shared/ui/logo";
 import { CONTAINER_CLASS, FOCUS_RING_CLASS } from "./styles";
-import logo from "./Twig-Tree-logo.png";
 
 export function TopBar() {
   return (
@@ -18,7 +17,7 @@ export function TopBar() {
           {/*
           이미지 왼쪽에 투명 여백이 있어 음수 margin으로 컨테이너 왼쪽 선에 맞춘다.
           */}
-          <Image src={logo} alt="" loading="eager" className="h-16 w-auto" />
+          <Logo alt="" tone="fixed" isEager className="h-16" />
         </a>
         <Link
           href={routes.login}

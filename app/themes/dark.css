@@ -108,4 +108,7 @@
   /* 패널 밀도 */
   --theme-panel-padding: 12px;
   --theme-panel-item-padding: 6px;
+
+  /* 로고 */
+  --theme-logo-filter: brightness(0) invert(1); /* 로고 PNG의 어두운 줄기와 글자가 바탕에 묻히므로 흰색 실루엣으로 바꾼다 */
 }
