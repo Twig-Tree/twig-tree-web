@@ -17,6 +17,7 @@ type KebabMenuPlacement = "bottom-end" | "right-end";
 
 interface KebabMenuProps {
   ariaLabel?: string;
+  header?: ReactNode; // 항목 위에 표시할 내용. 선택할 수 없고 화살표 이동에서도 빠진다
   items: KebabMenuItem[];
   placement?: KebabMenuPlacement; // 트리거 기준으로 메뉴가 열리는 위치. 생략하면 아래쪽에 오른쪽 끝을 맞춘다
   trigger?: ReactNode; // 트리거 버튼 안에 표시할 내용. 생략하면 점 3개를 표시한다
@@ -50,6 +51,7 @@ const DEFAULT_TRIGGER = (
 */
 export function KebabMenu({
   ariaLabel = "더보기",
+  header,
   items,
   placement = "bottom-end",
   trigger = DEFAULT_TRIGGER,
@@ -141,6 +143,14 @@ export function KebabMenu({
           role="menu"
           className={`absolute z-30 min-w-36 rounded-control border border-line bg-surface p-1 shadow-overlay ${PLACEMENT_CLASS_NAMES[placement]}`}
         >
+          {header ? (
+            <>
+              <div role="none" className="px-3 py-2">
+                {header}
+              </div>
+              <div role="separator" className="my-1 border-t border-line" />
+            </>
+          ) : null}
           {items.map((item) => (
             <Fragment key={item.id}>
               {item.hasDividerBefore ? (

@@ -1,5 +1,8 @@
 import { axiosInstance } from "@/src/shared/api/axiosInstance";
+import { mapMemberDtoToDomain } from "../lib/mappers";
+import type { Member } from "../model/types";
 import type {
+  GetMyInfoResponse,
   GoogleLoginRequest,
   GoogleLoginData,
   GoogleLoginResponse,
@@ -23,6 +26,11 @@ export const authApi = {
   */
   logout: async (): Promise<void> => {
     await axiosInstance.post<LogoutResponse>("/auth/logout");
+  },
+
+  getMyInfo: async (): Promise<Member> => {
+    const response = await axiosInstance.get<GetMyInfoResponse>("/members/me");
+    return mapMemberDtoToDomain(response.data.data);
   },
 
   /*

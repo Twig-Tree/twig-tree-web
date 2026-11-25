@@ -1,3 +1,4 @@
+import { MemberDTO } from "@/src/entities/auth/api/types";
 import { FolderDTO } from "@/src/entities/folder/api/types";
 import { NodeDTO, TagDTO } from "@/src/entities/tree/api/types";
 import { WorkspaceDTO } from "@/src/entities/workspace/api/types";
@@ -248,4 +249,11 @@ export const RAW_WORLD_GEOGRAPHY_WORKSPACE_DATA: WorkspaceDTO = {
   folderId: null,
   treeId: 30,
   updatedAt: "2026-09-01T00:00:00.000000Z",
+};
+
+export const RAW_MEMBER_DATA: MemberDTO = {
+  memberId: 1,
+  email: "twig@example.com",
+  name: "트윅",
+  profileImage: "https://example.com/profile.png",
 };
