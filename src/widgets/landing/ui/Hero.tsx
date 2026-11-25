@@ -21,7 +21,8 @@ export function Hero() {
           </span>
           <h1 className="m-0 text-[clamp(40px,8vw,64px)] leading-[1.12] font-extrabold tracking-[-0.035em]">
             흩어진 지식,
-            <br />한 그루의 <span className="text-landing-brand">트리</span>로
+            <br />
+            하나의 <span className="text-landing-brand">트리</span>로
           </h1>
           <p className="m-0 max-w-[520px] text-lg leading-[1.6] text-landing-muted md:text-xl">
             문서를 올리면 AI가 개념을 트리로 구조화하고, 그 트리를 따라 강의까지

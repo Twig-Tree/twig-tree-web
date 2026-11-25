@@ -24,7 +24,7 @@ export function Problem() {
             PDF 30장, 어디서부터 읽어야 할까요?
           </h2>
           <p className="m-0 text-lg text-landing-muted">
-            공부가 막히는 건 양이 아니라 구조가 안 보여서예요.
+            전체 구조가 보이지 않으면 어디서부터 시작할지 막막해요.
           </p>
         </Reveal>
         <ul className="m-0 grid w-full list-none grid-cols-[repeat(auto-fit,minmax(260px,1fr))] gap-5 p-0">

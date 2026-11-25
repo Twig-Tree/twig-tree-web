@@ -137,11 +137,11 @@ export function LectureDemo() {
             SIGNATURE · 트리 강의
           </span>
           <h2 className="m-0 text-[clamp(36px,6vw,52px)] leading-[1.15] font-extrabold tracking-[-0.035em]">
-            트리가 선생님이 됩니다
+            내 트리가 그대로 강의가 돼요
           </h2>
           <p className="m-0 text-lg leading-[1.7] text-landing-night-muted md:text-[19px]">
-            슬라이드를 넘기는 강의가 아니에요. 화면이 노드를 따라 이동하며,
-            개념과 개념 사이의 연결까지 해설해 드려요.
+            화면이 노드를 따라 이동하며 개념 하나하나를 짚어 주고, 개념과 개념
+            사이의 연결까지 해설해 드려요.
           </p>
         </Reveal>
 

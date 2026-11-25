@@ -34,9 +34,9 @@ export function AiTreeFeature() {
         <Reveal className="flex min-w-0 flex-[1_1_400px] flex-col gap-5">
           <span className={EYEBROW_CLASS}>AI 트리 생성</span>
           <h2 className={SECTION_TITLE_CLASS}>
-            목차가 아니라,
+            문서 속 개념을,
             <br />
-            개념의 관계를 봅니다
+            관계로 이어 줍니다
           </h2>
           <p className="m-0 text-lg leading-[1.7] text-landing-muted">
             AI가 문서를 읽고 개념을 노드로 나눠 연결해요. 만들어진 트리는 언제든
