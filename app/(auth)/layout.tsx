@@ -21,7 +21,7 @@ interface AuthLayoutProps {
 export default function AuthLayout({ children }: AuthLayoutProps) {
   return (
     <GoogleOAuthProvider clientId={getGoogleClientId()}>
-      <AppShell>
+      <AppShell home="landing">
         <main className="flex h-full min-h-0 items-center justify-center bg-surface-muted px-6 py-10">
           {children}
         </main>
