@@ -2,15 +2,18 @@ import { Reveal, REVEAL_STAGGER } from "./Reveal";
 import { CONTAINER_CLASS } from "./styles";
 
 /*
-실제 설문 결과가 나오면 교체한다. 그 전까지 임의의 숫자를 넣지 않는다.
+사용자 테스트 설문 결과다. 결과가 바뀌면 값과 문항을 함께 고친다.
 */
-const STATS = [
-  { value: "[N]%", label: "[설문 문항 결과 — 예: 구조 파악이 쉬워졌다]" },
-  {
-    value: "[N]%",
-    label: "[설문 문항 결과 — 예: 트리 강의가 이해에 도움됐다]",
-  },
-  { value: "[N]점", label: "[만족도 평균 — 5점 만점]" },
+interface Stat {
+  value: string;
+  label: string;
+  scale?: string; // 값의 만점 기준처럼 숫자 옆에 작게 덧붙이는 설명
+}
+
+const STATS: Stat[] = [
+  { value: "92%", label: "트리 강의가 내용 이해에 도움이 됐어요" },
+  { value: "85%", label: "AI가 만든 트리가 문서를 잘 정리했어요" },
+  { value: "83점", label: "사용성 점수(SUS)", scale: "100점 만점" },
 ];
 
 export function UserTestStats() {
@@ -23,7 +26,7 @@ export function UserTestStats() {
           </h2>
         </Reveal>
         <dl className="m-0 grid grid-cols-[repeat(auto-fit,minmax(240px,1fr))] gap-5">
-          {STATS.map(({ value, label }, index) => (
+          {STATS.map(({ value, label, scale }, index) => (
             <Reveal
               delay={index * REVEAL_STAGGER}
               key={label}
@@ -34,10 +37,18 @@ export function UserTestStats() {
               </dt>
               <dd className="m-0 text-[44px] font-extrabold tracking-[-0.03em] text-landing-brand">
                 {value}
+                {scale && (
+                  <span className="ml-2 text-base font-semibold tracking-normal text-landing-subtle">
+                    / {scale}
+                  </span>
+                )}
               </dd>
             </Reveal>
           ))}
         </dl>
+        <p className="-mt-3 mb-0 text-sm text-landing-muted">
+          2026년 11월 사용자 테스트 참여자 13명 기준
+        </p>
       </div>
     </section>
   );
