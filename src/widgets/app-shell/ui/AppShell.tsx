@@ -1,3 +1,4 @@
+import Link from "next/link";
 import type { ReactNode } from "react";
 import { routes } from "@/src/shared/config/routes";
 import { SiteHeader } from "@/src/shared/ui/site-header";
@@ -26,6 +27,7 @@ interface AppShellProps {
 */
 export function AppShell({ children, home = "dashboard" }: AppShellProps) {
   const homeLink = HOME_LINK[home];
+  const isSignedInScreen = home === "dashboard";
 
   /*
   소개 페이지는 문서 전체가 스크롤되어야 하므로 스크롤 잠금은 body가 아니라 앱 셸이 갖는다.
@@ -36,7 +38,21 @@ export function AppShell({ children, home = "dashboard" }: AppShellProps) {
         homeHref={homeLink.href}
         homeLabel={homeLink.label}
         tone="themed"
-        hasDivider={home === "dashboard"} // 로그인한 화면은 상단바와 작업 공간을 선으로 나눈다
+        hasDivider={isSignedInScreen} // 로그인한 화면은 상단바와 작업 공간을 선으로 나눈다
+        actions={
+          /*
+          로그인한 화면은 로고가 대시보드로 가므로, 소개 페이지로 가는 길을 따로 둔다.
+          작업 화면의 주된 동작과 겹치지 않도록 바탕 없이 글자만 둔다.
+          */
+          isSignedInScreen && (
+            <Link
+              href={routes.landing}
+              className="rounded-control px-3 py-2 text-sm font-semibold text-content-secondary hover:text-content focus-visible:ring-2 focus-visible:ring-focus focus-visible:outline-none"
+            >
+              서비스 소개
+            </Link>
+          )
+        }
       />
 
       <div className="min-h-0 flex-1">{children}</div>
