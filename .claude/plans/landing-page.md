@@ -4,14 +4,14 @@
 
 ## 현재 구조에서 걸리는 점
 
-| 사실 | 영향 |
-| --- | --- |
-| `app/page.tsx`가 `/` → `/dashboard`로 바로 redirect | 랜딩이 `/`를 차지하려면 이 파일을 지운다 |
-| `app/layout.tsx`가 앱 상단바(Network 아이콘 + "Twig Tree")와 `h-dvh` 셸을 그리고, `body`가 `overflow-hidden` | 랜딩에도 앱 상단바가 붙고 페이지가 스크롤되지 않는다 |
-| 테마 규칙: 컴포넌트에 색 값·기본 팔레트 금지, `rawColors.test.ts`가 CI에서 검사 | 시안의 hex 값을 그대로 쓸 수 없다 |
-| 제품 테마(Neutral)의 accent는 인디고(`#4f46e5`) | 시안의 그린 브랜드 색은 기존 토큰에 없다 |
-| 프로젝트는 FSD(`components/` 없음), 폰트 설정 없음, 로고 파일 없음 | 지시서의 `components/landing/` 대신 `src/widgets/landing/`에 둔다 |
-| `restoreSession()`·`authSession`이 이미 있음 | 로그인 사용자 redirect를 자리만이 아니라 실제로 구현할 수 있다 |
+| 사실                                                                                                         | 영향                                                              |
+| ------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------- |
+| `app/page.tsx`가 `/` → `/dashboard`로 바로 redirect                                                          | 랜딩이 `/`를 차지하려면 이 파일을 지운다                          |
+| `app/layout.tsx`가 앱 상단바(Network 아이콘 + "Twig Tree")와 `h-dvh` 셸을 그리고, `body`가 `overflow-hidden` | 랜딩에도 앱 상단바가 붙고 페이지가 스크롤되지 않는다              |
+| 테마 규칙: 컴포넌트에 색 값·기본 팔레트 금지, `rawColors.test.ts`가 CI에서 검사                              | 시안의 hex 값을 그대로 쓸 수 없다                                 |
+| 제품 테마(Neutral)의 accent는 인디고(`#4f46e5`)                                                              | 시안의 그린 브랜드 색은 기존 토큰에 없다                          |
+| 프로젝트는 FSD(`components/` 없음), 폰트 설정 없음, 로고 파일 없음                                           | 지시서의 `components/landing/` 대신 `src/widgets/landing/`에 둔다 |
+| `restoreSession()`·`authSession`이 이미 있음                                                                 | 로그인 사용자 redirect를 자리만이 아니라 실제로 구현할 수 있다    |
 
 ## 결정 사항 (추천)
 
