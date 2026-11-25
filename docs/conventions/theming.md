@@ -64,6 +64,14 @@ Tailwind 기본 팔레트와 색 값을 직접 쓰지 않는다.
 
 필요한 역할이 없으면 비슷한 이름을 빌리지 말고 토큰을 추가한다. 무엇을 위한 색인지가 이름에 드러나야 다음 테마에서 값을 정할 수 있다.
 
+## 소개 페이지
+
+로그인 전 첫 화면인 소개 페이지(`src/widgets/landing`)는 테마를 따르지 않는다. 사용자가 테마를 고를 기회가 아직 없었고, 화면이 밝은 섹션과 어두운 섹션을 함께 써서 팔레트 한 벌로 완결된다.
+
+값은 `app/themes/landing.css`의 `--color-landing-*` 에 있고, 컴포넌트는 `bg-landing-brand`, `text-landing-muted`처럼 역할 이름만 쓴다. 이 파일은 테마가 아니므로 `themes.test.ts`가 테마 목록에서 빼고, 대신 `landingTextPairs`로 글자 대비만 검사한다.
+
+제품 화면에서는 `landing-*` 를 쓰지 않는다. 테마를 바꿔도 색이 따라가지 않는다.
+
 ## React Flow
 
 React Flow는 자기 CSS 변수를 읽으므로 `app/xy-theme.css`가 그 변수에 `--theme-*` 를 넣는다. 이 파일은 Tailwind 유틸리티를 거치지 않고 `--theme-*` 를 직접 참조한다.
