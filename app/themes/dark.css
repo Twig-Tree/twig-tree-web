@@ -2,6 +2,7 @@
 어두운 화면에서 눈부심을 줄이는 테마다. 움직임과 형태는 Neutral과 같고 색만 다르다.
 강조색은 어두운 바탕에서 읽히도록 밝게 잡았으므로, 그 위의 글자(on-accent)는 어둡다.
 어두운 바탕에서는 그림자가 잘 보이지 않아 그림자 잉크를 검정으로 두고 농도를 높였다.
+강조색은 브랜드 초록을 어두운 바탕에서 읽히도록 밝힌 값이다.
 */
 :root[data-theme="dark"] {
   color-scheme: dark; /* 스크롤바와 라디오 같은 브라우저 기본 요소도 어둡게 그린다. */
@@ -29,13 +30,13 @@
   --theme-line-strong: #4a5263;
 
   /* 강조 */
-  --theme-accent: #a5b4fc;
-  --theme-accent-hover: #c7d2fe;
-  --theme-accent-disabled: #3f4674;
-  --theme-accent-subtle: #262a4a;
-  --theme-accent-line: #434a7a;
+  --theme-accent: #86cf9b;
+  --theme-accent-hover: #a9dfb8;
+  --theme-accent-disabled: #2e4636;
+  --theme-accent-subtle: #1a2b21;
+  --theme-accent-line: #2f5a3e;
   --theme-on-accent: #14171d;
-  --theme-focus: #818cf8;
+  --theme-focus: #6cc488;
 
   /* 상태 */
   --theme-danger: #f87171;
@@ -62,18 +63,18 @@
   --theme-edge: #7c8596;
   --theme-edge-marker-fill: currentColor;
   --theme-highlight: #fbbf24;
-  --theme-lecture-current: #a5b4fc;
+  --theme-lecture-current: #86cf9b;
   /* 강조와 추적이 캔버스에서 구별되도록 대비 3:1을 맞춘다. */
   --theme-lecture-animation: #22d3ee;
   --theme-node: #1f242e;
   --theme-node-line: #3a4150;
   --theme-node-content: #e7eaf0;
   --theme-node-content-muted: #a3adbd;
-  --theme-root: #23263a;
-  --theme-root-line: #5a5a9c;
+  --theme-root: #1e2a24;
+  --theme-root-line: #3f6b4e;
   --theme-root-content: #e7eaf0;
   --theme-root-content-muted: #a3adbd;
-  --theme-selected-ring: rgb(165 180 252 / 28%);
+  --theme-selected-ring: rgb(134 207 155 / 28%);
   --theme-node-padding-x: 16px;
   --theme-node-padding-y: 13px;
   --theme-node-font-size: 13px;
