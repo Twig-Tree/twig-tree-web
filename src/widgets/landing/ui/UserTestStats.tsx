@@ -1,3 +1,4 @@
+import { Reveal, REVEAL_STAGGER } from "./Reveal";
 import { CONTAINER_CLASS } from "./styles";
 
 /*
@@ -16,12 +17,15 @@ export function UserTestStats() {
   return (
     <section className="bg-landing-surface-muted">
       <div className={`${CONTAINER_CLASS} flex flex-col gap-8 py-20`}>
-        <h2 className="m-0 text-[clamp(26px,4vw,32px)] leading-[1.3] font-extrabold tracking-[-0.03em]">
-          사용자 테스트에서 확인했어요
-        </h2>
+        <Reveal>
+          <h2 className="m-0 text-[clamp(26px,4vw,32px)] leading-[1.3] font-extrabold tracking-[-0.03em]">
+            사용자 테스트에서 확인했어요
+          </h2>
+        </Reveal>
         <dl className="m-0 grid grid-cols-[repeat(auto-fit,minmax(240px,1fr))] gap-5">
-          {STATS.map(({ value, label }) => (
-            <div
+          {STATS.map(({ value, label }, index) => (
+            <Reveal
+              delay={index * REVEAL_STAGGER}
               key={label}
               className="flex flex-col-reverse justify-end gap-2 rounded-landing-card bg-landing-surface p-7"
             >
@@ -31,7 +35,7 @@ export function UserTestStats() {
               <dd className="m-0 text-[44px] font-extrabold tracking-[-0.03em] text-landing-brand">
                 {value}
               </dd>
-            </div>
+            </Reveal>
           ))}
         </dl>
       </div>

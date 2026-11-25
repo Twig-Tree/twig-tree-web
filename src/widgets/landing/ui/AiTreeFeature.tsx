@@ -1,4 +1,5 @@
 import { ArrowRightIcon, CheckIcon } from "./icons";
+import { Reveal } from "./Reveal";
 import { CONTAINER_CLASS, EYEBROW_CLASS, SECTION_TITLE_CLASS } from "./styles";
 
 const CHECKS = [
@@ -30,7 +31,7 @@ export function AiTreeFeature() {
       <div
         className={`${CONTAINER_CLASS} flex flex-wrap items-center gap-16 pt-8 pb-24 md:pb-28`}
       >
-        <div className="flex min-w-0 flex-[1_1_400px] flex-col gap-5">
+        <Reveal className="flex min-w-0 flex-[1_1_400px] flex-col gap-5">
           <span className={EYEBROW_CLASS}>AI 트리 생성</span>
           <h2 className={SECTION_TITLE_CLASS}>
             목차가 아니라,
@@ -52,12 +53,14 @@ export function AiTreeFeature() {
               </li>
             ))}
           </ul>
-        </div>
+        </Reveal>
 
         {/*
         문서가 트리로 바뀌는 과정을 보여주는 그림이다. 내용은 왼쪽 설명이 전하므로 스크린 리더에는 요약만 남긴다.
         */}
-        <figure
+        <Reveal
+          as="figure"
+          delay={0.15}
           className="m-0 flex min-w-0 flex-[1_1_560px] flex-col items-center justify-center gap-5 sm:flex-row sm:flex-wrap"
           aria-label="긴 문서가 개념 트리로 정리되는 예시"
         >
@@ -106,7 +109,7 @@ export function AiTreeFeature() {
               </span>
             </div>
           </div>
-        </figure>
+        </Reveal>
       </div>
     </section>
   );

@@ -1,3 +1,4 @@
+import { Reveal, REVEAL_STAGGER } from "./Reveal";
 import { CONTAINER_CLASS, SECTION_TITLE_CLASS } from "./styles";
 
 const PROBLEMS = [
@@ -18,30 +19,34 @@ export function Problem() {
       <div
         className={`${CONTAINER_CLASS} flex flex-col items-center gap-12 py-20 md:py-24`}
       >
-        <div className="flex flex-col items-center gap-3.5 text-center">
+        <Reveal className="flex flex-col items-center gap-3.5 text-center">
           <h2 className={SECTION_TITLE_CLASS}>
             PDF 30장, 어디서부터 읽어야 할까요?
           </h2>
           <p className="m-0 text-lg text-landing-muted">
             공부가 막히는 건 양이 아니라 구조가 안 보여서예요.
           </p>
-        </div>
+        </Reveal>
         <ul className="m-0 grid w-full list-none grid-cols-[repeat(auto-fit,minmax(260px,1fr))] gap-5 p-0">
-          {PROBLEMS.map(({ title, description }) => (
-            <li
+          {PROBLEMS.map(({ title, description }, index) => (
+            <Reveal
+              as="li"
               key={title}
+              delay={index * REVEAL_STAGGER}
               className="flex flex-col gap-2.5 rounded-landing-card bg-landing-surface p-7"
             >
               <h3 className="m-0 text-lg font-bold">{title}</h3>
               <p className="m-0 text-base leading-[1.6] text-landing-muted">
                 {description}
               </p>
-            </li>
+            </Reveal>
           ))}
         </ul>
-        <p className="m-0 text-center text-[22px] font-bold text-landing-brand">
-          Twig Tree는 문서를 &apos;구조&apos;로 바꿔요.
-        </p>
+        <Reveal>
+          <p className="m-0 text-center text-[22px] font-bold text-landing-brand">
+            Twig Tree는 문서를 &apos;구조&apos;로 바꿔요.
+          </p>
+        </Reveal>
       </div>
     </section>
   );

@@ -19,6 +19,7 @@ import {
   PauseIcon,
   PlayIcon,
 } from "./icons";
+import { Reveal } from "./Reveal";
 import { CONTAINER_CLASS, FOCUS_RING_CLASS } from "./styles";
 
 const CAMERA_SCALE = 1.3;
@@ -131,7 +132,7 @@ export function LectureDemo() {
       className="scroll-mt-4 bg-landing-ink text-landing-on-brand"
     >
       <div className={`${CONTAINER_CLASS} flex flex-col gap-12 py-24 md:py-28`}>
-        <div className="flex max-w-[720px] flex-col gap-4">
+        <Reveal className="flex max-w-[720px] flex-col gap-4">
           <span className="self-start rounded-full bg-landing-leaf px-3 py-1.5 text-[13px] font-bold tracking-[0.06em] text-landing-ink">
             SIGNATURE · 트리 강의
           </span>
@@ -142,9 +143,12 @@ export function LectureDemo() {
             슬라이드를 넘기는 강의가 아니에요. 화면이 노드를 따라 이동하며,
             개념과 개념 사이의 연결까지 해설해 드려요.
           </p>
-        </div>
+        </Reveal>
 
-        <div className="min-w-0 overflow-hidden rounded-landing-panel border border-landing-night-border bg-landing-night-card">
+        <Reveal
+          delay={0.15}
+          className="min-w-0 overflow-hidden rounded-landing-panel border border-landing-night-border bg-landing-night-card"
+        >
           {/*
           노드 위치와 카메라 이동은 시각 효과다. 같은 내용은 아래 해설 문단이 전한다.
           */}
@@ -260,7 +264,7 @@ export function LectureDemo() {
               </span>
             </div>
           </div>
-        </div>
+        </Reveal>
       </div>
     </section>
   );

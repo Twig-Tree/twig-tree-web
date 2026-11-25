@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { MemoIcon, PencilIcon, SearchIcon } from "./icons";
+import { Reveal, REVEAL_STAGGER } from "./Reveal";
 import { CONTAINER_CLASS, EYEBROW_CLASS, SECTION_TITLE_CLASS } from "./styles";
 
 interface FeatureHeadingProps {
@@ -42,16 +43,19 @@ export function EditMemoSearch() {
       <div
         className={`${CONTAINER_CLASS} flex flex-col gap-12 pt-24 pb-20 md:pt-28 md:pb-24`}
       >
-        <div className="flex flex-col gap-3">
+        <Reveal className="flex flex-col gap-3">
           <span className={EYEBROW_CLASS}>내 트리로 만들기</span>
           <h2 className={SECTION_TITLE_CLASS}>
             AI가 만든 트리를,
             <br />내 방식대로 키워요
           </h2>
-        </div>
+        </Reveal>
 
         <div className="flex flex-wrap gap-5">
-          <article className="flex min-w-0 flex-[2_1_520px] flex-col gap-6 rounded-landing-panel bg-landing-surface-muted p-7 md:p-9">
+          <Reveal
+            as="article"
+            className="flex min-w-0 flex-[2_1_520px] flex-col gap-6 rounded-landing-panel bg-landing-surface-muted p-7 md:p-9"
+          >
             <FeatureHeading
               icon={<PencilIcon />}
               iconClassName="bg-landing-surface text-landing-brand"
@@ -84,9 +88,13 @@ export function EditMemoSearch() {
                 + 노드 추가
               </span>
             </div>
-          </article>
+          </Reveal>
 
-          <article className="flex min-w-0 flex-[1_1_300px] flex-col gap-6 rounded-landing-panel bg-landing-ink p-7 text-landing-on-brand md:p-9">
+          <Reveal
+            as="article"
+            delay={REVEAL_STAGGER}
+            className="flex min-w-0 flex-[1_1_300px] flex-col gap-6 rounded-landing-panel bg-landing-ink p-7 text-landing-on-brand md:p-9"
+          >
             <FeatureHeading
               icon={<MemoIcon />}
               iconClassName="bg-landing-brand text-landing-on-brand"
@@ -97,9 +105,12 @@ export function EditMemoSearch() {
             <p className="m-0 rotate-[1.5deg] rounded-[14px] bg-landing-memo p-4 text-sm leading-[1.6] text-landing-on-memo">
               정규화 단계별 예시 다시 보기 — 시험 범위!
             </p>
-          </article>
+          </Reveal>
 
-          <article className="flex min-w-0 flex-[1_1_100%] flex-wrap items-center gap-8 rounded-landing-panel border border-landing-border p-7 md:p-9">
+          <Reveal
+            as="article"
+            className="flex min-w-0 flex-[1_1_100%] flex-wrap items-center gap-8 rounded-landing-panel border border-landing-border p-7 md:p-9"
+          >
             <div className="flex-[1_1_280px]">
               <FeatureHeading
                 icon={<SearchIcon />}
@@ -128,7 +139,7 @@ export function EditMemoSearch() {
                 </span>
               </div>
             </div>
-          </article>
+          </Reveal>
         </div>
       </div>
     </section>

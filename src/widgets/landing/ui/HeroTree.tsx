@@ -1,28 +1,49 @@
+"use client";
+
+import { motion, useReducedMotion } from "motion/react";
+
 /*
 히어로의 예시 트리다. 좌표는 시안의 540×340 캔버스 기준이다.
+delay는 연결선이 다 그려지기 전에 다음 단계 노드가 이어서 나타나도록 시안의 값을 그대로 쓴다.
 */
 const EDGES = [
-  "M150 170 C190 170 190 95 230 95",
-  "M150 170 C190 170 190 245 230 245",
-  "M350 95 C380 95 380 55 410 55",
-  "M350 95 C380 95 380 135 410 135",
-  "M350 245 C380 245 380 205 410 205",
-  "M350 245 C380 245 380 285 410 285",
+  { d: "M150 170 C190 170 190 95 230 95", delay: 0 },
+  { d: "M150 170 C190 170 190 245 230 245", delay: 0.15 },
+  { d: "M350 95 C380 95 380 55 410 55", delay: 0.5 },
+  { d: "M350 95 C380 95 380 135 410 135", delay: 0.6 },
+  { d: "M350 245 C380 245 380 205 410 205", delay: 0.7 },
+  { d: "M350 245 C380 245 380 285 410 285", delay: 0.8 },
 ];
 
 const BRANCHES = [
-  { label: "선형 구조", y: 73 },
-  { label: "비선형 구조", y: 223 },
+  { label: "선형 구조", y: 73, delay: 0.4 },
+  { label: "비선형 구조", y: 223, delay: 0.5 },
 ];
 
 const LEAVES = [
-  { label: "스택", y: 36 },
-  { label: "큐", y: 116 },
-  { label: "트리", y: 186 },
-  { label: "그래프", y: 266 },
+  { label: "스택", y: 36, delay: 1 },
+  { label: "큐", y: 116, delay: 1.1 },
+  { label: "트리", y: 186, delay: 1.2 },
+  { label: "그래프", y: 266, delay: 1.3 },
 ];
 
+const EDGE_DURATION = 1.3;
+const NODE_DURATION = 0.7;
+
 export function HeroTree() {
+  const shouldReduceMotion = useReducedMotion();
+
+  const getTransition = (duration: number, delay: number) =>
+    shouldReduceMotion
+      ? { duration: 0 }
+      : { duration, delay, ease: "easeOut" as const };
+
+  const nodeMotion = (delay: number) => ({
+    initial: { opacity: 0 },
+    animate: { opacity: 1 },
+    transition: getTransition(NODE_DURATION, delay),
+  });
+
   return (
     <svg
       viewBox="0 0 540 340"
@@ -36,12 +57,18 @@ export function HeroTree() {
         strokeLinecap="round"
         className="stroke-landing-edge"
       >
-        {EDGES.map((d) => (
-          <path key={d} d={d} />
+        {EDGES.map(({ d, delay }) => (
+          <motion.path
+            key={d}
+            d={d}
+            initial={{ pathLength: 0 }}
+            animate={{ pathLength: 1 }}
+            transition={getTransition(EDGE_DURATION, delay)}
+          />
         ))}
       </g>
 
-      <g>
+      <motion.g {...nodeMotion(0)}>
         <rect
           x="30"
           y="148"
@@ -60,10 +87,10 @@ export function HeroTree() {
         >
           자료구조
         </text>
-      </g>
+      </motion.g>
 
-      {BRANCHES.map(({ label, y }) => (
-        <g key={label}>
+      {BRANCHES.map(({ label, y, delay }) => (
+        <motion.g key={label} {...nodeMotion(delay)}>
           <rect
             x="230"
             y={y}
@@ -82,11 +109,11 @@ export function HeroTree() {
           >
             {label}
           </text>
-        </g>
+        </motion.g>
       ))}
 
-      {LEAVES.map(({ label, y }) => (
-        <g key={label}>
+      {LEAVES.map(({ label, y, delay }) => (
+        <motion.g key={label} {...nodeMotion(delay)}>
           <rect
             x="410"
             y={y}
@@ -105,7 +132,7 @@ export function HeroTree() {
           >
             {label}
           </text>
-        </g>
+        </motion.g>
       ))}
     </svg>
   );

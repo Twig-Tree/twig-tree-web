@@ -2,6 +2,7 @@ import Link from "next/link";
 import { routes } from "@/src/shared/config/routes";
 import { HeroTree } from "./HeroTree";
 import { PlayIcon } from "./icons";
+import { Reveal } from "./Reveal";
 import {
   CONTAINER_CLASS,
   FOCUS_RING_CLASS,
@@ -14,7 +15,7 @@ export function Hero() {
       <div
         className={`${CONTAINER_CLASS} flex flex-wrap items-center gap-16 pt-16 pb-20 md:pt-24 md:pb-28`}
       >
-        <div className="flex min-w-0 flex-[1_1_460px] flex-col gap-7">
+        <Reveal className="flex min-w-0 flex-[1_1_460px] flex-col gap-7">
           <span className="self-start rounded-full bg-landing-leaf-soft px-3.5 py-2 text-sm font-semibold text-landing-brand">
             AI 지식 트리 서비스
           </span>
@@ -38,9 +39,9 @@ export function Hero() {
               30초 데모 보기
             </a>
           </div>
-        </div>
+        </Reveal>
 
-        <div className="min-w-0 flex-[1_1_520px]">
+        <Reveal delay={0.15} className="min-w-0 flex-[1_1_520px]">
           <div className="overflow-hidden rounded-landing-window border border-landing-border bg-landing-surface shadow-landing-window">
             <div className="flex items-center gap-2 border-b border-landing-border px-[18px] py-3.5">
               {[0, 1, 2].map((dot) => (
@@ -56,7 +57,7 @@ export function Hero() {
             </div>
             <HeroTree />
           </div>
-        </div>
+        </Reveal>
       </div>
     </section>
   );
