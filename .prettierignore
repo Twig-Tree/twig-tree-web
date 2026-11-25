@@ -7,7 +7,7 @@ src/entities/lecture/model/generation/evaluation/report.md
 src/entities/lecture/model/compiler/legacy/*/*/script.json
 
 # 외부 도구가 만든 디자인 시안 원본이다.
-docs/landing/twig-landing-design.html
+docs/specs/landing-page-design.html
 
 # 빌드 산출물 (.gitignore와 같은 범위)
 /.next/
