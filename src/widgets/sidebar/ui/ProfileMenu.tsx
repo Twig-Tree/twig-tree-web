@@ -1,6 +1,7 @@
 "use client";
 
 import { useSyncExternalStore } from "react";
+import { useGetMyInfoQuery } from "@/src/entities/auth";
 import { useLogout } from "@/src/features/auth/logout";
 import { authSession } from "@/src/shared/lib/auth/authSession";
 import { DefaultAvatar } from "@/src/shared/ui/default-avatar";
@@ -35,16 +36,18 @@ export function ProfileMenu() {
 
 /*
 함수 이름 : SignedInProfileMenu
-기능 : 프로필 이미지를 눌러 메뉴를 열고 로그아웃을 실행한다. 메뉴는 메뉴바 오른쪽으로 펼친다.
+기능 : 프로필 이미지를 눌러 메뉴를 열고, 내 이름과 이메일을 보여 주며 로그아웃을 실행한다. 메뉴는 메뉴바 오른쪽으로 펼친다.
 인자 : 없음
 반환값 : 프로필 메뉴
 */
 function SignedInProfileMenu() {
   const { logout, isLoggingOut } = useLogout();
+  const myInfoQuery = useGetMyInfoQuery();
 
   return (
     <KebabMenu
       ariaLabel="프로필 메뉴"
+      header={<MyInfo query={myInfoQuery} />}
       placement="right-end"
       triggerClassName="group flex h-10 w-10 items-center justify-center rounded-control focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
       trigger={
@@ -60,5 +63,41 @@ function SignedInProfileMenu() {
         },
       ]}
     />
+  );
+}
+
+interface MyInfoProps {
+  query: ReturnType<typeof useGetMyInfoQuery>; // 내 정보 조회 query
+}
+
+/*
+함수 이름 : MyInfo
+기능 : 내 정보 조회 상태에 따라 이름과 이메일, 불러오는 중, 오류 안내 중 하나를 그린다.
+인자 : MyInfoProps
+반환값 : 프로필 메뉴 상단의 내 정보 영역
+*/
+function MyInfo({ query }: MyInfoProps) {
+  if (query.isPending) {
+    return <p className="text-sm text-content-muted">불러오는 중...</p>;
+  }
+
+  if (query.isError) {
+    return (
+      <p className="text-sm text-content-muted">
+        내 정보를 불러오지 못했습니다.
+      </p>
+    );
+  }
+
+  /*
+  메뉴가 메뉴바 옆으로 펼쳐지므로 긴 이메일이 화면을 넘지 않게 폭을 제한하고 말줄임한다.
+  */
+  return (
+    <div className="max-w-60">
+      <p className="truncate text-sm font-semibold text-content">
+        {query.data.name}
+      </p>
+      <p className="truncate text-xs text-content-muted">{query.data.email}</p>
+    </div>
   );
 }

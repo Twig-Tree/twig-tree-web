@@ -1,6 +1,7 @@
 import {
   RAW_CREATED_TREE_DATA,
   RAW_FOLDER_DATA,
+  RAW_MEMBER_DATA,
   RAW_TREE_DATA,
   RAW_TREE_DATA_WITH_CYCLE,
   RAW_TREE_TAG_DATA,
@@ -13,6 +14,21 @@ import { http, HttpResponse } from "msw";
 const DEFAULT_RECENT_PAGE_SIZE = 20; // 서버가 size를 생략한 요청에 쓰는 기본값
 
 export const handlers = [
+  /*
+  내 정보 조회 GET 요청 핸들러.
+  */
+  http.get("*/api/members/me", () => {
+    return HttpResponse.json(
+      {
+        isSuccess: true,
+        code: "MEMBER_FOUND",
+        message: "회원 정보가 조회되었습니다.",
+        data: RAW_MEMBER_DATA,
+      },
+      { status: 200 },
+    );
+  }),
+
   /*
   폴더 목록 조회 GET 요청 핸들러.
   folderParentId를 생략하면 루트의 폴더만, 값이 있으면 그 폴더의 하위 폴더만 돌려준다.
