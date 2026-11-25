@@ -1,21 +1,24 @@
+import Image from "next/image";
 import Link from "next/link";
 import { routes } from "@/src/shared/config/routes";
-import { LogoMark, Wordmark } from "./Logo";
 import { CONTAINER_CLASS, FOCUS_RING_CLASS } from "./styles";
+import logo from "./Twig-Tree-logo.png";
 
 export function TopBar() {
   return (
     <header>
       <div
-        className={`${CONTAINER_CLASS} flex min-h-12 items-center justify-between gap-4 py-3.5`}
+        className={`${CONTAINER_CLASS} flex min-h-12 items-center justify-between gap-4 py-1`}
       >
         <a
           href="#top"
           aria-label="Twig Tree 홈"
-          className={`flex items-center gap-2.5 rounded-full ${FOCUS_RING_CLASS}`}
+          className={`-ml-4 rounded-full ${FOCUS_RING_CLASS}`}
         >
-          <LogoMark />
-          <Wordmark className="text-[22px]" />
+          {/*
+          이미지 왼쪽에 투명 여백이 있어 음수 margin으로 컨테이너 왼쪽 선에 맞춘다.
+          */}
+          <Image src={logo} alt="" loading="eager" className="h-16 w-auto" />
         </a>
         <Link
           href={routes.login}
