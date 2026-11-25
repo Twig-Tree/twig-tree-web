@@ -33,6 +33,12 @@ export const mockIntersectionObserver = () => {
         this.record.elements.push(element);
       }
 
+      unobserve(element: Element) {
+        this.record.elements = this.record.elements.filter(
+          (observed) => observed !== element,
+        );
+      }
+
       disconnect() {
         this.record.isDisconnected = true;
       }

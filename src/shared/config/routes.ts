@@ -1,4 +1,5 @@
 export const routes = {
+  landing: "/",
   login: "/login",
   dashboard: "/dashboard",
   directoryRoot: "/directory",

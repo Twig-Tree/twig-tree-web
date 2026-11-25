@@ -1,3 +1,4 @@
+import { AppShell } from "@/src/widgets/app-shell";
 import { Sidebar } from "@/src/widgets/sidebar";
 import { AuthGate } from "@/src/shared/lib/auth/AuthGate";
 import type { ReactNode } from "react";
@@ -8,11 +9,13 @@ interface MainLayoutProps {
 
 export default function MainLayout({ children }: MainLayoutProps) {
   return (
-    <AuthGate>
-      <div className="flex h-full min-h-0">
-        <Sidebar />
-        <main className="min-h-0 min-w-0 flex-1 bg-surface">{children}</main>
-      </div>
-    </AuthGate>
+    <AppShell>
+      <AuthGate>
+        <div className="flex h-full min-h-0">
+          <Sidebar />
+          <main className="min-h-0 min-w-0 flex-1 bg-surface">{children}</main>
+        </div>
+      </AuthGate>
+    </AppShell>
   );
 }

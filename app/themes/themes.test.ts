@@ -7,8 +7,14 @@ const themesDirectory = path.resolve(__dirname);
 const readCss = (fileName: string) =>
   readFileSync(path.join(themesDirectory, fileName), "utf8");
 
+/*
+tokens.css는 이름을 잇는 파일이고, landing.css는 테마를 따르지 않는 소개 페이지 팔레트라 테마 목록에서 뺀다.
+*/
+const NON_THEME_FILE_NAMES = ["tokens.css", "landing.css"];
+
 const themeFileNames = readdirSync(themesDirectory).filter(
-  (fileName) => fileName.endsWith(".css") && fileName !== "tokens.css",
+  (fileName) =>
+    fileName.endsWith(".css") && !NON_THEME_FILE_NAMES.includes(fileName),
 );
 
 /*
@@ -20,6 +26,20 @@ const themeFileNames = readdirSync(themesDirectory).filter(
 const getThemeValues = (css: string) =>
   Object.fromEntries(
     [...css.matchAll(/(--theme-[a-z-]+):\s*([^;]+);/g)].map((match) => [
+      match[1],
+      match[2].trim(),
+    ]),
+  );
+
+/*
+함수 이름 : getLandingValues
+기능 : 소개 페이지 팔레트에서 --color-landing-* 선언을 이름과 값의 객체로 읽는다.
+인자 : string css -> 팔레트 파일 내용
+반환값 : landing- 뒤의 이름을 키로 하는 값 객체
+*/
+const getLandingValues = (css: string) =>
+  Object.fromEntries(
+    [...css.matchAll(/--color-landing-([a-z-]+):\s*([^;]+);/g)].map((match) => [
       match[1],
       match[2].trim(),
     ]),
@@ -141,4 +161,47 @@ describe("테마", () => {
       ).toBeGreaterThanOrEqual(3);
     });
   });
+});
+
+/*
+소개 페이지에서 실제로 겹치는 글자와 바탕의 조합이다.
+단계 번호처럼 큰 장식 글자와 연결선은 넣지 않는다.
+*/
+const landingTextPairs: Array<[text: string, background: string]> = [
+  ["ink", "surface"],
+  ["ink", "surface-muted"],
+  ["muted", "surface"],
+  ["muted", "surface-muted"],
+  ["subtle", "surface"],
+  ["brand", "surface"],
+  ["brand", "surface-muted"],
+  ["brand", "leaf-soft"],
+  ["brand-strong", "surface"],
+  ["brand-strong", "leaf-soft"],
+  ["on-brand", "brand"],
+  ["on-brand", "brand-strong"],
+  ["on-brand", "ink"],
+  ["on-brand-muted", "brand"],
+  ["ink", "leaf"],
+  ["night-text", "ink"],
+  ["night-text", "night-card"],
+  ["night-text", "brand"],
+  ["night-muted", "ink"],
+  ["night-subtle", "night-card"],
+  ["night-faint", "night-card"],
+  ["night-faint", "night-raised"],
+  ["on-memo", "memo"],
+];
+
+describe("소개 페이지 팔레트", () => {
+  const values = getLandingValues(readCss("landing.css"));
+
+  it.each(landingTextPairs)(
+    "%s 글자가 %s 바탕에서 읽힌다",
+    (text, background) => {
+      expect(
+        getContrastRatio(values[text], values[background]),
+      ).toBeGreaterThanOrEqual(MIN_TEXT_CONTRAST);
+    },
+  );
 });

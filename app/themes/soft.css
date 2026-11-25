@@ -118,4 +118,7 @@ hover, 비활성, 경고, 성공, 정보 색은 Lab에 없어 제품 사용처�
   /* 패널 밀도 */
   --theme-panel-padding: 18px;
   --theme-panel-item-padding: 9px;
+
+  /* 로고 */
+  --theme-logo-filter: none;
 }

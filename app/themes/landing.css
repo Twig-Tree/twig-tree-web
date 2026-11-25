@@ -1,0 +1,86 @@
+/*
+소개 페이지의 브랜드 팔레트다. 제품 테마(--theme-*)와 달리 사용자가 고른 테마를 따르지 않는다.
+로그인 전 첫 화면이라 테마를 고를 기회가 없었고, 시안이 밝은 섹션과 어두운 섹션을 함께 써서 한 벌로 완결되기 때문이다.
+글자 대비는 themes.test.ts의 랜딩 조합(landingTextPairs)이 검사한다.
+*/
+@theme {
+  /* 밝은 섹션 */
+  --color-landing-ink: #17211b; /* 본문 글자, 어두운 섹션 바탕, 루트 노드 */
+  --color-landing-surface: #ffffff;
+  --color-landing-surface-muted: #f5f8f4;
+  --color-landing-muted: #4a5a4f; /* 보조 글자 */
+  --color-landing-subtle: #6a786e; /* 작은 라벨. 흰 바탕에서만 대비 기준을 넘는다 */
+  --color-landing-border: #e1e8e2;
+  --color-landing-border-strong: #d3ddd5;
+  --color-landing-border-dashed: #c5d3c9;
+  --color-landing-placeholder: #e3e8e4; /* 문서 줄, 브라우저 창 점처럼 내용 없는 자리 */
+
+  /* 브랜드 */
+  --color-landing-brand: #2f6b45; /* 워드마크 "tree", CTA 바탕, 라벨 */
+  --color-landing-brand-strong: #1f4d31; /* 연한 바탕 위 노드 글자, 링크 hover */
+  --color-landing-on-brand: #ffffff;
+  --color-landing-on-brand-muted: #dcefe0;
+  --color-landing-leaf: #58a86b; /* 로고 잎, 현재 강의 노드, 진행바 */
+  --color-landing-leaf-pale: #b9e0c2; /* 강의 데모의 현재 노드 테두리 */
+  --color-landing-leaf-soft: #eaf4ec; /* 배지, 아이콘 바탕 */
+  --color-landing-edge: #9cc5a6; /* 트리 연결선 */
+  --color-landing-edge-soft: #cfe3d4;
+
+  /* 어두운 섹션 */
+  --color-landing-night-card: #212d26;
+  --color-landing-night-raised: #26362d; /* 강의 뷰포트 중심, 지나지 않은 노드 */
+  --color-landing-night-border: #2e3d34;
+  --color-landing-night-control: #3a4a3f; /* 원형 버튼 테두리, 단계 번호 */
+  --color-landing-night-edge: #3f5a48;
+  --color-landing-night-node-line: #34463b;
+  --color-landing-night-text: #e8f0ea;
+  --color-landing-night-muted: #c4d2c8;
+  --color-landing-night-subtle: #a9b8ad;
+  --color-landing-night-faint: #8fa596;
+
+  /* 메모 */
+  --color-landing-memo: #fff8d9;
+  --color-landing-on-memo: #3b3418;
+
+  /* 장식 숫자. 큰 장식 글자라 대비 검사에서 뺀다 */
+  --color-landing-step-number: #dce6de;
+
+  /* 형태 */
+  --radius-landing-button: 10px; /* 상단바 로그인처럼 작은 사각 버튼 */
+  --radius-landing-card: 20px;
+  --radius-landing-window: 24px;
+  --radius-landing-panel: 28px;
+  --radius-landing-cta: 36px;
+  --shadow-landing-window: 0 30px 80px -30px rgb(23 33 27 / 25%);
+  --shadow-landing-card: 0 20px 50px -30px rgb(23 33 27 / 30%);
+  --shadow-landing-lift: 0 12px 24px -12px rgb(23 33 27 / 35%);
+  --shadow-landing-glow: 0 0 0 8px rgb(88 168 107 / 18%);
+
+  /* next/font가 랜딩 루트에 선언하는 변수를 잇는다 */
+  --font-landing:
+    var(--font-landing-latin), var(--font-landing-korean), system-ui, sans-serif;
+}
+
+@utility bg-landing-hero {
+  background-image: radial-gradient(
+    1000px 500px at 80% 0%,
+    #eaf4ec 0%,
+    rgb(255 255 255 / 0%) 70%
+  );
+}
+
+@utility bg-landing-lecture-viewport {
+  background-image: radial-gradient(
+    700px 320px at 50% 50%,
+    #26362d 0%,
+    #212d26 70%
+  );
+}
+
+@utility bg-landing-cta {
+  background-image: radial-gradient(
+    500px 260px at 50% 120%,
+    #58a86b 0%,
+    rgb(88 168 107 / 0%) 70%
+  );
+}

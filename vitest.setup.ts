@@ -1,6 +1,7 @@
 import "@testing-library/jest-dom/vitest";
 import { cleanup } from "@testing-library/react";
-import { afterAll, afterEach, beforeAll } from "vitest";
+import { createElement, type ImgHTMLAttributes } from "react";
+import { afterAll, afterEach, beforeAll, vi } from "vitest";
 import { server } from "@/src/tests/mocks/server";
 
 /*
@@ -24,6 +25,30 @@ if (!HTMLDialogElement.prototype.close) {
     this.dispatchEvent(new Event("close"));
   };
 }
+
+/*
+vitest는 이미지 파일을 import하면 크기 정보 없이 경로 문자열만 준다. next/image는 크기가 없으면
+예외를 던지므로, 로고처럼 이미지를 쓰는 컴포넌트 테스트가 렌더 시점에 죽는다.
+
+테스트에서는 이미지 최적화를 검사하지 않으므로 같은 속성을 가진 img로 바꾼다.
+next/image 전용 속성(preload, quality 등)은 img에 없으므로 흘려보내지 않는다.
+*/
+vi.mock("next/image", () => ({
+  default: ({
+    src,
+    alt,
+    className,
+    loading,
+  }: ImgHTMLAttributes<HTMLImageElement> & {
+    src: string | { src: string };
+  }) =>
+    createElement("img", {
+      src: typeof src === "string" ? src : src.src,
+      alt,
+      className,
+      loading,
+    }),
+}));
 
 // Start server before all tests
 beforeAll(() => server.listen({ onUnhandledRequest: "error" }));
