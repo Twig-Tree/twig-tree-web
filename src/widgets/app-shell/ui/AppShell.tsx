@@ -1,7 +1,6 @@
-import Link from "next/link";
 import type { ReactNode } from "react";
 import { routes } from "@/src/shared/config/routes";
-import { Logo } from "@/src/shared/ui/logo";
+import { SiteHeader } from "@/src/shared/ui/site-header";
 
 /*
 dashboard : 로그인한 화면. 로그인하지 않았으면 대시보드의 인증 확인이 로그인 화면으로 보낸다.
@@ -33,18 +32,12 @@ export function AppShell({ children, home = "dashboard" }: AppShellProps) {
   */
   return (
     <div className="flex h-dvh flex-col overflow-hidden">
-      <header className="flex h-14 shrink-0 items-center border-b border-line bg-surface px-5">
-        <Link
-          href={homeLink.href}
-          aria-label={homeLink.label}
-          className="-ml-2 rounded-control focus-visible:ring-2 focus-visible:ring-focus focus-visible:outline-none"
-        >
-          {/*
-          이미지 왼쪽의 투명 여백을 음수 margin으로 상쇄해 메뉴바 아이콘 열과 맞춘다.
-          */}
-          <Logo alt="" isEager className="h-11" />
-        </Link>
-      </header>
+      <SiteHeader
+        homeHref={homeLink.href}
+        homeLabel={homeLink.label}
+        tone="themed"
+        hasDivider={home === "dashboard"} // 로그인한 화면은 상단바와 작업 공간을 선으로 나눈다
+      />
 
       <div className="min-h-0 flex-1">{children}</div>
     </div>

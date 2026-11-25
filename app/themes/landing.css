@@ -46,6 +46,7 @@
   --color-landing-step-number: #dce6de;
 
   /* 형태 */
+  --radius-landing-button: 10px; /* 상단바 로그인처럼 작은 사각 버튼 */
   --radius-landing-card: 20px;
   --radius-landing-window: 24px;
   --radius-landing-panel: 28px;

@@ -19,4 +19,13 @@ describe("AppShell", () => {
       screen.getByRole("link", { name: "Twig Tree 소개 페이지로 이동" }),
     ).toHaveAttribute("href", routes.landing);
   });
+
+  it("로그인한 화면에만 상단바 아래 경계선이 있다", () => {
+    const { unmount } = render(<AppShell>화면</AppShell>);
+    expect(screen.getByRole("banner")).toHaveClass("border-b");
+    unmount();
+
+    render(<AppShell home="landing">화면</AppShell>);
+    expect(screen.getByRole("banner")).not.toHaveClass("border-b");
+  });
 });

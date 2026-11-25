@@ -179,6 +179,7 @@ const landingTextPairs: Array<[text: string, background: string]> = [
   ["brand-strong", "surface"],
   ["brand-strong", "leaf-soft"],
   ["on-brand", "brand"],
+  ["on-brand", "brand-strong"],
   ["on-brand", "ink"],
   ["on-brand-muted", "brand"],
   ["ink", "leaf"],
