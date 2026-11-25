@@ -3,6 +3,7 @@ import { EditMemoSearch } from "./EditMemoSearch";
 import { FinalCta } from "./FinalCta";
 import { Footer } from "./Footer";
 import { Hero } from "./Hero";
+import { LectureDemo } from "./LectureDemo";
 import { HowItWorks } from "./HowItWorks";
 import { Problem } from "./Problem";
 import { TopBar } from "./TopBar";
@@ -17,7 +18,7 @@ export function LandingPage() {
         <Problem />
         <HowItWorks />
         <AiTreeFeature />
-        {/* 트리 강의 데모(#lecture)는 4단계에서 이 자리에 넣는다. */}
+        <LectureDemo />
         <EditMemoSearch />
         <UserTestStats />
         <FinalCta />

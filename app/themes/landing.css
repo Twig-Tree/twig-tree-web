@@ -21,6 +21,7 @@
   --color-landing-on-brand: #ffffff;
   --color-landing-on-brand-muted: #dcefe0;
   --color-landing-leaf: #58a86b; /* 로고 잎, 현재 강의 노드, 진행바 */
+  --color-landing-leaf-pale: #b9e0c2; /* 강의 데모의 현재 노드 테두리 */
   --color-landing-leaf-soft: #eaf4ec; /* 배지, 아이콘 바탕 */
   --color-landing-edge: #9cc5a6; /* 트리 연결선 */
   --color-landing-edge-soft: #cfe3d4;
