@@ -1,4 +1,5 @@
 import { GoogleOAuthProvider } from "@/src/shared/lib/google-oauth/GoogleOAuthProvider";
+import { AppShell } from "@/src/widgets/app-shell";
 import type { ReactNode } from "react";
 
 const getGoogleClientId = (): string => {
@@ -20,9 +21,11 @@ interface AuthLayoutProps {
 export default function AuthLayout({ children }: AuthLayoutProps) {
   return (
     <GoogleOAuthProvider clientId={getGoogleClientId()}>
-      <main className="flex h-full min-h-0 items-center justify-center bg-surface-muted px-6 py-10">
-        {children}
-      </main>
+      <AppShell>
+        <main className="flex h-full min-h-0 items-center justify-center bg-surface-muted px-6 py-10">
+          {children}
+        </main>
+      </AppShell>
     </GoogleOAuthProvider>
   );
 }
