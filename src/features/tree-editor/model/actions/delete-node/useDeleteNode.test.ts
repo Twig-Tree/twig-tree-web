@@ -5,6 +5,7 @@ import { createQueryWrapper } from "@/src/tests/helpers/createQueryWrapper";
 import { createEditorEdge } from "../../../lib/add-node/createEditorEdge";
 import { createEditorNode } from "../../../lib/add-node/createEditorNode";
 import { useEditHistoryStore } from "../../history/editHistoryStore";
+import { useExternalChangeCheckStore } from "../../sync/externalChangeCheckStore";
 import { useTreeStore } from "../../treeStore";
 import { useDeleteNode } from "./useDeleteNode";
 
@@ -101,6 +102,8 @@ describe("useDeleteNode", () => {
     );
     const alertSpy = vi.spyOn(window, "alert").mockImplementation(() => {});
     const initialEdges = useTreeStore.getState().edges;
+    const initialCheckRequestCount =
+      useExternalChangeCheckStore.getState().requestCount;
     const { result } = renderDeleteNode("c2");
 
     act(() => {
@@ -131,5 +134,8 @@ describe("useDeleteNode", () => {
     expect(useTreeStore.getState().edges).toEqual(initialEdges);
     expect(getNodeById("c3")?.data.label).toBe("renamed");
     expect(useEditHistoryStore.getState().past).toHaveLength(0);
+    expect(useExternalChangeCheckStore.getState().requestCount).toBe(
+      initialCheckRequestCount + 1,
+    ); // 다른 곳에서 이미 지운 노드일 수 있어 트리를 다시 확인한다.
   });
 });

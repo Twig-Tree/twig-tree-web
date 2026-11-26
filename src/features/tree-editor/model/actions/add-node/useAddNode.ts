@@ -6,6 +6,7 @@ import { NODE_WIDTH } from "../../../lib/layout";
 import { getNextOrderIndex } from "../../../lib/node";
 import { useCollapseStore } from "../../collapse/collapseStore";
 import { useEditHistoryStore } from "../../history/editHistoryStore";
+import { useExternalChangeCheckStore } from "../../sync/externalChangeCheckStore";
 import { useTreeStore } from "../../treeStore";
 import { CustomEditorEdge, CustomEditorNode } from "../../types";
 
@@ -135,12 +136,14 @@ export const useAddNode = ({
         },
         /*
         서버 요청이 실패하면 추가 전 구조로 되돌린다. 추가한 노드와 엣지만 빠진다.
+        다른 곳에서 같은 부모에 자식을 먼저 추가했다면 화면의 순번이 서버와 겹쳐 거절된다. 트리를 다시 확인하지 않으면 다음 추가도 같은 순번으로 거절된다.
         */
         onError: () => {
           restoreStructureInStore({
             nodes: nodesBeforeAdd,
             edges: edgesBeforeAdd,
           });
+          useExternalChangeCheckStore.getState().requestExternalChangeCheck();
           alert("노드 추가에 실패했습니다.");
         },
       },

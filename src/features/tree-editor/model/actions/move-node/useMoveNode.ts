@@ -3,6 +3,7 @@ import { getApiErrorCode } from "@/src/shared/api/authErrorCodes";
 import { MoveNodeParams } from "../../../lib/move-node/getMovedElements";
 import { getNodePlacement } from "../../../lib/move-node/getNodePlacement";
 import { useEditHistoryStore } from "../../history/editHistoryStore";
+import { useExternalChangeCheckStore } from "../../sync/externalChangeCheckStore";
 import { useTreeStore } from "../../treeStore";
 
 type UseMoveNodeParams = {
@@ -26,10 +27,10 @@ const getMoveNodeErrorMessage = (error: unknown): string => {
       return "자기 자신이나 하위 노드 밑으로는 옮길 수 없습니다.";
     /*
     화면의 형제 수로 계산한 순번이 서버 범위를 벗어났다면 다른 곳에서 트리가 바뀐 것이다.
-    editor store는 트리당 한 번만 채우므로 새로고침해야 서버 상태를 받는다.
+    실패하면 트리를 다시 확인해 최신 상태로 맞추므로, 새로고침 없이 다시 시도하면 된다.
     */
     case NODE_ERROR_CODE.INVALID_POSITION:
-      return "트리가 다른 곳에서 바뀌었습니다. 새로고침한 뒤 다시 시도해 주세요.";
+      return "트리가 다른 곳에서 바뀌어 최신 상태로 맞춥니다. 다시 시도해 주세요.";
     default:
       return "노드 이동에 실패했습니다.";
   }
@@ -103,8 +104,12 @@ export const useMoveNode = ({ treeId }: UseMoveNodeParams) => {
             to: { parentClientId, position },
           });
         },
+        /*
+        실패하면 이동 전 구조로 되돌린다. 다른 곳에서 트리가 바뀌어 거절됐을 수 있으므로 트리를 다시 확인한다.
+        */
         onError: (error) => {
           restoreStructureInStore({ nodes, edges });
+          useExternalChangeCheckStore.getState().requestExternalChangeCheck();
           alert(getMoveNodeErrorMessage(error));
         },
       },
